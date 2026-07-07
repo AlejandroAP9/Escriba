@@ -503,8 +503,10 @@ jobs:
           AZURE_CLIENT_ID: ${{ inputs.sign-binaries && secrets.AZURE_CLIENT_ID || '' }}
           AZURE_CLIENT_SECRET: ${{ inputs.sign-binaries && secrets.AZURE_CLIENT_SECRET || '' }}
           AZURE_TENANT_ID: ${{ inputs.sign-binaries && secrets.AZURE_TENANT_ID || '' }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ inputs.sign-binaries && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ inputs.sign-binaries && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
+          # Escriba: la firma minisign del UPDATER va SIEMPRE (keypair propia),
+          # independiente de la firma de binarios Apple/Azure que no usamos.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ inputs.release-id && format('v{0}', steps.get-version.outputs.version) || '' }}
           releaseName: ${{ inputs.release-id && format('v{0}', steps.get-version.outputs.version) || '' }}
@@ -520,10 +522,10 @@ jobs:
           echo "=== Frameworks contents ==="
           ls -la "$APP/Contents/Frameworks/" | grep onnx || true
           echo "=== Binary linked libs ==="
-          otool -L "$APP/Contents/MacOS/handy" | grep onnx || true
+          otool -L "$APP/Contents/MacOS/escriba" | grep onnx || true
           echo "=== Checking all @rpath deps are satisfied ==="
           # Extract every @rpath lib the binary needs
-          otool -L "$APP/Contents/MacOS/handy" | grep '@rpath/' | awk '{print $1}' | while read dep; do
+          otool -L "$APP/Contents/MacOS/escriba" | grep '@rpath/' | awk '{print $1}' | while read dep; do
             libname=$(basename "$dep")
             if [ ! -f "$APP/Contents/Frameworks/$libname" ]; then
               echo "MISSING: $libname not found in Frameworks/"
@@ -660,7 +662,7 @@ jobs:
             # on the headless --list-devices path, which fails without a display.
             HANDY_NO_GTK_LAYER_SHELL=1 \
             LD_LIBRARY_PATH="${root}/usr/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
-              xvfb-run -a "${root}/usr/bin/handy" --list-devices >/tmp/handy-package-smoke.log
+              xvfb-run -a "${root}/usr/bin/escriba" --list-devices >/tmp/escriba-package-smoke.log
             echo "${label} --list-devices smoke passed"
           }
 
@@ -669,7 +671,7 @@ jobs:
               echo "Auditing deb package: ${deb}"
               listing="$(mktemp)"
               dpkg-deb -c "$deb" > "$listing"
-              require_pattern "$listing" 'usr/bin/handy$' "handy binary"
+              require_pattern "$listing" 'usr/bin/escriba$' "escriba binary"
               require_pattern "$listing" 'usr/lib/libtranscribe\.so' "transcribe runtime library"
               require_pattern "$listing" 'usr/lib/libggml-cpu.*\.so' "ggml CPU backend module"
               if [[ "${{ inputs.platform }}" == *"ubuntu-22.04"* && "${{ inputs.target }}" == "x86_64-unknown-linux-gnu" ]]; then
@@ -691,7 +693,7 @@ jobs:
               echo "Auditing rpm package: ${rpm_pkg}"
               listing="$(mktemp)"
               rpm -qpl "$rpm_pkg" > "$listing"
-              require_pattern "$listing" '/usr/bin/handy$' "handy binary"
+              require_pattern "$listing" '/usr/bin/escriba$' "escriba binary"
               require_pattern "$listing" '/usr/lib/libtranscribe\.so' "transcribe runtime library"
               require_pattern "$listing" '/usr/lib/libggml-cpu.*\.so' "ggml CPU backend module"
               rm -f "$listing"
@@ -707,7 +709,7 @@ jobs:
               (
                 cd "$workdir"
                 ./Handy.AppImage --appimage-extract >/dev/null
-                require_path "squashfs-root/usr/bin/handy" "AppImage handy binary"
+                require_path "squashfs-root/usr/bin/escriba" "AppImage handy binary"
                 require_path "squashfs-root/usr/lib/libtranscribe.so" "AppImage transcribe runtime library"
                 if ! find "squashfs-root/usr/lib" -name 'libggml-cpu*.so*' | grep -q .; then
                   echo "ERROR: missing AppImage ggml CPU backend module" >&2
@@ -780,9 +782,9 @@ jobs:
           function Assert-PackageContents {
             param([string]$Root, [string]$Label)
 
-            $handy = Get-ChildItem $Root -Filter "handy.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            $handy = Get-ChildItem $Root -Filter "escriba.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
             if (-not $handy) {
-              throw "$Label package is missing handy.exe"
+              throw "$Label package is missing escriba.exe"
             }
             foreach ($dll in $stagedDlls) {
               if (-not (Get-ChildItem $Root -Filter $dll.Name -Recurse -ErrorAction SilentlyContinue)) {
@@ -792,7 +794,7 @@ jobs:
 
             & $handy.FullName --list-devices | Out-Host
             if ($LASTEXITCODE -ne 0) {
-              throw "$Label handy.exe --list-devices failed"
+              throw "$Label escriba.exe --list-devices failed"
             }
           }
 

@@ -362,23 +362,6 @@ fn build_apple_intelligence_bridge() {
         .to_string()
     });
 
-    // Check if the SDK supports FoundationModels (required for Apple Intelligence)
-    let framework_path =
-        Path::new(&sdk_path).join("System/Library/Frameworks/FoundationModels.framework");
-    let has_foundation_models = framework_path.exists();
-
-    let source_file = if has_foundation_models {
-        println!("cargo:warning=Building with Apple Intelligence support.");
-        REAL_SWIFT_FILE
-    } else {
-        println!("cargo:warning=Apple Intelligence SDK not found. Building with stubs.");
-        STUB_SWIFT_FILE
-    };
-
-    if !Path::new(source_file).exists() {
-        panic!("Source file {} is missing!", source_file);
-    }
-
     // See SDKROOT note above — same env-override pattern for non-Xcode toolchains.
     let swiftc_path = env::var("SWIFTC").unwrap_or_else(|_| {
         String::from_utf8(
@@ -392,6 +375,38 @@ fn build_apple_intelligence_bridge() {
         .trim()
         .to_string()
     });
+
+    // Check if the SDK supports FoundationModels (required for Apple Intelligence)
+    let framework_path =
+        Path::new(&sdk_path).join("System/Library/Frameworks/FoundationModels.framework");
+    let has_foundation_models = framework_path.exists();
+
+    // The @Generable macro needs the FoundationModelsMacros compiler plugin,
+    // which ships with full Xcode but not with Command Line Tools — whose SDK
+    // still bundles the framework, so the framework check alone is not enough.
+    let has_macro_plugin = Path::new(&swiftc_path)
+        .parent()
+        .and_then(|p| p.parent())
+        .map(|root| {
+            root.join("lib/swift/host/plugins/libFoundationModelsMacros.dylib")
+                .exists()
+        })
+        .unwrap_or(false);
+
+    let source_file = if has_foundation_models && has_macro_plugin {
+        println!("cargo:warning=Building with Apple Intelligence support.");
+        REAL_SWIFT_FILE
+    } else if has_foundation_models {
+        println!("cargo:warning=FoundationModelsMacros plugin not found (Command Line Tools toolchain?). Building with stubs.");
+        STUB_SWIFT_FILE
+    } else {
+        println!("cargo:warning=Apple Intelligence SDK not found. Building with stubs.");
+        STUB_SWIFT_FILE
+    };
+
+    if !Path::new(source_file).exists() {
+        panic!("Source file {} is missing!", source_file);
+    }
 
     let toolchain_swift_lib = Path::new(&swiftc_path)
         .parent()
