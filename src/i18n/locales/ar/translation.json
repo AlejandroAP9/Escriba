@@ -410,6 +410,9 @@
         "downloadingRuntime": "Downloading engine...",
         "downloadingModel": "Downloading AI model...",
         "progressLine": " {{percent}}% ({{downloaded}} / {{total}} GB)"
+      },
+      "enable": {
+        "title": "AI cleanup"
       }
     },
     "history": {

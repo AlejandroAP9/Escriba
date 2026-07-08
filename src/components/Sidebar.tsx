@@ -60,7 +60,8 @@ export const SECTIONS_CONFIG = {
     labelKey: "sidebar.postProcessing",
     icon: Sparkles,
     component: PostProcessingSettings,
-    enabled: (settings) => settings?.post_process_enabled ?? false,
+    // Escriba: la correccion con IA es feature principal, no experimental.
+    enabled: () => true,
   },
   debug: {
     labelKey: "sidebar.debug",

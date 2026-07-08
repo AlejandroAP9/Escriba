@@ -695,6 +695,26 @@ fn default_post_process_prompts() -> Vec<LLMPrompt> {
         prompt: "Eres un corrector de dictado por voz. Limpia el texto dictado:\n1. Elimina muletillas (eh, em, este, o sea, ya sabes, um, uh) y repeticiones accidentales\n2. Cuando el hablante se corrige a mitad de frase (\"el lunes... no mejor el martes\"), conserva SOLO la version final de lo que quiso decir\n3. Corrige puntuacion, tildes y mayusculas\n4. Convierte numeros hablados a cifras (veinticinco → 25, diez por ciento → 10%)\n5. Si el hablante dicta una lista o pasos, formatea con vinetas o numeros\n6. Conserva SIEMPRE el idioma original, el significado exacto y el tono del hablante\n\nResponde UNICAMENTE con el texto corregido, sin explicaciones ni comillas.\n\nTexto dictado:\n${output}".to_string(),
     },
     LLMPrompt {
+        id: "escriba_prompt_maestro".to_string(),
+        name: "Prompt Maestro (vibecoding)".to_string(),
+        prompt: "Eres un ingeniero de prompts experto. El usuario dicto ideas desordenadas para una IA (Cursor, Claude, ChatGPT). Transformalas en UN prompt claro y poderoso con esta estructura:\n\n**Contexto:** [situacion y proyecto en 1-2 lineas]\n**Tarea:** [que debe hacer la IA, concreto y sin ambiguedad]\n**Requisitos:** [lista de restricciones tecnicas, stack, estilo; incluye TODO lo que el usuario menciono]\n**Formato de salida:** [que debe entregar la IA y como]\n\nReglas: no inventes requisitos que el usuario no dijo (puedes inferir los obvios del contexto), conserva su idioma, se conciso y directo. Responde UNICAMENTE con el prompt final.\n\nDictado:\n${output}".to_string(),
+    },
+    LLMPrompt {
+        id: "escriba_whatsapp".to_string(),
+        name: "Mensaje de WhatsApp".to_string(),
+        prompt: "Convierte el dictado en un mensaje de WhatsApp listo para enviar: tono cercano y natural, frases cortas, sin muletillas ni repeticiones, conservando la intencion y calidez del hablante. Si se corrige a mitad de frase, conserva solo la version final. No agregues saludos ni despedidas que no dicto. Conserva su idioma. Responde UNICAMENTE con el mensaje.\n\nDictado:\n${output}".to_string(),
+    },
+    LLMPrompt {
+        id: "escriba_email".to_string(),
+        name: "Email profesional".to_string(),
+        prompt: "Convierte el dictado en el cuerpo de un email profesional: tono cordial y claro, parrafos breves, sin muletillas, ortografia y puntuacion impecables. Conserva toda la informacion que el hablante dicto y su idioma; no inventes datos, nombres ni compromisos. Si se corrige a mitad de frase, conserva solo la version final. Responde UNICAMENTE con el texto del email.\n\nDictado:\n${output}".to_string(),
+    },
+    LLMPrompt {
+        id: "escriba_apuntes".to_string(),
+        name: "Apuntes al vuelo".to_string(),
+        prompt: "El usuario dicto ideas sueltas mientras trabajaba en otra cosa. Conviertelas en una nota clara y accionable: si hay varias ideas, usa vinetas; si hay tareas, marcalas como lista de pendientes; conserva TODOS los detalles dictados (nombres, fechas, numeros) sin inventar nada. Elimina muletillas y repeticiones, conserva el idioma. Responde UNICAMENTE con la nota.\n\nDictado:\n${output}".to_string(),
+    },
+    LLMPrompt {
         id: "default_improve_transcriptions".to_string(),
         name: "Improve Transcriptions".to_string(),
         prompt: "Clean this transcript:\n1. Fix spelling, capitalization, and punctuation errors\n2. Convert number words to digits (twenty-five → 25, ten percent → 10%, five dollars → $5)\n3. Replace spoken punctuation with symbols (period → ., comma → ,, question mark → ?)\n4. Remove filler words (um, uh, like as filler)\n5. Keep the language in the original version (if it was french, keep it in french for example)\n\nPreserve exact meaning and word order. Do not paraphrase or reorder content.\n\nReturn only the cleaned transcript.\n\nTranscript:\n${output}".to_string(),

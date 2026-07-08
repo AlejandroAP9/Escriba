@@ -431,6 +431,9 @@
         "downloadingRuntime": "Descargando el motor...",
         "downloadingModel": "Descargando el modelo de IA...",
         "progressLine": " {{percent}}% ({{downloaded}} / {{total}} GB)"
+      },
+      "enable": {
+        "title": "Corrección con IA"
       }
     },
     "history": {

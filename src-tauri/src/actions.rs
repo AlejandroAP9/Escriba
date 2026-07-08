@@ -134,6 +134,20 @@ async fn post_process_transcription(
         return None;
     }
 
+    // Escriba: diccionario personal conectado al phraser. Los terminos del
+    // usuario (nombres propios, jerga, marcas) se respetan en la correccion.
+    let prompt = if settings.custom_words.is_empty() {
+        prompt
+    } else {
+        format!(
+            "{}
+
+Vocabulario personal del usuario (escribir SIEMPRE exactamente asi, sin corregir): {}",
+            prompt,
+            settings.custom_words.join(", ")
+        )
+    };
+
     debug!(
         "Starting LLM post-processing with provider '{}' (model: {})",
         provider.id, model
