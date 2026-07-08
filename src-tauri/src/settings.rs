@@ -690,6 +690,11 @@ fn default_post_process_models() -> HashMap<String, String> {
 
 fn default_post_process_prompts() -> Vec<LLMPrompt> {
     vec![LLMPrompt {
+        id: "escriba_dictado_natural".to_string(),
+        name: "Dictado natural (Escriba)".to_string(),
+        prompt: "Eres un corrector de dictado por voz. Limpia el texto dictado:\n1. Elimina muletillas (eh, em, este, o sea, ya sabes, um, uh) y repeticiones accidentales\n2. Cuando el hablante se corrige a mitad de frase (\"el lunes... no mejor el martes\"), conserva SOLO la version final de lo que quiso decir\n3. Corrige puntuacion, tildes y mayusculas\n4. Convierte numeros hablados a cifras (veinticinco → 25, diez por ciento → 10%)\n5. Si el hablante dicta una lista o pasos, formatea con vinetas o numeros\n6. Conserva SIEMPRE el idioma original, el significado exacto y el tono del hablante\n\nResponde UNICAMENTE con el texto corregido, sin explicaciones ni comillas.\n\nTexto dictado:\n${output}".to_string(),
+    },
+    LLMPrompt {
         id: "default_improve_transcriptions".to_string(),
         name: "Improve Transcriptions".to_string(),
         prompt: "Clean this transcript:\n1. Fix spelling, capitalization, and punctuation errors\n2. Convert number words to digits (twenty-five → 25, ten percent → 10%, five dollars → $5)\n3. Replace spoken punctuation with symbols (period → ., comma → ,, question mark → ?)\n4. Remove filler words (um, uh, like as filler)\n5. Keep the language in the original version (if it was french, keep it in french for example)\n\nPreserve exact meaning and word order. Do not paraphrase or reorder content.\n\nReturn only the cleaned transcript.\n\nTranscript:\n${output}".to_string(),
@@ -755,6 +760,24 @@ fn ensure_post_process_defaults(settings: &mut AppSettings) -> bool {
                 changed = true;
             }
         }
+    }
+
+    // Escriba: sembrar prompts nuevos en instalaciones existentes (merge por id,
+    // nunca pisa prompts editados por el usuario).
+    for prompt in default_post_process_prompts() {
+        if !settings
+            .post_process_prompts
+            .iter()
+            .any(|p| p.id == prompt.id)
+        {
+            settings.post_process_prompts.insert(0, prompt);
+            changed = true;
+        }
+    }
+    // Si no hay prompt seleccionado, seleccionar el de Escriba.
+    if settings.post_process_selected_prompt_id.is_none() {
+        settings.post_process_selected_prompt_id = Some("escriba_dictado_natural".to_string());
+        changed = true;
     }
 
     changed
@@ -852,7 +875,7 @@ pub fn get_default_settings() -> AppSettings {
         post_process_api_keys: default_post_process_api_keys(),
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
-        post_process_selected_prompt_id: Some("default_improve_transcriptions".to_string()),
+        post_process_selected_prompt_id: Some("escriba_dictado_natural".to_string()),
         mute_while_recording: false,
         append_trailing_space: false,
         app_language: default_app_language(),
