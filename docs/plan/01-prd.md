@@ -65,5 +65,5 @@ feliz. Las demás duplas seguirán la receta BYOK del enunciado.
 - **Supuesto:** Qwen3-4B Q4 corrige/traduce/estructura bien en español (validar en spike; fallback 1.7B en 8GB).
 - **Riesgo mayor:** sidecar en Windows (Vulkan/DLLs/antivirus) → gate go/no-go viernes etapa 1; Plan B Ollama guiado (~2 días) listo.
 - **Riesgo:** Cmd/Ctrl+C sintético bloqueado en algunas apps → fallback "actúa sobre el último dictado".
-- **Riesgo calendario:** dupla remota Chile-España (~6h) → handoffs asíncronos diarios; hitos publicables cada viernes (feedback de jueces).
+- **Riesgo calendario:** dupla remota Chile-España como husos horarios (Flor es argentina, ~6h de diferencia) → handoffs asíncronos diarios; hitos publicables cada viernes (feedback de jueces).
 - Decisiones de dupla pendientes 🤝: capacidad D vs B, reparto de frentes, tono de marca/video.

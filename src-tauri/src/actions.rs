@@ -145,8 +145,33 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
     // - custom: top-level reasoning_effort (works for local OpenAI-compat servers)
     // - openrouter: nested reasoning object; exclude:true also keeps reasoning text
     //   out of the response so it can't pollute structured-output JSON parsing
+    // Escriba: el provider local es un sidecar llama-server gestionado por la
+    // app. Se levanta on-demand aqui y se reemplaza el base_url sentinela por
+    // la URL real; desde ahi el flujo HTTP es identico al de cualquier provider.
+    let mut provider = provider;
+    if provider.id == crate::settings::LOCAL_LLM_PROVIDER_ID {
+        let manager = match crate::managers::local_llm::global() {
+            Some(manager) => manager,
+            None => {
+                error!("Local LLM manager not initialized");
+                return None;
+            }
+        };
+        match manager.ensure_running(&model).await {
+            Ok(base_url) => {
+                debug!("Local LLM sidecar ready at {}", base_url);
+                provider.base_url = base_url;
+            }
+            Err(err) => {
+                error!("Local LLM unavailable: {}", err);
+                return None;
+            }
+        }
+    }
+    let provider = provider;
+
     let (reasoning_effort, reasoning) = match provider.id.as_str() {
-        "custom" => (Some("none".to_string()), None),
+        "custom" | crate::settings::LOCAL_LLM_PROVIDER_ID => (Some("none".to_string()), None),
         "openrouter" => (
             None,
             Some(crate::llm_client::ReasoningConfig {

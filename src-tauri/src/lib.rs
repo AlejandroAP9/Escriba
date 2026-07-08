@@ -753,6 +753,13 @@ pub fn run(cli_args: CliArgs) {
         .setup(move |app| {
             specta_builder.mount_events(app);
 
+            // Escriba: motor LLM local (sidecar llama-server). Se inicializa
+            // temprano para limpiar huerfanos de un crash previo; el proceso
+            // solo se levanta on-demand al usar post-proceso.
+            if let Ok(data_dir) = portable::app_data_dir(&app.handle().clone()) {
+                managers::local_llm::init(&data_dir);
+            }
+
             // Headless one-shot path (`--transcribe-file` / `--list-devices` /
             // `--list-models`): initialize only what transcription needs — the
             // store/paths plugins, the model + transcription managers, and the
@@ -912,6 +919,7 @@ pub fn run(cli_args: CliArgs) {
                 if let Some(tm) = app.try_state::<Arc<TranscriptionManager>>() {
                     let _ = tm.unload_model();
                 }
+                managers::local_llm::shutdown_on_exit();
             }
             _ => {}
         });

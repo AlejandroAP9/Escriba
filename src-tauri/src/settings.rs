@@ -9,6 +9,8 @@ use tauri_plugin_store::StoreExt;
 
 pub const APPLE_INTELLIGENCE_PROVIDER_ID: &str = "apple_intelligence";
 pub const APPLE_INTELLIGENCE_DEFAULT_MODEL_ID: &str = "Apple Intelligence";
+pub const LOCAL_LLM_PROVIDER_ID: &str = "local_llm";
+pub const LOCAL_LLM_DEFAULT_MODEL_ID: &str = "qwen3-4b-instruct-2507-q4_k_m.gguf";
 
 #[derive(Serialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
 #[serde(rename_all = "lowercase")]
@@ -552,11 +554,22 @@ fn default_show_tray_icon() -> bool {
 }
 
 fn default_post_process_provider_id() -> String {
-    "openai".to_string()
+    LOCAL_LLM_PROVIDER_ID.to_string()
 }
 
 fn default_post_process_providers() -> Vec<PostProcessProvider> {
     let mut providers = vec![
+        // Escriba: el motor local va PRIMERO (gratis, sin API key, la voz no
+        // sale del computador). base_url es un sentinela: actions.rs la
+        // reemplaza por la URL real del sidecar al momento de usarlo.
+        PostProcessProvider {
+            id: LOCAL_LLM_PROVIDER_ID.to_string(),
+            label: "Escriba Local (gratis, sin API key)".to_string(),
+            base_url: "local-llm://managed".to_string(),
+            allow_base_url_edit: false,
+            models_endpoint: None,
+            supports_structured_output: true,
+        },
         PostProcessProvider {
             id: "openai".to_string(),
             label: "OpenAI".to_string(),
@@ -657,6 +670,9 @@ fn default_post_process_api_keys() -> SecretMap {
 fn default_model_for_provider(provider_id: &str) -> String {
     if provider_id == APPLE_INTELLIGENCE_PROVIDER_ID {
         return APPLE_INTELLIGENCE_DEFAULT_MODEL_ID.to_string();
+    }
+    if provider_id == LOCAL_LLM_PROVIDER_ID {
+        return LOCAL_LLM_DEFAULT_MODEL_ID.to_string();
     }
     String::new()
 }
@@ -836,7 +852,7 @@ pub fn get_default_settings() -> AppSettings {
         post_process_api_keys: default_post_process_api_keys(),
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
-        post_process_selected_prompt_id: None,
+        post_process_selected_prompt_id: Some("default_improve_transcriptions".to_string()),
         mute_while_recording: false,
         append_trailing_space: false,
         app_language: default_app_language(),
