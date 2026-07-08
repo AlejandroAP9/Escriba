@@ -591,14 +591,6 @@ impl ShortcutAction for TranscribeAction {
         let start_time = Instant::now();
         debug!("TranscribeAction::start called for binding: {}", binding_id);
 
-        // voice_edit: capturar la seleccion ANTES de abrir el microfono.
-        if self.mode == TranscribeMode::Edit {
-            let selection = capture_selection(app);
-            if let Ok(mut guard) = EDIT_SELECTION.lock() {
-                *guard = selection;
-            }
-        }
-
         // Load model in the background
         let tm = app.state::<Arc<TranscriptionManager>>();
         let rm = app.state::<Arc<AudioRecordingManager>>();
@@ -786,6 +778,21 @@ impl ShortcutAction for TranscribeAction {
                 "Starting async transcription task for binding: {}",
                 binding_id
             );
+
+            // voice_edit: capturar la seleccion AHORA (usuario ya solto el
+            // atajo; el Cmd+C sintetico no interfiere con el listener). La
+            // seleccion sigue viva porque el usuario no ha tocado nada.
+            if mode == TranscribeMode::Edit {
+                let ah_capture = ah.clone();
+                let selection =
+                    tauri::async_runtime::spawn_blocking(move || capture_selection(&ah_capture))
+                        .await
+                        .ok()
+                        .flatten();
+                if let Ok(mut guard) = EDIT_SELECTION.lock() {
+                    *guard = selection;
+                }
+            }
 
             let stop_recording_time = Instant::now();
             if let Some(samples) = rm.stop_recording(&binding_id, cancel_generation) {
