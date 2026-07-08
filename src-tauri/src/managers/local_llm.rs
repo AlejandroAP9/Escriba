@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 
 /// Idle seconds before the sidecar is unloaded to free RAM (Whisper + LLM
 /// residentes compiten por memoria unificada en Macs de 8GB).
-const IDLE_UNLOAD_SECS: u64 = 120;
+const IDLE_UNLOAD_SECS: u64 = 300;
 /// First model load can take a while on cold disk; health poll budget.
 const STARTUP_TIMEOUT_SECS: u64 = 60;
 
@@ -301,6 +301,38 @@ async fn health_ok(base_url: &str, timeout_ms: u64) -> bool {
         Ok(resp) => resp.status().is_success(),
         Err(_) => false,
     }
+}
+
+/// Pre-warm the sidecar: spawn it and run a 1-token completion so the first
+/// real dictation doesn't pay the cold-load + first-inference cost (~60s on
+/// a cold Metal pipeline). Fire-and-forget from app startup.
+pub async fn warmup(model: &str) {
+    let Some(mgr) = MANAGER.get() else { return };
+    let base_url = match mgr.ensure_running(model).await {
+        Ok(url) => url,
+        Err(err) => {
+            warn!("Local LLM warmup skipped: {}", err);
+            return;
+        }
+    };
+    let client = match reqwest::Client::builder()
+        .timeout(Duration::from_secs(90))
+        .build()
+    {
+        Ok(c) => c,
+        Err(_) => return,
+    };
+    let body = serde_json::json!({
+        "model": model,
+        "messages": [{"role": "user", "content": "hola"}],
+        "max_tokens": 1
+    });
+    let url = format!("{}/chat/completions", base_url);
+    match client.post(&url).json(&body).send().await {
+        Ok(_) => info!("Local LLM warmed up and ready"),
+        Err(err) => warn!("Local LLM warmup request failed: {}", err),
+    }
+    mgr.touch();
 }
 
 /// Kill the sidecar on app exit. Wired into RunEvent::Exit in lib.rs.

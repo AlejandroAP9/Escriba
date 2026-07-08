@@ -758,6 +758,23 @@ pub fn run(cli_args: CliArgs) {
             // solo se levanta on-demand al usar post-proceso.
             if let Ok(data_dir) = portable::app_data_dir(&app.handle().clone()) {
                 managers::local_llm::init(&data_dir);
+
+                // Precalentar si el usuario dicta con el motor local: el primer
+                // dictado del dia no debe pagar ~60s de carga fria + warmup Metal.
+                let settings = settings::get_settings(&app.handle().clone());
+                if settings.post_process_enabled
+                    && settings.post_process_provider_id == settings::LOCAL_LLM_PROVIDER_ID
+                {
+                    if let Some(model) = settings
+                        .post_process_models
+                        .get(settings::LOCAL_LLM_PROVIDER_ID)
+                    {
+                        let model = model.clone();
+                        tauri::async_runtime::spawn(async move {
+                            managers::local_llm::warmup(&model).await;
+                        });
+                    }
+                }
             }
 
             // Headless one-shot path (`--transcribe-file` / `--list-devices` /

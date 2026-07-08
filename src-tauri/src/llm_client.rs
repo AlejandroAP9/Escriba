@@ -37,6 +37,8 @@ struct ChatCompletionRequest {
     model: String,
     messages: Vec<ChatMessage>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    temperature: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     response_format: Option<ResponseFormat>,
     #[serde(skip_serializing_if = "Option::is_none")]
     reasoning_effort: Option<String>,
@@ -115,6 +117,7 @@ pub async fn send_chat_completion(
     prompt: String,
     reasoning_effort: Option<String>,
     reasoning: Option<ReasoningConfig>,
+    temperature: Option<f32>,
 ) -> Result<Option<String>, String> {
     send_chat_completion_with_schema(
         provider,
@@ -125,6 +128,7 @@ pub async fn send_chat_completion(
         None,
         reasoning_effort,
         reasoning,
+        temperature,
     )
     .await
 }
@@ -144,6 +148,7 @@ pub async fn send_chat_completion_with_schema(
     json_schema: Option<Value>,
     reasoning_effort: Option<String>,
     reasoning: Option<ReasoningConfig>,
+    temperature: Option<f32>,
 ) -> Result<Option<String>, String> {
     let base_url = provider.base_url.trim_end_matches('/');
     let url = format!("{}/chat/completions", base_url);
@@ -182,6 +187,7 @@ pub async fn send_chat_completion_with_schema(
     let request_body = ChatCompletionRequest {
         model: model.to_string(),
         messages,
+        temperature,
         response_format,
         reasoning_effort,
         reasoning,

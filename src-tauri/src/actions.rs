@@ -170,6 +170,15 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
     }
     let provider = provider;
 
+    // Post-procesado determinista para el motor local: sin temperatura,
+    // llama-server usa ~0.8 y los modelos chicos alucinan (pierden palabras,
+    // cambian signos). 0.2 replica el comportamiento validado en el spike.
+    let temperature = if provider.id == crate::settings::LOCAL_LLM_PROVIDER_ID {
+        Some(0.2_f32)
+    } else {
+        None
+    };
+
     let (reasoning_effort, reasoning) = match provider.id.as_str() {
         "custom" | crate::settings::LOCAL_LLM_PROVIDER_ID => (Some("none".to_string()), None),
         "openrouter" => (
@@ -254,6 +263,7 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
             Some(json_schema),
             reasoning_effort.clone(),
             reasoning.clone(),
+            temperature,
         )
         .await
         {
@@ -310,6 +320,7 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
         processed_prompt,
         reasoning_effort,
         reasoning,
+        temperature,
     )
     .await
     {
