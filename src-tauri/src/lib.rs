@@ -532,6 +532,8 @@ pub fn run(cli_args: CliArgs) {
 
     let specta_builder = Builder::<tauri::Wry>::new()
         .commands(collect_commands![
+            commands::local_llm::get_local_llm_status,
+            commands::local_llm::setup_local_llm,
             shortcut::change_binding,
             shortcut::reset_binding,
             shortcut::change_ptt_setting,

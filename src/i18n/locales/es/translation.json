@@ -421,6 +421,16 @@
         "cancel": "Cancelar",
         "selectToEdit": "Selecciona un prompt arriba para ver y editar sus detalles.",
         "createFirst": "Haz clic en 'Crear Nuevo Prompt' arriba para crear tu primer prompt de post procesamiento."
+      },
+      "localLlm": {
+        "title": "Motor local de Escriba",
+        "description": "Descarga un modelo de IA pequeño (~2.5 GB) que corrige tu dictado en tu computador. Gratis, sin API key, tu voz nunca sale de este equipo.",
+        "ready": "Motor local instalado y listo. Dicta con el atajo de post-procesado.",
+        "installButton": "Descargar y activar (~2.5 GB)",
+        "installHint": "Descarga única. Verificada con SHA256.",
+        "downloadingRuntime": "Descargando el motor...",
+        "downloadingModel": "Descargando el modelo de IA...",
+        "progressLine": " {{percent}}% ({{downloaded}} / {{total}} GB)"
       }
     },
     "history": {
@@ -620,5 +630,12 @@
   },
   "whatsNew": {
     "title": "Nuevo en Handy v{{version}}"
+  },
+  "localLlm": {
+    "fallbackOllamaTitle": "Motor local no disponible",
+    "fallbackOllamaDescription": "Usando tu Ollama ({{model}}) para este dictado.",
+    "fallbackAppleTitle": "Motor local no disponible: se usó Apple Intelligence",
+    "fallbackRawTitle": "Texto pegado sin corrección de IA",
+    "fallbackRawDescription": "El motor local no está disponible. Instálalo en Ajustes > Post-procesado."
   }
 }

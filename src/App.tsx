@@ -96,6 +96,30 @@ function App() {
     };
   }, [settings?.debug_mode, updateSetting]);
 
+  // Escriba: aviso cuando el post-proceso local degrada de ruta (cascada)
+  useEffect(() => {
+    type FallbackPayload = { route: string; detail: string };
+    const unlisten = listen<FallbackPayload>("local-llm-fallback", (event) => {
+      const { route, detail } = event.payload;
+      if (route === "ollama") {
+        toast.info(t("localLlm.fallbackOllamaTitle"), {
+          description: t("localLlm.fallbackOllamaDescription", {
+            model: detail,
+          }),
+        });
+      } else if (route === "apple_intelligence") {
+        toast.info(t("localLlm.fallbackAppleTitle"));
+      } else {
+        toast.warning(t("localLlm.fallbackRawTitle"), {
+          description: t("localLlm.fallbackRawDescription"),
+        });
+      }
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [t]);
+
   // Listen for recording errors from the backend and show a toast
   useEffect(() => {
     const unlisten = listen<RecordingErrorEvent>("recording-error", (event) => {

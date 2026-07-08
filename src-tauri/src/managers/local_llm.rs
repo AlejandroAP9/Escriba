@@ -81,6 +81,14 @@ impl LocalLlmManager {
         &self.runtime_dir
     }
 
+    pub fn runtime_installed(&self) -> bool {
+        self.find_runtime_binary().is_some()
+    }
+
+    pub fn model_installed(&self, model: &str) -> bool {
+        self.resolve_model_path(model).is_ok()
+    }
+
     pub fn is_running(&self) -> bool {
         let mut guard = match self.child.lock() {
             Ok(g) => g,

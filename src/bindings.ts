@@ -5,6 +5,21 @@
 
 
 export const commands = {
+async getLocalLlmStatus() : Promise<LocalLlmStatus> {
+    return await TAURI_INVOKE("get_local_llm_status");
+},
+/**
+ * Descarga runtime + modelo con progreso, verifica SHA256 y deja el motor
+ * precalentado. Idempotente: lo ya instalado y verificado se salta.
+ */
+async setupLocalLlm() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("setup_local_llm") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changeBinding(id: string, binding: string) : Promise<Result<BindingResponse, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_binding", { id, binding }) };
@@ -910,6 +925,7 @@ export type ImplementationChangeResult = { success: boolean;
 reset_bindings: string[] }
 export type KeyboardImplementation = "tauri" | "handy_keys"
 export type LLMPrompt = { id: string; name: string; prompt: string }
+export type LocalLlmStatus = { runtime_installed: boolean; model_installed: boolean; engine_running: boolean; setup_in_progress: boolean; model_file: string }
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error"
 export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean; supported_languages: string[]; supports_language_selection: boolean; is_custom: boolean; supports_streaming: boolean; supports_language_detection: boolean }
 export type ModelLoadStatus = { is_loaded: boolean; current_model: string | null }

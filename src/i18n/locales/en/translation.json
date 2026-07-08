@@ -421,6 +421,16 @@
         "cancel": "Cancel",
         "selectToEdit": "Select a prompt above to view and edit its details.",
         "createFirst": "Click 'Create New Prompt' above to create your first post-processing prompt."
+      },
+      "localLlm": {
+        "title": "Escriba local engine",
+        "description": "Downloads a small AI model (~2.5 GB) that cleans up your dictation on your computer. Free, no API key, your voice never leaves this device.",
+        "ready": "Local engine installed and ready. Dictate with the post-processing shortcut.",
+        "installButton": "Download and activate (~2.5 GB)",
+        "installHint": "One-time download. Verified with SHA256.",
+        "downloadingRuntime": "Downloading engine...",
+        "downloadingModel": "Downloading AI model...",
+        "progressLine": " {{percent}}% ({{downloaded}} / {{total}} GB)"
       }
     },
     "history": {
@@ -620,5 +630,12 @@
   "overlay": {
     "transcribing": "Transcribing...",
     "processing": "Processing..."
+  },
+  "localLlm": {
+    "fallbackOllamaTitle": "Local engine unavailable",
+    "fallbackOllamaDescription": "Using your Ollama ({{model}}) for this dictation.",
+    "fallbackAppleTitle": "Local engine unavailable: used Apple Intelligence",
+    "fallbackRawTitle": "Text pasted without AI cleanup",
+    "fallbackRawDescription": "The local engine is not available. Install it in Settings > Post-Processing."
   }
 }

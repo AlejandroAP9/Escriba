@@ -74,7 +74,11 @@ fn is_blank_transcription(transcription: &str) -> bool {
     transcription.trim().is_empty()
 }
 
-async fn post_process_transcription(settings: &AppSettings, transcription: &str) -> Option<String> {
+async fn post_process_transcription(
+    app: &AppHandle,
+    settings: &AppSettings,
+    transcription: &str,
+) -> Option<String> {
     if is_blank_transcription(transcription) {
         debug!("Post-processing skipped because the transcription is empty");
         return None;
@@ -145,30 +149,47 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
     // - custom: top-level reasoning_effort (works for local OpenAI-compat servers)
     // - openrouter: nested reasoning object; exclude:true also keeps reasoning text
     //   out of the response so it can't pollute structured-output JSON parsing
-    // Escriba: el provider local es un sidecar llama-server gestionado por la
-    // app. Se levanta on-demand aqui y se reemplaza el base_url sentinela por
-    // la URL real; desde ahi el flujo HTTP es identico al de cualquier provider.
+    // Escriba: cascada del motor local. Orden: sidecar llama-server ->
+    // Ollama detectado -> Apple Intelligence -> texto crudo con aviso.
+    // BYOK (OpenAI/Groq/etc.) JAMAS entra automaticamente: cero nube sorpresa.
     let mut provider = provider;
+    let mut model = model;
     if provider.id == crate::settings::LOCAL_LLM_PROVIDER_ID {
-        let manager = match crate::managers::local_llm::global() {
-            Some(manager) => manager,
-            None => {
-                error!("Local LLM manager not initialized");
-                return None;
-            }
-        };
-        match manager.ensure_running(&model).await {
-            Ok(base_url) => {
+        match resolve_local_route(&model).await {
+            LocalRoute::Sidecar(base_url) => {
                 debug!("Local LLM sidecar ready at {}", base_url);
                 provider.base_url = base_url;
             }
-            Err(err) => {
-                error!("Local LLM unavailable: {}", err);
+            LocalRoute::Ollama {
+                base_url,
+                model: ollama_model,
+            } => {
+                warn!(
+                    "Local sidecar unavailable; falling back to Ollama (model {})",
+                    ollama_model
+                );
+                notify_fallback(app, "ollama", &ollama_model);
+                provider.base_url = base_url;
+                // Modo legacy con Ollama: modelos desconocidos pueden ignorar
+                // json_schema; el prompt ${output} funciona con cualquiera.
+                provider.supports_structured_output = false;
+                model = ollama_model;
+            }
+            LocalRoute::AppleIntelligence => {
+                warn!("Local sidecar and Ollama unavailable; falling back to Apple Intelligence");
+                notify_fallback(app, "apple_intelligence", "");
+                provider.id = APPLE_INTELLIGENCE_PROVIDER_ID.to_string();
+                provider.supports_structured_output = true;
+            }
+            LocalRoute::Unavailable(reason) => {
+                error!("No local post-process route available: {}", reason);
+                notify_fallback(app, "raw", &reason);
                 return None;
             }
         }
     }
     let provider = provider;
+    let model = model;
 
     // Post-procesado determinista para el motor local: sin temperatura,
     // llama-server usa ~0.8 y los modelos chicos alucinan (pierden palabras,
@@ -444,7 +465,8 @@ pub(crate) async fn process_transcription_output(
     }
 
     if post_process {
-        if let Some(processed_text) = post_process_transcription(&settings, &final_text).await {
+        if let Some(processed_text) = post_process_transcription(app, &settings, &final_text).await
+        {
             post_processed_text = Some(processed_text.clone());
             final_text = processed_text;
 
@@ -940,4 +962,78 @@ mod tests {
         assert!(!is_blank_transcription("hello"));
         assert!(!is_blank_transcription("  hello  "));
     }
+}
+
+/// Rutas posibles del motor local, en orden de preferencia.
+enum LocalRoute {
+    Sidecar(String),
+    Ollama { base_url: String, model: String },
+    AppleIntelligence,
+    Unavailable(String),
+}
+
+async fn resolve_local_route(model: &str) -> LocalRoute {
+    let mut reason = String::new();
+    if let Some(manager) = crate::managers::local_llm::global() {
+        match manager.ensure_running(model).await {
+            Ok(base_url) => return LocalRoute::Sidecar(base_url),
+            Err(err) => reason = err,
+        }
+    } else {
+        reason = "motor local no inicializado".to_string();
+    }
+
+    if let Some(ollama_model) = detect_ollama_model().await {
+        return LocalRoute::Ollama {
+            base_url: "http://127.0.0.1:11434/v1".to_string(),
+            model: ollama_model,
+        };
+    }
+
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    if apple_intelligence::check_apple_intelligence_availability() {
+        return LocalRoute::AppleIntelligence;
+    }
+
+    LocalRoute::Unavailable(reason)
+}
+
+/// Ollama instalado y con al menos un modelo: GET /v1/models (timeout corto,
+/// es localhost). Devuelve el primer modelo disponible.
+async fn detect_ollama_model() -> Option<String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_millis(700))
+        .build()
+        .ok()?;
+    let resp = client
+        .get("http://127.0.0.1:11434/v1/models")
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let json: serde_json::Value = resp.json().await.ok()?;
+    json.get("data")?
+        .as_array()?
+        .first()?
+        .get("id")?
+        .as_str()
+        .map(|s| s.to_string())
+}
+
+/// Aviso al frontend de que el post-proceso degrado de ruta (toast).
+fn notify_fallback(app: &AppHandle, route: &str, detail: &str) {
+    #[derive(serde::Serialize, Clone)]
+    struct FallbackPayload {
+        route: String,
+        detail: String,
+    }
+    let _ = app.emit(
+        "local-llm-fallback",
+        FallbackPayload {
+            route: route.to_string(),
+            detail: detail.to_string(),
+        },
+    );
 }

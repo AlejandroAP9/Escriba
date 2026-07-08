@@ -15,6 +15,7 @@ import { ResetButton } from "../../ui/ResetButton";
 import { Input } from "../../ui/Input";
 
 import { ProviderSelect } from "../PostProcessingSettingsApi/ProviderSelect";
+import { LocalLlmSetup } from "../PostProcessingSettingsApi/LocalLlmSetup";
 import { BaseUrlField } from "../PostProcessingSettingsApi/BaseUrlField";
 import { ApiKeyField } from "../PostProcessingSettingsApi/ApiKeyField";
 import { ModelSelect } from "../PostProcessingSettingsApi/ModelSelect";
@@ -44,7 +45,9 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
         </div>
       </SettingContainer>
 
-      {state.isAppleProvider ? (
+      {state.selectedProvider?.id === "local_llm" ? (
+        <LocalLlmSetup />
+      ) : state.isAppleProvider ? (
         state.appleIntelligenceUnavailable ? (
           <Alert variant="error" contained>
             {t("settings.postProcessing.api.appleIntelligence.unavailable")}
