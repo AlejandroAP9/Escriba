@@ -444,6 +444,11 @@ export const PostProcessingSettings: React.FC = () => {
           descriptionMode="tooltip"
           grouped={true}
         />
+        <ShortcutInput
+          shortcutId="voice_edit"
+          descriptionMode="tooltip"
+          grouped={true}
+        />
       </SettingsGroup>
 
       <SettingsGroup title={t("settings.postProcessing.api.title")}>

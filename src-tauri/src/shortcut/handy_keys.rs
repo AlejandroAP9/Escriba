@@ -434,7 +434,9 @@ pub fn init_shortcuts(app: &AppHandle) -> Result<(), String> {
             continue;
         }
         // Skip post-processing shortcut when the feature is disabled
-        if (id == "transcribe_with_post_process" || id == "transcribe_translate")
+        if (id == "transcribe_with_post_process"
+            || id == "transcribe_translate"
+            || id == "voice_edit")
             && !user_settings.post_process_enabled
         {
             continue;

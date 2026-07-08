@@ -18,7 +18,7 @@ use ferrous_opencc::{config::BuiltinConfig, OpenCC};
 use log::{debug, error, warn};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tauri::Manager;
 use tauri::{AppHandle, Emitter};
@@ -52,6 +52,41 @@ pub(crate) enum TranscribeMode {
     Standard,
     PostProcess,
     Translate,
+    Edit,
+}
+
+/// Seleccion capturada al iniciar voice_edit (Cmd/Ctrl+C sintetico). Solo se
+/// guarda la longitud en logs, jamas el contenido.
+static EDIT_SELECTION: Mutex<Option<String>> = Mutex::new(None);
+
+/// Copia la seleccion actual sin perder el clipboard del usuario: lee el
+/// clipboard previo, manda Cmd/Ctrl+C, espera, lee de nuevo y SIEMPRE
+/// restaura el original. Si nada cambio, no habia seleccion.
+fn capture_selection(app: &AppHandle) -> Option<String> {
+    use tauri_plugin_clipboard_manager::ClipboardExt;
+    let clipboard = app.clipboard();
+    let previous = clipboard.read_text().unwrap_or_default();
+
+    let sent = {
+        let enigo_state = app.try_state::<crate::input::EnigoState>()?;
+        let mut enigo = enigo_state.0.lock().ok()?;
+        crate::input::send_copy_ctrl_c(&mut enigo).is_ok()
+    };
+    if !sent {
+        return None;
+    }
+    std::thread::sleep(std::time::Duration::from_millis(180));
+    let captured = clipboard.read_text().unwrap_or_default();
+
+    // Restaurar SIEMPRE el clipboard del usuario (premortem PRP-003).
+    let _ = clipboard.write_text(previous.clone());
+
+    if captured.is_empty() || captured == previous {
+        debug!("voice_edit: no selection detected");
+        return None;
+    }
+    debug!("voice_edit: captured selection ({} chars)", captured.len());
+    Some(captured)
 }
 
 struct TranscribeAction {
@@ -117,7 +152,32 @@ async fn post_process_transcription(
     // Modo traduccion: plantilla constante propia (no depende ni del prompt
     // elegido ni de que el usuario la pueda borrar). El resto del pipeline
     // (cascada local, structured output, historial) es identico.
-    let prompt = if mode == TranscribeMode::Translate {
+    // Texto objetivo del pipeline: lo dictado, salvo en Edit (la seleccion).
+    let mut target_text = transcription.to_string();
+
+    // Modo edicion por voz: la instruccion es lo dictado; el objetivo es la
+    // seleccion capturada. Sin seleccion -> aviso y NO tocar nada (premortem).
+    let prompt = if mode == TranscribeMode::Edit {
+        let selection = EDIT_SELECTION.lock().ok().and_then(|mut g| g.take());
+        let Some(selection) = selection else {
+            notify_fallback(app, "no_selection", "");
+            return None;
+        };
+        if selection.chars().count() > 8000 {
+            notify_fallback(app, "selection_too_long", "");
+            return None;
+        }
+        let instruction = transcription.trim().to_string();
+        if instruction.is_empty() {
+            notify_fallback(app, "no_selection", "");
+            return None;
+        }
+        target_text = selection;
+        format!(
+            "Aplica esta instruccion al texto. Conserva el idioma del texto salvo que la instruccion pida traducir. Responde UNICAMENTE con el texto resultante, sin explicaciones.\n\nInstruccion: {}\n\nTexto:\n${{output}}",
+            instruction
+        )
+    } else if mode == TranscribeMode::Translate {
         let target = settings.translation_target_language.trim();
         let target = if target.is_empty() { "en" } else { target };
         format!(
@@ -250,7 +310,7 @@ Vocabulario personal del usuario (escribir SIEMPRE exactamente asi, sin corregir
         debug!("Using structured outputs for provider '{}'", provider.id);
 
         let system_prompt = build_system_prompt(&prompt);
-        let user_content = transcription.to_string();
+        let user_content = target_text.clone();
 
         // Handle Apple Intelligence separately since it uses native Swift APIs
         if provider.id == APPLE_INTELLIGENCE_PROVIDER_ID {
@@ -365,7 +425,7 @@ Vocabulario personal del usuario (escribir SIEMPRE exactamente asi, sin corregir
     }
 
     // Legacy mode: Replace ${output} variable in the prompt with the actual text
-    let processed_prompt = prompt.replace("${output}", transcription);
+    let processed_prompt = prompt.replace("${output}", &target_text);
     debug!("Processed prompt length: {} chars", processed_prompt.len());
 
     match crate::llm_client::send_chat_completion(
@@ -530,6 +590,14 @@ impl ShortcutAction for TranscribeAction {
     fn start(&self, app: &AppHandle, binding_id: &str, _shortcut_str: &str) {
         let start_time = Instant::now();
         debug!("TranscribeAction::start called for binding: {}", binding_id);
+
+        // voice_edit: capturar la seleccion ANTES de abrir el microfono.
+        if self.mode == TranscribeMode::Edit {
+            let selection = capture_selection(app);
+            if let Ok(mut guard) = EDIT_SELECTION.lock() {
+                *guard = selection;
+            }
+        }
 
         // Load model in the background
         let tm = app.state::<Arc<TranscriptionManager>>();
@@ -818,6 +886,15 @@ impl ShortcutAction for TranscribeAction {
                             let processed =
                                 process_transcription_output(&ah, &transcription, mode).await;
 
+                            if mode == TranscribeMode::Edit
+                                && processed.post_processed_text.is_none()
+                            {
+                                debug!("voice_edit sin resultado: no se pega nada");
+                                utils::hide_recording_overlay(&ah);
+                                change_tray_icon(&ah, TrayIconState::Idle);
+                                return;
+                            }
+
                             if rm.was_cancelled_since(cancel_generation) {
                                 debug!("Transcription operation cancelled before paste");
                                 utils::hide_recording_overlay(&ah);
@@ -976,6 +1053,12 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
         "transcribe_translate".to_string(),
         Arc::new(TranscribeAction {
             mode: TranscribeMode::Translate,
+        }) as Arc<dyn ShortcutAction>,
+    );
+    map.insert(
+        "voice_edit".to_string(),
+        Arc::new(TranscribeAction {
+            mode: TranscribeMode::Edit,
         }) as Arc<dyn ShortcutAction>,
     );
     map.insert(

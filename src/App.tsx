@@ -107,6 +107,12 @@ function App() {
             model: detail,
           }),
         });
+      } else if (route === "no_selection") {
+        toast.warning(t("localLlm.noSelectionTitle"), {
+          description: t("localLlm.noSelectionDescription"),
+        });
+      } else if (route === "selection_too_long") {
+        toast.warning(t("localLlm.selectionTooLongTitle"));
       } else if (route === "apple_intelligence") {
         toast.info(t("localLlm.fallbackAppleTitle"));
       } else {

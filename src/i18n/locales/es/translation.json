@@ -200,6 +200,10 @@
           "transcribe_translate": {
             "name": "Transcribir y traducir",
             "description": "Convierte tu voz en texto y lo traduce al idioma que elijas."
+          },
+          "voice_edit": {
+            "name": "Editar selección por voz",
+            "description": "Copia el texto seleccionado, escucha tu instrucción y reemplaza la selección con el resultado."
           }
         },
         "errors": {
@@ -650,6 +654,9 @@
     "fallbackOllamaDescription": "Usando tu Ollama ({{model}}) para este dictado.",
     "fallbackAppleTitle": "Motor local no disponible: se usó Apple Intelligence",
     "fallbackRawTitle": "Texto pegado sin corrección de IA",
-    "fallbackRawDescription": "El motor local no está disponible. Instálalo en Ajustes > Post-procesado."
+    "fallbackRawDescription": "El motor local no está disponible. Instálalo en Ajustes > Post-procesado.",
+    "noSelectionTitle": "No había nada seleccionado",
+    "noSelectionDescription": "Selecciona texto primero, luego mantén el atajo de edición por voz y dicta tu instrucción.",
+    "selectionTooLongTitle": "La selección es muy larga para editar por voz (máx ~8.000 caracteres)"
   }
 }

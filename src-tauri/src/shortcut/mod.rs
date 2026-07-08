@@ -393,7 +393,9 @@ fn register_all_shortcuts_for_implementation(
         }
 
         // Skip post-processing shortcut when the feature is disabled
-        if (id == "transcribe_with_post_process" || id == "transcribe_translate")
+        if (id == "transcribe_with_post_process"
+            || id == "transcribe_translate"
+            || id == "voice_edit")
             && !current_settings.post_process_enabled
         {
             continue;
@@ -888,7 +890,11 @@ pub fn change_post_process_enabled_setting(app: AppHandle, enabled: bool) -> Res
     settings::write_settings(&app, settings.clone());
 
     // Register or unregister the post-processing shortcut
-    for translate_id in ["transcribe_with_post_process", "transcribe_translate"] {
+    for translate_id in [
+        "transcribe_with_post_process",
+        "transcribe_translate",
+        "voice_edit",
+    ] {
         if let Some(extra) = settings.bindings.get(translate_id).cloned() {
             if enabled {
                 let _ = register_shortcut(&app, extra);

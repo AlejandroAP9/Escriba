@@ -200,6 +200,10 @@
           "transcribe_translate": {
             "name": "Transcribe and Translate",
             "description": "Converts your speech into text and translates it to your chosen language."
+          },
+          "voice_edit": {
+            "name": "Edit Selection by Voice",
+            "description": "Copies the selected text, listens to your instruction, and replaces the selection with the result."
           }
         },
         "errors": {
@@ -650,6 +654,9 @@
     "fallbackOllamaDescription": "Using your Ollama ({{model}}) for this dictation.",
     "fallbackAppleTitle": "Local engine unavailable: used Apple Intelligence",
     "fallbackRawTitle": "Text pasted without AI cleanup",
-    "fallbackRawDescription": "The local engine is not available. Install it in Settings > Post-Processing."
+    "fallbackRawDescription": "The local engine is not available. Install it in Settings > Post-Processing.",
+    "noSelectionTitle": "Nothing selected",
+    "noSelectionDescription": "Select text first, then hold the voice-edit shortcut and speak your instruction.",
+    "selectionTooLongTitle": "Selection too long for voice editing (max ~8,000 characters)"
   }
 }

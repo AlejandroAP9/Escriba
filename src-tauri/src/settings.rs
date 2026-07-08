@@ -865,6 +865,16 @@ pub fn get_default_settings() -> AppSettings {
         },
     );
     bindings.insert(
+        "voice_edit".to_string(),
+        ShortcutBinding {
+            id: "voice_edit".to_string(),
+            name: "Edit Selection by Voice".to_string(),
+            description: "Copies the selected text, listens to your instruction, and replaces the selection with the result.".to_string(),
+            default_binding: "alt+shift+e".to_string(),
+            current_binding: "alt+shift+e".to_string(),
+        },
+    );
+    bindings.insert(
         "cancel".to_string(),
         ShortcutBinding {
             id: "cancel".to_string(),
