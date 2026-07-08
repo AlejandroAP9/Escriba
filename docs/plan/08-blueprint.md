@@ -1,6 +1,6 @@
 # Blueprint Maestro — Escriba ✒️
 
-> **Estado**: APROBADO con 2 decisiones de dupla abiertas 🤝 (capacidad D vs B; reparto de frentes)
+> **Estado**: APROBADO. Capacidad mayor decidida: D primero, B stretch (dupla, 8-jul)
 > El documento que `bucle-agentico` ejecuta fase por fase. Cada fase nombra su
 > PRP o skill. Solo FASES; las subtareas se generan al entrar a cada una.
 > Deadline: entrega 30-jul (buffer 1 día sobre el 31-jul 20:00 Chile).
@@ -59,7 +59,7 @@
 **Validación:** Notas + WhatsApp Web + VS Code · clipboard intacto tras error inducido · Premortem superficie 3 del security-plan.
 **PRP:** PRP-003-hablale-a-cualquier-texto.md.
 
-### Fase 6: Capacidad mayor 🤝 D o B (semana 21-25)
+### Fase 6: Capacidad D (decidido por la dupla 8-jul; B queda como stretch si sobra tiempo)
 
 **Objetivo (D):** archivo → transcripción con timestamps → SRT/VTT/TXT/JSON + resumen IA. **Objetivo (B):** QR → subtítulos traducidos en vivo por teléfono.
 **Validación (D):** mp3 + .m4a WhatsApp + mp4 → SRT válido en CapCut/YouTube; resumen con wifi apagado. **(B):** 2 teléfonos, 2 idiomas, <5s/segmento, hotspot.
