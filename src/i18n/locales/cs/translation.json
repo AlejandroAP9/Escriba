@@ -196,6 +196,10 @@
           "transcribe_with_post_process": {
             "name": "Klávesa pro následné zpracování",
             "description": "Volitelné: Vyhrazená klávesová zkratka, která vždy použije AI následné zpracování na váš přepis."
+          },
+          "transcribe_translate": {
+            "name": "Transcribe and Translate",
+            "description": "Converts your speech into text and translates it to your chosen language."
           }
         },
         "errors": {
@@ -434,6 +438,13 @@
       },
       "enable": {
         "title": "AI cleanup"
+      },
+      "translation": {
+        "title": "Translation",
+        "targetLanguage": {
+          "title": "Target language",
+          "description": "Dictate in any language with the translate shortcut and Escriba pastes the text translated to this language, using the local engine."
+        }
       }
     },
     "history": {

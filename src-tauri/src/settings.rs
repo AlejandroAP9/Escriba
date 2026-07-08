@@ -404,6 +404,8 @@ pub struct AppSettings {
     pub post_process_prompts: Vec<LLMPrompt>,
     #[serde(default)]
     pub post_process_selected_prompt_id: Option<String>,
+    #[serde(default = "default_translation_target_language")]
+    pub translation_target_language: String,
     #[serde(default)]
     pub mute_while_recording: bool,
     #[serde(default)]
@@ -551,6 +553,10 @@ fn default_app_language() -> String {
 
 fn default_show_tray_icon() -> bool {
     true
+}
+
+fn default_translation_target_language() -> String {
+    "en".to_string()
 }
 
 fn default_post_process_provider_id() -> String {
@@ -847,6 +853,18 @@ pub fn get_default_settings() -> AppSettings {
         },
     );
     bindings.insert(
+        "transcribe_translate".to_string(),
+        ShortcutBinding {
+            id: "transcribe_translate".to_string(),
+            name: "Transcribe and Translate".to_string(),
+            description:
+                "Converts your speech into text and translates it to your chosen language."
+                    .to_string(),
+            default_binding: "alt+shift+t".to_string(),
+            current_binding: "alt+shift+t".to_string(),
+        },
+    );
+    bindings.insert(
         "cancel".to_string(),
         ShortcutBinding {
             id: "cancel".to_string(),
@@ -896,6 +914,7 @@ pub fn get_default_settings() -> AppSettings {
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
         post_process_selected_prompt_id: Some("escriba_dictado_natural".to_string()),
+        translation_target_language: default_translation_target_language(),
         mute_while_recording: false,
         append_trailing_space: false,
         app_language: default_app_language(),
