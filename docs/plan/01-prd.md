@@ -23,11 +23,11 @@ La versión ganadora queda como app oficial de dictado de la comunidad.
 **Tres categorías de producto pago en una sola app gratis, ilimitada, open
 source, donde la voz nunca sale del computador:**
 
-| Categoría | Quién cobra | Nuestro precio |
-|---|---|---|
-| Dictado con IA (limpieza, tonos) | Typeless $12-30/mes (free: 8.000 palabras/semana, nube) · Wispr Flow $15/mes | $0, ilimitado, local |
-| Edición/consulta por voz sobre texto seleccionado | Typeless (parte de Pro) | $0 |
-| Estudio de transcripción de archivos + subtítulos + resumen | WhisperAI $99-750/año | $0 |
+| Categoría                                                   | Quién cobra                                                                  | Nuestro precio       |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------- |
+| Dictado con IA (limpieza, tonos)                            | Typeless $12-30/mes (free: 8.000 palabras/semana, nube) · Wispr Flow $15/mes | $0, ilimitado, local |
+| Edición/consulta por voz sobre texto seleccionado           | Typeless (parte de Pro)                                                      | $0                   |
+| Estudio de transcripción de archivos + subtítulos + resumen | WhisperAI $99-750/año                                                        | $0                   |
 
 **Diferenciador estructural:** el post-procesado con LLM corre LOCAL (sidecar
 llama-server + Qwen3-4B descargados por la app). Cero API keys en el camino

@@ -66,9 +66,11 @@ podria fallar o ser vulnerado, y deja la defensa escrita en el PRP.
 
 1. **Trae la memoria del bosque** (esto Forge no lo tiene: re-piensa de cero cada
    vez). Busca blindajes previos del tema antes de imaginar nada:
+
    ```
    raiz blindajes "<tema: pagos, RLS, webhook, uploads, cron, multi-tenant...>"
    ```
+
    Cada blindaje relevante es una amenaza **ya confirmada** en otro proyecto:
    entra al premortem como hallazgo con su guard listo.
 
@@ -102,6 +104,7 @@ Crea el archivo PRP siguiendo el template de `prp-base.md`:
 Donde `{feature-name}` es el nombre de la feature en kebab-case.
 
 **Contenido obligatorio**:
+
 - Objetivo (1-2 oraciones)
 - Por Que (tabla problema/solucion + valor de negocio)
 - Criterios de Exito (checkboxes medibles)
@@ -114,6 +117,7 @@ Donde `{feature-name}` es el nombre de la feature en kebab-case.
 ### Paso 5: Presentar al usuario
 
 Muestra un resumen del PRP generado:
+
 - Objetivo
 - Numero de fases
 - Decisiones de arquitectura clave

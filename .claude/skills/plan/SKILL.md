@@ -58,18 +58,18 @@ falte información, no inventes (si no sabes un dato, pregúntalo).
 
 Si el producto necesita esto, la fase correspondiente usa este skill, no código a mano:
 
-| Capacidad detectada en el PRD/tech-spec | Skill |
-|------------------------------------------|-------|
-| Login / registro / cuentas | `add-login` |
-| Cobro / suscripción / checkout | `add-payments` |
-| Emails transaccionales | `add-emails` |
-| PWA / push / instalable | `add-mobile` |
-| **Subida o entrega de archivos** (avatar, docs, fotos) | `add-storage` |
-| **Trabajo programado** (digests, limpieza, métricas) | `add-cron` |
-| **Avisos al usuario** (campana, badge no leídos) | `add-notifications` |
-| Chat / RAG / visión / IA | `ai` |
-| Landing de marketing | `raiz-landing` (o `website-3d`) |
-| Paleta desde la marca del cliente | `brand-palette` |
+| Capacidad detectada en el PRD/tech-spec                | Skill                           |
+| ------------------------------------------------------ | ------------------------------- |
+| Login / registro / cuentas                             | `add-login`                     |
+| Cobro / suscripción / checkout                         | `add-payments`                  |
+| Emails transaccionales                                 | `add-emails`                    |
+| PWA / push / instalable                                | `add-mobile`                    |
+| **Subida o entrega de archivos** (avatar, docs, fotos) | `add-storage`                   |
+| **Trabajo programado** (digests, limpieza, métricas)   | `add-cron`                      |
+| **Avisos al usuario** (campana, badge no leídos)       | `add-notifications`             |
+| Chat / RAG / visión / IA                               | `ai`                            |
+| Landing de marketing                                   | `raiz-landing` (o `website-3d`) |
+| Paleta desde la marca del cliente                      | `brand-palette`                 |
 
 Lo que no calza en una skill se construye a mano en su fase. Lo que sí calza, NO se
 reinventa.

@@ -95,16 +95,19 @@ GENERAR subtareas de Fase 2
 ANTES de generar subtareas, explorar:
 
 **Codebase:**
+
 - Que archivos/componentes existen relacionados?
 - Que patrones usa el proyecto actualmente?
 - Hay codigo que puedo reutilizar?
 
 **Base de Datos (Supabase MCP):**
+
 - Que tablas existen?
 - Que estructura tienen?
 - Hay RLS policies configuradas?
 
 **Dependencias:**
+
 - Que construi en fases anteriores?
 - Que puedo asumir que ya existe?
 - Que restricciones tengo?
@@ -149,16 +152,17 @@ El sistema se BLINDA con cada error. Cuando algo falla:
 
 ```markdown
 ### [YYYY-MM-DD]: [Titulo corto]
+
 - **Error**: [Que fallo exactamente]
 - **Fix**: [Como se arreglo]
 - **Aplicar en**: [Donde mas aplica este conocimiento]
 ```
 
-| Tipo de Error | Donde Documentar |
-|---------------|------------------|
-| Especifico de esta feature | PRP actual (seccion Aprendizajes) |
+| Tipo de Error               | Donde Documentar                              |
+| --------------------------- | --------------------------------------------- |
+| Especifico de esta feature  | PRP actual (seccion Aprendizajes)             |
 | Aplica a multiples features | Skill relevante (`.claude/skills/*/SKILL.md`) |
-| Aplica a TODO el proyecto | `CLAUDE.md` (seccion No Hacer) |
+| Aplica a TODO el proyecto   | `CLAUDE.md` (seccion No Hacer)                |
 
 El conocimiento persiste. El mismo error NUNCA ocurre dos veces en este proyecto ni en proyectos futuros.
 
@@ -299,8 +303,8 @@ Cuando todas las fases estén completas, **no te quedes esperando un comando**:
 
 - **Si vienes del Flujo 1 (proyecto nuevo)**: continúa de corrido con los 4 revisores
   (`security-audit`, `design-review`, `architecture-review`, `performance-review`,
-  + `adversarial-review` sobre pagos/auth/webhooks), arregla lo que salga, y luego
-  propón el deploy. El usuario solo aprueba en lenguaje natural; no invoca skills.
+  - `adversarial-review` sobre pagos/auth/webhooks), arregla lo que salga, y luego
+    propón el deploy. El usuario solo aprueba en lenguaje natural; no invoca skills.
 - **Si es una feature suelta (Flujo 2)**: valida con `playwright-cli` y reporta el
   resultado. No dispares revisores/deploy salvo que el usuario lo pida.
 
@@ -317,5 +321,5 @@ Cuando todas las fases estén completas, **no te quedes esperando un comando**:
 
 ---
 
-*"La precision viene de mapear la realidad, no de imaginar el futuro."*
-*"El sistema que se blinda solo es invencible."*
+_"La precision viene de mapear la realidad, no de imaginar el futuro."_
+_"El sistema que se blinda solo es invencible."_
