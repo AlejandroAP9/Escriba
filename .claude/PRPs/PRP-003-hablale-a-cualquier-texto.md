@@ -88,3 +88,11 @@ resultado reemplaza la selección (paste) → clipboard original restaurado.
 ## Anti-Patrones
 
 - NO nube, NO loggear contenido, NO tocar el texto si algo falla (mejor no hacer nada que romper lo seleccionado).
+
+## Aprendizajes (Self-Annealing)
+
+### 2026-07-08: El Cmd+C sintético rompe el hotkey si el usuario aún lo mantiene
+
+- **Error**: capturar la selección en `start()` (con ⌥⇧E físicamente apretados) hacía que el Meta sintético del Cmd+C alterara los modificadores ante handy_keys → Released fantasma → grabación cortada a 1s.
+- **Fix**: capturar al SOLTAR el atajo (inicio del task async de stop, spawn_blocking), en paralelo a la transcripción. Sin teclas físicas apretadas no hay interferencia y la selección sigue viva.
+- **Aplicar en**: cualquier feature futura que emita teclas sintéticas durante un push-to-talk (tonos por app, capacidad B).
