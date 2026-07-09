@@ -15,7 +15,8 @@
     "postProcessing": "後處理",
     "history": "歷史紀錄",
     "debug": "偵錯",
-    "about": "關於"
+    "about": "關於",
+    "studio": "Studio"
   },
   "onboarding": {
     "subtitle": "首先，請選擇一種模型",
@@ -658,5 +659,16 @@
     "noSelectionTitle": "Nothing selected",
     "noSelectionDescription": "Select text first, then hold the voice-edit shortcut and speak your instruction.",
     "selectionTooLongTitle": "Selection too long for voice editing (max ~8,000 characters)"
+  },
+  "studio": {
+    "audioVideo": "Audio / Video",
+    "dropZoneTitle": "Drop audio or video here",
+    "dropZoneHint": "or click to choose files (mp3, m4a, mp4, flac, wav...)",
+    "empty": "No files yet. Drop one to transcribe it locally.",
+    "remove": "Remove",
+    "genericError": "Could not process this file",
+    "summarize": "Summarize with AI",
+    "summarizing": "Summarizing...",
+    "audioVideoFilter": "Audio / Video"
   }
 }

@@ -181,6 +181,7 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     app_handle.manage(model_manager.clone());
     app_handle.manage(transcription_manager.clone());
     app_handle.manage(history_manager.clone());
+    app_handle.manage(std::sync::Arc::new(commands::studio::StudioState::default()));
 
     // Note: Shortcuts are NOT initialized here.
     // The frontend is responsible for calling the `initialize_shortcuts` command
@@ -588,6 +589,11 @@ pub fn run(cli_args: CliArgs) {
 
     let specta_builder = Builder::<tauri::Wry>::new()
         .commands(collect_commands![
+            commands::studio::studio_enqueue,
+            commands::studio::studio_jobs,
+            commands::studio::studio_remove_job,
+            commands::studio::studio_export,
+            commands::studio::studio_summarize,
             commands::local_llm::get_local_llm_status,
             commands::local_llm::setup_local_llm,
             shortcut::change_binding,

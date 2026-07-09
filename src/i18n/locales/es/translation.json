@@ -15,7 +15,8 @@
     "postProcessing": "Post Proceso",
     "history": "Historial",
     "debug": "Depuración",
-    "about": "Acerca de"
+    "about": "Acerca de",
+    "studio": "Estudio"
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
@@ -658,5 +659,16 @@
     "noSelectionTitle": "No había nada seleccionado",
     "noSelectionDescription": "Selecciona texto primero, luego mantén el atajo de edición por voz y dicta tu instrucción.",
     "selectionTooLongTitle": "La selección es muy larga para editar por voz (máx ~8.000 caracteres)"
+  },
+  "studio": {
+    "audioVideo": "Audio / Video",
+    "dropZoneTitle": "Arrastra audio o video aquí",
+    "dropZoneHint": "o haz clic para elegir archivos (mp3, m4a, mp4, flac, wav...)",
+    "empty": "Aún no hay archivos. Arrastra uno para transcribirlo localmente.",
+    "remove": "Quitar",
+    "genericError": "No se pudo procesar este archivo",
+    "summarize": "Resumir con IA",
+    "summarizing": "Resumiendo...",
+    "audioVideoFilter": "Audio / Video"
   }
 }

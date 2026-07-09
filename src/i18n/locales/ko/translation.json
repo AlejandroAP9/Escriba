@@ -15,7 +15,8 @@
     "postProcessing": "후처리",
     "history": "히스토리",
     "debug": "디버그",
-    "about": "정보"
+    "about": "정보",
+    "studio": "Studio"
   },
   "onboarding": {
     "subtitle": "시작하려면 음성 인식 모델을 선택하세요",
@@ -658,5 +659,16 @@
     "noSelectionTitle": "Nothing selected",
     "noSelectionDescription": "Select text first, then hold the voice-edit shortcut and speak your instruction.",
     "selectionTooLongTitle": "Selection too long for voice editing (max ~8,000 characters)"
+  },
+  "studio": {
+    "audioVideo": "Audio / Video",
+    "dropZoneTitle": "Drop audio or video here",
+    "dropZoneHint": "or click to choose files (mp3, m4a, mp4, flac, wav...)",
+    "empty": "No files yet. Drop one to transcribe it locally.",
+    "remove": "Remove",
+    "genericError": "Could not process this file",
+    "summarize": "Summarize with AI",
+    "summarizing": "Summarizing...",
+    "audioVideoFilter": "Audio / Video"
   }
 }

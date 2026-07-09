@@ -1170,3 +1170,55 @@ fn notify_fallback(app: &AppHandle, route: &str, detail: &str) {
         },
     );
 }
+
+/// Resume un texto largo con el motor LLM local (misma cascada del phraser,
+/// temperatura baja). Usado por el Estudio. Devuelve None si no hay ruta local.
+pub async fn summarize_text(app: &AppHandle, text: &str) -> Option<String> {
+    if text.trim().is_empty() {
+        return None;
+    }
+    let settings = get_settings(app);
+    let mut provider = settings
+        .post_process_providers
+        .iter()
+        .find(|p| p.id == crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()?;
+    let model = settings
+        .post_process_models
+        .get(crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()
+        .unwrap_or_default();
+
+    match resolve_local_route(&model).await {
+        LocalRoute::Sidecar(base_url) => provider.base_url = base_url,
+        LocalRoute::Ollama { base_url, .. } => {
+            provider.base_url = base_url;
+            provider.supports_structured_output = false;
+        }
+        _ => return None,
+    }
+
+    let system_prompt = "Eres un asistente que resume transcripciones. Entrega un resumen claro y fiel en el mismo idioma del texto: primero 2-3 frases con la idea central, luego los puntos clave en viñetas. No inventes nada que no esté en el texto. Responde solo con el resumen.".to_string();
+
+    match crate::llm_client::send_chat_completion(
+        &provider,
+        String::new(),
+        &model,
+        format!("{}\n\nTranscripción:\n{}", system_prompt, text),
+        Some("none".to_string()),
+        None,
+        Some(0.3),
+    )
+    .await
+    {
+        Ok(Some(content)) => {
+            let cleaned = strip_invisible_chars(&content);
+            if cleaned.trim().is_empty() {
+                None
+            } else {
+                Some(cleaned)
+            }
+        }
+        _ => None,
+    }
+}

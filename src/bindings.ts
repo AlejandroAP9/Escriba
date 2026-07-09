@@ -5,6 +5,46 @@
 
 
 export const commands = {
+/**
+ * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
+ */
+async studioEnqueue(paths: string[]) : Promise<Result<number[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("studio_enqueue", { paths }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async studioJobs() : Promise<StudioJob[]> {
+    return await TAURI_INVOKE("studio_jobs");
+},
+async studioRemoveJob(id: number) : Promise<void> {
+    await TAURI_INVOKE("studio_remove_job", { id });
+},
+/**
+ * Exporta un job terminado al formato pedido y devuelve el contenido para
+ * que el frontend lo guarde con el diálogo nativo.
+ */
+async studioExport(id: number, format: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("studio_export", { id, format }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Resume la transcripción con el motor de IA local (misma cascada del phraser).
+ */
+async studioSummarize(id: number) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("studio_summarize", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async getLocalLlmStatus() : Promise<LocalLlmStatus> {
     return await TAURI_INVOKE("get_local_llm_status");
 },
@@ -931,6 +971,7 @@ export type ImplementationChangeResult = { success: boolean;
  * List of binding IDs that were reset to defaults due to incompatibility
  */
 reset_bindings: string[] }
+export type JobStatus = "pending" | "processing" | "done" | "error"
 export type KeyboardImplementation = "tauri" | "handy_keys"
 export type LLMPrompt = { id: string; name: string; prompt: string }
 export type LocalLlmStatus = { runtime_installed: boolean; model_installed: boolean; engine_running: boolean; setup_in_progress: boolean; model_file: string }
@@ -1011,6 +1052,7 @@ export type StreamTextEvent = { committed: string; tentative: string }
  * Semantic kind of "working" phase, used to localize the spinner label.
  */
 export type StreamWorkKind = "transcribing" | "polishing"
+export type StudioJob = { id: number; file_name: string; path: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; summary: string | null }
 export type TranscribeAcceleratorSetting = "auto" | "cpu" | "gpu"
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"
 export type WindowsMicrophonePermissionStatus = { supported: boolean; overall_access: PermissionAccess; device_access: PermissionAccess; app_access: PermissionAccess; desktop_app_access: PermissionAccess }
