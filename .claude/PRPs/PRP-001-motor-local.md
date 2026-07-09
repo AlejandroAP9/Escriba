@@ -139,3 +139,10 @@ Criterios de éxito idénticos salvo "un doble clic externo permitido".
 - NO 0.0.0.0, NO puerto fijo, NO webui.
 - NO degradar a BYOK automáticamente.
 - NO loggear contenido de transcripciones.
+
+### 2026-07-09: Reinstalar la .app ad-hoc revoca Accesibilidad (macOS TCC)
+
+- **Error**: al reemplazar Escriba.app por un build nuevo, macOS invalida el permiso de Accesibilidad (firma ad-hoc distinta por build) pero deja el toggle ON en Ajustes; la app se queda en "Esperando..." y no pasa el onboarding.
+- **Fix (usuario)**: quitar Escriba de Ajustes>Privacidad>Accesibilidad con "−" y volver a conceder (o toggle off/on + reabrir).
+- **Fix (producto, post-hackathon)**: firma Developer ID estable = misma identidad de código entre versiones → el permiso sobrevive a las actualizaciones. Mientras sea ad-hoc, la landing/README debe documentar este paso tras cada update manual. Con el updater (mismo binario reemplazado in-place) el problema es el mismo hasta que haya firma real.
+- **Aplicar en**: distribución, onboarding, guion del video (no reinstalar en vivo sin re-conceder).
