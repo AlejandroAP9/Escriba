@@ -1091,6 +1091,85 @@ impl TranscriptionManager {
         .emit(&self.app_handle);
     }
 
+    /// Transcripción batch del Estudio: conserva los segmentos con
+    /// timestamps (t0/t1 en ms → segundos). Motores no-Whisper caen a un
+    /// único segmento con el texto completo. No corre VAD ni post-proceso:
+    /// el Estudio maneja chunking y limpieza aguas arriba/abajo.
+    pub fn transcribe_segments(
+        &self,
+        audio: Vec<f32>,
+    ) -> Result<Vec<crate::studio::segments::Segment>> {
+        use crate::studio::segments::Segment as StudioSegment;
+
+        self.touch_activity();
+        if audio.is_empty() {
+            return Ok(Vec::new());
+        }
+        let duration_s = audio.len() as f64 / 16_000.0;
+
+        {
+            let mut is_loading = self.is_loading.lock().unwrap();
+            while *is_loading {
+                is_loading = self.loading_condvar.wait(is_loading).unwrap();
+            }
+        }
+
+        let settings = get_settings(&self.app_handle);
+        let language = match settings.selected_language.as_str() {
+            "" | "auto" => None,
+            lang => Some(lang.to_string()),
+        };
+
+        let is_transcribe_cpp = {
+            let engine_guard = self.lock_engine();
+            matches!(engine_guard.as_ref(), Some(LoadedEngine::TranscribeCpp(_)))
+        };
+
+        if is_transcribe_cpp {
+            let mut engine_guard = self.lock_engine();
+            let Some(LoadedEngine::TranscribeCpp(session)) = engine_guard.as_mut() else {
+                return Err(anyhow::anyhow!("Model is not loaded for transcription."));
+            };
+            let run_options = RunOptions {
+                task: Task::Transcribe,
+                language,
+                ..Default::default()
+            };
+            let transcript = session
+                .run(&audio, &run_options)
+                .map_err(|e| anyhow::anyhow!("transcribe-cpp transcription failed: {}", e))?;
+            let mut segments: Vec<StudioSegment> = transcript
+                .segments
+                .iter()
+                .map(|seg| StudioSegment {
+                    start_s: seg.t0_ms as f64 / 1000.0,
+                    end_s: seg.t1_ms as f64 / 1000.0,
+                    text: seg.text.trim().to_string(),
+                })
+                .filter(|seg| !seg.text.is_empty())
+                .collect();
+            if segments.is_empty() && !transcript.text.trim().is_empty() {
+                segments.push(StudioSegment {
+                    start_s: 0.0,
+                    end_s: duration_s,
+                    text: transcript.text.trim().to_string(),
+                });
+            }
+            return Ok(segments);
+        }
+
+        // Fallback para engines ONNX: texto completo como un solo segmento.
+        let text = self.transcribe(audio)?;
+        if text.trim().is_empty() {
+            return Ok(Vec::new());
+        }
+        Ok(vec![StudioSegment {
+            start_s: 0.0,
+            end_s: duration_s,
+            text: text.trim().to_string(),
+        }])
+    }
+
     pub fn transcribe(&self, audio: Vec<f32>) -> Result<String> {
         #[cfg(debug_assertions)]
         if std::env::var("HANDY_FORCE_TRANSCRIPTION_FAILURE").is_ok() {

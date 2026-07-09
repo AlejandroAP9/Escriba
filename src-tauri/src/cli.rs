@@ -60,6 +60,11 @@ pub struct CliArgs {
     #[arg(long, value_name = "N")]
     pub repeat: Option<usize>,
 
+    /// Escriba Studio: write a .srt subtitle file next to the input
+    /// (accepts mp3/m4a/mp4/flac/ogg/wav via local decode, any duration).
+    #[arg(long)]
+    pub export_srt: bool,
+
     /// Emit --transcribe-file results as JSON.
     #[arg(long)]
     pub json: bool,

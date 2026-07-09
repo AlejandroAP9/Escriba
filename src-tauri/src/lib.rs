@@ -399,6 +399,61 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
         return 0;
     };
 
+    // Escriba Studio (PRP-004): --export-srt acepta cualquier formato
+    // soportado, decodifica local, trocea con overlap y escribe el .srt
+    // junto al archivo. Camino batch sin mic/VAD.
+    if args.export_srt {
+        let model_id = args
+            .model
+            .clone()
+            .unwrap_or_else(|| get_settings(app).selected_model);
+        if model_id.is_empty() {
+            eprintln!("error: no model selected (pass --model or pick one in the app)");
+            return 2;
+        }
+        let tm = app.state::<Arc<TranscriptionManager>>();
+        if let Err(e) = tm.load_model_with_device(&model_id, args.device_index) {
+            eprintln!("error: load_model('{}') failed: {}", model_id, e);
+            return 1;
+        }
+        let samples = match crate::studio::decode::decode_to_16k_mono(&wav) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("error: decode failed: {}", e);
+                return 2;
+            }
+        };
+        let audio_secs = samples.len() as f64 / 16_000.0;
+        let started = Instant::now();
+        let segments = match crate::studio::pipeline::transcribe_samples(&tm, &samples, |p| {
+            eprint!("\rprogreso: {:>3.0}%", p * 100.0);
+        }) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("\nerror: transcription failed: {}", e);
+                return 1;
+            }
+        };
+        eprintln!();
+        let srt = crate::studio::export::to_srt(&segments);
+        let out_path = wav.with_extension("srt");
+        if let Err(e) = std::fs::write(&out_path, &srt) {
+            eprintln!("error: cannot write {}: {}", out_path.display(), e);
+            return 1;
+        }
+        println!(
+            "SRT: {} ({} segmentos, {:.1}s de audio, {:.1}s de proceso)",
+            out_path.display(),
+            segments.len(),
+            audio_secs,
+            started.elapsed().as_secs_f64()
+        );
+        if crate::studio::segments::looks_suspicious(&segments, audio_secs) {
+            eprintln!("aviso: transcripción sospechosamente corta para la duración del audio");
+        }
+        return 0;
+    }
+
     // read_wav_samples reads 16-bit int samples and does no validation; the app
     // only ever saves 16 kHz mono 16-bit PCM, so reject anything else rather than
     // transcribe garbage / mis-time / mis-decode.
