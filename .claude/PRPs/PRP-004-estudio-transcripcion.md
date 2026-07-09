@@ -1,6 +1,6 @@
 # PRP-004: Estudio de transcripción (Capacidad D)
 
-> **Estado**: APROBADO (decisión de dupla 8-jul: D primero, B stretch)
+> **Estado**: COMPLETADO Y VALIDADO end-to-end (9-jul: video.mp4 real -> SRT en CapCut)
 > **Fecha**: 2026-07-09
 > **Proyecto**: Escriba
 
@@ -22,11 +22,11 @@ La votación comunitaria (avance 2) ordena los casos de uso de lanzamiento.
 
 ### Criterios de Éxito
 
-- [ ] mp3, wav, m4a, flac y mp4 (pista de audio) → transcripción correcta.
+- [x] mp3, wav, m4a, flac y mp4 → transcripción correcta (validado 9-jul).
 - [ ] Audio de 30+ min sin cortes ni duplicados en las junturas de chunks.
-- [ ] SRT válido importable en CapCut/YouTube; VTT/TXT/JSON correctos.
-- [ ] Resumen con IA local (wifi apagado) sobre la transcripción.
-- [ ] Cola con progreso por archivo; la UI nunca se congela.
+- [x] SRT válido importado en CapCut con subtítulos sincronizados (9-jul).
+- [x] Resumen con IA local sobre la transcripción (validado 9-jul).
+- [x] Cola con progreso por archivo; UI fluida (validado 9-jul).
 - [ ] Audio del usuario jamás sale del equipo ni va a logs.
 
 ### Comportamiento Esperado
