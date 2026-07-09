@@ -97,7 +97,8 @@ y "Resumir con IA" → archivos generados junto al original o vía diálogo save
 **Objetivo:** criterios de éxito + premortem verificados; SRT probado en CapCut/YouTube.
 
 ## Gotchas
-- [ ] transcribe-cpp: confirmar estructura exacta de segments en el resultado (no asumir; docs.rs).
+- [x] RESUELTO (9-jul): transcribe-cpp `Transcript.segments: Vec<Segment>` con `t0_ms/t1_ms: i64` y `text: String` → nuestro Segment = t0_ms/1000.0. El pipeline del dictado los descarta con `.map(|t| t.text)`; el Estudio usa `session.run()` directo conservandolos.
+- [x] RESUELTO (9-jul): ya existe carga de archivos en el modo headless `--transcribe-file` (lib.rs:333, `read_wav_samples` via hound) pero SOLO WAV 16-bit → symphonia cubre el resto; el patron headless sirve de referencia para el flujo batch sin mic/VAD.
 - [ ] `bindings.ts` autogenerado; `check:translations` exige 21 locales.
 - [ ] symphonia: features por formato en Cargo.toml (mp3, aac, isomp4, flac, vorbis).
 - [ ] Whisper alucina en silencios largos: pasar VAD o descartar segmentos vacíos/repetidos (patrón "Gracias por ver el video").
