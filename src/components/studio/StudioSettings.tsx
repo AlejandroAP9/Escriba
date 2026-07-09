@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { listen } from "@tauri-apps/api/event";
 import {
   open as openDialog,
@@ -79,10 +80,19 @@ export const StudioSettings: React.FC = () => {
 
   const exportJob = async (job: StudioJob, format: string) => {
     const result = await commands.studioExport(job.id, format);
-    if (result.status === "error") return;
+    if (result.status === "error") {
+      toast.error(t("studio.exportError"), { description: result.error });
+      return;
+    }
     const base = job.file_name.replace(/\.[^.]+$/, "");
     const path = await saveDialog({ defaultPath: `${base}.${format}` });
-    if (path) await writeTextFile(path, result.data);
+    if (!path) return;
+    try {
+      await writeTextFile(path, result.data);
+      toast.success(t("studio.exportSaved"));
+    } catch (e) {
+      toast.error(t("studio.exportError"), { description: String(e) });
+    }
   };
 
   const summarize = async (job: StudioJob) => {

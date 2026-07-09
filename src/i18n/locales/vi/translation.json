@@ -669,6 +669,8 @@
     "genericError": "Could not process this file",
     "summarize": "Summarize with AI",
     "summarizing": "Summarizing...",
-    "audioVideoFilter": "Audio / Video"
+    "audioVideoFilter": "Audio / Video",
+    "exportSaved": "File saved",
+    "exportError": "Could not save the file"
   }
 }

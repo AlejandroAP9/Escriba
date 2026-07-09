@@ -669,6 +669,8 @@
     "genericError": "No se pudo procesar este archivo",
     "summarize": "Resumir con IA",
     "summarizing": "Resumiendo...",
-    "audioVideoFilter": "Audio / Video"
+    "audioVideoFilter": "Audio / Video",
+    "exportSaved": "Archivo guardado",
+    "exportError": "No se pudo guardar el archivo"
   }
 }
