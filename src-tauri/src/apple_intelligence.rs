@@ -1,3 +1,9 @@
+//! Puente FFI al framework FoundationModels (SystemLanguageModel).
+//! GARANTIA DE PRIVACIDAD: este framework es la API de Apple para el
+//! modelo ON-DEVICE exclusivamente; no tiene ruta a Private Cloud
+//! Compute (a diferencia de Writing Tools/Siri del sistema). Verificado
+//! tras la observacion de Pedro Sanchez (comunidad, 8-jul-2026); ver
+//! docs/plan/07-security-plan.md superficie 2b.
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 

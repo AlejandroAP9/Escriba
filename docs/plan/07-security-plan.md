@@ -21,6 +21,12 @@
 | Webview del server                            | `--no-webui`                                                                     | `curl /` → sin UI                           |
 | Agotamiento de RAM (Whisper + LLM residentes) | idle-unload del LLM a 2 min; modelo 1.7B sugerido si RAM ≤8GB                    | monitor en Mac 8GB durante uso continuo     |
 
+## Superficie 2b: fallback Apple Intelligence (aporte de Pedro Sanchez, comunidad, 8-jul)
+
+| Amenaza                                                                                                                                                                      | Defensa                                                                                                                                                                                                                                                                    | Verificación                                                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| El fallback a Apple Intelligence podría escalar a Private Cloud Compute (las Writing Tools/Siri del sistema SÍ lo hacen) y romper la promesa "la voz nunca sale sin permiso" | Usamos el framework FoundationModels (SystemLanguageModel vía FFI en `apple_intelligence.rs`), la API para terceros del modelo ON-DEVICE exclusivamente: no expone ruta a PCC. Además es el TERCER fallback (tras motor local y Ollama) y cada degradación avisa con toast | Revisar que la FFI llame solo a SystemLanguageModel (sin APIs de Writing Tools); código abierto auditable |
+
 ## Superficie 3: clipboard y teclado sintético (Capacidad A)
 
 | Amenaza                                                                         | Defensa                                                                                                                    | Verificación                                                                                           |
