@@ -1,8 +1,9 @@
 name: "code quality"
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
+  # push desactivado durante el hackathon para no gastar minutos de Actions
+  # (se corren en local con bun run lint / cargo test). PRs siguen validando.
+  pull_request:
     paths:
       - "src/**"
       - "package.json"
