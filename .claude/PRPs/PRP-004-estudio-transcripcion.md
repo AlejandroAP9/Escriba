@@ -121,3 +121,11 @@ y "Resumir con IA" → archivos generados junto al original o vía diálogo save
 
 - NO ffmpeg obligatorio (solo fallback opcional del sistema) · NO cloud · NO
   cargar archivos completos en RAM · NO strings en JSX sin i18n.
+
+## Aprendizajes (Self-Annealing)
+
+### 2026-07-09: "Model is not loaded for transcription" en el Estudio
+
+- **Error**: la UI del Estudio daba ese error en cada archivo. `transcribe_segments` asumía el modelo cargado, pero el Estudio no pasa por el flujo de dictado (que lo carga on-demand). El modo headless sí funcionaba porque llamaba `load_model_with_device` explícito antes.
+- **Fix**: `transcribe_segments` carga `settings.selected_model` si `lock_engine().is_none()` (mismo patrón que `transcribe()`).
+- **Aplicar en**: cualquier nuevo consumidor del TranscriptionManager fuera del flujo de dictado/CLI: cargar el modelo primero, no asumirlo residente.

@@ -1115,6 +1115,19 @@ impl TranscriptionManager {
         }
 
         let settings = get_settings(&self.app_handle);
+
+        // Asegurar que el modelo esté cargado (el Estudio no pasa por el flujo
+        // de dictado que lo carga on-demand). Cargar el modelo seleccionado.
+        if self.lock_engine().is_none() {
+            let model_id = settings.selected_model.clone();
+            if model_id.is_empty() {
+                return Err(anyhow::anyhow!(
+                    "No hay modelo seleccionado. Elige uno en la sección Modelos."
+                ));
+            }
+            self.load_model(&model_id)?;
+        }
+
         let language = match settings.selected_language.as_str() {
             "" | "auto" => None,
             lang => Some(lang.to_string()),
