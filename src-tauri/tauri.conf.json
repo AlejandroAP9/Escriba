@@ -17,7 +17,9 @@
       "assetProtocol": {
         "enable": true,
         "scope": {
-          "allow": ["**"],
+          "allow": [
+            "**"
+          ],
           "requireLiteralLeadingDot": false
         }
       }
@@ -27,7 +29,9 @@
     "active": true,
     "createUpdaterArtifacts": true,
     "targets": "all",
-    "resources": ["resources/**/*"],
+    "resources": [
+      "resources/**/*"
+    ],
     "license": "MIT",
     "icon": [
       "icons/32x32.png",
@@ -45,7 +49,9 @@
     },
     "linux": {
       "deb": {
-        "depends": ["libgtk-layer-shell0"],
+        "depends": [
+          "libgtk-layer-shell0"
+        ],
         "files": {
           "/usr/lib": "transcribe-libs"
         }
@@ -73,7 +79,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgwMkZFNkM3OTNDNzNDMkUKUldRdVBNZVR4K1l2Z05oNTc5Y2FQWjlsSHp1TzZlYi8vSnYrckNlaEtwRDBBZW1zMDV1Wk51ZnQK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQwNTQzMDVCMjc3MEU0QjUKUldTMTVIQW5XekJVUUU1Z2Y4NVJLQVlxTWNHZFNGa20zWG5KRWM1S2lWOWpWWXFMd1JLQUowVlgK",
       "endpoints": [
         "https://github.com/AlejandroAP9/Escriba/releases/latest/download/latest.json"
       ]
