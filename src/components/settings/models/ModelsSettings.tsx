@@ -11,6 +11,7 @@ import {
   supportsLanguageCode,
 } from "@/lib/constants/languages.ts";
 import { getTranslatedModelDescription } from "@/lib/utils/modelTranslation";
+import { rankModelsForLocale } from "@/lib/utils/rankModelsForLocale";
 import type { ModelInfo } from "@/bindings";
 
 // check if model supports a language based on its supported_languages list
@@ -25,7 +26,7 @@ const isLegacyModel = (model: ModelInfo): boolean =>
   typeof model.source === "object" && "Url" in model.source;
 
 export const ModelsSettings: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [switchingModelId, setSwitchingModelId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [languageFilter, setLanguageFilter] = useState("all");
@@ -213,7 +214,8 @@ export const ModelsSettings: React.FC = () => {
 
     return {
       downloadedModels: downloaded,
-      availableModels: available,
+      // Escriba: los disponibles tambien se ordenan por idioma del usuario.
+      availableModels: rankModelsForLocale(available, i18n.language),
     };
   }, [filteredModels, downloadingModels, extractingModels, currentModel]);
 
