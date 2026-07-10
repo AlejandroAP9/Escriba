@@ -23,14 +23,45 @@ pub fn supported_extension(path: &Path) -> bool {
             .map(|e| e.to_ascii_lowercase())
             .as_deref(),
         Some(
-            "mp3" | "m4a" | "mp4" | "mov" | "aac" | "flac" | "ogg" | "wav" | "aiff" | "aif" | "caf"
+            "mp3"
+                | "m4a"
+                | "mp4"
+                | "mov"
+                | "aac"
+                | "flac"
+                | "ogg"
+                | "oga"
+                | "opus"
+                | "wav"
+                | "aiff"
+                | "aif"
+                | "caf"
         )
     )
 }
 
 /// Decodifica cualquier formato soportado a f32 mono 16kHz.
-/// El archivo se procesa por paquetes (no se carga entero en RAM).
+/// symphonia cubre casi todo; los .opus (audios de WhatsApp) van por el
+/// camino ogg+libopus porque symphonia no trae decoder de Opus.
 pub fn decode_to_16k_mono(path: &Path) -> Result<Vec<f32>, String> {
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_ascii_lowercase())
+        .unwrap_or_default();
+
+    match decode_symphonia(path) {
+        Ok(samples) => Ok(samples),
+        // ogg puede traer vorbis (symphonia OK) u opus (fallback propio).
+        Err(err) if matches!(ext.as_str(), "opus" | "ogg" | "oga") => {
+            log::debug!("symphonia fallo ({}), probando decoder opus", err);
+            decode_ogg_opus(path)
+        }
+        Err(err) => Err(err),
+    }
+}
+
+fn decode_symphonia(path: &Path) -> Result<Vec<f32>, String> {
     let file = File::open(path).map_err(|e| format!("No se pudo abrir el archivo: {}", e))?;
     let mss = MediaSourceStream::new(Box::new(file), Default::default());
 
@@ -148,4 +179,81 @@ fn downmix_to_mono(decoded: &AudioBufferRef, mono: &mut Vec<f32>) {
             as f32),
         AudioBufferRef::S8(buf) => mix!(buf, |s: i8| s as f32 / i8::MAX as f32),
     }
+}
+
+/// Audios de WhatsApp y notas de voz: contenedor Ogg con codec Opus.
+/// Demux con `ogg` (pure Rust) + decode con libopus (audiopus, vendorizada).
+/// Opus SIEMPRE decodifica a 48kHz; el resampler lo baja a 16kHz.
+fn decode_ogg_opus(path: &Path) -> Result<Vec<f32>, String> {
+    use audiopus::{coder::Decoder as OpusDecoder, Channels, SampleRate};
+
+    let file = File::open(path).map_err(|e| format!("No se pudo abrir el archivo: {}", e))?;
+    let mut reader = ogg::PacketReader::new(std::io::BufReader::new(file));
+
+    // Primer paquete: OpusHead (magia + version + canales + pre-skip).
+    let head = reader
+        .read_packet_expected()
+        .map_err(|e| format!("Ogg inválido: {}", e))?;
+    if head.data.len() < 12 || &head.data[..8] != b"OpusHead" {
+        return Err("El archivo Ogg no contiene audio Opus".to_string());
+    }
+    let channel_count = head.data[9];
+    let pre_skip = u16::from_le_bytes([head.data[10], head.data[11]]) as usize;
+    let channels = match channel_count {
+        1 => Channels::Mono,
+        2 => Channels::Stereo,
+        n => return Err(format!("Opus con {} canales no soportado", n)),
+    };
+
+    // Segundo paquete: OpusTags (metadatos, se descarta).
+    let _tags = reader
+        .read_packet_expected()
+        .map_err(|e| format!("Ogg inválido (tags): {}", e))?;
+
+    let mut decoder = OpusDecoder::new(SampleRate::Hz48000, channels)
+        .map_err(|e| format!("No se pudo iniciar el decoder Opus: {}", e))?;
+
+    // 120ms máx por frame a 48kHz, por canal.
+    let max_samples = 5760 * channel_count as usize;
+    let mut pcm = vec![0f32; max_samples];
+    let mut resampler = FrameResampler::new(48_000, STUDIO_SAMPLE_RATE, Duration::from_millis(100));
+    let mut out: Vec<f32> = Vec::new();
+    let mut mono: Vec<f32> = Vec::new();
+    let mut skipped = 0usize;
+
+    while let Some(packet) = reader
+        .read_packet()
+        .map_err(|e| format!("Error leyendo Ogg: {}", e))?
+    {
+        let decoded = match decoder.decode_float(Some(&packet.data), &mut pcm, false) {
+            Ok(n) => n,
+            // Paquete dañado aislado: se salta (mismo criterio que symphonia).
+            Err(_) => continue,
+        };
+        mono.clear();
+        if channel_count == 1 {
+            mono.extend_from_slice(&pcm[..decoded]);
+        } else {
+            for frame in pcm[..decoded * 2].chunks_exact(2) {
+                mono.push((frame[0] + frame[1]) * 0.5);
+            }
+        }
+        // pre-skip: muestras de arranque del codec que no son audio real.
+        let start = if skipped < pre_skip {
+            let take = (pre_skip - skipped).min(mono.len());
+            skipped += take;
+            take
+        } else {
+            0
+        };
+        resampler.push(&mono[start..], |frame| out.extend_from_slice(frame));
+    }
+
+    let flush = vec![0.0f32; 4_800];
+    resampler.push(&flush, |frame| out.extend_from_slice(frame));
+
+    if out.is_empty() {
+        return Err("El archivo Opus no produjo audio".to_string());
+    }
+    Ok(out)
 }

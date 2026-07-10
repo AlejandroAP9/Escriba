@@ -129,3 +129,9 @@ y "Resumir con IA" → archivos generados junto al original o vía diálogo save
 - **Error**: la UI del Estudio daba ese error en cada archivo. `transcribe_segments` asumía el modelo cargado, pero el Estudio no pasa por el flujo de dictado (que lo carga on-demand). El modo headless sí funcionaba porque llamaba `load_model_with_device` explícito antes.
 - **Fix**: `transcribe_segments` carga `settings.selected_model` si `lock_engine().is_none()` (mismo patrón que `transcribe()`).
 - **Aplicar en**: cualquier nuevo consumidor del TranscriptionManager fuera del flujo de dictado/CLI: cargar el modelo primero, no asumirlo residente.
+
+### 2026-07-10: Soporte .opus (audios de WhatsApp) — probado ANTES de anunciarlo
+
+- **Error (evitado)**: la encuesta iba a ganar "audios de WhatsApp", pero WhatsApp exporta .opus y symphonia no trae decoder de Opus → "Codec no soportado". Se detectó probando con un opus real antes del post.
+- **Fix**: demuxer `ogg` (pure Rust) + `audiopus` (libopus estática vía OPUS_LIB_DIR=/opt/homebrew/opt/opus/lib + OPUS_STATIC=1); fallback automático cuando symphonia falla en ogg/opus. Maneja OpusHead (canales + pre-skip), downmix estéreo y resampleo 48k→16k. Validado: opus de 23.5s → SRT correcto en 6.8s; binario sin dylibs de opus (estática ✓).
+- **Aplicar en**: CI (los jobs macOS necesitan brew opus + esas 2 env vars; Windows usará la ruta msvc de audiopus_sys — verificar cuando vuelva la cuota). Regla de la casa confirmada: probar el formato REAL antes de prometerlo.

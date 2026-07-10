@@ -53,7 +53,17 @@ export const StudioSettings: React.FC = () => {
       filters: [
         {
           name: t("studio.audioVideo"),
-          extensions: ["mp3", "m4a", "mp4", "mov", "aac", "flac", "ogg", "wav"],
+          extensions: [
+            "mp3",
+            "m4a",
+            "opus",
+            "ogg",
+            "mp4",
+            "mov",
+            "aac",
+            "flac",
+            "wav",
+          ],
         },
       ],
     });
