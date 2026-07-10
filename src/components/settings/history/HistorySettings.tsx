@@ -10,6 +10,7 @@ import {
   type HistoryEntry,
   type HistoryUpdatePayload,
 } from "@/bindings";
+import { UsageStatsCard } from "./UsageStatsCard";
 import { useOsType } from "@/hooks/useOsType";
 import { formatDateTime } from "@/utils/dateFormat";
 import { AudioPlayer } from "../../ui/AudioPlayer";
@@ -272,6 +273,7 @@ export const HistorySettings: React.FC = () => {
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
+      <UsageStatsCard />
       <div className="space-y-2">
         <div className="px-4 flex items-center justify-between">
           <div>

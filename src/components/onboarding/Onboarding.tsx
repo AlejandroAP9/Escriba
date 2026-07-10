@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { rankModelsForLocale } from "@/lib/utils/rankModelsForLocale";
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
 import type { ModelInfo } from "@/bindings";
@@ -13,7 +14,7 @@ interface OnboardingProps {
 }
 
 const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     models,
     downloadModel,
@@ -39,18 +40,23 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
     const downloadable = models.filter(
       (m: ModelInfo) => !m.is_downloaded && !isLegacySource(m),
     );
-    const recommended = downloadable.filter((m: ModelInfo) => m.is_recommended);
-    // `models` arrives in editorial rank order (the backend sorts by rank_of,
-    // then accuracy), so keep that order here: ranked-but-not-recommended models
-    // surface first, then the unranked tail by accuracy.
-    const rest = downloadable.filter((m: ModelInfo) => !m.is_recommended);
+    // Escriba: re-rankear por idioma de la app. Un usuario hispano no debe
+    // ver un modelo SOLO-ingles como primera recomendacion.
+    const recommended = rankModelsForLocale(
+      downloadable.filter((m: ModelInfo) => m.is_recommended),
+      i18n.language,
+    );
+    const rest = rankModelsForLocale(
+      downloadable.filter((m: ModelInfo) => !m.is_recommended),
+      i18n.language,
+    );
     return {
       downloadable,
       topPicks: recommended.slice(0, 2),
       otherRecommended: recommended.slice(2),
       rest,
     };
-  }, [models]);
+  }, [models, i18n.language]);
 
   const hasRecommended = topPicks.length > 0 || otherRecommended.length > 0;
   // When nothing recommended remains to download (e.g. all already on disk),

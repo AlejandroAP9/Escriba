@@ -672,5 +672,12 @@
     "audioVideoFilter": "Audio / Video",
     "exportSaved": "File saved",
     "exportError": "Could not save the file"
+  },
+  "historyStats": {
+    "words": "Words dictated",
+    "minutesSaved": "Minutes saved",
+    "minutesSavedHint": "Assuming 40 words/min typing vs ~200 dictating",
+    "streak": "Day streak",
+    "activeDays": "Active days (30d)"
   }
 }

@@ -14,17 +14,6 @@ on:
       - "tsconfig*"
       - "tailwind.config.*"
       - ".github/workflows/**"
-  pull_request:
-    paths:
-      - "src/**"
-      - "package.json"
-      - "bun.lock"
-      - ".eslintrc*"
-      - "eslint.config.*"
-      - ".prettierrc*"
-      - "tsconfig*"
-      - "tailwind.config.*"
-      - ".github/workflows/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

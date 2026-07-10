@@ -10,6 +10,7 @@ import {
   MODEL_CAPABILITY_LANGUAGES,
   supportsLanguageCode,
 } from "@/lib/constants/languages.ts";
+import { getTranslatedModelDescription } from "@/lib/utils/modelTranslation";
 import type { ModelInfo } from "@/bindings";
 
 // check if model supports a language based on its supported_languages list
@@ -174,12 +175,15 @@ export const ModelsSettings: React.FC = () => {
         if (!modelSupportsLanguage(model, languageFilter)) return false;
       }
       if (q) {
-        const haystack = `${model.name} ${model.description}`.toLowerCase();
+        // Escriba: buscar tambien sobre la descripcion traducida, no solo la
+        // inglesa cruda (un usuario hispano busca "idiomas", no "languages").
+        const haystack =
+          `${model.name} ${model.description} ${getTranslatedModelDescription(model, t)}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       return true;
     });
-  }, [models, languageFilter, searchQuery]);
+  }, [models, languageFilter, searchQuery, t]);
 
   // Split filtered models into downloaded (including custom) and available sections
   const { downloadedModels, availableModels } = useMemo(() => {

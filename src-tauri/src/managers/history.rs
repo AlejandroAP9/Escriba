@@ -735,3 +735,78 @@ mod tests {
         assert_eq!(entry.transcription_text, "completed");
     }
 }
+
+#[derive(serde::Serialize, Clone, specta::Type)]
+pub struct UsageStats {
+    pub total_transcriptions: u32,
+    pub total_words: u32,
+    pub words_last_30_days: u32,
+    pub active_days_last_30: u32,
+    pub current_streak_days: u32,
+    /// Minutos ahorrados vs teclear a 40 palabras/minuto (supuesto explícito
+    /// mostrado en la UI), descontando ~200 wpm de dictado efectivo.
+    pub minutes_saved: u32,
+}
+
+impl HistoryManager {
+    /// Estadísticas derivadas del historial existente (sin migraciones):
+    /// palabras = split por espacios del texto final; racha = días
+    /// consecutivos con actividad hasta hoy.
+    pub fn get_usage_stats(&self) -> Result<UsageStats> {
+        let conn = self.get_connection()?;
+        let mut stmt = conn.prepare(
+            "SELECT timestamp, COALESCE(NULLIF(post_processed_text, ''), transcription_text) FROM transcription_history",
+        )?;
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+        })?;
+
+        let now = chrono::Utc::now().timestamp();
+        let day = 86_400i64;
+        let cutoff_30 = now - 30 * day;
+
+        let mut total_transcriptions = 0u32;
+        let mut total_words = 0u32;
+        let mut words_30 = 0u32;
+        let mut active_days: std::collections::HashSet<i64> = std::collections::HashSet::new();
+
+        for row in rows.flatten() {
+            let (ts, text) = row;
+            let words = text.split_whitespace().count() as u32;
+            total_transcriptions += 1;
+            total_words += words;
+            if ts >= cutoff_30 {
+                words_30 += words;
+            }
+            active_days.insert(ts / day);
+        }
+
+        let today = now / day;
+        let mut streak = 0u32;
+        let mut cursor = today;
+        // La racha admite que hoy aún no dictes (cuenta desde ayer también).
+        if !active_days.contains(&cursor) {
+            cursor -= 1;
+        }
+        while active_days.contains(&cursor) {
+            streak += 1;
+            cursor -= 1;
+        }
+
+        let active_days_30 = active_days
+            .iter()
+            .filter(|d| **d >= cutoff_30 / day)
+            .count() as u32;
+        // 40 wpm tecleando vs ~200 wpm dictando => ahorras 1/40 - 1/200 = 0.02 min/palabra.
+        let minutes_saved = ((total_words as f64) * 0.02).round() as u32;
+
+        Ok(UsageStats {
+            total_transcriptions,
+            total_words,
+            words_last_30_days: words_30,
+            active_days_last_30: active_days_30,
+            current_streak_days: streak,
+            minutes_saved,
+        })
+    }
+}

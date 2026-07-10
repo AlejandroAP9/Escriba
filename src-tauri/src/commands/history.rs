@@ -160,3 +160,13 @@ pub async fn update_recording_retention_period(
 
     Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_usage_stats(
+    app: tauri::AppHandle,
+) -> Result<crate::managers::history::UsageStats, String> {
+    use tauri::Manager;
+    let hm = app.state::<std::sync::Arc<crate::managers::history::HistoryManager>>();
+    hm.get_usage_stats().map_err(|e| e.to_string())
+}

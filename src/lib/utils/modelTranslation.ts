@@ -1,5 +1,7 @@
+import i18n from "i18next";
 import type { TFunction } from "i18next";
 import type { ModelInfo } from "@/bindings";
+import { MODEL_DESCRIPTIONS_ES } from "./modelDescriptions.es";
 
 /**
  * Get the translated name for a model
@@ -29,5 +31,16 @@ export function getTranslatedModelDescription(
   }
   const translationKey = `onboarding.models.${model.id}.description`;
   const translated = t(translationKey, { defaultValue: "" });
-  return translated !== "" ? translated : model.description;
+  if (translated !== "") {
+    return translated;
+  }
+  // Escriba: catálogo localizado por texto de descripción (estable entre
+  // quants; los ids incluyen el archivo y son frágiles como clave i18n).
+  if ((i18n.language || "").startsWith("es")) {
+    const es = MODEL_DESCRIPTIONS_ES[model.description];
+    if (es) {
+      return es;
+    }
+  }
+  return model.description;
 }

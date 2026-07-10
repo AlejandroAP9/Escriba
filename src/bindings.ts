@@ -5,6 +5,14 @@
 
 
 export const commands = {
+async getUsageStats() : Promise<Result<UsageStats, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_usage_stats") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 /**
  * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
  */
@@ -1055,6 +1063,12 @@ export type StreamWorkKind = "transcribing" | "polishing"
 export type StudioJob = { id: number; file_name: string; path: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; summary: string | null }
 export type TranscribeAcceleratorSetting = "auto" | "cpu" | "gpu"
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"
+export type UsageStats = { total_transcriptions: number; total_words: number; words_last_30_days: number; active_days_last_30: number; current_streak_days: number; 
+/**
+ * Minutos ahorrados vs teclear a 40 palabras/minuto (supuesto explícito
+ * mostrado en la UI), descontando ~200 wpm de dictado efectivo.
+ */
+minutes_saved: number }
 export type WindowsMicrophonePermissionStatus = { supported: boolean; overall_access: PermissionAccess; device_access: PermissionAccess; app_access: PermissionAccess; desktop_app_access: PermissionAccess }
 
 /** tauri-specta globals **/
