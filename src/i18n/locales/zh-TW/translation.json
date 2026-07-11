@@ -691,6 +691,7 @@
     "languages": "Languages",
     "testPlaceholder": "Type a test line...",
     "sendTest": "Send",
-    "test": "Test"
+    "test": "Test",
+    "sourceLang": "Language you'll speak in"
   }
 }

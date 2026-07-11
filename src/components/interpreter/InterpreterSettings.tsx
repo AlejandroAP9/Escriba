@@ -13,6 +13,9 @@ export const InterpreterSettings: React.FC = () => {
   const [listeners, setListeners] = useState(0);
   const [langs, setLangs] = useState<string[]>([]);
   const [testText, setTestText] = useState("");
+  const [sourceLang, setSourceLang] = useState(
+    (i18n.language || "es").split("-")[0],
+  );
   const pollRef = useRef<number | null>(null);
 
   const refreshStatus = useCallback(async () => {
@@ -42,7 +45,7 @@ export const InterpreterSettings: React.FC = () => {
 
   const publishTest = () => {
     if (!testText.trim()) return;
-    commands.interpreterPublish(testText.trim(), i18n.language.split("-")[0]);
+    commands.interpreterPublish(testText.trim(), sourceLang);
     setTestText("");
   };
 
@@ -51,6 +54,29 @@ export const InterpreterSettings: React.FC = () => {
       <div className="rounded-lg border border-mid-gray/30 p-5 space-y-3">
         <h3 className="font-semibold text-text">{t("interpreter.title")}</h3>
         <p className="text-sm text-mid-gray">{t("interpreter.subtitle")}</p>
+
+        <div>
+          <label className="text-xs text-mid-gray block mb-1">
+            {t("interpreter.sourceLang")}
+          </label>
+          <select
+            value={sourceLang}
+            onChange={(e) => setSourceLang(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-mid-gray/30 bg-background text-text text-sm"
+          >
+            <option value="es">Español</option>
+            <option value="en">English</option>
+            <option value="pt">Português</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="it">Italiano</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="ru">Русский</option>
+            <option value="ar">العربية</option>
+          </select>
+        </div>
 
         {!room ? (
           <Button variant="primary" size="md" onClick={start}>

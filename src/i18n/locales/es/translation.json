@@ -691,6 +691,7 @@
     "languages": "Idiomas",
     "testPlaceholder": "Escribe una línea de prueba...",
     "sendTest": "Enviar",
-    "test": "Prueba"
+    "test": "Prueba",
+    "sourceLang": "Idioma en el que vas a hablar"
   }
 }
