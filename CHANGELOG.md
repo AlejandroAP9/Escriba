@@ -11,19 +11,8 @@ convertir una app de dictado en un motor de IA **100% local y gratis**.
 
 ## [1.0.0] — 2026-07-11
 
-Primera versión mayor: la app ya es un producto completo, con marca propia y
-cuatro capacidades nuevas. De aquí en adelante avanzamos 1.0 → 1.9 → 2.0.
-
-### Agregado
-
-- **Supresión de ruido de fondo (RNNoise):** limpia ventilador, teclado y tráfico
-  del micrófono antes de transcribir. 100% local.
-- **Buscar y reemplazar:** reglas propias (texto literal o expresión regular) que
-  se aplican al texto dictado después de la corrección con IA.
-- **Pausar la música al dictar:** pausa Música/Spotify mientras hablas y las
-  reanuda al terminar; solo se pausa lo que estaba sonando (macOS por ahora).
-- **Reparación de configuración:** si un campo de ajustes se corrompe, se repara
-  solo ese campo en vez de perder toda la configuración.
+Primera versión mayor: la app queda con marca propia completa y toda la interfaz
+en español. De aquí en adelante avanzamos 1.0 → 1.9 → 2.0.
 
 ### Cambiado
 
@@ -56,7 +45,7 @@ cuatro capacidades nuevas. De aquí en adelante avanzamos 1.0 → 1.9 → 2.0.
 - **Copiar texto** en Estudio e Intérprete y selección de texto en toda la app.
 - Nombres de idioma en español entre paréntesis en los selectores.
 
-## [0.8.0] — 2026-07-11
+## [0.8.5] — 2026-07-11
 
 ### Agregado
 
@@ -67,23 +56,31 @@ cuatro capacidades nuevas. De aquí en adelante avanzamos 1.0 → 1.9 → 2.0.
 - Micrófono en vivo del guía (dictado → sala), selector de idioma de origen,
   cambio de idioma en vivo desde el teléfono sin reiniciar y mejor voz TTS.
 
-## [0.7.0] — 2026-07-09
+## [0.8.0] — 2026-07-10
 
 ### Agregado
 
-- **Onboarding es-first:** recomendaciones de modelo por idioma y catálogo en
-  español (antes recomendaba un modelo solo-inglés a todos).
-- **Estadísticas de uso** (palabras, racha, tiempo ahorrado).
+- **Supresión de ruido de fondo (RNNoise):** limpia ventilador, teclado y tráfico
+  del micrófono antes de transcribir. 100% local.
+- **Buscar y reemplazar:** reglas propias (texto literal o expresión regular) que
+  se aplican al texto dictado después de la corrección con IA.
+- **Pausar la música al dictar:** pausa Música/Spotify mientras hablas y las
+  reanuda al terminar; solo se pausa lo que estaba sonando (macOS por ahora).
+- **Reparación de configuración:** si un campo de ajustes se corrompe, se repara
+  solo ese campo en vez de perder toda la configuración.
 
-## [0.6.0] — 2026-07-09
+## [0.5.0] — 2026-07-09
 
 ### Agregado
 
 - **Estudio de transcripción:** arrastra un audio o video → transcripción con
   marcas de tiempo → exporta **SRT / VTT / TXT / JSON** + **resumen con IA**.
-- Soporte de audios **`.opus` de WhatsApp** (agregado el 2026-07-10).
+  Incluye soporte de audios **`.opus` de WhatsApp**.
+- **Onboarding es-first:** recomendaciones de modelo por idioma y catálogo en
+  español (antes recomendaba un modelo solo-inglés a todos).
+- **Estadísticas de uso** (palabras, racha, tiempo ahorrado).
 
-## [0.5.0] — 2026-07-08
+## [0.4.0] — 2026-07-08
 
 ### Agregado
 
@@ -91,7 +88,7 @@ cuatro capacidades nuevas. De aquí en adelante avanzamos 1.0 → 1.9 → 2.0.
   atajo y dicta la instrucción (_"hazlo más formal"_, _"resúmelo en 3 líneas"_,
   _"tradúcelo al portugués"_); el texto se reemplaza en el lugar.
 
-## [0.4.0] — 2026-07-08
+## [0.3.0] — 2026-07-08
 
 ### Agregado
 
@@ -104,7 +101,7 @@ cuatro capacidades nuevas. De aquí en adelante avanzamos 1.0 → 1.9 → 2.0.
 - Post-proceso con IA des-enterrado: pasa de ser una función experimental
   escondida a una capacidad principal de la app.
 
-## [0.3.0] — 2026-07-07
+## [0.2.0] — 2026-07-07
 
 ### Agregado
 
@@ -118,6 +115,6 @@ cuatro capacidades nuevas. De aquí en adelante avanzamos 1.0 → 1.9 → 2.0.
 
 ---
 
-Las versiones 0.1–0.2 corresponden a la base original de
+La versión 0.1 corresponde a la base original de
 [Handy](https://github.com/cjpais/handy); la historia propia de Escriba empieza
-en 0.3.0.
+en 0.2.0.
