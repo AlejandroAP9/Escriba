@@ -11,9 +11,9 @@ import {
   Radio,
   Languages,
   Bot,
+  SlidersHorizontal,
 } from "lucide-react";
 import EscribaLogo from "./icons/EscribaLogo";
-import HandyHand from "./icons/HandyHand";
 import { StudioSettings } from "./studio/StudioSettings";
 import { InterpreterSettings } from "./interpreter/InterpreterSettings";
 import { TranslatorSettings } from "./translator/TranslatorSettings";
@@ -49,7 +49,7 @@ interface SectionConfig {
 export const SECTIONS_CONFIG = {
   general: {
     labelKey: "sidebar.general",
-    icon: HandyHand,
+    icon: SlidersHorizontal,
     component: GeneralSettings,
     enabled: () => true,
   },
