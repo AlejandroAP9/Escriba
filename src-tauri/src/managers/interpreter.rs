@@ -26,7 +26,10 @@ const VISITOR_HTML: &str = include_str!("../../interpreter/visitor.html");
 /// siguientes traerá el texto origen y luego las traducciones por idioma.
 #[derive(Clone, serde::Serialize)]
 pub struct InterpreterLine {
-    pub text: String,
+    /// Texto en el idioma de origen (lo que dijo/escribió el guía).
+    pub source: String,
+    /// Traducciones listas por idioma ISO. El SSE de cada oyente elige la suya.
+    pub translations: std::collections::HashMap<String, String>,
     pub seq: u64,
 }
 
@@ -82,10 +85,18 @@ impl InterpreterServer {
             .unwrap_or_default()
     }
 
-    /// Publica una línea a todos los oyentes conectados.
-    pub fn publish(&self, text: String) {
+    /// Publica una línea (source + traducciones) a los oyentes conectados.
+    pub fn publish_line(
+        &self,
+        source: String,
+        translations: std::collections::HashMap<String, String>,
+    ) {
         let seq = self.seq.fetch_add(1, Ordering::Relaxed);
-        let _ = self.tx.send(InterpreterLine { text, seq });
+        let _ = self.tx.send(InterpreterLine {
+            source,
+            translations,
+            seq,
+        });
     }
 
     /// Levanta el servidor en la LAN y devuelve el código + QR. Idempotente:
@@ -205,13 +216,29 @@ async fn sse_handler(
     }
     server.listeners.fetch_add(1, Ordering::Relaxed);
 
+    let lang = q.lang.clone();
     let rx = server.tx.subscribe();
     let stream = tokio_stream::wrappers::BroadcastStream::new(rx).filter_map(
         move |result| -> Option<Result<Event, Infallible>> {
             match result {
-                Ok(line) => Some(Ok(Event::default()
-                    .json_data(&line)
-                    .unwrap_or_else(|_| Event::default().data(line.text)))),
+                Ok(line) => {
+                    let text = line
+                        .translations
+                        .get(&lang)
+                        .cloned()
+                        .unwrap_or_else(|| line.source.clone());
+                    #[derive(serde::Serialize)]
+                    struct VisitorLine {
+                        text: String,
+                        seq: u64,
+                    }
+                    Some(Ok(Event::default()
+                        .json_data(VisitorLine {
+                            text,
+                            seq: line.seq,
+                        })
+                        .unwrap_or_else(|_| Event::default().data(line.source))))
+                }
                 Err(_) => None,
             }
         },

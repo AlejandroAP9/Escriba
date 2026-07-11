@@ -8,7 +8,7 @@ import { Button } from "../ui/Button";
  * publica líneas de prueba (Fase 1). El audio real llega en la Fase 2.
  */
 export const InterpreterSettings: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [room, setRoom] = useState<InterpreterRoom | null>(null);
   const [listeners, setListeners] = useState(0);
   const [langs, setLangs] = useState<string[]>([]);
@@ -42,7 +42,7 @@ export const InterpreterSettings: React.FC = () => {
 
   const publishTest = () => {
     if (!testText.trim()) return;
-    commands.interpreterPublishTest(testText.trim());
+    commands.interpreterPublish(testText.trim(), i18n.language.split("-")[0]);
     setTestText("");
   };
 

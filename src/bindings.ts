@@ -28,10 +28,12 @@ async interpreterStatus() : Promise<InterpreterStatus> {
     return await TAURI_INVOKE("interpreter_status");
 },
 /**
- * Fase 1: publicar una línea de prueba para validar la conectividad end-to-end.
+ * Publica una línea del guía: traduce a cada idioma de oyente activo con el
+ * motor local y la emite. En Fase 1/2 el texto viene del input de prueba o
+ * del micrófono; el idioma de origen se asume el de la app.
  */
-async interpreterPublishTest(text: string) : Promise<void> {
-    await TAURI_INVOKE("interpreter_publish_test", { text });
+async interpreterPublish(text: string, sourceLang: string) : Promise<void> {
+    await TAURI_INVOKE("interpreter_publish", { text, sourceLang });
 },
 /**
  * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
