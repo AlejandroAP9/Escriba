@@ -249,7 +249,8 @@
       "volume": {
         "title": "Volume",
         "description": "Pas het volume van de geluidsfeedback aan"
-      }
+      },
+      "deviceDefault": "Standaard"
     },
     "advanced": {
       "groups": {

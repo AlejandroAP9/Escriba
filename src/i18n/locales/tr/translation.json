@@ -249,7 +249,8 @@
       "volume": {
         "title": "Ses Seviyesi",
         "description": "Sesli geri bildirimlerin ses seviyesini ayarlayın"
-      }
+      },
+      "deviceDefault": "Varsayılan"
     },
     "advanced": {
       "groups": {

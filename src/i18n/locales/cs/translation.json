@@ -249,7 +249,8 @@
       "volume": {
         "title": "Hlasitost",
         "description": "Upravte hlasitost zvukové odezvy"
-      }
+      },
+      "deviceDefault": "Výchozí"
     },
     "advanced": {
       "groups": {

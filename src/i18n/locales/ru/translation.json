@@ -249,7 +249,8 @@
       "volume": {
         "title": "Громкость",
         "description": "Отрегулируйте громкость звуков обратной связи"
-      }
+      },
+      "deviceDefault": "По умолчанию"
     },
     "advanced": {
       "groups": {

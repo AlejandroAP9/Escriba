@@ -249,7 +249,8 @@
       "volume": {
         "title": "Âm lượng",
         "description": "Điều chỉnh âm lượng của âm thanh phản hồi"
-      }
+      },
+      "deviceDefault": "Mặc định"
     },
     "advanced": {
       "groups": {

@@ -249,7 +249,8 @@
       "volume": {
         "title": "Гучність",
         "description": "Налаштуйте гучність звукових сповіщень"
-      }
+      },
+      "deviceDefault": "За замовчуванням"
     },
     "advanced": {
       "groups": {

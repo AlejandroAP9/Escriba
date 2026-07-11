@@ -249,7 +249,8 @@
       "volume": {
         "title": "Głośność",
         "description": "Dostosuj głośność dźwięków informacyjnych"
-      }
+      },
+      "deviceDefault": "Domyślny"
     },
     "advanced": {
       "groups": {

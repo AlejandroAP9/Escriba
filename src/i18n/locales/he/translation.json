@@ -249,7 +249,8 @@
       "volume": {
         "title": "עוצמת קול",
         "description": "כוונן את עוצמת צלילי המשוב"
-      }
+      },
+      "deviceDefault": "ברירת מחדל"
     },
     "advanced": {
       "groups": {

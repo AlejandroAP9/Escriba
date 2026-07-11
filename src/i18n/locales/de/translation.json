@@ -249,7 +249,8 @@
       "volume": {
         "title": "Lautstärke",
         "description": "Lautstärke der Audio-Feedback-Töne anpassen"
-      }
+      },
+      "deviceDefault": "Standard"
     },
     "advanced": {
       "groups": {

@@ -249,7 +249,8 @@
       "volume": {
         "title": "Volym",
         "description": "Justera volymen för ljudåterkopplingsljud"
-      }
+      },
+      "deviceDefault": "Standard"
     },
     "advanced": {
       "groups": {

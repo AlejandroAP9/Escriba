@@ -231,7 +231,8 @@
       "volume": {
         "title": "볼륨",
         "description": "오디오 피드백 사운드의 볼륨 조절"
-      }
+      },
+      "deviceDefault": "기본값"
     },
     "models": {
       "title": "음성 인식 모델",

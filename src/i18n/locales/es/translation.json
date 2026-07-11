@@ -249,7 +249,8 @@
       "volume": {
         "title": "Volumen",
         "description": "Ajusta el volumen de los sonidos de retroalimentación de audio"
-      }
+      },
+      "deviceDefault": "Predeterminado"
     },
     "advanced": {
       "groups": {

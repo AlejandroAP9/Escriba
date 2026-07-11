@@ -228,7 +228,8 @@
       "volume": {
         "title": "مستوى الصوت",
         "description": "ضبط مستوى صوت تنبيهات الصوت"
-      }
+      },
+      "deviceDefault": "افتراضي"
     },
     "advanced": {
       "groups": {

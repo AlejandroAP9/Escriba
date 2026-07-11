@@ -249,7 +249,8 @@
       "volume": {
         "title": "Volume",
         "description": "Ajuster le volume du signal sonore"
-      }
+      },
+      "deviceDefault": "Par défaut"
     },
     "advanced": {
       "groups": {

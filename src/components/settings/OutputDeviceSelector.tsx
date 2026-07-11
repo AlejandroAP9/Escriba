@@ -41,7 +41,10 @@ export const OutputDeviceSelector: React.FC<OutputDeviceSelectorProps> =
 
       const outputDeviceOptions = outputDevices.map((device: AudioDevice) => ({
         value: device.name,
-        label: device.name,
+        label:
+          device.name === "Default"
+            ? t("settings.sound.deviceDefault")
+            : device.name,
       }));
 
       return (

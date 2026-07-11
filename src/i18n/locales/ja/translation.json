@@ -249,7 +249,8 @@
       "volume": {
         "title": "音量",
         "description": "オーディオフィードバックの音量を調整"
-      }
+      },
+      "deviceDefault": "デフォルト"
     },
     "advanced": {
       "groups": {

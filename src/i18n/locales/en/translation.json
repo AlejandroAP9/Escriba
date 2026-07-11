@@ -249,7 +249,8 @@
       "volume": {
         "title": "Volume",
         "description": "Adjust the volume of audio feedback sounds"
-      }
+      },
+      "deviceDefault": "Default"
     },
     "advanced": {
       "groups": {

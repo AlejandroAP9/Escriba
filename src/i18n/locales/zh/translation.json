@@ -249,7 +249,8 @@
       "volume": {
         "title": "音量",
         "description": "调整音频反馈的音量"
-      }
+      },
+      "deviceDefault": "默认"
     },
     "advanced": {
       "groups": {
