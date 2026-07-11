@@ -968,6 +968,48 @@ pub fn get_default_settings() -> AppSettings {
     }
 }
 
+/// Repara un JSON de settings dañado SIN perder los campos válidos: parte de los
+/// valores por defecto y adopta cada campo guardado solo si deserializa
+/// correctamente; el campo roto (tipo o enum inválido) queda en su valor por
+/// defecto. Evita que un solo campo corrupto borre TODA la configuración.
+fn repair_settings(raw: &serde_json::Value) -> AppSettings {
+    let defaults = get_default_settings();
+    let default_map = match serde_json::to_value(&defaults) {
+        Ok(serde_json::Value::Object(map)) => map,
+        _ => return defaults,
+    };
+    let Some(raw_obj) = raw.as_object() else {
+        return defaults;
+    };
+
+    let mut merged = default_map.clone();
+    let mut repaired: Vec<String> = Vec::new();
+
+    for key in default_map.keys() {
+        let Some(stored) = raw_obj.get(key) else {
+            continue; // campo ausente -> se queda el valor por defecto
+        };
+        // ¿El valor guardado deserializa bien si solo cambiamos ESTE campo?
+        let mut candidate = default_map.clone();
+        candidate.insert(key.clone(), stored.clone());
+        if serde_json::from_value::<AppSettings>(serde_json::Value::Object(candidate)).is_ok() {
+            merged.insert(key.clone(), stored.clone());
+        } else {
+            repaired.push(key.clone());
+        }
+    }
+
+    if !repaired.is_empty() {
+        warn!(
+            "Settings reparados: {} campo(s) dañado(s) reseteado(s) a su valor por defecto: {:?}",
+            repaired.len(),
+            repaired
+        );
+    }
+
+    serde_json::from_value::<AppSettings>(serde_json::Value::Object(merged)).unwrap_or(defaults)
+}
+
 impl AppSettings {
     pub fn active_post_process_provider(&self) -> Option<&PostProcessProvider> {
         self.post_process_providers
@@ -1024,11 +1066,11 @@ pub fn load_or_create_app_settings(app: &AppHandle) -> AppSettings {
                 settings
             }
             Err(e) => {
-                warn!("Failed to parse settings: {}", e);
-                // Fall back to default settings if parsing fails
-                let default_settings = get_default_settings();
-                store.set("settings", serde_json::to_value(&default_settings).unwrap());
-                default_settings
+                warn!("Settings JSON inválido ({}); reparando campo por campo", e);
+                // Repara solo los campos dañados en vez de perder toda la config.
+                let repaired = repair_settings(&settings_value);
+                store.set("settings", serde_json::to_value(&repaired).unwrap());
+                repaired
             }
         }
     } else {
@@ -1059,10 +1101,11 @@ pub fn get_settings(app: &AppHandle) -> AppSettings {
                 }
                 settings
             }
-            Err(_) => {
-                let default_settings = get_default_settings();
-                store.set("settings", serde_json::to_value(&default_settings).unwrap());
-                default_settings
+            Err(e) => {
+                warn!("Settings JSON inválido ({}); reparando campo por campo", e);
+                let repaired = repair_settings(&settings_value);
+                store.set("settings", serde_json::to_value(&repaired).unwrap());
+                repaired
             }
         }
     } else {
@@ -1175,6 +1218,22 @@ pub fn get_recording_retention_period(app: &AppHandle) -> RecordingRetentionPeri
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn repair_keeps_valid_fields_and_resets_only_the_broken_one() {
+        // Un JSON con un campo de tipo inválido (history_limit como string) y un
+        // campo válido no estándar (custom_words). Antes esto borraba TODO.
+        let mut raw = serde_json::to_value(get_default_settings()).unwrap();
+        raw["history_limit"] = serde_json::json!("cinco"); // roto (esperaba usize)
+        raw["custom_words"] = serde_json::json!(["EducMark", "Escriba"]); // válido
+
+        let repaired = repair_settings(&raw);
+
+        // El campo roto vuelve a su valor por defecto...
+        assert_eq!(repaired.history_limit, get_default_settings().history_limit);
+        // ...pero el campo válido se conserva (no se perdió la config).
+        assert_eq!(repaired.custom_words, vec!["EducMark", "Escriba"]);
+    }
 
     #[test]
     fn default_settings_disable_auto_submit() {
