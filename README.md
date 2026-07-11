@@ -86,15 +86,16 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                                                   |
 | ------- | ------ | --------------------------------------------------------------------------- |
-| 1.0.0   | 11-jul | **Supresión de ruido** + buscar/reemplazar + rebrand visual + español total |
+| 1.0.0   | 11-jul | Rebrand visual + español total                                              |
 | 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono                              |
 | 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                |
 | 0.8.0   | 11-jul | **Intérprete en vivo** (QR)                                                 |
-| 0.7.0   | 09-jul | Onboarding es-first + estadísticas                                          |
-| 0.6.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`)                                        |
-| 0.5.0   | 08-jul | Háblale a cualquier texto (edición por voz)                                 |
-| 0.4.0   | 08-jul | Poderes de dictado + traducción al dictar                                   |
-| 0.3.0   | 07-jul | Rebrand + **motor de IA local**                                             |
+| 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar                                  |
+| 0.5.0   | 09-jul | Onboarding es-first + estadísticas                                          |
+| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`)                                        |
+| 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)                                 |
+| 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar                                   |
+| 0.2.0   | 07-jul | Rebrand + **motor de IA local**                                             |
 
 ## 🙏 Construido sobre Handy
 
