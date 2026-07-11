@@ -1,0 +1,113 @@
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { commands, type InterpreterRoom } from "@/bindings";
+import { Button } from "../ui/Button";
+
+/**
+ * Modo Intérprete (guía): levanta la sala local, muestra código + QR, y
+ * publica líneas de prueba (Fase 1). El audio real llega en la Fase 2.
+ */
+export const InterpreterSettings: React.FC = () => {
+  const { t } = useTranslation();
+  const [room, setRoom] = useState<InterpreterRoom | null>(null);
+  const [listeners, setListeners] = useState(0);
+  const [langs, setLangs] = useState<string[]>([]);
+  const [testText, setTestText] = useState("");
+  const pollRef = useRef<number | null>(null);
+
+  const refreshStatus = useCallback(async () => {
+    const s = await commands.interpreterStatus();
+    setListeners(s.listeners);
+    setLangs(s.active_languages);
+    if (!s.running) setRoom(null);
+  }, []);
+
+  useEffect(() => {
+    refreshStatus();
+    pollRef.current = window.setInterval(refreshStatus, 2000);
+    return () => {
+      if (pollRef.current) window.clearInterval(pollRef.current);
+    };
+  }, [refreshStatus]);
+
+  const start = async () => {
+    const result = await commands.interpreterStart();
+    if (result.status === "ok") setRoom(result.data);
+  };
+
+  const stop = async () => {
+    await commands.interpreterStop();
+    setRoom(null);
+  };
+
+  const publishTest = () => {
+    if (!testText.trim()) return;
+    commands.interpreterPublishTest(testText.trim());
+    setTestText("");
+  };
+
+  return (
+    <div className="max-w-3xl w-full mx-auto space-y-6">
+      <div className="rounded-lg border border-mid-gray/30 p-5 space-y-3">
+        <h3 className="font-semibold text-text">{t("interpreter.title")}</h3>
+        <p className="text-sm text-mid-gray">{t("interpreter.subtitle")}</p>
+
+        {!room ? (
+          <Button variant="primary" size="md" onClick={start}>
+            {t("interpreter.start")}
+          </Button>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex flex-col items-center gap-3 py-2">
+              <div
+                className="bg-white p-3 rounded-xl"
+                dangerouslySetInnerHTML={{ __html: room.qr_svg }}
+                style={{ width: 200, height: 200 }}
+              />
+              <div className="text-center">
+                <div className="text-xs text-mid-gray">
+                  {t("interpreter.roomCode")}
+                </div>
+                <div className="text-4xl font-bold tracking-widest text-logo-primary">
+                  {room.code}
+                </div>
+              </div>
+              <div className="text-xs text-mid-gray break-all text-center">
+                {room.url}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text">
+                {t("interpreter.listeners", { count: listeners })}
+              </span>
+              {langs.length > 0 && (
+                <span className="text-mid-gray">
+                  {t("interpreter.languages")}: {langs.join(", ")}
+                </span>
+              )}
+            </div>
+
+            {/* Fase 1: prueba de conectividad hasta que llegue el audio */}
+            <div className="flex gap-2">
+              <input
+                value={testText}
+                onChange={(e) => setTestText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && publishTest()}
+                placeholder={t("interpreter.testPlaceholder")}
+                className="flex-1 px-3 py-2 rounded-lg border border-mid-gray/30 bg-background text-text text-sm"
+              />
+              <Button variant="secondary" size="sm" onClick={publishTest}>
+                {t("interpreter.sendTest")}
+              </Button>
+            </div>
+
+            <Button variant="secondary" size="md" onClick={stop}>
+              {t("interpreter.stop")}
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

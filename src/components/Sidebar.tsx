@@ -8,10 +8,12 @@ import {
   Sparkles,
   Cpu,
   FileAudio,
+  Radio,
 } from "lucide-react";
 import EscribaLogo from "./icons/EscribaLogo";
 import HandyHand from "./icons/HandyHand";
 import { StudioSettings } from "./studio/StudioSettings";
+import { InterpreterSettings } from "./interpreter/InterpreterSettings";
 import { useSettings } from "../hooks/useSettings";
 import {
   GeneralSettings,
@@ -69,6 +71,12 @@ export const SECTIONS_CONFIG = {
     labelKey: "sidebar.studio",
     icon: FileAudio,
     component: StudioSettings,
+    enabled: () => true,
+  },
+  interpreter: {
+    labelKey: "sidebar.interpreter",
+    icon: Radio,
+    component: InterpreterSettings,
     enabled: () => true,
   },
   postprocessing: {

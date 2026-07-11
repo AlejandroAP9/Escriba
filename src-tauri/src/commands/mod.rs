@@ -1,5 +1,6 @@
 pub mod audio;
 pub mod history;
+pub mod interpreter;
 pub mod local_llm;
 pub mod models;
 pub mod studio;

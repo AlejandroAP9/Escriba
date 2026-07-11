@@ -590,6 +590,10 @@ pub fn run(cli_args: CliArgs) {
     let specta_builder = Builder::<tauri::Wry>::new()
         .commands(collect_commands![
             commands::history::get_usage_stats,
+            commands::interpreter::interpreter_start,
+            commands::interpreter::interpreter_stop,
+            commands::interpreter::interpreter_status,
+            commands::interpreter::interpreter_publish_test,
             commands::studio::studio_enqueue,
             commands::studio::studio_jobs,
             commands::studio::studio_remove_job,

@@ -16,7 +16,8 @@
     "history": "Historial",
     "debug": "Depuración",
     "about": "Acerca de",
-    "studio": "Estudio"
+    "studio": "Estudio",
+    "interpreter": "Intérprete en vivo"
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
@@ -679,5 +680,17 @@
     "minutesSavedHint": "Asumiendo 40 palabras/min tecleando vs ~200 dictando",
     "streak": "Días de racha",
     "activeDays": "Días activos (30d)"
+  },
+  "interpreter": {
+    "title": "Intérprete en vivo",
+    "subtitle": "Tú hablas, cada oyente lee y escucha la traducción en su idioma desde su teléfono. 100% local, solo necesitan una WiFi o hotspot compartido.",
+    "start": "Iniciar sala",
+    "stop": "Detener sala",
+    "roomCode": "Código de sala",
+    "listeners": "{{count}} oyentes conectados",
+    "languages": "Idiomas",
+    "testPlaceholder": "Escribe una línea de prueba...",
+    "sendTest": "Enviar",
+    "test": "Prueba"
   }
 }

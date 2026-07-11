@@ -16,7 +16,8 @@
     "history": "Geschiedenis",
     "debug": "Probleemoplossing",
     "about": "Over Escriba",
-    "studio": "Studio"
+    "studio": "Studio",
+    "interpreter": "Live Interpreter"
   },
   "onboarding": {
     "subtitle": "Kies een transcriptiemodel om aan de slag te gaan",
@@ -679,5 +680,17 @@
     "minutesSavedHint": "Assuming 40 words/min typing vs ~200 dictating",
     "streak": "Day streak",
     "activeDays": "Active days (30d)"
+  },
+  "interpreter": {
+    "title": "Live Interpreter",
+    "subtitle": "You speak, each listener reads and hears the translation in their language on their phone. 100% local, no internet needed beyond a shared WiFi/hotspot.",
+    "start": "Start room",
+    "stop": "Stop room",
+    "roomCode": "Room code",
+    "listeners": "{{count}} listeners connected",
+    "languages": "Languages",
+    "testPlaceholder": "Type a test line...",
+    "sendTest": "Send",
+    "test": "Test"
   }
 }

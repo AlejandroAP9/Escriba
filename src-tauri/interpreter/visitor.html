@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Escriba · Traducción en vivo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        margin: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #14102a;
+        color: #f0e2c4;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        padding: 16px 20px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(240, 226, 196, 0.12);
+      }
+      .setup,
+      .live {
+        padding: 20px;
+        flex: 1;
+      }
+      .live {
+        display: none;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        opacity: 0.7;
+        margin: 16px 0 6px;
+      }
+      input,
+      select,
+      button {
+        width: 100%;
+        padding: 14px;
+        font-size: 17px;
+        border-radius: 12px;
+        border: 1px solid rgba(240, 226, 196, 0.2);
+        background: #1e1838;
+        color: #f0e2c4;
+      }
+      button {
+        margin-top: 22px;
+        background: #e6d2a8;
+        color: #241c12;
+        font-weight: 700;
+        border: none;
+      }
+      button:disabled {
+        opacity: 0.5;
+      }
+      .status {
+        font-size: 13px;
+        opacity: 0.6;
+        margin-top: 12px;
+        text-align: center;
+      }
+      .subs {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 12px;
+        overflow-y: auto;
+        padding-bottom: 40px;
+      }
+      .line {
+        font-size: 22px;
+        line-height: 1.35;
+        padding: 12px 14px;
+        background: rgba(240, 226, 196, 0.06);
+        border-radius: 12px;
+        border-left: 3px solid #e6d2a8;
+      }
+      .line.new {
+        animation: pop 0.3s ease;
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+      }
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .toolbar button {
+        margin: 0;
+        width: auto;
+        padding: 8px 14px;
+        font-size: 14px;
+      }
+      .muted {
+        background: #1e1838;
+        color: #f0e2c4;
+        border: 1px solid rgba(240, 226, 196, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <header>Escriba ✒️ · Traducción en vivo</header>
+
+    <section class="setup" id="setup">
+      <label for="room">Código de sala</label>
+      <input id="room" inputmode="numeric" placeholder="1234" maxlength="4" />
+      <label for="lang">Tu idioma</label>
+      <select id="lang">
+        <option value="es">Español</option>
+        <option value="en">English</option>
+        <option value="pt">Português</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="ru">Русский</option>
+        <option value="ar">العربية</option>
+      </select>
+      <button id="joinBtn">Escuchar traducción</button>
+      <div class="status" id="setupStatus"></div>
+    </section>
+
+    <section class="live" id="live">
+      <div class="toolbar">
+        <button id="voiceBtn" class="muted">🔊 Voz: ON</button>
+        <span class="status" id="liveStatus" style="margin: 0">Conectado</span>
+      </div>
+      <div class="subs" id="subs"></div>
+    </section>
+
+    <script>
+      const qs = new URLSearchParams(location.search);
+      const setup = document.getElementById("setup");
+      const live = document.getElementById("live");
+      const roomInput = document.getElementById("room");
+      const langSel = document.getElementById("lang");
+      const subs = document.getElementById("subs");
+      let voiceOn = true;
+      let es = null;
+
+      if (qs.get("room")) roomInput.value = qs.get("room");
+
+      document.getElementById("voiceBtn").addEventListener("click", (e) => {
+        voiceOn = !voiceOn;
+        e.target.textContent = voiceOn ? "🔊 Voz: ON" : "🔇 Voz: OFF";
+        if (!voiceOn) window.speechSynthesis.cancel();
+      });
+
+      function speak(text) {
+        if (!voiceOn || !("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = langSel.value;
+        window.speechSynthesis.speak(u);
+      }
+
+      function addLine(text) {
+        const div = document.createElement("div");
+        div.className = "line new";
+        div.textContent = text;
+        subs.prepend(div);
+        speak(text);
+        while (subs.children.length > 30) subs.lastChild.remove();
+      }
+
+      document.getElementById("joinBtn").addEventListener("click", async () => {
+        const room = roomInput.value.trim();
+        const lang = langSel.value;
+        if (room.length < 1) return;
+        const status = document.getElementById("setupStatus");
+        status.textContent = "Conectando...";
+        try {
+          const r = await fetch(`/join?room=${room}&lang=${lang}`);
+          if (!r.ok) {
+            status.textContent = "Sala no encontrada. Revisa el código.";
+            return;
+          }
+        } catch {
+          status.textContent = "No se pudo conectar a la sala.";
+          return;
+        }
+        // Gesto del usuario: desbloquea el TTS en iOS Safari.
+        speak(" ");
+        setup.style.display = "none";
+        live.style.display = "block";
+        es = new EventSource(`/events?room=${room}&lang=${lang}`);
+        es.onmessage = (ev) => {
+          try {
+            const line = JSON.parse(ev.data);
+            addLine(line.text);
+          } catch {
+            addLine(ev.data);
+          }
+        };
+        es.onerror = () => {
+          document.getElementById("liveStatus").textContent = "Reconectando...";
+        };
+        es.onopen = () => {
+          document.getElementById("liveStatus").textContent = "Conectado";
+        };
+      });
+    </script>
+  </body>
+</html>

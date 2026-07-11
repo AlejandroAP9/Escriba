@@ -13,6 +13,26 @@ async getUsageStats() : Promise<Result<UsageStats, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async interpreterStart() : Promise<Result<InterpreterRoom, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("interpreter_start") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async interpreterStop() : Promise<void> {
+    await TAURI_INVOKE("interpreter_stop");
+},
+async interpreterStatus() : Promise<InterpreterStatus> {
+    return await TAURI_INVOKE("interpreter_status");
+},
+/**
+ * Fase 1: publicar una línea de prueba para validar la conectividad end-to-end.
+ */
+async interpreterPublishTest(text: string) : Promise<void> {
+    await TAURI_INVOKE("interpreter_publish_test", { text });
+},
 /**
  * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
  */
@@ -979,6 +999,8 @@ export type ImplementationChangeResult = { success: boolean;
  * List of binding IDs that were reset to defaults due to incompatibility
  */
 reset_bindings: string[] }
+export type InterpreterRoom = { code: string; url: string; qr_svg: string; port: number }
+export type InterpreterStatus = { running: boolean; listeners: number; active_languages: string[] }
 export type JobStatus = "pending" | "processing" | "done" | "error"
 export type KeyboardImplementation = "tauri" | "handy_keys"
 export type LLMPrompt = { id: string; name: string; prompt: string }
