@@ -77,6 +77,10 @@ Todo el procesamiento es local: el silencio se filtra con **Silero VAD**, la tra
 
 Interfaz en **21 idiomas** (español primero) y transcripción multilingüe según el modelo elegido.
 
+## 📜 Historial
+
+Mira toda la evolución de Escriba, versión por versión, en el [CHANGELOG](./CHANGELOG.md).
+
 ## 🙏 Construido sobre Handy
 
 Escriba es un _rework_ de **[Handy](https://github.com/cjpais/handy)**, la excelente app de dictado open source de **[CJ Pais](https://github.com/cjpais)**, publicada bajo licencia MIT. Gracias a CJ y a la comunidad de Handy por sentar unas bases tan sólidas y forkables. Escriba conserva esa filosofía —libre, privada, local— y le suma una capa de IA local (corrección, traducción, Estudio, Intérprete, Traductor y Agentes).
