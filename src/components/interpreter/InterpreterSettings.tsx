@@ -3,6 +3,20 @@ import { useTranslation } from "react-i18next";
 import { commands, type InterpreterRoom } from "@/bindings";
 import { Button } from "../ui/Button";
 
+const INTERP_LANGUAGES: { value: string; label: string }[] = [
+  { value: "es", label: "Español" },
+  { value: "en", label: "English" },
+  { value: "pt", label: "Português" },
+  { value: "fr", label: "Français" },
+  { value: "de", label: "Deutsch" },
+  { value: "it", label: "Italiano" },
+  { value: "zh", label: "中文" },
+  { value: "ja", label: "日本語" },
+  { value: "ko", label: "한국어" },
+  { value: "ru", label: "Русский" },
+  { value: "ar", label: "العربية" },
+];
+
 /**
  * Modo Intérprete (guía): levanta la sala local, muestra código + QR, y
  * publica líneas de prueba (Fase 1). El audio real llega en la Fase 2.
@@ -64,17 +78,11 @@ export const InterpreterSettings: React.FC = () => {
             onChange={(e) => setSourceLang(e.target.value)}
             className="w-full px-3 py-2 rounded-lg border border-mid-gray/30 bg-background text-text text-sm"
           >
-            <option value="es">Español</option>
-            <option value="en">English</option>
-            <option value="pt">Português</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-            <option value="it">Italiano</option>
-            <option value="zh">中文</option>
-            <option value="ja">日本語</option>
-            <option value="ko">한국어</option>
-            <option value="ru">Русский</option>
-            <option value="ar">العربية</option>
+            {INTERP_LANGUAGES.map((l) => (
+              <option key={l.value} value={l.value}>
+                {l.label}
+              </option>
+            ))}
           </select>
         </div>
 
