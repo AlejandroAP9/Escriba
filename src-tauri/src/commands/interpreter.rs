@@ -78,3 +78,15 @@ pub async fn publish_translated(app: &tauri::AppHandle, text: String, source_lan
     }
     server.publish_line(text, translations);
 }
+
+#[tauri::command]
+#[specta::specta]
+pub fn interpreter_set_source_lang(lang: String) {
+    global().set_source_lang(lang);
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn interpreter_set_listening(on: bool) {
+    global().set_listening(on);
+}

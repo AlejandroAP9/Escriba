@@ -35,6 +35,12 @@ async interpreterStatus() : Promise<InterpreterStatus> {
 async interpreterPublish(text: string, sourceLang: string) : Promise<void> {
     await TAURI_INVOKE("interpreter_publish", { text, sourceLang });
 },
+async interpreterSetSourceLang(lang: string) : Promise<void> {
+    await TAURI_INVOKE("interpreter_set_source_lang", { lang });
+},
+async interpreterSetListening(on: boolean) : Promise<void> {
+    await TAURI_INVOKE("interpreter_set_listening", { on });
+},
 /**
  * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
  */

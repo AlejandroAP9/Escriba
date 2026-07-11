@@ -692,6 +692,11 @@
     "testPlaceholder": "Type a test line...",
     "sendTest": "Send",
     "test": "Test",
-    "sourceLang": "Language you'll speak in"
+    "sourceLang": "Language you'll speak in",
+    "startMic": "Start listening",
+    "stopMic": "Stop listening",
+    "listeningOn": "🎙️ Listening — speak with your dictation shortcut",
+    "listeningOff": "Microphone off",
+    "micHint": "Hold your dictation shortcut and speak a sentence; it gets translated to every listener's language. (Mic is push-to-talk for now.)"
   }
 }

@@ -515,6 +515,8 @@ pub(crate) struct ProcessedTranscription {
     pub final_text: String,
     pub post_processed_text: Option<String>,
     pub post_process_prompt: Option<String>,
+    #[allow(dead_code)]
+    pub interpreter_published: bool,
 }
 
 /// Resolve the persisted language *intent* into the language the currently-loaded
@@ -558,6 +560,20 @@ pub(crate) async fn process_transcription_output(
         final_text = converted_text;
     }
 
+    // Interprete en vivo: si la sala esta escuchando, este dictado va a la sala
+    // (traducido por idioma) en vez de pegarse. El guia habla, los oyentes leen.
+    if crate::managers::interpreter::global().is_listening() && !final_text.trim().is_empty() {
+        let source_lang = crate::managers::interpreter::global().source_lang();
+        crate::commands::interpreter::publish_translated(app, final_text.clone(), &source_lang)
+            .await;
+        return ProcessedTranscription {
+            final_text,
+            post_processed_text: None,
+            post_process_prompt: None,
+            interpreter_published: true,
+        };
+    }
+
     if mode != TranscribeMode::Standard {
         if let Some(processed_text) =
             post_process_transcription(app, &settings, &final_text, mode).await
@@ -583,6 +599,7 @@ pub(crate) async fn process_transcription_output(
         final_text,
         post_processed_text,
         post_process_prompt,
+        interpreter_published: false,
     }
 }
 
@@ -892,6 +909,13 @@ impl ShortcutAction for TranscribeAction {
                             }
                             let processed =
                                 process_transcription_output(&ah, &transcription, mode).await;
+
+                            if processed.interpreter_published {
+                                debug!("dictado publicado al interprete; no se pega");
+                                utils::hide_recording_overlay(&ah);
+                                change_tray_icon(&ah, TrayIconState::Idle);
+                                return;
+                            }
 
                             if mode == TranscribeMode::Edit
                                 && processed.post_processed_text.is_none()

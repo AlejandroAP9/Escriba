@@ -41,6 +41,8 @@ pub struct InterpreterServer {
     /// Idiomas que los oyentes están pidiendo (para traducir solo esos).
     active_langs: Mutex<std::collections::HashMap<String, u32>>,
     shutdown: Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
+    source_lang: Mutex<String>,
+    listening: std::sync::atomic::AtomicBool,
 }
 
 static SERVER: OnceLock<InterpreterServer> = OnceLock::new();
@@ -56,6 +58,8 @@ pub fn global() -> &'static InterpreterServer {
             seq: std::sync::atomic::AtomicU64::new(0),
             active_langs: Mutex::new(std::collections::HashMap::new()),
             shutdown: Mutex::new(None),
+            source_lang: Mutex::new("es".to_string()),
+            listening: std::sync::atomic::AtomicBool::new(false),
         }
     })
 }
@@ -69,6 +73,28 @@ pub struct RoomInfo {
 }
 
 impl InterpreterServer {
+    pub fn set_source_lang(&self, lang: String) {
+        if let Ok(mut l) = self.source_lang.lock() {
+            *l = lang;
+        }
+    }
+
+    pub fn source_lang(&self) -> String {
+        self.source_lang
+            .lock()
+            .map(|l| l.clone())
+            .unwrap_or_else(|_| "es".to_string())
+    }
+
+    pub fn set_listening(&self, on: bool) {
+        self.listening
+            .store(on, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    pub fn is_listening(&self) -> bool {
+        self.listening.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
     pub fn is_running(&self) -> bool {
         self.room_code.lock().map(|c| c.is_some()).unwrap_or(false)
     }
@@ -154,6 +180,8 @@ impl InterpreterServer {
     }
 
     pub fn stop(&self) {
+        self.listening
+            .store(false, std::sync::atomic::Ordering::Relaxed);
         if let Some(tx) = self.shutdown.lock().unwrap().take() {
             let _ = tx.send(());
         }

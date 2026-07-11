@@ -692,6 +692,11 @@
     "testPlaceholder": "Escribe una línea de prueba...",
     "sendTest": "Enviar",
     "test": "Prueba",
-    "sourceLang": "Idioma en el que vas a hablar"
+    "sourceLang": "Idioma en el que vas a hablar",
+    "startMic": "Empezar a escuchar",
+    "stopMic": "Dejar de escuchar",
+    "listeningOn": "🎙️ Escuchando — habla con tu atajo de dictado",
+    "listeningOff": "Micrófono apagado",
+    "micHint": "Mantén tu atajo de dictado y di una frase; se traduce al idioma de cada oyente. (El micrófono es push-to-talk por ahora.)"
   }
 }

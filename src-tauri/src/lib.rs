@@ -594,6 +594,8 @@ pub fn run(cli_args: CliArgs) {
             commands::interpreter::interpreter_stop,
             commands::interpreter::interpreter_status,
             commands::interpreter::interpreter_publish,
+            commands::interpreter::interpreter_set_source_lang,
+            commands::interpreter::interpreter_set_listening,
             commands::studio::studio_enqueue,
             commands::studio::studio_jobs,
             commands::studio::studio_remove_job,

@@ -27,6 +27,7 @@ export const InterpreterSettings: React.FC = () => {
   const [listeners, setListeners] = useState(0);
   const [langs, setLangs] = useState<string[]>([]);
   const [testText, setTestText] = useState("");
+  const [listening, setListening] = useState(false);
   const [sourceLang, setSourceLang] = useState(
     (i18n.language || "es").split("-")[0],
   );
@@ -54,6 +55,7 @@ export const InterpreterSettings: React.FC = () => {
 
   const stop = async () => {
     await commands.interpreterStop();
+    setListening(false);
     setRoom(null);
   };
 
@@ -75,7 +77,10 @@ export const InterpreterSettings: React.FC = () => {
           </label>
           <select
             value={sourceLang}
-            onChange={(e) => setSourceLang(e.target.value)}
+            onChange={(e) => {
+              setSourceLang(e.target.value);
+              commands.interpreterSetSourceLang(e.target.value);
+            }}
             className="w-full px-3 py-2 rounded-lg border border-mid-gray/30 bg-background text-text text-sm"
           >
             {INTERP_LANGUAGES.map((l) => (
@@ -122,7 +127,34 @@ export const InterpreterSettings: React.FC = () => {
               )}
             </div>
 
-            {/* Fase 1: prueba de conectividad hasta que llegue el audio */}
+            <div className="rounded-lg bg-logo-primary/10 border border-logo-primary/30 p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text font-medium">
+                  {listening
+                    ? t("interpreter.listeningOn")
+                    : t("interpreter.listeningOff")}
+                </span>
+                <Button
+                  variant={listening ? "secondary" : "primary"}
+                  size="sm"
+                  onClick={() => {
+                    const next = !listening;
+                    setListening(next);
+                    commands.interpreterSetSourceLang(sourceLang);
+                    commands.interpreterSetListening(next);
+                  }}
+                >
+                  {listening
+                    ? t("interpreter.stopMic")
+                    : t("interpreter.startMic")}
+                </Button>
+              </div>
+              <p className="text-xs text-mid-gray mt-2">
+                {t("interpreter.micHint")}
+              </p>
+            </div>
+
+            {/* Prueba manual (por si no quieres usar el microfono) */}
             <div className="flex gap-2">
               <input
                 value={testText}
