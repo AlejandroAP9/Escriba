@@ -9,7 +9,10 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
-## [0.11.0] — 2026-07-11
+## [1.0.0] — 2026-07-11
+
+Primera versión mayor: la app ya es un producto completo, con marca propia y
+cuatro capacidades nuevas. De aquí en adelante avanzamos 1.0 → 1.9 → 2.0.
 
 ### Agregado
 

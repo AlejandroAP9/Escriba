@@ -56,6 +56,9 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | 🤖 **Agentes (MCP)**           | Un servidor local para que **Claude Code, Cursor o Cline** usen la transcripción, traducción y resumen de Escriba como herramientas. 100% local.                                                                   |
 | 🎚️ **Re-transcribir**          | Mismo audio, otro modelo: compara precisión sin volver a subir nada.                                                                                                                                               |
 | 🎤 **Micrófono en los campos** | Dicta directo dentro de la propia app, en cualquier campo de texto.                                                                                                                                                |
+| 🔇 **Supresión de ruido**      | Limpia ventilador, teclado y tráfico del micrófono antes de transcribir. 100% local (RNNoise).                                                                                                                     |
+| 🔁 **Buscar y reemplazar**     | Reglas propias (texto literal o expresión regular) que se aplican al texto dictado.                                                                                                                                |
+| ⏯️ **Pausar la música**        | Pausa Música/Spotify mientras dictas y las reanuda al terminar; solo lo que estaba sonando.                                                                                                                        |
 
 ## 🔒 100% local, 100% gratis
 
@@ -83,7 +86,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                                                   |
 | ------- | ------ | --------------------------------------------------------------------------- |
-| 0.11.0  | 11-jul | **Supresión de ruido** + buscar/reemplazar + rebrand visual + español total |
+| 1.0.0   | 11-jul | **Supresión de ruido** + buscar/reemplazar + rebrand visual + español total |
 | 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono                              |
 | 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                |
 | 0.8.0   | 11-jul | **Intérprete en vivo** (QR)                                                 |
