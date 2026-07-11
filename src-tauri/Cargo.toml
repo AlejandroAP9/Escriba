@@ -1,6 +1,6 @@
 [package]
 name = "escriba"
-version = "0.9.0"
+version = "0.10.0"
 description = "Escriba: tu Escriba personal. Hablas, el escribe."
 authors = ["Alejandro y Flor", "cjpais (Handy upstream)"]
 edition = "2021"
