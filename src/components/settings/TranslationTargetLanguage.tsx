@@ -6,19 +6,19 @@ import { useSettings } from "../../hooks/useSettings";
 // Lista curada: idiomas donde Qwen3-4B traduce con calidad validable.
 // Los nombres nativos son sustantivos propios, no strings traducibles.
 const TARGET_LANGUAGES: { value: string; label: string }[] = [
-  { value: "en", label: "English" },
+  { value: "en", label: "English (Inglés)" },
   { value: "es", label: "Español" },
-  { value: "pt", label: "Português" },
-  { value: "fr", label: "Français" },
-  { value: "de", label: "Deutsch" },
+  { value: "pt", label: "Português (Portugués)" },
+  { value: "fr", label: "Français (Francés)" },
+  { value: "de", label: "Deutsch (Alemán)" },
   { value: "it", label: "Italiano" },
-  { value: "zh", label: "中文" },
-  { value: "ja", label: "日本語" },
-  { value: "ko", label: "한국어" },
-  { value: "ru", label: "Русский" },
-  { value: "lt", label: "Lietuvių" },
-  { value: "ar", label: "العربية" },
-  { value: "nl", label: "Nederlands" },
+  { value: "zh", label: "中文 (Chino)" },
+  { value: "ja", label: "日本語 (Japonés)" },
+  { value: "ko", label: "한국어 (Coreano)" },
+  { value: "ru", label: "Русский (Ruso)" },
+  { value: "lt", label: "Lietuvių (Lituano)" },
+  { value: "ar", label: "العربية (Árabe)" },
+  { value: "nl", label: "Nederlands (Neerlandés)" },
 ];
 
 export const TranslationTargetLanguage: React.FC = () => {

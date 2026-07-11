@@ -5,17 +5,17 @@ import { Button } from "../ui/Button";
 
 const INTERP_LANGUAGES: { value: string; label: string }[] = [
   { value: "es", label: "Español" },
-  { value: "en", label: "English" },
-  { value: "pt", label: "Português" },
-  { value: "fr", label: "Français" },
-  { value: "de", label: "Deutsch" },
+  { value: "en", label: "English (Inglés)" },
+  { value: "pt", label: "Português (Portugués)" },
+  { value: "fr", label: "Français (Francés)" },
+  { value: "de", label: "Deutsch (Alemán)" },
   { value: "it", label: "Italiano" },
-  { value: "zh", label: "中文" },
-  { value: "ja", label: "日本語" },
-  { value: "ko", label: "한국어" },
-  { value: "ru", label: "Русский" },
-  { value: "lt", label: "Lietuvių" },
-  { value: "ar", label: "العربية" },
+  { value: "zh", label: "中文 (Chino)" },
+  { value: "ja", label: "日本語 (Japonés)" },
+  { value: "ko", label: "한국어 (Coreano)" },
+  { value: "ru", label: "Русский (Ruso)" },
+  { value: "lt", label: "Lietuvių (Lituano)" },
+  { value: "ar", label: "العربية (Árabe)" },
 ];
 
 /**
