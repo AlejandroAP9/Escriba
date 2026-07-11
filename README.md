@@ -89,7 +89,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 | 1.0.0   | 11-jul | Rebrand visual + español total                                              |
 | 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono                              |
 | 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                |
-| 0.8.0   | 11-jul | **Intérprete en vivo** (QR)                                                 |
+| 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                                                 |
 | 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar                                  |
 | 0.5.0   | 09-jul | Onboarding es-first + estadísticas                                          |
 | 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`)                                        |
