@@ -45,10 +45,11 @@ const EscribaLogo = ({
         className="text-text"
         style={{
           fontFamily: SERIF,
-          fontWeight: 600,
-          fontSize: Math.round(width * 0.3),
-          letterSpacing: 1,
+          fontWeight: 500,
+          fontSize: Math.round(width * 0.16),
+          letterSpacing: "0.04em",
           lineHeight: 1,
+          opacity: 0.9,
         }}
       >
         {BRAND}
