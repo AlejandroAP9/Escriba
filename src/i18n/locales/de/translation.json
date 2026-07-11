@@ -250,7 +250,11 @@
         "title": "Lautstärke",
         "description": "Lautstärke der Audio-Feedback-Töne anpassen"
       },
-      "deviceDefault": "Standard"
+      "deviceDefault": "Standard",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "advanced": {
       "groups": {

@@ -250,7 +250,11 @@
         "title": "音量",
         "description": "調整聲音回饋的音量"
       },
-      "deviceDefault": "預設"
+      "deviceDefault": "預設",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "advanced": {
       "groups": {

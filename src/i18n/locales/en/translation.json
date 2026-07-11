@@ -250,7 +250,11 @@
         "title": "Volume",
         "description": "Adjust the volume of audio feedback sounds"
       },
-      "deviceDefault": "Default"
+      "deviceDefault": "Default",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "advanced": {
       "groups": {

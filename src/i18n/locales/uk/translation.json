@@ -250,7 +250,11 @@
         "title": "Гучність",
         "description": "Налаштуйте гучність звукових сповіщень"
       },
-      "deviceDefault": "За замовчуванням"
+      "deviceDefault": "За замовчуванням",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "advanced": {
       "groups": {

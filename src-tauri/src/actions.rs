@@ -793,6 +793,10 @@ impl ShortcutAction for TranscribeAction {
         }
 
         if recording_error.is_none() {
+            // Pausa los medios que estén sonando (no bloquea el inicio del dictado).
+            if settings.pause_media_on_dictate {
+                std::thread::spawn(crate::media::pause_media);
+            }
             // Dynamically register the cancel shortcut in a separate task to avoid deadlock
             shortcut::register_cancel_shortcut(app);
         } else {
@@ -852,6 +856,11 @@ impl ShortcutAction for TranscribeAction {
 
         // Unmute before playing audio feedback so the stop sound is audible
         rm.remove_mute();
+
+        // Reanuda los medios que pausamos al iniciar el dictado.
+        if get_settings(app).pause_media_on_dictate {
+            std::thread::spawn(crate::media::resume_media);
+        }
 
         // Play audio feedback for recording stop
         play_feedback_sound(app, SoundType::Stop);

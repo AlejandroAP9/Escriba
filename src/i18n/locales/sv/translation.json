@@ -250,7 +250,11 @@
         "title": "Volym",
         "description": "Justera volymen för ljudåterkopplingsljud"
       },
-      "deviceDefault": "Standard"
+      "deviceDefault": "Standard",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "advanced": {
       "groups": {

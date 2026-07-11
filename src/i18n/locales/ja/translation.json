@@ -250,7 +250,11 @@
         "title": "音量",
         "description": "オーディオフィードバックの音量を調整"
       },
-      "deviceDefault": "デフォルト"
+      "deviceDefault": "デフォルト",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "advanced": {
       "groups": {

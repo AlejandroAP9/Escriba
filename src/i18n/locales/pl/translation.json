@@ -250,7 +250,11 @@
         "title": "Głośność",
         "description": "Dostosuj głośność dźwięków informacyjnych"
       },
-      "deviceDefault": "Domyślny"
+      "deviceDefault": "Domyślny",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "advanced": {
       "groups": {

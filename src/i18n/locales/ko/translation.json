@@ -232,7 +232,11 @@
         "title": "볼륨",
         "description": "오디오 피드백 사운드의 볼륨 조절"
       },
-      "deviceDefault": "기본값"
+      "deviceDefault": "기본값",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "models": {
       "title": "음성 인식 모델",

@@ -250,7 +250,11 @@
         "title": "Volumen",
         "description": "Ajusta el volumen de los sonidos de retroalimentación de audio"
       },
-      "deviceDefault": "Predeterminado"
+      "deviceDefault": "Predeterminado",
+      "pauseMedia": {
+        "label": "Pausar la música al dictar",
+        "description": "Pausa Música/Spotify mientras dictas y la reanuda al terminar. Solo se pausa lo que estaba sonando."
+      }
     },
     "advanced": {
       "groups": {

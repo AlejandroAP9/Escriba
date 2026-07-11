@@ -250,7 +250,11 @@
         "title": "עוצמת קול",
         "description": "כוונן את עוצמת צלילי המשוב"
       },
-      "deviceDefault": "ברירת מחדל"
+      "deviceDefault": "ברירת מחדל",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "advanced": {
       "groups": {

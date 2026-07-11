@@ -250,7 +250,11 @@
         "title": "Сила на звука",
         "description": "Регулирайте силата на звуците за обратна връзка"
       },
-      "deviceDefault": "По подразбиране"
+      "deviceDefault": "По подразбиране",
+      "pauseMedia": {
+        "label": "Pause media while dictating",
+        "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      }
     },
     "advanced": {
       "groups": {
