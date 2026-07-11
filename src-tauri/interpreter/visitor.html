@@ -80,6 +80,8 @@
         padding-bottom: 40px;
       }
       .line {
+        -webkit-user-select: text;
+        user-select: text;
         font-size: 22px;
         line-height: 1.35;
         padding: 12px 14px;
@@ -148,6 +150,9 @@
         >
           🔊 Voz: ON
         </button>
+        <button id="copyBtn" class="muted" title="Copiar todo el texto">
+          📋
+        </button>
         <select id="langLive" class="muted" style="width: auto; flex: 1">
           <option value="es">Español</option>
           <option value="en">English</option>
@@ -177,6 +182,22 @@
       let es = null;
 
       if (qs.get("room")) roomInput.value = qs.get("room");
+
+      document
+        .getElementById("copyBtn")
+        .addEventListener("click", async (e) => {
+          const lines = [...subs.querySelectorAll(".line")]
+            .reverse()
+            .map((el) => el.textContent)
+            .join("\n");
+          try {
+            await navigator.clipboard.writeText(lines);
+            const b = e.currentTarget;
+            const prev = b.textContent;
+            b.textContent = "✓";
+            setTimeout(() => (b.textContent = prev), 1200);
+          } catch {}
+        });
 
       document.getElementById("voiceBtn").addEventListener("click", (e) => {
         voiceOn = !voiceOn;

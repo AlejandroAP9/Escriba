@@ -672,7 +672,10 @@
     "summarizing": "Resumiendo...",
     "audioVideoFilter": "Audio / Video",
     "exportSaved": "Archivo guardado",
-    "exportError": "No se pudo guardar el archivo"
+    "exportError": "No se pudo guardar el archivo",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "copyError": "No se pudo copiar"
   },
   "historyStats": {
     "words": "Palabras dictadas",

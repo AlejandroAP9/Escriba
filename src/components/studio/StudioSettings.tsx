@@ -105,6 +105,15 @@ export const StudioSettings: React.FC = () => {
     }
   };
 
+  const copyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(t("studio.copied"));
+    } catch {
+      toast.error(t("studio.copyError"));
+    }
+  };
+
   const summarize = async (job: StudioJob) => {
     setSummarizing(job.id);
     await commands.studioSummarize(job.id);
@@ -170,6 +179,13 @@ export const StudioSettings: React.FC = () => {
                 {job.paragraphs.join("\n\n")}
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => copyText(job.paragraphs.join("\n\n"))}
+                >
+                  {t("studio.copy")}
+                </Button>
                 {EXPORT_FORMATS.map((fmt) => (
                   <Button
                     key={fmt}
@@ -192,7 +208,14 @@ export const StudioSettings: React.FC = () => {
                 </Button>
               </div>
               {job.summary && (
-                <div className="text-sm text-text/90 whitespace-pre-wrap border-l-2 border-logo-primary pl-3">
+                <div className="text-sm text-text/90 whitespace-pre-wrap border-l-2 border-logo-primary pl-3 group relative">
+                  <button
+                    type="button"
+                    onClick={() => copyText(job.summary || "")}
+                    className="absolute top-0 right-0 text-xs text-mid-gray hover:text-text"
+                  >
+                    {t("studio.copy")}
+                  </button>
                   {job.summary}
                 </div>
               )}

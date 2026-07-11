@@ -103,3 +103,35 @@
   stroke: var(--color-logo-stroke);
   stroke-width: 1;
 }
+
+/* Escriba: el webview de escritorio bloquea la seleccion de texto por defecto.
+   Permitimos seleccionar/copiar el contenido legible (transcripciones,
+   resumenes, historial, subtitulos), manteniendo botones y controles sin
+   seleccion accidental. */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+.selectable,
+.whitespace-pre-wrap,
+p,
+span,
+h1,
+h2,
+h3,
+li,
+td {
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+button,
+select,
+a,
+label {
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}

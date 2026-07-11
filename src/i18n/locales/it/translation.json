@@ -672,7 +672,10 @@
     "summarizing": "Summarizing...",
     "audioVideoFilter": "Audio / Video",
     "exportSaved": "File saved",
-    "exportError": "Could not save the file"
+    "exportError": "Could not save the file",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyError": "Could not copy"
   },
   "historyStats": {
     "words": "Words dictated",
