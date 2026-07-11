@@ -13,7 +13,6 @@ use axum::{
 };
 use log::{info, warn};
 use serde::Deserialize;
-use std::collections::HashSet;
 use std::convert::Infallible;
 use std::sync::atomic::{AtomicU16, AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};
@@ -40,7 +39,7 @@ pub struct InterpreterServer {
     listeners: AtomicU32,
     seq: std::sync::atomic::AtomicU64,
     /// Idiomas que los oyentes están pidiendo (para traducir solo esos).
-    active_langs: Mutex<HashSet<String>>,
+    active_langs: Mutex<std::collections::HashMap<String, u32>>,
     shutdown: Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
 }
 
@@ -55,7 +54,7 @@ pub fn global() -> &'static InterpreterServer {
             port: AtomicU16::new(0),
             listeners: AtomicU32::new(0),
             seq: std::sync::atomic::AtomicU64::new(0),
-            active_langs: Mutex::new(HashSet::new()),
+            active_langs: Mutex::new(std::collections::HashMap::new()),
             shutdown: Mutex::new(None),
         }
     })
@@ -81,7 +80,12 @@ impl InterpreterServer {
     pub fn active_languages(&self) -> Vec<String> {
         self.active_langs
             .lock()
-            .map(|s| s.iter().cloned().collect())
+            .map(|m| {
+                m.iter()
+                    .filter(|(_, c)| **c > 0)
+                    .map(|(k, _)| k.clone())
+                    .collect()
+            })
             .unwrap_or_default()
     }
 
@@ -198,10 +202,51 @@ async fn join_handler(
     if !server.code_matches(&q.room) {
         return (StatusCode::FORBIDDEN, "sala no encontrada").into_response();
     }
-    if !q.lang.is_empty() {
-        server.active_langs.lock().unwrap().insert(q.lang.clone());
-    }
+    // El conteo de oyentes e idiomas lo lleva el stream SSE (con guard que
+    // descuenta al desconectar). /join solo valida el codigo.
     (StatusCode::OK, "ok").into_response()
+}
+
+/// Guard: incrementa oyente + idioma al conectar el SSE y los descuenta al
+/// soltar el stream (el navegador cierra la conexion al cambiar de idioma o
+/// cerrar la pestaña). Sin esto los contadores solo crecerian.
+struct ListenerGuard {
+    server: &'static InterpreterServer,
+    lang: String,
+}
+
+impl ListenerGuard {
+    fn new(server: &'static InterpreterServer, lang: String) -> Self {
+        server.listeners.fetch_add(1, Ordering::Relaxed);
+        if !lang.is_empty() {
+            *server
+                .active_langs
+                .lock()
+                .unwrap()
+                .entry(lang.clone())
+                .or_insert(0) += 1;
+        }
+        ListenerGuard { server, lang }
+    }
+}
+
+impl Drop for ListenerGuard {
+    fn drop(&mut self) {
+        let prev = self.server.listeners.load(Ordering::Relaxed);
+        if prev > 0 {
+            self.server.listeners.store(prev - 1, Ordering::Relaxed);
+        }
+        if !self.lang.is_empty() {
+            if let Ok(mut m) = self.server.active_langs.lock() {
+                if let Some(c) = m.get_mut(&self.lang) {
+                    *c = c.saturating_sub(1);
+                    if *c == 0 {
+                        m.remove(&self.lang);
+                    }
+                }
+            }
+        }
+    }
 }
 
 async fn sse_handler(
@@ -211,15 +256,14 @@ async fn sse_handler(
     if !server.code_matches(&q.room) {
         return (StatusCode::FORBIDDEN, "sala no encontrada").into_response();
     }
-    if !q.lang.is_empty() {
-        server.active_langs.lock().unwrap().insert(q.lang.clone());
-    }
-    server.listeners.fetch_add(1, Ordering::Relaxed);
-
     let lang = q.lang.clone();
+    let guard = ListenerGuard::new(server, lang.clone());
     let rx = server.tx.subscribe();
     let stream = tokio_stream::wrappers::BroadcastStream::new(rx).filter_map(
         move |result| -> Option<Result<Event, Infallible>> {
+            // Capturado por la clausura: vive tanto como el stream y descuenta
+            // al soltarse (cambio de idioma / cierre de pestaña).
+            let _keep = &guard;
             match result {
                 Ok(line) => {
                     let text = line
