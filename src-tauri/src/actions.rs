@@ -893,7 +893,7 @@ impl ShortcutAction for TranscribeAction {
             }
 
             let stop_recording_time = Instant::now();
-            if let Some(samples) = rm.stop_recording(&binding_id, cancel_generation) {
+            if let Some(mut samples) = rm.stop_recording(&binding_id, cancel_generation) {
                 debug!(
                     "Recording stopped and samples retrieved in {:?}, sample count: {}",
                     stop_recording_time.elapsed(),
@@ -919,6 +919,13 @@ impl ShortcutAction for TranscribeAction {
                     utils::hide_recording_overlay(&ah);
                     change_tray_icon(&ah, TrayIconState::Idle);
                 } else {
+                    // Supresión de ruido (RNNoise) sobre la grabación completa,
+                    // antes de guardar el WAV y de transcribir.
+                    if get_settings(&ah).noise_suppression {
+                        let denoise_start = Instant::now();
+                        samples = crate::audio_toolkit::denoise::denoise_16k_mono(&samples);
+                        debug!("Noise suppression applied in {:?}", denoise_start.elapsed());
+                    }
                     // Save WAV concurrently with transcription
                     let sample_count = samples.len();
                     let file_name = format!("handy-{}.wav", chrono::Utc::now().timestamp());

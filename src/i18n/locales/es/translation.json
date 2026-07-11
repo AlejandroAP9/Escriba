@@ -254,6 +254,10 @@
       "pauseMedia": {
         "label": "Pausar la música al dictar",
         "description": "Pausa Música/Spotify mientras dictas y la reanuda al terminar. Solo se pausa lo que estaba sonando."
+      },
+      "noiseSuppression": {
+        "label": "Supresión de ruido de fondo",
+        "description": "Limpia el ruido del micrófono (ventilador, teclado, tráfico) antes de transcribir. Todo local."
       }
     },
     "advanced": {

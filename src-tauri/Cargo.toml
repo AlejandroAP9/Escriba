@@ -51,6 +51,7 @@ rdev = { git = "https://github.com/rustdesk-org/rdev" }
 cpal = "0.16.0"
 anyhow = "1.0.95"
 rubato = "0.16.2"
+nnnoiseless = "0.5"
 hound = "3.5.1"
 # ogg+opus: audios de WhatsApp (.opus) - symphonia no trae decoder opus
 ogg = "0.9"

@@ -236,6 +236,10 @@
       "pauseMedia": {
         "label": "Pause media while dictating",
         "description": "Pause Music/Spotify while you dictate and resume when you finish. Only what was playing gets paused."
+      },
+      "noiseSuppression": {
+        "label": "Background noise suppression",
+        "description": "Clean up mic noise (fan, keyboard, traffic) before transcribing. Runs locally."
       }
     },
     "models": {
