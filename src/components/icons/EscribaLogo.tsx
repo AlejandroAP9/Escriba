@@ -18,7 +18,12 @@ const EscribaLogo = ({
   height?: number;
   className?: string;
 }) => {
-  const imgStyle = { width, height: height ?? "auto" } as const;
+  // La marca de Flor es casi cuadrada; se muestra a ~2/3 del ancho nominal para
+  // que no domine junto al wordmark.
+  const imgStyle = {
+    width: Math.round(width * 0.66),
+    height: height ?? "auto",
+  } as const;
   return (
     <div
       className={className}
