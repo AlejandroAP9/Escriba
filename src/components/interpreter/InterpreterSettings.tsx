@@ -14,6 +14,7 @@ const INTERP_LANGUAGES: { value: string; label: string }[] = [
   { value: "ja", label: "日本語" },
   { value: "ko", label: "한국어" },
   { value: "ru", label: "Русский" },
+  { value: "lt", label: "Lietuvių" },
   { value: "ar", label: "العربية" },
 ];
 

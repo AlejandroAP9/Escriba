@@ -135,6 +135,7 @@
         <option value="ja">日本語</option>
         <option value="ko">한국어</option>
         <option value="ru">Русский</option>
+        <option value="lt">Lietuvių</option>
         <option value="ar">العربية</option>
       </select>
       <button id="joinBtn">Escuchar traducción</button>
@@ -303,8 +304,14 @@
       // Cambiar idioma en vivo sin reiniciar: reconecta el SSE al nuevo idioma.
       langLive.addEventListener("change", () => {
         window.speechSynthesis.cancel();
-        subs.innerHTML = "";
         currentLang = langLive.value;
+        // Marca el cambio de idioma pero CONSERVA el historial anterior.
+        const sep = document.createElement("div");
+        sep.className = "status";
+        sep.style.margin = "8px 0";
+        sep.textContent =
+          "— " + langLive.options[langLive.selectedIndex].text + " —";
+        subs.prepend(sep);
         connect(currentRoom, langLive.value);
       });
 
