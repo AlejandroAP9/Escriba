@@ -139,6 +139,9 @@
         <option value="ar">العربية (Árabe)</option>
       </select>
       <button id="joinBtn">Escuchar traducción</button>
+      <p class="status" style="margin-top: 14px">
+        🎧 Conecta tus audífonos para escuchar la traducción en tu oído.
+      </p>
       <div class="status" id="setupStatus"></div>
     </section>
 
@@ -183,6 +186,23 @@
       let es = null;
 
       if (qs.get("room")) roomInput.value = qs.get("room");
+
+      // Mantiene la pantalla despierta: en el telefono el audio del navegador
+      // (la traduccion en tu oido) se corta al bloquearse la pantalla. Se
+      // re-pide al volver a la pestana.
+      let wakeLock = null;
+      async function keepAwake() {
+        try {
+          if ("wakeLock" in navigator) {
+            wakeLock = await navigator.wakeLock.request("screen");
+          }
+        } catch {}
+      }
+      document.addEventListener("visibilitychange", () => {
+        if (wakeLock !== null && document.visibilityState === "visible") {
+          keepAwake();
+        }
+      });
 
       document
         .getElementById("copyBtn")
@@ -336,6 +356,8 @@
         langLive.value = lang;
         // Gesto del usuario: desbloquea el TTS en iOS Safari.
         speak(" ");
+        // Mantiene la pantalla despierta para que el audio no se corte.
+        keepAwake();
         setup.style.display = "none";
         live.style.display = "block";
         connect(room, lang);
