@@ -17,7 +17,8 @@
     "debug": "Gỡ lỗi",
     "about": "Giới thiệu",
     "studio": "Studio",
-    "interpreter": "Live Interpreter"
+    "interpreter": "Live Interpreter",
+    "translator": "Translator"
   },
   "onboarding": {
     "subtitle": "Để bắt đầu, hãy chọn một mô hình chuyển đổi giọng nói",
@@ -701,5 +702,14 @@
     "listeningOn": "🎙️ Listening — speak with your dictation shortcut",
     "listeningOff": "Microphone off",
     "micHint": "Hold your dictation shortcut and speak a sentence; it gets translated to every listener's language. (Mic is push-to-talk for now.)"
+  },
+  "translator": {
+    "title": "Face-to-face translator",
+    "subtitle": "Pick two languages. Speak either one with your dictation shortcut; the AI detects it and translates to the other, shown big and read aloud. No phones, no QR — for a one-on-one chat on this screen.",
+    "start": "Start conversation",
+    "stop": "Stop",
+    "voiceOn": "🔊 Voice ON",
+    "voiceOff": "🔇 Voice OFF",
+    "hint": "Hold your dictation shortcut and speak in either language."
   }
 }

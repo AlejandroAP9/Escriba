@@ -9,11 +9,13 @@ import {
   Cpu,
   FileAudio,
   Radio,
+  Languages,
 } from "lucide-react";
 import EscribaLogo from "./icons/EscribaLogo";
 import HandyHand from "./icons/HandyHand";
 import { StudioSettings } from "./studio/StudioSettings";
 import { InterpreterSettings } from "./interpreter/InterpreterSettings";
+import { TranslatorSettings } from "./translator/TranslatorSettings";
 import { useSettings } from "../hooks/useSettings";
 import {
   GeneralSettings,
@@ -77,6 +79,12 @@ export const SECTIONS_CONFIG = {
     labelKey: "sidebar.interpreter",
     icon: Radio,
     component: InterpreterSettings,
+    enabled: () => true,
+  },
+  translator: {
+    labelKey: "sidebar.translator",
+    icon: Languages,
+    component: TranslatorSettings,
     enabled: () => true,
   },
   postprocessing: {

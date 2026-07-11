@@ -5,6 +5,7 @@ pub mod local_llm;
 pub mod models;
 pub mod studio;
 pub mod transcription;
+pub mod translator;
 
 use crate::settings::{get_settings, write_settings, AppSettings, LogLevel};
 use crate::utils::cancel_current_operation;

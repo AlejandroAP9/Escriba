@@ -41,6 +41,15 @@ async interpreterSetSourceLang(lang: string) : Promise<void> {
 async interpreterSetListening(on: boolean) : Promise<void> {
     await TAURI_INVOKE("interpreter_set_listening", { on });
 },
+async translatorSetLangs(langA: string, langB: string) : Promise<void> {
+    await TAURI_INVOKE("translator_set_langs", { langA, langB });
+},
+async translatorSetListening(on: boolean) : Promise<void> {
+    await TAURI_INVOKE("translator_set_listening", { on });
+},
+async translatorStatus() : Promise<TranslatorStatus> {
+    return await TAURI_INVOKE("translator_status");
+},
 /**
  * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
  */
@@ -1092,6 +1101,7 @@ export type StreamTextEvent = { committed: string; tentative: string }
 export type StreamWorkKind = "transcribing" | "polishing"
 export type StudioJob = { id: number; file_name: string; path: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; summary: string | null }
 export type TranscribeAcceleratorSetting = "auto" | "cpu" | "gpu"
+export type TranslatorStatus = { listening: boolean; lang_a: string; lang_b: string }
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"
 export type UsageStats = { total_transcriptions: number; total_words: number; words_last_30_days: number; active_days_last_30: number; current_streak_days: number; 
 /**

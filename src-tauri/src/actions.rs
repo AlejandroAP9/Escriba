@@ -560,6 +560,34 @@ pub(crate) async fn process_transcription_output(
         final_text = converted_text;
     }
 
+    // Modo Traductor (1-a-1): si esta escuchando, detecta idioma y traduce al
+    // otro, lo emite al frontend (pantalla grande + voz) y no pega.
+    if crate::commands::translator::is_listening() && !final_text.trim().is_empty() {
+        let (a, b) = crate::commands::translator::langs();
+        if let Some((target, translation)) = converse_translate(app, &final_text, &a, &b).await {
+            #[derive(serde::Serialize, Clone)]
+            struct TranslatorResult {
+                source: String,
+                target_lang: String,
+                translation: String,
+            }
+            let _ = app.emit(
+                "translator-result",
+                TranslatorResult {
+                    source: final_text.clone(),
+                    target_lang: target,
+                    translation,
+                },
+            );
+        }
+        return ProcessedTranscription {
+            final_text,
+            post_processed_text: None,
+            post_process_prompt: None,
+            interpreter_published: true,
+        };
+    }
+
     // Interprete en vivo: si la sala esta escuchando, este dictado va a la sala
     // (traducido por idioma) en vez de pegarse. El guia habla, los oyentes leen.
     if crate::managers::interpreter::global().is_listening() && !final_text.trim().is_empty() {
@@ -1300,4 +1328,85 @@ pub async fn translate_text(app: &AppHandle, text: &str, target_lang: &str) -> O
         }
         _ => None,
     }
+}
+
+/// Modo Traductor: el texto esta en `lang_a` o en `lang_b`; detecta cual y lo
+/// traduce al OTRO. Devuelve (idioma_destino_iso, traduccion) usando el motor
+/// local. El LLM detecta y traduce en una sola pasada.
+pub async fn converse_translate(
+    app: &AppHandle,
+    text: &str,
+    lang_a: &str,
+    lang_b: &str,
+) -> Option<(String, String)> {
+    if text.trim().is_empty() {
+        return None;
+    }
+    let settings = get_settings(app);
+    let mut provider = settings
+        .post_process_providers
+        .iter()
+        .find(|p| p.id == crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()?;
+    let model = settings
+        .post_process_models
+        .get(crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()
+        .unwrap_or_default();
+    match resolve_local_route(&model).await {
+        LocalRoute::Sidecar(base_url) => provider.base_url = base_url,
+        LocalRoute::Ollama { base_url, .. } => {
+            provider.base_url = base_url;
+            provider.supports_structured_output = false;
+        }
+        _ => return None,
+    }
+
+    let prompt = format!(
+        "El siguiente texto esta en el idioma '{a}' o en el idioma '{b}' (codigos ISO). Detecta en cual de los dos esta y TRADUCELO al OTRO. Responde EXACTAMENTE en este formato, sin nada mas:
+<codigo_iso_destino>|<traduccion>
+
+Ejemplo si el destino es ingles: en|Hello there
+
+Texto:
+{text}",
+        a = lang_a,
+        b = lang_b,
+        text = text
+    );
+
+    let content = match crate::llm_client::send_chat_completion(
+        &provider,
+        String::new(),
+        &model,
+        prompt,
+        Some("none".to_string()),
+        None,
+        Some(0.2),
+    )
+    .await
+    {
+        Ok(Some(c)) => strip_invisible_chars(&c),
+        _ => return None,
+    };
+
+    // Parsear "codigo|traduccion". Si el modelo no puso el codigo, inferimos
+    // el destino como el idioma distinto al detectado por heuristica simple.
+    let trimmed = content.trim();
+    if let Some((code, translation)) = trimmed.split_once('|') {
+        let code = code.trim().to_lowercase();
+        let translation = translation.trim().to_string();
+        if !translation.is_empty() && (code == lang_a || code == lang_b) {
+            return Some((code, translation));
+        }
+        if !translation.is_empty() {
+            // Codigo raro: asumir el destino como lang_b si no coincide.
+            return Some((lang_b.to_string(), translation));
+        }
+    }
+    // Sin formato: devolver el texto tal cual hacia lang_b como ultimo recurso.
+    if !trimmed.is_empty() {
+        return Some((lang_b.to_string(), trimmed.to_string()));
+    }
+    None
 }

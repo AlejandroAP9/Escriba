@@ -17,7 +17,8 @@
     "debug": "Depuración",
     "about": "Acerca de",
     "studio": "Estudio",
-    "interpreter": "Intérprete en vivo"
+    "interpreter": "Intérprete en vivo",
+    "translator": "Traductor"
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
@@ -701,5 +702,14 @@
     "listeningOn": "🎙️ Escuchando — habla con tu atajo de dictado",
     "listeningOff": "Micrófono apagado",
     "micHint": "Mantén tu atajo de dictado y di una frase; se traduce al idioma de cada oyente. (El micrófono es push-to-talk por ahora.)"
+  },
+  "translator": {
+    "title": "Traductor cara a cara",
+    "subtitle": "Elige dos idiomas. Habla cualquiera con tu atajo de dictado; la IA detecta cuál es y lo traduce al otro, mostrándolo grande y en voz alta. Sin teléfonos ni QR: para una conversación 1-a-1 en esta pantalla.",
+    "start": "Iniciar conversación",
+    "stop": "Detener",
+    "voiceOn": "🔊 Voz ON",
+    "voiceOff": "🔇 Voz OFF",
+    "hint": "Mantén tu atajo de dictado y habla en cualquiera de los dos idiomas."
   }
 }
