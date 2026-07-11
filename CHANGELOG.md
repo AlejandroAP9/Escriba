@@ -9,6 +9,28 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [0.11.0] — 2026-07-11
+
+### Agregado
+
+- **Supresión de ruido de fondo (RNNoise):** limpia ventilador, teclado y tráfico
+  del micrófono antes de transcribir. 100% local.
+- **Buscar y reemplazar:** reglas propias (texto literal o expresión regular) que
+  se aplican al texto dictado después de la corrección con IA.
+- **Pausar la música al dictar:** pausa Música/Spotify mientras hablas y las
+  reanuda al terminar; solo se pausa lo que estaba sonando (macOS por ahora).
+- **Reparación de configuración:** si un campo de ajustes se corrompe, se repara
+  solo ese campo en vez de perder toda la configuración.
+
+### Cambiado
+
+- **Rebrand visual completo:** la app adopta la paleta pergamino / tinta / oro de
+  la landing y el logo oficial de la marca (pluma, onda de voz y firma) en la
+  barra lateral, el ícono del Dock y el banner del repo.
+- **Todo en español:** los idiomas de transcripción y los dispositivos de audio se
+  muestran en español ("Auto Detect" → "Detección automática", "Default" →
+  "Predeterminado").
+
 ## [0.10.0] — 2026-07-11
 
 ### Agregado
