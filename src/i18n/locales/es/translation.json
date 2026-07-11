@@ -18,7 +18,8 @@
     "about": "Acerca de",
     "studio": "Estudio",
     "interpreter": "Intérprete en vivo",
-    "translator": "Traductor"
+    "translator": "Traductor",
+    "mcp": "Agentes (MCP)"
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
@@ -711,5 +712,35 @@
     "voiceOn": "🔊 Voz ON",
     "voiceOff": "🔇 Voz OFF",
     "hint": "Mantén tu atajo de dictado y habla en cualquiera de los dos idiomas."
+  },
+  "retranscribe": {
+    "action": "Re-transcribir con…",
+    "title": "Re-transcribir esta grabación con otro modelo",
+    "currentTag": "(actual)"
+  },
+  "mcp": {
+    "title": "Agentes (MCP)",
+    "subtitle": "Deja que agentes de IA (Claude Code, Cursor) usen las capacidades locales de Escriba como herramientas. Escucha solo en 127.0.0.1: nada sale de tu computador.",
+    "running": "Servidor activo",
+    "stopped": "Servidor detenido",
+    "start": "Iniciar servidor",
+    "stop": "Detener servidor",
+    "startError": "No se pudo iniciar el servidor MCP",
+    "connectHint": "Conecta Escriba a tu agente con:",
+    "copy": "Copiar",
+    "copyError": "No se pudo copiar",
+    "toolsTitle": "Herramientas disponibles",
+    "tool": {
+      "transcribe": "transcribe un archivo de audio/video local a texto",
+      "translate": "traduce un texto al idioma destino",
+      "summarize": "resume un texto"
+    },
+    "localNote": "100% local: el audio y el texto nunca salen de tu computador."
+  },
+  "micButton": {
+    "start": "Dictar",
+    "stop": "Detener",
+    "processing": "Transcribiendo…",
+    "dictatePrompt": "Dicta el prompt"
   }
 }

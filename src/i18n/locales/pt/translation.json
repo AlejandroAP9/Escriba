@@ -18,7 +18,8 @@
     "about": "Sobre",
     "studio": "Studio",
     "interpreter": "Live Interpreter",
-    "translator": "Translator"
+    "translator": "Translator",
+    "mcp": "Agents (MCP)"
   },
   "onboarding": {
     "subtitle": "Para começar, escolha um modelo de transcrição",
@@ -711,5 +712,35 @@
     "voiceOn": "🔊 Voice ON",
     "voiceOff": "🔇 Voice OFF",
     "hint": "Hold your dictation shortcut and speak in either language."
+  },
+  "retranscribe": {
+    "action": "Re-transcribe with…",
+    "title": "Re-transcribe this recording with another model",
+    "currentTag": "(current)"
+  },
+  "mcp": {
+    "title": "Agents (MCP)",
+    "subtitle": "Let AI agents (Claude Code, Cursor) use Escriba's local capabilities as tools. Runs on 127.0.0.1 only — nothing leaves your computer.",
+    "running": "Server running",
+    "stopped": "Server stopped",
+    "start": "Start server",
+    "stop": "Stop server",
+    "startError": "Could not start the MCP server",
+    "connectHint": "Add Escriba to your agent with:",
+    "copy": "Copy",
+    "copyError": "Could not copy",
+    "toolsTitle": "Available tools",
+    "tool": {
+      "transcribe": "transcribe a local audio/video file to text",
+      "translate": "translate text to a target language",
+      "summarize": "summarize a text"
+    },
+    "localNote": "100% local: the audio and text never leave your computer."
+  },
+  "micButton": {
+    "start": "Dictate",
+    "stop": "Stop",
+    "processing": "Transcribing…",
+    "dictatePrompt": "Dictate the prompt"
   }
 }

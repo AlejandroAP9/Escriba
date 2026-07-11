@@ -1,7 +1,9 @@
 pub mod audio;
+pub mod field_dictation;
 pub mod history;
 pub mod interpreter;
 pub mod local_llm;
+pub mod mcp;
 pub mod models;
 pub mod studio;
 pub mod transcription;

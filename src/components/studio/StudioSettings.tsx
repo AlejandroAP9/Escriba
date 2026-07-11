@@ -10,6 +10,7 @@ import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { commands, type StudioJob } from "@/bindings";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
+import { RetranscribeMenu } from "../shared/RetranscribeMenu";
 
 type Progress = {
   id: number;
@@ -121,6 +122,15 @@ export const StudioSettings: React.FC = () => {
     refresh();
   };
 
+  const retranscribe = async (job: StudioJob, modelId: string | null) => {
+    const result = await commands.studioRetranscribe(job.id, modelId);
+    if (result.status === "error") {
+      toast.error(t("studio.genericError"), { description: result.error });
+      return;
+    }
+    refresh();
+  };
+
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
       <button
@@ -206,6 +216,10 @@ export const StudioSettings: React.FC = () => {
                     ? t("studio.summarizing")
                     : t("studio.summarize")}
                 </Button>
+                <RetranscribeMenu
+                  onRetranscribe={(modelId) => retranscribe(job, modelId)}
+                  currentModelId={job.model_id}
+                />
               </div>
               {job.summary && (
                 <div className="text-sm text-text/90 whitespace-pre-wrap border-l-2 border-logo-primary pl-3 group relative">

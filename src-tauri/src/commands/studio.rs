@@ -37,6 +37,9 @@ pub struct StudioJob {
     pub segments: Vec<Segment>,
     pub paragraphs: Vec<String>,
     pub summary: Option<String>,
+    /// Modelo con el que se produjo esta transcripción (para mostrar el recibo
+    /// "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
+    pub model_id: Option<String>,
 }
 
 #[derive(Default)]
@@ -92,14 +95,15 @@ pub fn studio_enqueue(app: AppHandle, paths: Vec<String>) -> Result<Vec<u64>, St
             segments: Vec::new(),
             paragraphs: Vec::new(),
             summary: None,
+            model_id: None,
         });
         ids.push(id);
-        spawn_job(app.clone(), id, path);
+        spawn_job(app.clone(), id, path, None);
     }
     Ok(ids)
 }
 
-fn spawn_job(app: AppHandle, id: u64, path: PathBuf) {
+fn spawn_job(app: AppHandle, id: u64, path: PathBuf, model_id: Option<String>) {
     std::thread::spawn(move || {
         let state = app.state::<Arc<StudioState>>();
         let tm = app.state::<Arc<TranscriptionManager>>();
@@ -107,6 +111,17 @@ fn spawn_job(app: AppHandle, id: u64, path: PathBuf) {
         emit(&app, id, JobStatus::Processing, 0.0, None);
 
         let result = (|| -> Result<(Vec<Segment>, f64), String> {
+            // Modelo explícito (re-transcribir): cárgalo y restaura el del
+            // usuario en el próximo dictado. Sin valor = modelo por defecto.
+            if let Some(mid) = &model_id {
+                let default_model = crate::settings::get_settings(&app).selected_model;
+                if tm.get_current_model().as_deref() != Some(mid.as_str()) {
+                    tm.load_model(mid).map_err(|e| e.to_string())?;
+                }
+                if mid != &default_model {
+                    tm.reload_model_on_next_use();
+                }
+            }
             let samples = decode::decode_to_16k_mono(&path)?;
             let duration_s = samples.len() as f64 / decode::STUDIO_SAMPLE_RATE as f64;
             let app_for_progress = app.clone();
@@ -125,6 +140,7 @@ fn spawn_job(app: AppHandle, id: u64, path: PathBuf) {
                     job.duration_s = duration_s;
                     job.segments = segments;
                     job.paragraphs = paragraphs;
+                    job.model_id = model_id.clone();
                 }
                 info!("Studio job {} done", id);
                 emit(&app, id, JobStatus::Done, 1.0, None);
@@ -150,6 +166,42 @@ fn set_status(state: &Arc<StudioState>, id: u64, status: JobStatus) {
 #[specta::specta]
 pub fn studio_jobs(app: AppHandle) -> Vec<StudioJob> {
     app.state::<Arc<StudioState>>().jobs.lock().unwrap().clone()
+}
+
+/// Re-transcribe un job ya terminado con OTRO modelo. Re-decodifica el archivo
+/// original (nunca se copió a la app, así que debe seguir en su ruta) y corre la
+/// transcripción de nuevo. `model_id = None` usa el modelo por defecto.
+#[tauri::command]
+#[specta::specta]
+pub fn studio_retranscribe(
+    app: AppHandle,
+    id: u64,
+    model_id: Option<String>,
+) -> Result<(), String> {
+    let state = app.state::<Arc<StudioState>>();
+    let path = {
+        let jobs = state.jobs.lock().unwrap();
+        let job = jobs
+            .iter()
+            .find(|j| j.id == id)
+            .ok_or("Job no encontrado")?;
+        job.path.clone()
+    };
+    let path_buf = PathBuf::from(&path);
+    if !path_buf.exists() {
+        return Err("El archivo original ya no está disponible en su ubicación".to_string());
+    }
+    // Resetea el job antes de re-encolar.
+    if let Some(job) = state.jobs.lock().unwrap().iter_mut().find(|j| j.id == id) {
+        job.status = JobStatus::Pending;
+        job.progress = 0.0;
+        job.error = None;
+        job.segments = Vec::new();
+        job.paragraphs = Vec::new();
+        job.summary = None;
+    }
+    spawn_job(app.clone(), id, path_buf, model_id);
+    Ok(())
 }
 
 #[tauri::command]

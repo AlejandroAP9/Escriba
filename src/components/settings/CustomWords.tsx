@@ -5,6 +5,7 @@ import { useSettings } from "../../hooks/useSettings";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { SettingContainer } from "../ui/SettingContainer";
+import { MicButton } from "../shared/MicButton";
 
 interface CustomWordsProps {
   descriptionMode?: "inline" | "tooltip";
@@ -70,6 +71,12 @@ export const CustomWords: React.FC<CustomWordsProps> = React.memo(
               onKeyDown={handleKeyPress}
               placeholder={t("settings.advanced.customWords.placeholder")}
               variant="compact"
+              disabled={isUpdating("custom_words")}
+            />
+            <MicButton
+              onText={(text) =>
+                setNewWord(text.trim().replace(/[.,!?;:]+$/, ""))
+              }
               disabled={isUpdating("custom_words")}
             />
             <Button

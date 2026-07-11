@@ -10,12 +10,14 @@ import {
   FileAudio,
   Radio,
   Languages,
+  Bot,
 } from "lucide-react";
 import EscribaLogo from "./icons/EscribaLogo";
 import HandyHand from "./icons/HandyHand";
 import { StudioSettings } from "./studio/StudioSettings";
 import { InterpreterSettings } from "./interpreter/InterpreterSettings";
 import { TranslatorSettings } from "./translator/TranslatorSettings";
+import { McpSettings } from "./mcp/McpSettings";
 import { useSettings } from "../hooks/useSettings";
 import {
   GeneralSettings,
@@ -85,6 +87,12 @@ export const SECTIONS_CONFIG = {
     labelKey: "sidebar.translator",
     icon: Languages,
     component: TranslatorSettings,
+    enabled: () => true,
+  },
+  mcp: {
+    labelKey: "sidebar.mcp",
+    icon: Bot,
+    component: McpSettings,
     enabled: () => true,
   },
   postprocessing: {

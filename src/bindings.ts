@@ -50,6 +50,28 @@ async translatorSetListening(on: boolean) : Promise<void> {
 async translatorStatus() : Promise<TranslatorStatus> {
     return await TAURI_INVOKE("translator_status");
 },
+async mcpStart() : Promise<Result<McpStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("mcp_start") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async mcpStop() : Promise<void> {
+    await TAURI_INVOKE("mcp_stop");
+},
+async mcpStatus() : Promise<McpStatus> {
+    return await TAURI_INVOKE("mcp_status");
+},
+/**
+ * Alterna la grabación para un campo. El primer llamado arranca; el segundo
+ * para y procesa (el coordinador trabaja en modo toggle). Marca el desvío a
+ * campo para que el texto no se pegue en la app enfocada.
+ */
+async fieldDictationToggle() : Promise<void> {
+    await TAURI_INVOKE("field_dictation_toggle");
+},
 /**
  * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
  */
@@ -63,6 +85,19 @@ async studioEnqueue(paths: string[]) : Promise<Result<number[], string>> {
 },
 async studioJobs() : Promise<StudioJob[]> {
     return await TAURI_INVOKE("studio_jobs");
+},
+/**
+ * Re-transcribe un job ya terminado con OTRO modelo. Re-decodifica el archivo
+ * original (nunca se copió a la app, así que debe seguir en su ruta) y corre la
+ * transcripción de nuevo. `model_id = None` usa el modelo por defecto.
+ */
+async studioRetranscribe(id: number, modelId: string | null) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("studio_retranscribe", { id, modelId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
 async studioRemoveJob(id: number) : Promise<void> {
     await TAURI_INVOKE("studio_remove_job", { id });
@@ -913,9 +948,15 @@ async deleteHistoryEntry(id: number) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async retryHistoryEntryTranscription(id: number) : Promise<Result<null, string>> {
+/**
+ * Re-transcribe una entrada del historial. Si `model_id` viene con valor, usa
+ * ESE modelo (sin tocar el modelo por defecto del usuario: se restaura en el
+ * próximo dictado). Si es `None`, usa el modelo seleccionado actual. Sirve para
+ * "misma grabación, más precisión con otro modelo".
+ */
+async retryHistoryEntryTranscription(id: number, modelId: string | null) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("retry_history_entry_transcription", { id }) };
+    return { status: "ok", data: await TAURI_INVOKE("retry_history_entry_transcription", { id, modelId }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -1023,6 +1064,7 @@ export type KeyboardImplementation = "tauri" | "handy_keys"
 export type LLMPrompt = { id: string; name: string; prompt: string }
 export type LocalLlmStatus = { runtime_installed: boolean; model_installed: boolean; engine_running: boolean; setup_in_progress: boolean; model_file: string }
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error"
+export type McpStatus = { running: boolean; port: number; url: string | null }
 export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean; supported_languages: string[]; supports_language_selection: boolean; is_custom: boolean; supports_streaming: boolean; supports_language_detection: boolean }
 export type ModelLoadStatus = { is_loaded: boolean; current_model: string | null }
 /**
@@ -1099,7 +1141,12 @@ export type StreamTextEvent = { committed: string; tentative: string }
  * Semantic kind of "working" phase, used to localize the spinner label.
  */
 export type StreamWorkKind = "transcribing" | "polishing"
-export type StudioJob = { id: number; file_name: string; path: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; summary: string | null }
+export type StudioJob = { id: number; file_name: string; path: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; summary: string | null; 
+/**
+ * Modelo con el que se produjo esta transcripción (para mostrar el recibo
+ * "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
+ */
+model_id: string | null }
 export type TranscribeAcceleratorSetting = "auto" | "cpu" | "gpu"
 export type TranslatorStatus = { listening: boolean; lang_a: string; lang_b: string }
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"

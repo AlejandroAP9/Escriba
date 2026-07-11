@@ -560,6 +560,19 @@ pub(crate) async fn process_transcription_output(
         final_text = converted_text;
     }
 
+    // Dictado en un campo de la app (botón de micrófono): el texto va al campo
+    // que lo pidió, no se pega en la app enfocada. Consume la marca (swap), así
+    // nunca desvía un dictado global posterior.
+    if crate::commands::field_dictation::take_capturing() {
+        crate::commands::field_dictation::emit_result(app, &final_text);
+        return ProcessedTranscription {
+            final_text,
+            post_processed_text: None,
+            post_process_prompt: None,
+            interpreter_published: true,
+        };
+    }
+
     // Modo Traductor (1-a-1): si esta escuchando, detecta idioma y traduce al
     // otro, lo emite al frontend (pantalla grande + voz) y no pega.
     if crate::commands::translator::is_listening() && !final_text.trim().is_empty() {
@@ -857,6 +870,9 @@ impl ShortcutAction for TranscribeAction {
 
                 if samples.is_empty() {
                     debug!("Recording produced no audio samples; skipping persistence");
+                    // Sin audio no se llega a procesar texto: limpia la marca de
+                    // dictado-a-campo para no desviar el próximo dictado.
+                    crate::commands::field_dictation::clear_capturing();
                     // Tear down any streaming worker so its channel doesn't leak
                     // and block the next start_stream.
                     tm.cancel_stream();

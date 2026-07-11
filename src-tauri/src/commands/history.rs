@@ -59,6 +59,10 @@ pub async fn delete_history_entry(
         .map_err(|e| e.to_string())
 }
 
+/// Re-transcribe una entrada del historial. Si `model_id` viene con valor, usa
+/// ESE modelo (sin tocar el modelo por defecto del usuario: se restaura en el
+/// próximo dictado). Si es `None`, usa el modelo seleccionado actual. Sirve para
+/// "misma grabación, más precisión con otro modelo".
 #[tauri::command]
 #[specta::specta]
 pub async fn retry_history_entry_transcription(
@@ -66,6 +70,7 @@ pub async fn retry_history_entry_transcription(
     history_manager: State<'_, Arc<HistoryManager>>,
     transcription_manager: State<'_, Arc<TranscriptionManager>>,
     id: i64,
+    model_id: Option<String>,
 ) -> Result<(), String> {
     let entry = history_manager
         .get_entry_by_id(id)
@@ -81,13 +86,25 @@ pub async fn retry_history_entry_transcription(
         return Err("Recording has no audio samples".to_string());
     }
 
-    transcription_manager.initiate_model_load();
-
+    let default_model = crate::settings::get_settings(&app).selected_model;
     let tm = Arc::clone(&transcription_manager);
-    let transcription = tauri::async_runtime::spawn_blocking(move || tm.transcribe(samples))
-        .await
-        .map_err(|e| format!("Transcription task panicked: {}", e))?
-        .map_err(|e| e.to_string())?;
+    let transcription = tauri::async_runtime::spawn_blocking(move || -> Result<String, String> {
+        // Elige el modelo destino: el pedido, o el por defecto.
+        let target = model_id.clone().unwrap_or_else(|| default_model.clone());
+        if tm.get_current_model().as_deref() != Some(target.as_str()) {
+            tm.load_model(&target).map_err(|e| e.to_string())?;
+        }
+        // Si fue un modelo puntual distinto al del usuario, restáuralo al
+        // próximo dictado (no persistimos selected_model).
+        if let Some(mid) = &model_id {
+            if mid != &default_model {
+                tm.reload_model_on_next_use();
+            }
+        }
+        tm.transcribe(samples).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| format!("Transcription task panicked: {}", e))??;
 
     if transcription.is_empty() {
         return Err("Recording contains no speech".to_string());

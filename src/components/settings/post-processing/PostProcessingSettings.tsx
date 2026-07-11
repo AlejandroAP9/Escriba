@@ -13,6 +13,7 @@ import {
 import { Button } from "../../ui/Button";
 import { ResetButton } from "../../ui/ResetButton";
 import { Input } from "../../ui/Input";
+import { MicButton } from "../../shared/MicButton";
 
 import { ProviderSelect } from "../PostProcessingSettingsApi/ProviderSelect";
 import { LocalLlmSetup } from "../PostProcessingSettingsApi/LocalLlmSetup";
@@ -310,9 +311,17 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
             </div>
 
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
-                {t("settings.postProcessing.prompts.promptInstructions")}
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold">
+                  {t("settings.postProcessing.prompts.promptInstructions")}
+                </label>
+                <MicButton
+                  onText={(text) =>
+                    setDraftText((prev) => (prev ? `${prev} ${text}` : text))
+                  }
+                  title={t("micButton.dictatePrompt")}
+                />
+              </div>
               <Textarea
                 value={draftText}
                 onChange={(e) => setDraftText(e.target.value)}
@@ -377,9 +386,17 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
             </div>
 
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
-                {t("settings.postProcessing.prompts.promptInstructions")}
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold">
+                  {t("settings.postProcessing.prompts.promptInstructions")}
+                </label>
+                <MicButton
+                  onText={(text) =>
+                    setDraftText((prev) => (prev ? `${prev} ${text}` : text))
+                  }
+                  title={t("micButton.dictatePrompt")}
+                />
+              </div>
               <Textarea
                 value={draftText}
                 onChange={(e) => setDraftText(e.target.value)}

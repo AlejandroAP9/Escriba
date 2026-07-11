@@ -11,6 +11,7 @@ import {
   type HistoryUpdatePayload,
 } from "@/bindings";
 import { UsageStatsCard } from "./UsageStatsCard";
+import { RetranscribeMenu } from "../../shared/RetranscribeMenu";
 import { useOsType } from "@/hooks/useOsType";
 import { formatDateTime } from "@/utils/dateFormat";
 import { AudioPlayer } from "../../ui/AudioPlayer";
@@ -217,8 +218,8 @@ export const HistorySettings: React.FC = () => {
     }
   };
 
-  const retryHistoryEntry = async (id: number) => {
-    const result = await commands.retryHistoryEntryTranscription(id);
+  const retryHistoryEntry = async (id: number, modelId: string | null) => {
+    const result = await commands.retryHistoryEntryTranscription(id, modelId);
     if (result.status !== "ok") {
       throw new Error(String(result.error));
     }
@@ -300,7 +301,7 @@ interface HistoryEntryProps {
   onCopyText: () => void;
   getAudioUrl: (fileName: string) => Promise<string | null>;
   deleteAudio: (id: number) => Promise<void>;
-  retryTranscription: (id: number) => Promise<void>;
+  retryTranscription: (id: number, modelId: string | null) => Promise<void>;
 }
 
 const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
@@ -341,10 +342,10 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
     }
   };
 
-  const handleRetranscribe = async () => {
+  const handleRetranscribe = async (modelId: string | null = null) => {
     try {
       setRetrying(true);
-      await retryTranscription(entry.id);
+      await retryTranscription(entry.id, modelId);
     } catch (error) {
       console.error("Failed to re-transcribe:", error);
       toast.error(t("settings.history.retranscribeError"));
@@ -388,7 +389,7 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
             />
           </IconButton>
           <IconButton
-            onClick={handleRetranscribe}
+            onClick={() => handleRetranscribe(null)}
             disabled={retrying}
             title={t("settings.history.retranscribe")}
           >
@@ -402,6 +403,10 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
               }
             />
           </IconButton>
+          <RetranscribeMenu
+            onRetranscribe={(modelId) => handleRetranscribe(modelId)}
+            disabled={retrying}
+          />
           <IconButton
             onClick={handleDeleteEntry}
             disabled={retrying}
