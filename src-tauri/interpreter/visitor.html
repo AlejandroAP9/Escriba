@@ -141,7 +141,7 @@
 
     <section class="live" id="live">
       <div class="toolbar">
-        <button id="voiceBtn" class="muted">🔊 Voz: ON</button>
+        <button id="voiceBtn" class="muted" title="La voz usa el sintetizador de tu teléfono (offline). El subtítulo es lo principal.">🔊 Voz: ON</button>
         <select id="langLive" class="muted" style="width: auto; flex: 1">
           <option value="es">Español</option>
           <option value="en">English</option>
@@ -178,11 +178,64 @@
         if (!voiceOn) window.speechSynthesis.cancel();
       });
 
+      // Elige la MEJOR voz disponible para un idioma. Los dispositivos traen
+      // voces "premium"/"enhanced" mucho más naturales que la default, pero
+      // hay que pedirlas por nombre. Preferimos: premium/enhanced/neural >
+      // local del sistema > cualquiera del idioma.
+      let voicesCache = [];
+      function refreshVoices() {
+        voicesCache = window.speechSynthesis.getVoices() || [];
+      }
+      refreshVoices();
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.onvoiceschanged = refreshVoices;
+      }
+
+      const PREMIUM_HINTS = [
+        "premium",
+        "enhanced",
+        "neural",
+        "siri",
+        "natural",
+        // voces buenas conocidas de Apple por idioma
+        "mónica",
+        "monica",
+        "paulina",
+        "samantha",
+        "luciana",
+        "alice",
+        "anna",
+        "kyoko",
+        "yuna",
+        "milena",
+      ];
+
+      function pickVoice(lang) {
+        const base = lang.split("-")[0].toLowerCase();
+        const forLang = voicesCache.filter((v) =>
+          v.lang.toLowerCase().startsWith(base),
+        );
+        if (forLang.length === 0) return null;
+        // 1) alguna que huela a premium/enhanced/conocida
+        const premium = forLang.find((v) =>
+          PREMIUM_HINTS.some((h) => v.name.toLowerCase().includes(h)),
+        );
+        if (premium) return premium;
+        // 2) voz local del sistema (no "remota")
+        const local = forLang.find((v) => v.localService);
+        return local || forLang[0];
+      }
+
       function speak(text) {
         if (!voiceOn || !("speechSynthesis" in window)) return;
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
         u.lang = langSel.value;
+        const v = pickVoice(langSel.value);
+        if (v) u.voice = v;
+        // Un pelo más lento y tono neutro suena menos mecánico.
+        u.rate = 0.95;
+        u.pitch = 1.0;
         window.speechSynthesis.speak(u);
       }
 
