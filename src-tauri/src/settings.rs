@@ -95,6 +95,17 @@ pub struct LLMPrompt {
     pub prompt: String,
 }
 
+/// Regla determinista de buscar/reemplazar que se aplica al texto final tras
+/// transcribir (antes de pegar). `is_regex` interpreta `find` como expresión
+/// regular; si el patrón es inválido, la regla se ignora sin romper nada.
+#[derive(Serialize, Deserialize, Debug, Clone, Type)]
+pub struct TextReplacement {
+    pub find: String,
+    pub replace: String,
+    #[serde(default)]
+    pub is_regex: bool,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Type)]
 pub struct PostProcessProvider {
     pub id: String,
@@ -442,6 +453,15 @@ pub struct AppSettings {
     /// `overlay_position` (position `none` → style `None`).
     #[serde(default = "default_overlay_style")]
     pub overlay_style: OverlayStyle,
+    /// Reglas de buscar/reemplazar aplicadas al texto final tras transcribir.
+    #[serde(default)]
+    pub text_replacements: Vec<TextReplacement>,
+    /// Supresión de ruido de fondo del micrófono antes de transcribir.
+    #[serde(default)]
+    pub noise_suppression: bool,
+    /// Pausar la reproducción de medios (Música/Spotify) mientras dictas.
+    #[serde(default)]
+    pub pause_media_on_dictate: bool,
 }
 
 fn default_model() -> String {
@@ -942,6 +962,9 @@ pub fn get_default_settings() -> AppSettings {
         extra_recording_buffer_ms: 0,
         vad_enabled: default_vad_enabled(),
         overlay_style: default_overlay_style(),
+        text_replacements: Vec::new(),
+        noise_suppression: false,
+        pause_media_on_dictate: false,
     }
 }
 

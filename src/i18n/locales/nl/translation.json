@@ -380,6 +380,15 @@
       "voiceActivityDetection": {
         "title": "Spraakactiviteitsdetectie (VAD)",
         "description": "Filter stilte uit opnames. Streaming-modellen gebruiken een langere VAD-uitloop; het uitschakelen van VAD neemt de ruwe audio op."
+      },
+      "textReplacements": {
+        "title": "Find & replace",
+        "description": "Rules applied to the final text after dictation (after AI post-processing). Each rule can be plain text or a regular expression.",
+        "find": "Find",
+        "replace": "Replace with",
+        "regex": "Regular expression",
+        "add": "Add rule",
+        "remove": "Remove rule"
       }
     },
     "postProcessing": {

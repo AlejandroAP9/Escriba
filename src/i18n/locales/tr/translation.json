@@ -380,6 +380,15 @@
       "voiceActivityDetection": {
         "title": "Voice Activity Detection",
         "description": "Filter silence from recordings. Streaming-capable models use a longer VAD tail; disabling VAD records raw audio."
+      },
+      "textReplacements": {
+        "title": "Find & replace",
+        "description": "Rules applied to the final text after dictation (after AI post-processing). Each rule can be plain text or a regular expression.",
+        "find": "Find",
+        "replace": "Replace with",
+        "regex": "Regular expression",
+        "add": "Add rule",
+        "remove": "Remove rule"
       }
     },
     "postProcessing": {

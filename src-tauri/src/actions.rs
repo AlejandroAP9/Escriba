@@ -636,12 +636,43 @@ pub(crate) async fn process_transcription_output(
         post_processed_text = Some(final_text.clone());
     }
 
+    // Reglas deterministas de buscar/reemplazar sobre el texto final (antes de
+    // pegar). Se aplican después del post-proceso con IA.
+    if !settings.text_replacements.is_empty() {
+        let replaced = apply_text_replacements(&final_text, &settings.text_replacements);
+        if replaced != final_text {
+            final_text = replaced;
+            // Mantener el historial consistente con lo que realmente se pega.
+            post_processed_text = Some(final_text.clone());
+        }
+    }
+
     ProcessedTranscription {
         final_text,
         post_processed_text,
         post_process_prompt,
         interpreter_published: false,
     }
+}
+
+/// Aplica en orden las reglas de buscar/reemplazar del usuario. En modo regex,
+/// un patrón inválido se ignora (no rompe el dictado). En modo texto plano es un
+/// reemplazo literal de todas las ocurrencias.
+fn apply_text_replacements(text: &str, rules: &[crate::settings::TextReplacement]) -> String {
+    let mut out = text.to_string();
+    for rule in rules {
+        if rule.find.is_empty() {
+            continue;
+        }
+        if rule.is_regex {
+            if let Ok(re) = regex::Regex::new(&rule.find) {
+                out = re.replace_all(&out, rule.replace.as_str()).into_owned();
+            }
+        } else {
+            out = out.replace(&rule.find, &rule.replace);
+        }
+    }
+    out
 }
 
 impl ShortcutAction for TranscribeAction {

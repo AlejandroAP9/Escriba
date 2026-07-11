@@ -423,6 +423,30 @@ async updateCustomWords(words: string[]) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async updateTextReplacements(rules: TextReplacement[]) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_text_replacements", { rules }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeNoiseSuppressionSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_noise_suppression_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changePauseMediaOnDictateSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_pause_media_on_dictate_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 /**
  * Temporarily unregister a binding while the user is editing it in the UI.
  * This avoids firing the action while keys are being recorded.
@@ -1032,7 +1056,19 @@ whats_new_last_seen_version?: string; selected_model?: string; onboarding_comple
  * not gated on this — that follows model capability. Migrated from the old
  * `overlay_position` (position `none` → style `None`).
  */
-overlay_style?: OverlayStyle }
+overlay_style?: OverlayStyle; 
+/**
+ * Reglas de buscar/reemplazar aplicadas al texto final tras transcribir.
+ */
+text_replacements?: TextReplacement[]; 
+/**
+ * Supresión de ruido de fondo del micrófono antes de transcribir.
+ */
+noise_suppression?: boolean; 
+/**
+ * Pausar la reproducción de medios (Música/Spotify) mientras dictas.
+ */
+pause_media_on_dictate?: boolean }
 export type AudioDevice = { index: string; name: string; is_default: boolean }
 export type AutoSubmitKey = "enter" | "ctrl_enter" | "cmd_enter"
 export type AvailableAccelerators = { transcribe: string[]; ort: string[]; gpu_devices: GpuDeviceOption[] }
@@ -1147,6 +1183,12 @@ export type StudioJob = { id: number; file_name: string; path: string; status: J
  * "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
  */
 model_id: string | null }
+/**
+ * Regla determinista de buscar/reemplazar que se aplica al texto final tras
+ * transcribir (antes de pegar). `is_regex` interpreta `find` como expresión
+ * regular; si el patrón es inválido, la regla se ignora sin romper nada.
+ */
+export type TextReplacement = { find: string; replace: string; is_regex?: boolean }
 export type TranscribeAcceleratorSetting = "auto" | "cpu" | "gpu"
 export type TranslatorStatus = { listening: boolean; lang_a: string; lang_b: string }
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"
