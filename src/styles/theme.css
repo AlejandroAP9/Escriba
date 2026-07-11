@@ -1,20 +1,22 @@
-/* Handy Colors */
+/* Escriba Colors — paleta pergamino / tinta / oro (alineada con la landing) */
 
 :root {
-  --color-text: #0f0f0f;
-  --color-background: #fbfbfb;
-  --color-background-ui: #da5893;
-  --color-logo-primary: #faa2ca;
-  --color-logo-stroke: #382731;
-  --color-text-stroke: #f6f6f6;
-  --color-mid-gray: #808080;
+  --color-text: #241c14;
+  --color-background: #fbf8f1;
+  /* Accion principal (botones, toggles, slider): oro-bronce. Texto blanco pasa
+     AA en tema claro y oscuro, asi el boton primario no necesita logica por tema. */
+  --color-background-ui: #9a6f27;
+  --color-logo-primary: #b8933f;
+  --color-logo-stroke: #14102a;
+  --color-text-stroke: #faf6ec;
+  --color-mid-gray: #8a7f66;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-text: #fbfbfb;
-    --color-background: #2c2b29;
-    --color-logo-primary: #f28cbb;
-    --color-logo-stroke: #fad1ed;
+    --color-text: #f0e2c4;
+    --color-background: #17132e;
+    --color-logo-primary: #e6d2a8;
+    --color-logo-stroke: #e6d2a8;
   }
 }
