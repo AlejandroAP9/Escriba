@@ -142,6 +142,19 @@
     <section class="live" id="live">
       <div class="toolbar">
         <button id="voiceBtn" class="muted">🔊 Voz: ON</button>
+        <select id="langLive" class="muted" style="width: auto; flex: 1">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="pt">Português</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="it">Italiano</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+          <option value="ru">Русский</option>
+          <option value="ar">العربية</option>
+        </select>
         <span class="status" id="liveStatus" style="margin: 0">Conectado</span>
       </div>
       <div class="subs" id="subs"></div>
@@ -182,6 +195,36 @@
         while (subs.children.length > 30) subs.lastChild.remove();
       }
 
+      const langLive = document.getElementById("langLive");
+      let currentRoom = "";
+
+      function connect(room, lang) {
+        if (es) es.close();
+        es = new EventSource(`/events?room=${room}&lang=${lang}`);
+        es.onmessage = (ev) => {
+          try {
+            const line = JSON.parse(ev.data);
+            addLine(line.text);
+          } catch {
+            addLine(ev.data);
+          }
+        };
+        es.onerror = () => {
+          document.getElementById("liveStatus").textContent = "Reconectando...";
+        };
+        es.onopen = () => {
+          document.getElementById("liveStatus").textContent = "Conectado";
+        };
+      }
+
+      // Cambiar idioma en vivo sin reiniciar: reconecta el SSE al nuevo idioma.
+      langLive.addEventListener("change", () => {
+        window.speechSynthesis.cancel();
+        subs.innerHTML = "";
+        fetch(`/join?room=${currentRoom}&lang=${langLive.value}`).catch(() => {});
+        connect(currentRoom, langLive.value);
+      });
+
       document.getElementById("joinBtn").addEventListener("click", async () => {
         const room = roomInput.value.trim();
         const lang = langSel.value;
@@ -198,25 +241,13 @@
           status.textContent = "No se pudo conectar a la sala.";
           return;
         }
+        currentRoom = room;
+        langLive.value = lang;
         // Gesto del usuario: desbloquea el TTS en iOS Safari.
         speak(" ");
         setup.style.display = "none";
         live.style.display = "block";
-        es = new EventSource(`/events?room=${room}&lang=${lang}`);
-        es.onmessage = (ev) => {
-          try {
-            const line = JSON.parse(ev.data);
-            addLine(line.text);
-          } catch {
-            addLine(ev.data);
-          }
-        };
-        es.onerror = () => {
-          document.getElementById("liveStatus").textContent = "Reconectando...";
-        };
-        es.onopen = () => {
-          document.getElementById("liveStatus").textContent = "Conectado";
-        };
+        connect(room, lang);
       });
     </script>
   </body>
