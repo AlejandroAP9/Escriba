@@ -13,6 +13,7 @@ import { MuteWhileRecording } from "../MuteWhileRecording";
 import { PauseMediaOnDictate } from "../PauseMediaOnDictate";
 import { NoiseSuppression } from "../NoiseSuppression";
 import { ModelSettingsCard } from "./ModelSettingsCard";
+import { DictationHero } from "./DictationHero";
 
 export const GeneralSettings: React.FC = () => {
   const { t } = useTranslation();
@@ -21,6 +22,7 @@ export const GeneralSettings: React.FC = () => {
   const isLinux = type() === "linux";
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
+      <DictationHero />
       <SettingsGroup title={t("settings.general.title")}>
         <ShortcutInput shortcutId="transcribe" grouped={true} />
         <PushToTalk descriptionMode="tooltip" grouped={true} />

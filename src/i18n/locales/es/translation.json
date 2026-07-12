@@ -226,6 +226,15 @@
       "pushToTalk": {
         "label": "Presionar para Hablar",
         "description": "Mantén presionado para grabar, suelta para detener"
+      },
+      "hero": {
+        "ready": "Listo para dictar",
+        "private": "Privado por defecto",
+        "headline": "Hablas normal. El texto aparece donde estés.",
+        "description": "Activa el atajo desde cualquier campo, habla como hablas, y sigue trabajando. Sin cambiar de ventana.",
+        "local": "100% local",
+        "noCloud": "Sin nube",
+        "free": "Gratis"
       }
     },
     "sound": {

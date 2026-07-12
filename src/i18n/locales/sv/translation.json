@@ -208,6 +208,15 @@
       "pushToTalk": {
         "label": "Tryck för att tala",
         "description": "Håll ned för att spela in, släpp för att stoppa"
+      },
+      "hero": {
+        "ready": "Ready to dictate",
+        "private": "Private by default",
+        "headline": "Speak normally. The text shows up wherever you are.",
+        "description": "Trigger the shortcut from any text field, talk like you talk, and keep working. No switching windows.",
+        "local": "100% local",
+        "noCloud": "No cloud",
+        "free": "Free"
       }
     },
     "models": {
