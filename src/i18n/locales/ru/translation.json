@@ -16,7 +16,7 @@
     "history": "История",
     "debug": "Отладка",
     "about": "О программе",
-    "studio": "Studio",
+    "studio": "Transcribe files",
     "interpreter": "Live Interpreter",
     "translator": "Translator",
     "mcp": "Agents (MCP)",
@@ -727,7 +727,16 @@
     "exportError": "Could not save the file",
     "copy": "Copy",
     "copied": "Copied",
-    "copyError": "Could not copy"
+    "copyError": "Could not copy",
+    "heroTitle": "Transcribe any audio or video.",
+    "heroSubtitle": "Everything runs locally on your computer. Nothing is uploaded to the internet.",
+    "dropZoneClick": "or click to choose files",
+    "recent": "Recent",
+    "capabilities": {
+      "local": "100% Local",
+      "languages": "100+ languages",
+      "engine": "Whisper"
+    }
   },
   "historyStats": {
     "words": "Words dictated",

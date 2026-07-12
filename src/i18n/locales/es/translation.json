@@ -16,7 +16,7 @@
     "history": "Historial",
     "debug": "Depuración",
     "about": "Acerca de",
-    "studio": "Estudio",
+    "studio": "Transcribir archivos",
     "interpreter": "Intérprete en vivo",
     "translator": "Traductor",
     "mcp": "Agentes (MCP)",
@@ -717,7 +717,7 @@
     "audioVideo": "Audio / Video",
     "dropZoneTitle": "Arrastra audio o video aquí",
     "dropZoneHint": "o haz clic para elegir archivos (mp3, m4a, mp4, flac, wav...)",
-    "empty": "Aún no hay archivos. Arrastra uno para transcribirlo localmente.",
+    "empty": "Tu primera transcripción aparecerá aquí.",
     "remove": "Quitar",
     "genericError": "No se pudo procesar este archivo",
     "summarize": "Resumir con IA",
@@ -727,7 +727,16 @@
     "exportError": "No se pudo guardar el archivo",
     "copy": "Copiar",
     "copied": "Copiado",
-    "copyError": "No se pudo copiar"
+    "copyError": "No se pudo copiar",
+    "heroTitle": "Transcribe cualquier audio o video.",
+    "heroSubtitle": "Todo ocurre localmente en tu computador. Nada se sube a internet.",
+    "dropZoneClick": "o haz clic para elegir archivos",
+    "recent": "Recientes",
+    "capabilities": {
+      "local": "100% Local",
+      "languages": "100+ idiomas",
+      "engine": "Whisper"
+    }
   },
   "historyStats": {
     "words": "Palabras dictadas",

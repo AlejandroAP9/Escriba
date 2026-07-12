@@ -6,10 +6,13 @@ import {
   open as openDialog,
   save as saveDialog,
 } from "@tauri-apps/plugin-dialog";
+import { Lock, Globe, Cpu, UploadCloud } from "lucide-react";
 import { commands, type StudioJob } from "@/bindings";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
 import { RetranscribeMenu } from "../shared/RetranscribeMenu";
+
+const SUPPORTED_FORMATS = ["MP3", "WAV", "M4A", "MP4", "MOV", "FLAC"];
 
 type Progress = {
   id: number;
@@ -127,23 +130,77 @@ export const StudioSettings: React.FC = () => {
     refresh();
   };
 
+  const capabilities = [
+    { icon: Lock, label: t("studio.capabilities.local") },
+    { icon: Globe, label: t("studio.capabilities.languages") },
+    { icon: Cpu, label: t("studio.capabilities.engine") },
+  ];
+
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
+      {/* Héroe editorial: vende el valor antes de arrastrar nada. */}
+      <div>
+        <h1
+          className="text-3xl leading-tight text-text sm:text-[2rem]"
+          style={{ fontFamily: "var(--font-serif)", fontWeight: 600 }}
+        >
+          {t("studio.heroTitle")}
+        </h1>
+        <p className="mt-2 text-sm text-mid-gray">{t("studio.heroSubtitle")}</p>
+      </div>
+
+      {/* Dropzone sólido (no punteado), con ícono grande y chips de formato. */}
       <button
         type="button"
         onClick={pickFiles}
-        className={`w-full rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+        className={`relative w-full overflow-hidden rounded-2xl border p-10 text-center transition-all duration-200 ${
           dragOver
-            ? "border-logo-primary bg-logo-primary/10"
-            : "border-mid-gray/40 hover:border-logo-primary/60"
+            ? "scale-[1.01] border-logo-primary bg-logo-primary/8 shadow-[0_18px_40px_-22px_rgba(27,20,38,0.25)]"
+            : "border-mid-gray/25 bg-vitela/40 hover:border-logo-primary/50 hover:bg-logo-primary/4"
         }`}
       >
-        <p className="text-text font-medium">{t("studio.dropZoneTitle")}</p>
-        <p className="text-sm text-mid-gray mt-1">{t("studio.dropZoneHint")}</p>
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-logo-primary/10 text-logo-primary">
+          <UploadCloud width={32} height={32} strokeWidth={1.5} />
+        </div>
+        <p className="mt-4 text-base font-semibold text-text">
+          {t("studio.dropZoneTitle")}
+        </p>
+        <p className="mt-1 text-sm text-mid-gray">{t("studio.dropZoneClick")}</p>
+        <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+          {SUPPORTED_FORMATS.map((fmt) => (
+            <span
+              key={fmt}
+              className="rounded-md border border-mid-gray/20 bg-background px-2 py-0.5 font-mono text-[10px] tracking-wide text-mid-gray"
+            >
+              {fmt}
+            </span>
+          ))}
+        </div>
       </button>
 
+      {/* Capacidades: la ventaja competitiva, siempre visible. */}
+      <div className="grid grid-cols-3 gap-3">
+        {capabilities.map(({ icon: Icon, label }) => (
+          <div
+            key={label}
+            className="flex items-center gap-2.5 rounded-xl border border-mid-gray/15 bg-background px-3.5 py-3 shadow-[0_1px_2px_rgba(27,20,38,0.04)]"
+          >
+            <Icon width={17} height={17} className="shrink-0 text-logo-primary" />
+            <span className="text-sm text-text">{label}</span>
+          </div>
+        ))}
+      </div>
+
       {jobs.length === 0 && (
-        <p className="text-sm text-mid-gray text-center">{t("studio.empty")}</p>
+        <p className="pt-2 text-center text-sm text-mid-gray">
+          {t("studio.empty")}
+        </p>
+      )}
+
+      {jobs.length > 0 && (
+        <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+          {t("studio.recent")}
+        </p>
       )}
 
       {jobs.map((job) => (
