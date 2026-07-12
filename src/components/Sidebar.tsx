@@ -12,8 +12,10 @@ import {
   Languages,
   Bot,
   SlidersHorizontal,
+  Feather,
 } from "lucide-react";
 import EscribaLogo from "./icons/EscribaLogo";
+import { HomeScreen } from "./home/HomeScreen";
 import { StudioSettings } from "./studio/StudioSettings";
 import { InterpreterSettings } from "./interpreter/InterpreterSettings";
 import { TranslatorSettings } from "./translator/TranslatorSettings";
@@ -47,6 +49,12 @@ interface SectionConfig {
 }
 
 export const SECTIONS_CONFIG = {
+  home: {
+    labelKey: "sidebar.home",
+    icon: Feather,
+    component: HomeScreen,
+    enabled: () => true,
+  },
   general: {
     labelKey: "sidebar.general",
     icon: SlidersHorizontal,
@@ -143,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           "inset 0 1px 0 rgba(255,255,255,0.04), inset -12px 0 24px -18px rgba(0,0,0,0.6)",
       }}
     >
-      <EscribaLogo width={140} className="mt-9 mb-7" onDark tagline />
+      <EscribaLogo width={168} className="mt-10 mb-8" onDark tagline />
       <div className="flex flex-col w-full items-center gap-1 pt-4 border-t border-white/10">
         {availableSections.map((section) => {
           const Icon = section.icon;

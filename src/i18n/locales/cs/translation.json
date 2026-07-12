@@ -19,7 +19,8 @@
     "studio": "Studio",
     "interpreter": "Live Interpreter",
     "translator": "Translator",
-    "mcp": "Agents (MCP)"
+    "mcp": "Agents (MCP)",
+    "home": "Home"
   },
   "onboarding": {
     "subtitle": "Pro začátek vyberte model pro přepis",
@@ -776,5 +777,14 @@
     "stop": "Stop",
     "processing": "Transcribing…",
     "dictatePrompt": "Dictate the prompt"
+  },
+  "home": {
+    "headline1": "Speak.",
+    "headline2": "We write it down.",
+    "start": "Start dictating",
+    "timeSaved": "Time saved",
+    "lastDictation": "Last dictation",
+    "noneYet": "nothing yet",
+    "setShortcut": "Set a shortcut"
   }
 }

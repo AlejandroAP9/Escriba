@@ -19,7 +19,8 @@
     "studio": "Estudio",
     "interpreter": "Intérprete en vivo",
     "translator": "Traductor",
-    "mcp": "Agentes (MCP)"
+    "mcp": "Agentes (MCP)",
+    "home": "Inicio"
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
@@ -776,5 +777,14 @@
     "stop": "Detener",
     "processing": "Transcribiendo…",
     "dictatePrompt": "Dicta el prompt"
+  },
+  "home": {
+    "headline1": "Habla.",
+    "headline2": "Nosotros escribimos.",
+    "start": "Comenzar a dictar",
+    "timeSaved": "Tiempo ahorrado",
+    "lastDictation": "Último dictado",
+    "noneYet": "aún nada",
+    "setShortcut": "Configura un atajo"
   }
 }
