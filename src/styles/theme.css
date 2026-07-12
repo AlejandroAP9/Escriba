@@ -9,10 +9,9 @@
   --color-background: #fbf6ea;
   /* Vitela: superficie de tarjetas/paneles, un tono más cálido que el fondo. */
   --color-vitela: #efe3c8;
-  /* Acción principal (botones, toggles, slider): oro-bronce profundo. Texto
-     blanco pasa AA en claro y oscuro, así el botón no necesita lógica por tema. */
-  --color-background-ui: #9a6f27;
-  /* Oro viejo: acento (logo, estados activos, realces). */
+  /* Oro viejo: EL color de la marca. Un solo dorado para todo (toggles,
+     sliders, botones, checkboxes, acentos), con texto tinta encima (pasa AA). */
+  --color-background-ui: #a8792a;
   --color-logo-primary: #a8792a;
   --color-logo-stroke: #1b1426;
   --color-text-stroke: #fbf6ea;
@@ -28,7 +27,10 @@
   --color-ink-fg: #ece1c5;
   --color-ink-muted: #b3a488;
 
-  /* Tipografía de la marca: Garamond para titulares/wordmark (manuscrito). */
+  /* Tipografía: Inter para toda la interfaz (software moderno), Garamond para
+     titulares/wordmark/estados (el alma editorial de un escriba). */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
   --font-serif: "EB Garamond", "Iowan Old Style", "Palatino Linotype", Palatino,
     "Hoefler Text", Georgia, serif;
 }
@@ -42,6 +44,8 @@
     --color-logo-stroke: #e4c878;
     /* Sepia claro para que el texto tenue tenga contraste sobre la tinta. */
     --color-mid-gray: #a2937b;
+    /* Oro brillante en oscuro, también para la acción principal (un solo oro). */
+    --color-background-ui: #e4c878;
     /* En oscuro, la barra se levanta sobre el fondo tinta para distinguirse. */
     --color-ink: #241b31;
   }

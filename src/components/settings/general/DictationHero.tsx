@@ -19,8 +19,21 @@ export const DictationHero: React.FC = () => {
   ];
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-logo-primary/25 bg-logo-primary/5 p-5 sm:p-6">
-      <div className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-logo-primary/10 blur-3xl" />
+    <div
+      className="relative overflow-hidden rounded-xl border border-logo-primary/25 p-5 sm:p-6"
+      style={{
+        background:
+          "linear-gradient(135deg, var(--color-background), var(--color-vitela))",
+      }}
+    >
+      {/* Textura de papel casi imperceptible (grano de pergamino). */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E\")",
+        }}
+      />
       <div className="relative">
         <div className="mb-3 flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-logo-primary">

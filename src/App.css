@@ -18,6 +18,36 @@
   src: url("./assets/fonts/eb-garamond-600.woff2") format("woff2");
 }
 
+/* Inter — tipografía de interfaz (empaquetada; igual en macOS y Windows). */
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("./assets/fonts/inter-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("./assets/fonts/inter-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("./assets/fonts/inter-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("./assets/fonts/inter-700.woff2") format("woff2");
+}
+
 /* Logo (EscribaLogo): la marca viene en dos versiones que se intercambian
    segun el tema del sistema (tinta en claro, pergamino en oscuro). */
 .escriba-mark--dark {
@@ -47,11 +77,13 @@
   --color-ink: var(--color-ink);
   --color-ink-fg: var(--color-ink-fg);
   --color-ink-muted: var(--color-ink-muted);
+  --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
 }
 
 :root {
   /* Typography */
+  font-family: var(--font-sans);
   font-size: 15px;
   line-height: 24px;
   font-weight: 400;
@@ -129,6 +161,18 @@
   .text-stroke {
     -webkit-text-stroke: 2px var(--color-text-stroke);
   }
+}
+
+/* Oro como lenguaje visual único: checkboxes y radios nativos en oro viejo. */
+input[type="checkbox"]:not(.sr-only),
+input[type="radio"] {
+  accent-color: var(--color-logo-primary);
+}
+
+/* Iconos más finos (Lucide): trazo delicado, look editorial. La CSS pisa el
+   atributo stroke-width del SVG. */
+svg.lucide {
+  stroke-width: 1.6;
 }
 
 .logo-primary {

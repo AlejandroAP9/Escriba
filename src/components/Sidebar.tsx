@@ -133,9 +133,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     .map(([id, config]) => ({ id: id as SidebarSection, ...config }));
 
   return (
-    <div className="flex flex-col w-52 h-full items-center px-2 bg-ink text-ink-fg">
-      <EscribaLogo width={120} className="m-4" onDark />
-      <div className="flex flex-col w-full items-center gap-1 pt-2 border-t border-white/10">
+    <div className="flex flex-col w-56 h-full items-center px-3 bg-ink text-ink-fg border-e border-logo-primary/25">
+      <EscribaLogo width={132} className="mt-7 mb-6" onDark tagline />
+      <div className="flex flex-col w-full items-center gap-1 pt-4 border-t border-white/10">
         {availableSections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
@@ -143,10 +143,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           return (
             <div
               key={section.id}
-              className={`flex gap-2 items-center p-2 w-full rounded-lg cursor-pointer transition-colors ${
+              className={`flex gap-2.5 items-center px-3 py-2.5 w-full rounded-lg cursor-pointer transition-colors ${
                 isActive
                   ? "bg-logo-primary text-ink font-semibold shadow-sm"
-                  : "text-ink-fg/85 hover:bg-white/10 hover:text-ink-fg"
+                  : "text-ink-fg/80 hover:bg-white/10 hover:text-ink-fg"
               }`}
               onClick={() => onSectionChange(section.id)}
             >
