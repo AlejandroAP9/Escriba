@@ -138,7 +138,7 @@ export const InterpreterSettings: React.FC = () => {
         <Button
           variant="primary"
           size="lg"
-          className="gold-surface flex w-full items-center justify-center gap-2.5 py-4 text-base"
+          className="flex w-full items-center justify-center gap-2.5 py-4 text-base"
           onClick={start}
         >
           <Radio width={20} height={20} />
