@@ -14,11 +14,50 @@ use axum::{
 };
 use log::{info, warn};
 use serde_json::{json, Value};
+use std::collections::{HashMap, VecDeque};
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU16, Ordering};
+use std::sync::atomic::{AtomicU16, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
+use std::time::Instant;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
+
+/// Máximo de llamadas recientes que guardamos para el panel de actividad.
+const ACTIVITY_CAP: usize = 8;
+
+/// Una llamada a tool registrada (para el feed "Actividad reciente").
+struct CallRecord {
+    tool: String,
+    ms: u64,
+    at: Instant,
+}
+
+/// Un agente que hizo el handshake `initialize` (Claude Code, Cursor, ...).
+struct ClientRecord {
+    name: String,
+    version: String,
+    at: Instant,
+}
+
+/// Un item de actividad ya listo para el frontend (segundos relativos, no Instant).
+pub struct ActivityItem {
+    pub tool: String,
+    pub ms: u64,
+    pub seconds_ago: u64,
+}
+
+/// Un agente visto, con cuánto hace que se conectó.
+pub struct ClientItem {
+    pub name: String,
+    pub version: String,
+    pub seconds_ago: u64,
+}
+
+/// Conteo de llamadas por tool, para el desglose de uso.
+pub struct ToolCount {
+    pub name: String,
+    pub count: u64,
+}
 
 /// Clave del token MCP en el store (separada de `settings` para que no aparezca
 /// en los logs de debug de AppSettings).
@@ -77,6 +116,16 @@ pub struct McpServer {
     token: Mutex<Option<String>>,
     shutdown: Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
     app: Mutex<Option<AppHandle>>,
+    /// Momento en que arrancó la sesión actual (para el uptime del panel).
+    started_at: Mutex<Option<Instant>>,
+    /// Total de llamadas a tools desde que arrancó.
+    total_calls: AtomicU64,
+    /// Conteo por tool.
+    tool_counts: Mutex<HashMap<String, u64>>,
+    /// Últimas llamadas (feed de actividad), más recientes primero.
+    activity: Mutex<VecDeque<CallRecord>>,
+    /// Agentes que hicieron `initialize` en esta sesión.
+    clients: Mutex<Vec<ClientRecord>>,
 }
 
 static SERVER: OnceLock<McpServer> = OnceLock::new();
@@ -87,6 +136,11 @@ pub fn global() -> &'static McpServer {
         token: Mutex::new(None),
         shutdown: Mutex::new(None),
         app: Mutex::new(None),
+        started_at: Mutex::new(None),
+        total_calls: AtomicU64::new(0),
+        tool_counts: Mutex::new(HashMap::new()),
+        activity: Mutex::new(VecDeque::new()),
+        clients: Mutex::new(Vec::new()),
     })
 }
 
@@ -128,6 +182,124 @@ impl McpServer {
             .unwrap_or(false)
     }
 
+    /// Segundos que lleva viva la sesión actual (0 si está detenido).
+    pub fn uptime_seconds(&self) -> u64 {
+        self.started_at
+            .lock()
+            .ok()
+            .and_then(|g| *g)
+            .map(|t| t.elapsed().as_secs())
+            .unwrap_or(0)
+    }
+
+    pub fn total_calls(&self) -> u64 {
+        self.total_calls.load(Ordering::Relaxed)
+    }
+
+    /// Conteo por tool, de mayor a menor uso.
+    pub fn tool_counts(&self) -> Vec<ToolCount> {
+        let mut out: Vec<ToolCount> = self
+            .tool_counts
+            .lock()
+            .map(|m| {
+                m.iter()
+                    .map(|(name, count)| ToolCount {
+                        name: name.clone(),
+                        count: *count,
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        out.sort_by(|a, b| b.count.cmp(&a.count));
+        out
+    }
+
+    /// Feed de actividad reciente (más nuevo primero).
+    pub fn activity(&self) -> Vec<ActivityItem> {
+        self.activity
+            .lock()
+            .map(|a| {
+                a.iter()
+                    .map(|r| ActivityItem {
+                        tool: r.tool.clone(),
+                        ms: r.ms,
+                        seconds_ago: r.at.elapsed().as_secs(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Agentes que se han conectado en esta sesión (más reciente primero).
+    pub fn clients(&self) -> Vec<ClientItem> {
+        let mut out: Vec<ClientItem> = self
+            .clients
+            .lock()
+            .map(|c| {
+                c.iter()
+                    .map(|r| ClientItem {
+                        name: r.name.clone(),
+                        version: r.version.clone(),
+                        seconds_ago: r.at.elapsed().as_secs(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        out.sort_by_key(|c| c.seconds_ago);
+        out
+    }
+
+    /// Registra una llamada a tool ejecutada (para conteos y actividad).
+    fn record_call(&self, tool: &str, ms: u64) {
+        self.total_calls.fetch_add(1, Ordering::Relaxed);
+        if let Ok(mut m) = self.tool_counts.lock() {
+            *m.entry(tool.to_string()).or_insert(0) += 1;
+        }
+        if let Ok(mut a) = self.activity.lock() {
+            a.push_front(CallRecord {
+                tool: tool.to_string(),
+                ms,
+                at: Instant::now(),
+            });
+            a.truncate(ACTIVITY_CAP);
+        }
+    }
+
+    /// Registra (o refresca) un agente visto en el handshake `initialize`.
+    fn record_client(&self, name: &str, version: &str) {
+        if name.is_empty() {
+            return;
+        }
+        if let Ok(mut c) = self.clients.lock() {
+            if let Some(existing) = c.iter_mut().find(|x| x.name == name) {
+                existing.at = Instant::now();
+                if !version.is_empty() {
+                    existing.version = version.to_string();
+                }
+            } else {
+                c.push(ClientRecord {
+                    name: name.to_string(),
+                    version: version.to_string(),
+                    at: Instant::now(),
+                });
+            }
+        }
+    }
+
+    /// Limpia la telemetría de la sesión (al arrancar o detener).
+    fn reset_telemetry(&self) {
+        self.total_calls.store(0, Ordering::Relaxed);
+        if let Ok(mut m) = self.tool_counts.lock() {
+            m.clear();
+        }
+        if let Ok(mut a) = self.activity.lock() {
+            a.clear();
+        }
+        if let Ok(mut c) = self.clients.lock() {
+            c.clear();
+        }
+    }
+
     /// Levanta el servidor MCP en 127.0.0.1 (solo local). Idempotente.
     pub async fn start(&'static self, app: AppHandle) -> Result<McpInfo, String> {
         if let Some(info) = self.info() {
@@ -156,6 +328,9 @@ impl McpServer {
         let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
         self.port.store(port, Ordering::Relaxed);
         *self.shutdown.lock().unwrap() = Some(stop_tx);
+        // Sesión nueva: reinicia contadores y arranca el reloj de uptime.
+        self.reset_telemetry();
+        *self.started_at.lock().unwrap() = Some(Instant::now());
 
         info!("MCP server live at http://127.0.0.1:{}/mcp/<token>", port);
         tauri::async_runtime::spawn(async move {
@@ -180,6 +355,8 @@ impl McpServer {
         }
         self.port.store(0, Ordering::Relaxed);
         *self.token.lock().unwrap() = None;
+        *self.started_at.lock().unwrap() = None;
+        self.reset_telemetry();
     }
 }
 
@@ -309,6 +486,12 @@ async fn mcp_handler(
                 .and_then(|v| v.as_str())
                 .unwrap_or(PROTOCOL_VERSION)
                 .to_string();
+            // Registra el agente (Claude Code, Cursor, ...) para el panel.
+            if let Some(ci) = req.get("params").and_then(|p| p.get("clientInfo")) {
+                let name = ci.get("name").and_then(|v| v.as_str()).unwrap_or("");
+                let version = ci.get("version").and_then(|v| v.as_str()).unwrap_or("");
+                server.record_client(name, version);
+            }
             Ok(json!({
                 "protocolVersion": client_ver,
                 "capabilities": { "tools": {} },
@@ -346,6 +529,7 @@ async fn call_tool(
         .app()
         .ok_or((-32603, "App no disponible".to_string()))?;
 
+    let started = Instant::now();
     let text_result: Result<String, String> = match name {
         "transcribe" => {
             let path = args
@@ -394,6 +578,9 @@ async fn call_tool(
         }
         other => return Err((-32602, format!("Tool desconocida: {}", other))),
     };
+
+    // Registra la llamada ejecutada (duración real) para el panel de actividad.
+    server.record_call(name, started.elapsed().as_millis() as u64);
 
     match text_result {
         Ok(text) => Ok(json!({ "content": [ { "type": "text", "text": text } ] })),

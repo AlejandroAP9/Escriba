@@ -813,25 +813,73 @@
   },
   "mcp": {
     "title": "Agentes (MCP)",
-    "subtitle": "Deja que agentes de IA (Claude Code, Cursor) usen las capacidades locales de Escriba como herramientas. Escucha solo en 127.0.0.1: nada sale de tu computador.",
+    "heroTitle": "Haz que cualquier agente use la voz de Escriba.",
+    "heroSubtitle": "Conecta Claude Code, Cursor o cualquier cliente MCP a las capacidades locales de Escriba: transcribir, traducir, resumir y pulir. Todo ocurre en tu computador; nada sale a internet.",
+    "subtitle": "Deja que agentes de IA usen las capacidades locales de Escriba como herramientas. Escucha solo en 127.0.0.1: nada sale de tu computador.",
     "running": "Servidor activo",
     "stopped": "Servidor detenido",
     "start": "Iniciar servidor",
     "stop": "Detener servidor",
+    "restart": "Reiniciar",
     "startError": "No se pudo iniciar el servidor MCP",
-    "connectHint": "Conecta Escriba a tu agente con:",
-    "copy": "Copiar",
-    "copyError": "No se pudo copiar",
+    "stoppedHint": "El servidor está apagado. Enciéndelo para exponer las herramientas de Escriba a tus agentes de IA.",
+    "address": "Dirección",
+    "stat": {
+      "uptime": "Tiempo activo",
+      "calls": "Llamadas",
+      "tools": "Herramientas",
+      "agents": "Agentes"
+    },
+    "connectTitle": "Conectar",
+    "connectSubtitle": "Elige tu cliente y copia la configuración.",
+    "client": {
+      "claude": "Claude Code",
+      "cursor": "Cursor",
+      "vscode": "VS Code",
+      "other": "Otro cliente"
+    },
+    "fileHint": {
+      "claude": "Ejecuta este comando en tu terminal.",
+      "cursor": "Añádelo a ~/.cursor/mcp.json",
+      "vscode": "Añádelo a .vscode/mcp.json de tu proyecto.",
+      "other": "Usa esta URL en cualquier cliente MCP compatible con HTTP."
+    },
+    "copyCmd": "Copiar",
+    "copied": "Copiado",
+    "tokenNote": "La URL lleva un token secreto local. No la compartas.",
     "toolsTitle": "Herramientas disponibles",
     "tool": {
-      "transcribe": "transcribe un archivo de audio/video local a texto",
-      "translate": "traduce un texto al idioma destino",
-      "summarize": "resume un texto",
-      "polish": "corrige y pule un texto (muletillas, puntuación)",
-      "list_dictations": "lee tus dictados recientes del historial",
-      "usage_stats": "tus estadísticas de uso (palabras, racha, minutos ahorrados)"
+      "transcribe": "Transcribe un archivo de audio o video local a texto.",
+      "translate": "Traduce un texto al idioma destino.",
+      "summarize": "Resume un texto largo en lo esencial.",
+      "polish": "Corrige y pule un texto: muletillas, puntuación, mayúsculas.",
+      "list_dictations": "Lee tus dictados recientes del historial.",
+      "usage_stats": "Tus estadísticas de uso: palabras, racha, minutos ahorrados."
     },
+    "toolIo": {
+      "transcribe": "Audio → Texto",
+      "translate": "Texto → Idioma",
+      "summarize": "Texto → Resumen",
+      "polish": "Texto → Texto pulido",
+      "list_dictations": "Historial → Lista",
+      "usage_stats": "Uso → Métricas"
+    },
+    "activityTitle": "Actividad reciente",
+    "activityEmpty": "Aún no hay llamadas. Conecta un agente y pídele que transcriba o traduzca algo.",
+    "agentsTitle": "Agentes conectados",
+    "agentsEmpty": "Ningún agente se ha conectado todavía.",
+    "privacyTitle": "Privacidad",
+    "privacy": {
+      "localhost": "Solo escucha en 127.0.0.1 (localhost).",
+      "noInternet": "No requiere conexión a internet.",
+      "audioLocal": "El audio y el texto nunca salen del equipo.",
+      "noTelemetry": "Sin telemetría ni analíticas."
+    },
+    "prefsTitle": "Preferencias",
+    "copyError": "No se pudo copiar",
+    "copy": "Copiar",
     "localNote": "100% local: el audio y el texto nunca salen de tu computador.",
+    "connectHint": "Conecta Escriba a tu agente con:",
     "autostart": {
       "label": "Iniciar con la app",
       "description": "Arranca el servidor MCP automáticamente al abrir Escriba, para que tus agentes siempre tengan las herramientas disponibles."

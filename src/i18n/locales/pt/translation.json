@@ -813,25 +813,73 @@
   },
   "mcp": {
     "title": "Agents (MCP)",
-    "subtitle": "Let AI agents (Claude Code, Cursor) use Escriba's local capabilities as tools. Runs on 127.0.0.1 only — nothing leaves your computer.",
-    "running": "Server running",
+    "heroTitle": "Let any AI agent use Escriba's voice.",
+    "heroSubtitle": "Connect Claude Code, Cursor or any MCP client to Escriba's local capabilities: transcribe, translate, summarize and polish. Everything happens on your computer; nothing goes online.",
+    "subtitle": "Let AI agents use Escriba's local capabilities as tools. Listens only on 127.0.0.1: nothing leaves your computer.",
+    "running": "Server active",
     "stopped": "Server stopped",
     "start": "Start server",
     "stop": "Stop server",
-    "startError": "Could not start the MCP server",
-    "connectHint": "Add Escriba to your agent with:",
-    "copy": "Copy",
-    "copyError": "Could not copy",
+    "restart": "Restart",
+    "startError": "Couldn't start the MCP server",
+    "stoppedHint": "The server is off. Turn it on to expose Escriba's tools to your AI agents.",
+    "address": "Address",
+    "stat": {
+      "uptime": "Uptime",
+      "calls": "Calls",
+      "tools": "Tools",
+      "agents": "Agents"
+    },
+    "connectTitle": "Connect",
+    "connectSubtitle": "Pick your client and copy the config.",
+    "client": {
+      "claude": "Claude Code",
+      "cursor": "Cursor",
+      "vscode": "VS Code",
+      "other": "Other client"
+    },
+    "fileHint": {
+      "claude": "Run this command in your terminal.",
+      "cursor": "Add it to ~/.cursor/mcp.json",
+      "vscode": "Add it to your project's .vscode/mcp.json.",
+      "other": "Use this URL in any HTTP-capable MCP client."
+    },
+    "copyCmd": "Copy",
+    "copied": "Copied",
+    "tokenNote": "The URL carries a local secret token. Don't share it.",
     "toolsTitle": "Available tools",
     "tool": {
-      "transcribe": "transcribe a local audio/video file to text",
-      "translate": "translate text to a target language",
-      "summarize": "summarize a text",
-      "polish": "clean up and polish a text (fillers, punctuation)",
-      "list_dictations": "read your recent dictations from history",
-      "usage_stats": "your usage stats (words, streak, minutes saved)"
+      "transcribe": "Transcribe a local audio or video file to text.",
+      "translate": "Translate text into the target language.",
+      "summarize": "Summarize long text down to the essentials.",
+      "polish": "Fix and polish text: filler words, punctuation, capitals.",
+      "list_dictations": "Read your recent dictations from history.",
+      "usage_stats": "Your usage stats: words, streak, minutes saved."
     },
-    "localNote": "100% local: the audio and text never leave your computer.",
+    "toolIo": {
+      "transcribe": "Audio → Text",
+      "translate": "Text → Language",
+      "summarize": "Text → Summary",
+      "polish": "Text → Polished text",
+      "list_dictations": "History → List",
+      "usage_stats": "Usage → Metrics"
+    },
+    "activityTitle": "Recent activity",
+    "activityEmpty": "No calls yet. Connect an agent and ask it to transcribe or translate something.",
+    "agentsTitle": "Connected agents",
+    "agentsEmpty": "No agent has connected yet.",
+    "privacyTitle": "Privacy",
+    "privacy": {
+      "localhost": "Listens only on 127.0.0.1 (localhost).",
+      "noInternet": "No internet connection required.",
+      "audioLocal": "Audio and text never leave your machine.",
+      "noTelemetry": "No telemetry, no analytics."
+    },
+    "prefsTitle": "Preferences",
+    "copyError": "Couldn't copy",
+    "copy": "Copy",
+    "localNote": "100% local: audio and text never leave your computer.",
+    "connectHint": "Connect Escriba to your agent with:",
     "autostart": {
       "label": "Start with the app",
       "description": "Start the MCP server automatically when Escriba opens, so your agents always have the tools available."

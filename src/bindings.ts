@@ -1125,7 +1125,10 @@ export type KeyboardImplementation = "tauri" | "handy_keys"
 export type LLMPrompt = { id: string; name: string; prompt: string }
 export type LocalLlmStatus = { runtime_installed: boolean; model_installed: boolean; engine_running: boolean; setup_in_progress: boolean; model_file: string }
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error"
-export type McpStatus = { running: boolean; port: number; url: string | null }
+export type McpActivity = { tool: string; ms: number; seconds_ago: number }
+export type McpClient = { name: string; version: string; seconds_ago: number }
+export type McpStatus = { running: boolean; port: number; url: string | null; uptime_seconds: number; total_calls: number; tool_counts: McpToolCount[]; activity: McpActivity[]; clients: McpClient[] }
+export type McpToolCount = { name: string; count: number }
 export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean; supported_languages: string[]; supports_language_selection: boolean; is_custom: boolean; supports_streaming: boolean; supports_language_detection: boolean }
 export type ModelLoadStatus = { is_loaded: boolean; current_model: string | null }
 /**
