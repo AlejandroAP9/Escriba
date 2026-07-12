@@ -239,6 +239,82 @@
   }
 }
 
+/* Firma de cierre "Escrito ✓": el trazo de tinta se dibuja, luego el check.
+   Toda la píldora entra, sostiene y sale en ~0.95s. */
+.scard.swritten {
+  width: auto;
+  min-width: 118px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 11px 20px;
+  animation: swritten-inout 950ms ease both;
+}
+.sink-line {
+  height: 2px;
+  width: 46px;
+  border-radius: 2px;
+  transform-origin: left center;
+  background: linear-gradient(
+    to right,
+    var(--s-accent),
+    color-mix(in srgb, var(--s-accent) 25%, transparent)
+  );
+  animation: sink-draw 440ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.scheck {
+  width: 18px;
+  height: 18px;
+  color: var(--s-accent);
+  flex: none;
+}
+.scheck path {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: scheck-draw 360ms 360ms ease forwards;
+}
+@keyframes sink-draw {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+@keyframes scheck-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes swritten-inout {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  14% {
+    opacity: 1;
+    transform: none;
+  }
+  82% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sink-line,
+  .scheck path,
+  .scard.swritten {
+    animation-duration: 1ms;
+  }
+}
+
 /* base row — dot (left) | waveform (center) | timer + cancel (right).
    Same structure for pill & panel; the dot stays anchored left in both. */
 .sbase {

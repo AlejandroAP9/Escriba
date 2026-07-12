@@ -97,6 +97,8 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
+
   --scrollbar-thumb: color-mix(in srgb, var(--color-text), transparent 85%);
   --scrollbar-thumb-hover: color-mix(
     in srgb,
@@ -182,6 +184,43 @@ svg.lucide {
   outline: 2px solid var(--color-logo-primary);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* Textura de papel de algodón al ~1.4%: rompe el color plano en TODA la app.
+   No se ve; se siente. Fija, sobre el contenido, sin capturar clics. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  opacity: 0.014;
+  background-image: var(--paper-grain);
+}
+
+/* Superficie dorada viva (botones): gradiente en vez de color plano. */
+.gold-surface {
+  background-image: var(--gold-grad);
+}
+
+/* Transición de pestaña: fade + 2px hacia arriba (el aire de Apple/Arc). */
+@keyframes tab-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tab-enter {
+  animation: tab-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-enter {
+    animation: none;
+  }
 }
 
 /* Firma de tinta: un trazo dorado que se dibuja como si una pluma lo acabara

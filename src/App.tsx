@@ -24,7 +24,12 @@ type OnboardingStep = "accessibility" | "model" | "done";
 const renderSettingsContent = (section: SidebarSection) => {
   const ActiveComponent =
     SECTIONS_CONFIG[section]?.component || SECTIONS_CONFIG.general.component;
-  return <ActiveComponent />;
+  // key={section} remonta al cambiar de pestaña → replay del fade + 2px (tab-enter).
+  return (
+    <div key={section} className="tab-enter">
+      <ActiveComponent />
+    </div>
+  );
 };
 
 function App() {

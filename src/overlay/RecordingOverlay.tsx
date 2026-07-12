@@ -39,6 +39,10 @@ const RecordingOverlay: React.FC = () => {
   // True once live text overflows the cap. A top overlay fades its top edge only
   // while overflowing, so the resting first line stays crisp flush under the pill.
   const [overflowing, setOverflowing] = useState(false);
+  // Firma de cierre: cuando un dictado termina (hubo trabajo real), en vez de
+  // desvanecerse sin más, se dibuja un trazo de tinta + un check.
+  const [written, setWritten] = useState(false);
+  const workedRef = useRef(false);
 
   const smoothedLevelsRef = useRef<number[]>(Array(16).fill(0));
   // Live-text scroll-back: the text region "sticks" to the newest line while the
@@ -65,7 +69,13 @@ const RecordingOverlay: React.FC = () => {
           // Keep the previous/default placement if settings can't be read.
         }
         const overlayState = event.payload as OverlayState;
+        setWritten(false); // cancela cualquier firma en curso al reabrir
         setState(overlayState);
+        // Marca que hubo trabajo real (transcribir/pulir/streaming) para saber si
+        // al cerrar corresponde la firma "Escrito ✓" (vs. una cancelación).
+        if (overlayState !== "recording") {
+          workedRef.current = true;
+        }
         if (overlayState === "recording" || overlayState === "streaming") {
           setStreamText({ committed: "", tentative: "" });
         }
@@ -79,7 +89,19 @@ const RecordingOverlay: React.FC = () => {
       });
 
       const unlistenHide = await listen("hide-overlay", () => {
-        setIsVisible(false);
+        // Si hubo dictado real, cerramos con la firma "Escrito ✓" (~0.9s) antes
+        // de ocultar. Si fue una cancelación, se oculta directo.
+        if (workedRef.current) {
+          workedRef.current = false;
+          setWritten(true);
+          setIsVisible(true);
+          window.setTimeout(() => {
+            setWritten(false);
+            setIsVisible(false);
+          }, 950);
+        } else {
+          setIsVisible(false);
+        }
       });
 
       const unlistenLevel = await listen<number[]>("mic-level", (event) => {
@@ -206,6 +228,28 @@ const RecordingOverlay: React.FC = () => {
       <div className="sbase-r">{showCancel && cancelBtn}</div>
     </div>
   );
+
+  // ---- Firma de cierre: "Escrito ✓" — un trazo de tinta que se dibuja y un
+  // check, como si la pluma acabara de terminar. Aparece ~0.9s al finalizar.
+  if (written) {
+    return (
+      <div dir={direction} className={`ov-stage ${position}`}>
+        <div className="scard swritten">
+          <span className="sink-line" />
+          <svg className="scheck" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M5 13 l4 4 L19 7"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      </div>
+    );
+  }
 
   // ---- Live overlay: a pill that sculpts open into a panel ----
   if (state === "streaming") {

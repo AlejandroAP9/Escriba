@@ -13,6 +13,8 @@
      sliders, botones, checkboxes, acentos), con texto tinta encima (pasa AA). */
   --color-background-ui: #a8792a;
   --color-logo-primary: #a8792a;
+  /* Oro vivo: gradiente para superficies doradas (botones), no plano. */
+  --gold-grad: linear-gradient(180deg, #c58a2a 0%, #a8792a 55%, #8c6522 100%);
   --color-logo-stroke: #1b1426;
   --color-text-stroke: #fbf6ea;
   /* Sepia: texto secundario / tenue. */
@@ -46,6 +48,7 @@
     --color-mid-gray: #a2937b;
     /* Oro brillante en oscuro, también para la acción principal (un solo oro). */
     --color-background-ui: #e4c878;
+    --gold-grad: linear-gradient(180deg, #f0d99a 0%, #e4c878 55%, #cba954 100%);
     /* En oscuro, la barra se levanta sobre el fondo tinta para distinguirse. */
     --color-ink: #241b31;
   }

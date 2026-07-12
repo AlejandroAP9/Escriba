@@ -133,7 +133,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
     .map(([id, config]) => ({ id: id as SidebarSection, ...config }));
 
   return (
-    <div className="flex flex-col w-56 h-full items-center px-3 bg-ink text-ink-fg border-e border-logo-primary/25">
+    <div
+      className="flex flex-col w-56 h-full items-center px-3 text-ink-fg"
+      style={{
+        // Tapa de libro: gradiente vertical muy leve, borde e highlight interior.
+        background: "linear-gradient(180deg, #21192f 0%, var(--color-ink) 60%)",
+        borderRight: "1px solid rgba(255,240,210,0.10)",
+        boxShadow:
+          "inset 0 1px 0 rgba(255,255,255,0.04), inset -12px 0 24px -18px rgba(0,0,0,0.6)",
+      }}
+    >
       <EscribaLogo width={140} className="mt-9 mb-7" onDark tagline />
       <div className="flex flex-col w-full items-center gap-1 pt-4 border-t border-white/10">
         {availableSections.map((section) => {
