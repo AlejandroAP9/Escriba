@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { commands, type UsageStats } from "@/bindings";
 import i18n from "@/i18n";
 import { useSettings } from "../../hooks/useSettings";
+import { Card } from "../ui/Card";
 import markInk from "../../assets/escriba-mark-ink.png";
 import markParchment from "../../assets/escriba-mark-parchment.png";
 
@@ -222,10 +223,7 @@ export const HomeScreen: React.FC = () => {
 
           <div className="grid grid-cols-3 gap-2">
             {statCards.map((s) => (
-              <div
-                key={s.label}
-                className="rounded-card border border-line bg-background p-3 text-center shadow-card"
-              >
+              <Card key={s.label} variant="metric" className="p-3">
                 <div className="flex items-baseline justify-center gap-0.5">
                   <span
                     className="text-xl text-text"
@@ -240,7 +238,7 @@ export const HomeScreen: React.FC = () => {
                 <div className="mt-1 text-[11px] leading-tight text-mid-gray">
                   {s.label}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </aside>

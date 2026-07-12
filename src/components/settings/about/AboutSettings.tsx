@@ -6,6 +6,7 @@ import { Code2, Feather, Heart, House, Scale } from "lucide-react";
 import { SettingsGroup } from "../../ui/SettingsGroup";
 import { SettingContainer } from "../../ui/SettingContainer";
 import { Button } from "../../ui/Button";
+import { Card } from "../../ui/Card";
 import { AppDataDirectory } from "../AppDataDirectory";
 import { AppLanguageSelector } from "../AppLanguageSelector";
 import { ShowWhatsNewOnUpdate } from "../ShowWhatsNewOnUpdate";
@@ -70,8 +71,9 @@ export const AboutSettings: React.FC = () => {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 py-2">
       {/* Tarjeta de identidad: el ADN de Escriba en 10 segundos. */}
-      <div
-        className="relative overflow-hidden rounded-card border border-logo-primary/25 px-6 py-8 text-center shadow-lift"
+      <Card
+        variant="hero"
+        className="relative overflow-hidden px-6 py-8 text-center"
         style={{
           background:
             "linear-gradient(135deg, var(--color-background), var(--color-vitela))",
@@ -111,7 +113,7 @@ export const AboutSettings: React.FC = () => {
         </div>
         {/* eslint-disable-next-line i18next/no-literal-string */}
         <div className="mt-4 font-mono text-xs text-mid-gray">v{version}</div>
-      </div>
+      </Card>
 
       {/* Escriba en números: resumen del producto, con datos reales. */}
       <div>
@@ -120,10 +122,7 @@ export const AboutSettings: React.FC = () => {
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
           {numbers.map((n) => (
-            <div
-              key={n.label}
-              className="rounded-card border border-line bg-background p-3 text-center shadow-card"
-            >
+            <Card key={n.label} variant="metric" className="p-3">
               <p
                 className="text-2xl text-text"
                 style={{ fontFamily: "var(--font-serif)", fontWeight: 600 }}
@@ -133,7 +132,7 @@ export const AboutSettings: React.FC = () => {
               <p className="mt-0.5 text-[11px] leading-tight text-mid-gray">
                 {n.label}
               </p>
-            </div>
+            </Card>
           ))}
         </div>
       </div>

@@ -1,3 +1,4 @@
+export { Card } from "./Card";
 export { Dropdown } from "./Dropdown";
 export { Dialog } from "./Dialog";
 export { Slider } from "./Slider";

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
 import { AlertTriangle, FolderOpen, Terminal } from "lucide-react";
 import { commands, type McpStatus } from "@/bindings";
+import { Card } from "../../ui/Card";
 import { ShowOverlay } from "../ShowOverlay";
 import { ModelUnloadTimeoutSetting } from "../ModelUnloadTimeout";
 import { CustomWords } from "../CustomWords";
@@ -103,7 +104,7 @@ const SystemStatusPanel: React.FC = () => {
   ];
 
   return (
-    <div className="rounded-card border border-line bg-background shadow-card">
+    <Card>
       <p className="border-b border-line px-4 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
         {t("settings.advanced.status.title")}
       </p>
@@ -127,7 +128,7 @@ const SystemStatusPanel: React.FC = () => {
           </div>
         ))}
       </dl>
-    </div>
+    </Card>
   );
 };
 
@@ -147,7 +148,7 @@ const AdvancedTools: React.FC = () => {
   }, []);
 
   return (
-    <div className="rounded-card border border-line bg-background p-4 shadow-card">
+    <Card className="p-4">
       <p className="mb-3 flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
         <Terminal width={12} height={12} />
         {t("settings.advanced.tools.title")}
@@ -179,7 +180,7 @@ const AdvancedTools: React.FC = () => {
           {t("settings.advanced.tools.dataFolder")}
         </button>
       </div>
-    </div>
+    </Card>
   );
 };
 
