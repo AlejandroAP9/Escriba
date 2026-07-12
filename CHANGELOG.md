@@ -9,6 +9,27 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.1.0] — 2026-07-11
+
+Auditoría de seguridad completa antes de repartir la app. La promesa de Escriba
+—**tu voz nunca sale de tu computador**— ahora es literal y auditable.
+
+### Seguridad
+
+- **Agentes (MCP) autenticados:** el servidor local ahora exige un token secreto
+  (en la URL que copias al agente). Sin él, cualquier otro programa de tu equipo
+  podía leer tu historial de dictados; ahora responde `401`. El token es estable
+  entre reinicios, así que configuras el agente una sola vez.
+- **Protección anti-rebinding:** una página web maliciosa ya no puede hablarle al
+  servidor local para robar tu historial (se validan `Host`/`Origin` → `403`).
+- **Intérprete en vivo protegido:** la sala usa un token largo aleatorio (además
+  del código de 4 dígitos) y limita los intentos por IP, para que nadie en el
+  mismo WiFi adivine el código y espíe la traducción.
+- **Menos permisos:** la interfaz ya no puede leer ni escribir toda tu carpeta de
+  usuario, solo los datos de la app; se activó una CSP estricta.
+- **Privacidad en los logs:** el texto que dictas ya no se guarda en los archivos
+  de registro (los que uno adjunta a un reporte de error).
+
 ## [1.0.0] — 2026-07-11
 
 Primera versión mayor: la app queda con marca propia completa y toda la interfaz

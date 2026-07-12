@@ -18,6 +18,11 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use tauri::{AppHandle, Manager};
+use tauri_plugin_store::StoreExt;
+
+/// Clave del token MCP en el store (separada de `settings` para que no aparezca
+/// en los logs de debug de AppSettings).
+const MCP_TOKEN_KEY: &str = "mcp_token";
 
 /// Genera un token hex aleatorio (CSPRNG) para autenticar el servidor local.
 /// El token va embebido en la URL que el usuario copia al agente, así que un
@@ -36,6 +41,29 @@ fn random_token() -> String {
     bytes.iter().map(|b| format!("{:02x}", b)).collect()
 }
 
+/// Token MCP persistente: se reutiliza entre reinicios para que la config del
+/// agente (`claude mcp add ...`) se haga una sola vez. Se guarda en el store la
+/// primera vez. Sigue siendo un secreto de alta entropía, solo local.
+fn persistent_token(app: &AppHandle) -> String {
+    if let Ok(store) = app.store(crate::portable::store_path(
+        crate::settings::SETTINGS_STORE_PATH,
+    )) {
+        if let Some(existing) = store
+            .get(MCP_TOKEN_KEY)
+            .and_then(|v| v.as_str().map(|s| s.to_string()))
+        {
+            if !existing.is_empty() {
+                return existing;
+            }
+        }
+        let token = random_token();
+        store.set(MCP_TOKEN_KEY, serde_json::Value::String(token.clone()));
+        return token;
+    }
+    // Sin store disponible: token efímero de esta sesión.
+    random_token()
+}
+
 const PROTOCOL_VERSION: &str = "2025-06-18";
 
 /// Puerto preferido del servidor MCP. Fijo para que la configuración del
@@ -45,7 +73,7 @@ const PREFERRED_PORT: u16 = 5151;
 
 pub struct McpServer {
     port: AtomicU16,
-    /// Token de acceso regenerado en cada `start()`. Va en la ruta (`/mcp/{token}`).
+    /// Token de acceso persistente (en el store). Va en la ruta (`/mcp/:token`).
     token: Mutex<Option<String>>,
     shutdown: Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
     app: Mutex<Option<AppHandle>>,
@@ -105,6 +133,10 @@ impl McpServer {
         if let Some(info) = self.info() {
             return Ok(info);
         }
+        // Token persistente (config del agente estable entre reinicios).
+        let token = persistent_token(&app);
+        *self.token.lock().unwrap() = Some(token.clone());
+
         *self.app.lock().unwrap() = Some(app);
 
         // Puerto fijo primero (config estable en el agente); efímero de respaldo.
@@ -115,10 +147,6 @@ impl McpServer {
                 .map_err(|e| format!("No se pudo abrir el servidor MCP: {}", e))?,
         };
         let port = listener.local_addr().map_err(|e| e.to_string())?.port();
-
-        // Token de acceso nuevo en cada arranque: sin él, 401.
-        let token = random_token();
-        *self.token.lock().unwrap() = Some(token.clone());
 
         let router = Router::new()
             .route("/mcp/:token", post(mcp_handler))

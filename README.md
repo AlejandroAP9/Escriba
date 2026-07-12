@@ -86,6 +86,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                      |
 | ------- | ------ | ---------------------------------------------- |
+| 1.1.0   | 11-jul | 🔒 Auditoría de seguridad (MCP + privacidad)   |
 | 1.0.0   | 11-jul | Rebrand visual + español total                 |
 | 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono |
 | 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar   |
