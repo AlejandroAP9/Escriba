@@ -761,7 +761,25 @@
     "stopMic": "Dejar de escuchar",
     "listeningOn": "🎙️ Escuchando — habla con tu atajo de dictado",
     "listeningOff": "Micrófono apagado",
-    "micHint": "Mantén tu atajo de dictado y di una frase; se traduce al idioma de cada oyente. (El micrófono es push-to-talk por ahora.)"
+    "micHint": "Mantén tu atajo de dictado y di una frase; se traduce al idioma de cada oyente. (El micrófono es push-to-talk por ahora.)",
+    "roomActive": "Sala activa",
+    "scanHint": "Escanea con la cámara de tu teléfono. No hace falta instalar nada.",
+    "copyCode": "Copiar código",
+    "copyLink": "Copiar enlace",
+    "copied": "Copiado",
+    "waitingVoice": "Esperando tu voz",
+    "listeningNow": "Escuchando…",
+    "participants": "Participantes",
+    "waitingParticipants": "Esperando participantes…",
+    "connected": "Conectado",
+    "lastPhrase": "Última frase enviada",
+    "testMode": "Modo prueba",
+    "steps": {
+      "s1": "Crea la sala",
+      "s2": "Los asistentes escanean el QR",
+      "s3": "Tú hablas normalmente",
+      "s4": "Ellos reciben la traducción"
+    }
   },
   "translator": {
     "title": "Traductor cara a cara",

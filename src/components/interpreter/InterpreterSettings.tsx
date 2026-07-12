@@ -1,27 +1,31 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Radio } from "lucide-react";
+import { Copy, Link2, Mic, Radio, Users } from "lucide-react";
 import { commands, type InterpreterRoom } from "@/bindings";
 import { Button } from "../ui/Button";
 
-const INTERP_LANGUAGES: { value: string; label: string }[] = [
-  { value: "es", label: "Español" },
-  { value: "en", label: "English (Inglés)" },
-  { value: "pt", label: "Português (Portugués)" },
-  { value: "fr", label: "Français (Francés)" },
-  { value: "de", label: "Deutsch (Alemán)" },
-  { value: "it", label: "Italiano" },
-  { value: "zh", label: "中文 (Chino)" },
-  { value: "ja", label: "日本語 (Japonés)" },
-  { value: "ko", label: "한국어 (Coreano)" },
-  { value: "ru", label: "Русский (Ruso)" },
-  { value: "lt", label: "Lietuvių (Lituano)" },
-  { value: "ar", label: "العربية (Árabe)" },
+const INTERP_LANGUAGES: { value: string; label: string; flag: string }[] = [
+  { value: "es", label: "Español", flag: "🇪🇸" },
+  { value: "en", label: "English (Inglés)", flag: "🇬🇧" },
+  { value: "pt", label: "Português (Portugués)", flag: "🇵🇹" },
+  { value: "fr", label: "Français (Francés)", flag: "🇫🇷" },
+  { value: "de", label: "Deutsch (Alemán)", flag: "🇩🇪" },
+  { value: "it", label: "Italiano", flag: "🇮🇹" },
+  { value: "zh", label: "中文 (Chino)", flag: "🇨🇳" },
+  { value: "ja", label: "日本語 (Japonés)", flag: "🇯🇵" },
+  { value: "ko", label: "한국어 (Coreano)", flag: "🇰🇷" },
+  { value: "ru", label: "Русский (Ruso)", flag: "🇷🇺" },
+  { value: "lt", label: "Lietuvių (Lituano)", flag: "🇱🇹" },
+  { value: "ar", label: "العربية (Árabe)", flag: "🇸🇦" },
 ];
 
+const langInfo = (code: string) =>
+  INTERP_LANGUAGES.find((l) => l.value === code);
+
 /**
- * Modo Intérprete (guía): levanta la sala local, muestra código + QR, y
- * publica líneas de prueba (Fase 1). El audio real llega en la Fase 2.
+ * Modo Intérprete (guía): levanta la sala local y se convierte en un panel de
+ * interpretación simultánea (QR, estado de sala, participantes por idioma, y el
+ * control de micrófono como cabina). El audio real llega en la Fase 2.
  */
 export const InterpreterSettings: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -29,7 +33,9 @@ export const InterpreterSettings: React.FC = () => {
   const [listeners, setListeners] = useState(0);
   const [langs, setLangs] = useState<string[]>([]);
   const [testText, setTestText] = useState("");
+  const [lastSent, setLastSent] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
+  const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const [sourceLang, setSourceLang] = useState(
     (i18n.language || "es").split("-")[0],
   );
@@ -59,22 +65,58 @@ export const InterpreterSettings: React.FC = () => {
     await commands.interpreterStop();
     setListening(false);
     setRoom(null);
+    setLastSent(null);
   };
 
   const publishTest = () => {
     if (!testText.trim()) return;
     commands.interpreterPublish(testText.trim(), sourceLang);
+    setLastSent(testText.trim());
     setTestText("");
   };
 
-  return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <div className="rounded-lg border border-mid-gray/30 p-5 space-y-3">
-        <h3 className="font-semibold text-text">{t("interpreter.title")}</h3>
-        <p className="text-sm text-mid-gray">{t("interpreter.subtitle")}</p>
+  const copy = (text: string, which: "code" | "link") => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(which);
+      window.setTimeout(() => setCopied(null), 1500);
+    });
+  };
 
+  // ---- Estado inicial: elegir idioma y crear la sala ----
+  if (!room) {
+    return (
+      <div className="max-w-3xl w-full mx-auto space-y-6 py-2">
         <div>
-          <label className="text-xs text-mid-gray block mb-1">
+          <h1
+            className="text-3xl leading-tight text-text sm:text-[2rem]"
+            style={{ fontFamily: "var(--font-serif)", fontWeight: 600 }}
+          >
+            {t("interpreter.title")}
+          </h1>
+          <p className="mt-2 max-w-xl text-sm text-mid-gray">
+            {t("interpreter.subtitle")}
+          </p>
+        </div>
+
+        {/* Cómo funciona */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[1, 2, 3, 4].map((n) => (
+            <div
+              key={n}
+              className="rounded-xl border border-mid-gray/15 bg-background p-3 shadow-[0_1px_2px_rgba(27,20,38,0.04)]"
+            >
+              <div className="font-mono text-xs font-semibold text-logo-primary">
+                {n}
+              </div>
+              <p className="mt-1 text-xs leading-snug text-mid-gray">
+                {t(`interpreter.steps.s${n}`)}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="max-w-sm">
+          <label className="mb-1 block text-xs text-mid-gray">
             {t("interpreter.sourceLang")}
           </label>
           <select
@@ -83,105 +125,202 @@ export const InterpreterSettings: React.FC = () => {
               setSourceLang(e.target.value);
               commands.interpreterSetSourceLang(e.target.value);
             }}
-            className="w-full px-3 py-2 rounded-lg border border-mid-gray/30 bg-background text-text text-sm"
+            className="w-full rounded-xl border border-mid-gray/25 bg-background px-4 py-3 text-base font-medium text-text shadow-[0_1px_2px_rgba(27,20,38,0.04)] focus:outline-none focus:ring-1 focus:ring-logo-primary"
           >
             {INTERP_LANGUAGES.map((l) => (
               <option key={l.value} value={l.value}>
-                {l.label}
+                {l.flag} {l.label}
               </option>
             ))}
           </select>
         </div>
 
-        {!room ? (
-          <Button
-            variant="primary"
-            size="lg"
-            className="flex w-full items-center justify-center gap-2.5 py-4 text-base"
-            onClick={start}
+        <Button
+          variant="primary"
+          size="lg"
+          className="gold-surface flex w-full items-center justify-center gap-2.5 py-4 text-base"
+          onClick={start}
+        >
+          <Radio width={20} height={20} />
+          {t("interpreter.start")}
+        </Button>
+      </div>
+    );
+  }
+
+  // ---- Sala activa: panel de interpretación en vivo ----
+  return (
+    <div className="max-w-3xl w-full mx-auto space-y-4 py-2">
+      {/* Estado de la sala */}
+      <div className="flex items-center gap-3 rounded-xl border border-mid-gray/15 bg-background px-4 py-3 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/60" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+        </span>
+        <span className="text-sm font-semibold text-text">
+          {t("interpreter.roomActive")}
+        </span>
+        <span className="ms-auto flex items-center gap-1.5 text-sm text-mid-gray">
+          <Users width={15} height={15} />
+          {t("interpreter.listeners", { count: listeners })}
+        </span>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1fr_1fr] lg:items-start">
+        {/* QR protagonista */}
+        <div className="flex flex-col items-center rounded-2xl border border-mid-gray/15 bg-vitela/30 p-5 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+          <div
+            className="rounded-xl bg-white p-3"
+            dangerouslySetInnerHTML={{ __html: room.qr_svg }}
+            style={{ width: 208, height: 208 }}
+          />
+          <p className="mt-3 text-xs text-mid-gray">
+            {t("interpreter.scanHint")}
+          </p>
+          <div className="mt-4 w-full rounded-xl border border-mid-gray/15 bg-background px-4 py-3">
+            <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-mid-gray">
+              {t("interpreter.roomCode")}
+            </div>
+            <div
+              className="text-4xl tracking-[0.2em] text-logo-primary"
+              style={{ fontFamily: "var(--font-serif)", fontWeight: 600 }}
+            >
+              {room.code}
+            </div>
+          </div>
+          <div className="mt-2 flex w-full gap-2">
+            <button
+              type="button"
+              onClick={() => copy(room.code, "code")}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-mid-gray/20 py-2 text-xs font-medium text-text transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
+            >
+              <Copy width={13} height={13} />
+              {copied === "code" ? t("interpreter.copied") : t("interpreter.copyCode")}
+            </button>
+            <button
+              type="button"
+              onClick={() => copy(room.url, "link")}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-mid-gray/20 py-2 text-xs font-medium text-text transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
+            >
+              <Link2 width={13} height={13} />
+              {copied === "link" ? t("interpreter.copied") : t("interpreter.copyLink")}
+            </button>
+          </div>
+        </div>
+
+        {/* Cabina: micrófono + participantes */}
+        <div className="space-y-4">
+          {/* Micrófono */}
+          <div
+            className={`rounded-2xl border p-5 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04)] ${
+              listening
+                ? "border-lacre/40 bg-lacre/6"
+                : "border-mid-gray/15 bg-background"
+            }`}
           >
-            <Radio width={20} height={20} />
-            {t("interpreter.start")}
-          </Button>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex flex-col items-center gap-3 py-2">
-              <div
-                className="bg-white p-3 rounded-xl"
-                dangerouslySetInnerHTML={{ __html: room.qr_svg }}
-                style={{ width: 200, height: 200 }}
-              />
-              <div className="text-center">
-                <div className="text-xs text-mid-gray">
-                  {t("interpreter.roomCode")}
-                </div>
-                <div className="text-4xl font-bold tracking-widest text-logo-primary">
-                  {room.code}
-                </div>
-              </div>
-              <div className="text-xs text-mid-gray break-all text-center">
-                {room.url}
-              </div>
+            <div
+              className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
+                listening
+                  ? "bg-lacre/15 text-lacre"
+                  : "bg-logo-primary/10 text-logo-primary"
+              }`}
+            >
+              <Mic width={26} height={26} />
             </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-text">
-                {t("interpreter.listeners", { count: listeners })}
-              </span>
-              {langs.length > 0 && (
-                <span className="text-mid-gray">
-                  {t("interpreter.languages")}: {langs.join(", ")}
-                </span>
-              )}
-            </div>
-
-            <div className="rounded-lg bg-logo-primary/10 border border-logo-primary/30 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-text font-medium">
-                  {listening
-                    ? t("interpreter.listeningOn")
-                    : t("interpreter.listeningOff")}
-                </span>
-                <Button
-                  variant={listening ? "secondary" : "primary"}
-                  size="sm"
-                  onClick={() => {
-                    const next = !listening;
-                    setListening(next);
-                    commands.interpreterSetSourceLang(sourceLang);
-                    commands.interpreterSetListening(next);
-                  }}
-                >
-                  {listening
-                    ? t("interpreter.stopMic")
-                    : t("interpreter.startMic")}
-                </Button>
-              </div>
-              <p className="text-xs text-mid-gray mt-2">
-                {t("interpreter.micHint")}
-              </p>
-            </div>
-
-            {/* Prueba manual (por si no quieres usar el microfono) */}
-            <div className="flex gap-2">
-              <input
-                value={testText}
-                onChange={(e) => setTestText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && publishTest()}
-                placeholder={t("interpreter.testPlaceholder")}
-                className="flex-1 px-3 py-2 rounded-lg border border-mid-gray/30 bg-background text-text text-sm"
-              />
-              <Button variant="secondary" size="sm" onClick={publishTest}>
-                {t("interpreter.sendTest")}
-              </Button>
-            </div>
-
-            <Button variant="secondary" size="md" onClick={stop}>
-              {t("interpreter.stop")}
+            <p className="mt-3 text-base font-semibold text-text">
+              {listening
+                ? t("interpreter.listeningNow")
+                : t("interpreter.waitingVoice")}
+            </p>
+            <p className="mt-1 text-xs text-mid-gray">
+              {t("interpreter.micHint")}
+            </p>
+            <Button
+              variant={listening ? "secondary" : "primary"}
+              size="lg"
+              className={`mt-4 flex w-full items-center justify-center gap-2 py-3 ${
+                listening ? "" : "gold-surface"
+              }`}
+              onClick={() => {
+                const next = !listening;
+                setListening(next);
+                commands.interpreterSetSourceLang(sourceLang);
+                commands.interpreterSetListening(next);
+              }}
+            >
+              {listening ? t("interpreter.stopMic") : t("interpreter.startMic")}
             </Button>
           </div>
-        )}
+
+          {/* Participantes (por idioma elegido) */}
+          <div className="rounded-2xl border border-mid-gray/15 bg-background p-4 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+              {t("interpreter.participants")}
+            </p>
+            {langs.length === 0 ? (
+              <p className="mt-3 text-sm text-mid-gray">
+                {t("interpreter.waitingParticipants")}
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {langs.map((code) => {
+                  const info = langInfo(code);
+                  return (
+                    <li
+                      key={code}
+                      className="flex items-center gap-2.5 text-sm text-text"
+                    >
+                      <span className="text-base">{info?.flag ?? "🌐"}</span>
+                      <span>{info?.label ?? code}</span>
+                      <span className="ms-auto flex items-center gap-1.5 text-xs text-green-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                        {t("interpreter.connected")}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Última frase enviada */}
+      {lastSent && (
+        <div className="rounded-xl border border-logo-primary/25 bg-logo-primary/5 px-4 py-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-logo-primary">
+            {t("interpreter.lastPhrase")}
+          </p>
+          <p className="mt-1 text-sm text-text">“{lastSent}”</p>
+        </div>
+      )}
+
+      {/* Modo prueba (plegado por defecto) */}
+      <details className="rounded-xl border border-mid-gray/15 bg-background px-4 py-3">
+        <summary className="cursor-pointer text-xs font-medium text-mid-gray">
+          {t("interpreter.testMode")}
+        </summary>
+        <div className="mt-3 flex gap-2">
+          <input
+            value={testText}
+            onChange={(e) => setTestText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && publishTest()}
+            placeholder={t("interpreter.testPlaceholder")}
+            className="flex-1 rounded-lg border border-mid-gray/30 bg-background px-3 py-2 text-sm text-text"
+          />
+          <Button variant="secondary" size="sm" onClick={publishTest}>
+            {t("interpreter.sendTest")}
+          </Button>
+        </div>
+      </details>
+
+      <button
+        type="button"
+        onClick={stop}
+        className="text-sm font-medium text-mid-gray hover:text-lacre"
+      >
+        {t("interpreter.stop")}
+      </button>
     </div>
   );
 };

@@ -761,7 +761,25 @@
     "stopMic": "Stop listening",
     "listeningOn": "🎙️ Listening — speak with your dictation shortcut",
     "listeningOff": "Microphone off",
-    "micHint": "Hold your dictation shortcut and speak a sentence; it gets translated to every listener's language. (Mic is push-to-talk for now.)"
+    "micHint": "Hold your dictation shortcut and speak a sentence; it gets translated to every listener's language. (Mic is push-to-talk for now.)",
+    "roomActive": "Room active",
+    "scanHint": "Scan with your phone camera. Nothing to install.",
+    "copyCode": "Copy code",
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "waitingVoice": "Waiting for your voice",
+    "listeningNow": "Listening…",
+    "participants": "Participants",
+    "waitingParticipants": "Waiting for participants…",
+    "connected": "Connected",
+    "lastPhrase": "Last phrase sent",
+    "testMode": "Test mode",
+    "steps": {
+      "s1": "Create the room",
+      "s2": "Guests scan the QR",
+      "s3": "You speak normally",
+      "s4": "They get the translation"
+    }
   },
   "translator": {
     "title": "Face-to-face translator",
