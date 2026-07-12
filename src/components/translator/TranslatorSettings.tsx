@@ -147,7 +147,7 @@ export const TranslatorSettings: React.FC = () => {
             className={`flex w-full items-center justify-center gap-3 rounded-card px-6 py-4 text-base font-semibold shadow-[0_1px_2px_rgba(27,20,38,0.15),inset_0_1px_0_rgba(255,255,255,0.25)] transition-all ${
               listening
                 ? "border border-lacre/40 bg-lacre/10 text-lacre"
-                : "gold-surface text-ink hover:brightness-105"
+                : "gold-surface text-ink hover:brightness-105 active:brightness-95"
             }`}
           >
             <Mic width={20} height={20} />

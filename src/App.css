@@ -195,6 +195,20 @@ svg.lucide {
   border-radius: 6px;
 }
 
+/* Motion + accesibilidad (Design Guide, caps. 09 y 15): quien pide menos
+   movimiento no ve transiciones, apariciones ni latidos (ping/pulse). Un solo
+   reset global; los bloques puntuales de abajo quedan cubiertos por este. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Textura de papel de algodón al ~1.4%: rompe el color plano en TODA la app.
    No se ve; se siente. Fija, sobre el contenido, sin capturar clics. */
 body::after {

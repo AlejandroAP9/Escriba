@@ -18,22 +18,24 @@ export const Button: React.FC<ButtonProps> = ({
   size = "md",
   ...props
 }) => {
+  // Motion: transición corta (150 ms) que cubre color, brillo y transform, para
+  // que hover y "pressed" (active) se sientan táctiles (Design Guide, cap. 09/11).
   const baseClasses =
-    "font-medium rounded-lg border focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
+    "font-medium rounded-lg border focus:outline-none transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
   const variantClasses = {
     primary:
-      "gold-surface text-ink border-background-ui shadow-[0_1px_2px_rgba(27,20,38,0.18),inset_0_1px_0_rgba(255,255,255,0.25)] hover:brightness-105 focus:ring-1 focus:ring-background-ui",
+      "gold-surface text-ink border-background-ui shadow-[0_1px_2px_rgba(27,20,38,0.18),inset_0_1px_0_rgba(255,255,255,0.25)] hover:brightness-105 active:brightness-95 focus:ring-1 focus:ring-background-ui",
     "primary-soft":
-      "text-text bg-logo-primary/20 border-transparent hover:bg-logo-primary/30 focus:ring-1 focus:ring-logo-primary",
+      "text-text bg-logo-primary/20 border-transparent hover:bg-logo-primary/30 active:bg-logo-primary/40 focus:ring-1 focus:ring-logo-primary",
     secondary:
-      "bg-mid-gray/10 border-mid-gray/20 hover:bg-background-ui/30 hover:border-logo-primary focus:outline-none",
+      "bg-mid-gray/10 border-mid-gray/20 hover:bg-background-ui/30 hover:border-logo-primary active:bg-background-ui/40 focus:outline-none",
     danger:
-      "text-white bg-red-600 border-mid-gray/20 hover:bg-red-700 hover:border-red-700 focus:ring-1 focus:ring-red-500",
+      "text-white bg-red-600 border-mid-gray/20 hover:bg-red-700 hover:border-red-700 active:bg-red-800 focus:ring-1 focus:ring-red-500",
     "danger-ghost":
-      "text-red-400 border-transparent hover:text-red-300 hover:bg-red-500/10 focus:bg-red-500/20",
+      "text-red-400 border-transparent hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20 focus:bg-red-500/20",
     ghost:
-      "text-current border-transparent hover:bg-mid-gray/10 hover:border-logo-primary focus:bg-mid-gray/20",
+      "text-current border-transparent hover:bg-mid-gray/10 hover:border-logo-primary active:bg-mid-gray/20 focus:bg-mid-gray/20",
   };
 
   const sizeClasses = {
