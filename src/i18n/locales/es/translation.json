@@ -770,7 +770,23 @@
     "stop": "Detener",
     "voiceOn": "🔊 Voz ON",
     "voiceOff": "🔇 Voz OFF",
-    "hint": "Mantén tu atajo de dictado y habla en cualquiera de los dos idiomas."
+    "hint": "Mantén tu atajo de dictado y habla en cualquiera de los dos idiomas.",
+    "heroTitle": "Conversa sin hablar el mismo idioma.",
+    "heroSubtitle": "Solo hablen. Escriba se ocupa del resto, traduciendo para ambos en tiempo real.",
+    "swap": "Invertir idiomas",
+    "readAloud": "Leer traducción en voz alta",
+    "readAloudHint": "Dice cada traducción en voz alta, en el idioma de la otra persona.",
+    "conversation": "Conversación",
+    "preview": "Vista previa",
+    "youSaid": "Tú dijiste",
+    "previewSource": "¿Dónde está la estación?",
+    "previewTarget": "Where is the station?",
+    "previewHint": "Inicia la conversación y tus frases aparecen aquí, traducidas.",
+    "caps": {
+      "languages": "100+ idiomas",
+      "local": "Todo local",
+      "instant": "Instantáneo"
+    }
   },
   "retranscribe": {
     "action": "Re-transcribir con…",

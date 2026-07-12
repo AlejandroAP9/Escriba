@@ -770,7 +770,23 @@
     "stop": "Stop",
     "voiceOn": "🔊 Voice ON",
     "voiceOff": "🔇 Voice OFF",
-    "hint": "Hold your dictation shortcut and speak in either language."
+    "hint": "Hold your dictation shortcut and speak in either language.",
+    "heroTitle": "Talk without speaking the same language.",
+    "heroSubtitle": "Just talk. Escriba does the rest, translating for both of you in real time.",
+    "swap": "Swap languages",
+    "readAloud": "Read translation aloud",
+    "readAloudHint": "Speaks each translation out loud in the other person's language.",
+    "conversation": "Conversation",
+    "preview": "Preview",
+    "youSaid": "You said",
+    "previewSource": "Where is the station?",
+    "previewTarget": "¿Dónde está la estación?",
+    "previewHint": "Start the conversation and your phrases appear here, translated.",
+    "caps": {
+      "languages": "100+ languages",
+      "local": "Runs locally",
+      "instant": "Instant"
+    }
   },
   "retranscribe": {
     "action": "Re-transcribe with…",
