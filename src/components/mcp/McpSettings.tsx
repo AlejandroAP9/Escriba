@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
+  Activity,
   AlignLeft,
   BarChart3,
   Check,
@@ -14,9 +15,11 @@ import {
   RotateCw,
   Sparkles,
   Terminal,
+  Users,
 } from "lucide-react";
 import { commands, type McpStatus } from "@/bindings";
 import { Button } from "../ui/Button";
+import { EmptyState } from "../ui/EmptyState";
 import { ToggleSwitch } from "../ui/ToggleSwitch";
 import { useSettings } from "../../hooks/useSettings";
 
@@ -366,9 +369,7 @@ export const McpSettings: React.FC = () => {
               {t("mcp.activityTitle")}
             </h2>
             {status!.activity.length === 0 ? (
-              <p className="text-xs leading-relaxed text-mid-gray">
-                {t("mcp.activityEmpty")}
-              </p>
+              <EmptyState compact icon={Activity} title={t("mcp.activityEmpty")} />
             ) : (
               <ul className="space-y-2.5">
                 {status!.activity.map((a, i) => (
@@ -398,9 +399,7 @@ export const McpSettings: React.FC = () => {
               {t("mcp.agentsTitle")}
             </h2>
             {status!.clients.length === 0 ? (
-              <p className="text-xs leading-relaxed text-mid-gray">
-                {t("mcp.agentsEmpty")}
-              </p>
+              <EmptyState compact icon={Users} title={t("mcp.agentsEmpty")} />
             ) : (
               <ul className="space-y-2.5">
                 {status!.clients.map((c, i) => (

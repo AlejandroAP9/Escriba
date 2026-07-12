@@ -5,7 +5,9 @@ import {
   Check,
   Copy,
   FolderOpen,
+  Inbox,
   Search,
+  SearchX,
   Star,
   Trash2,
 } from "lucide-react";
@@ -20,6 +22,7 @@ import {
 import { RetranscribeMenu } from "../../shared/RetranscribeMenu";
 import { useOsType } from "@/hooks/useOsType";
 import { AudioPlayer } from "../../ui/AudioPlayer";
+import { EmptyState, LoadingState } from "../../ui/EmptyState";
 
 const IconButton: React.FC<{
   onClick: () => void;
@@ -285,21 +288,15 @@ export const HistorySettings: React.FC = () => {
 
   if (loading) {
     content = (
-      <div className="px-4 py-6 text-center text-mid-gray">
-        {t("settings.history.loading")}
-      </div>
+      <LoadingState label={t("settings.history.loading")} />
     );
   } else if (entries.length === 0) {
     content = (
-      <div className="px-4 py-6 text-center text-mid-gray">
-        {t("settings.history.empty")}
-      </div>
+      <EmptyState icon={Inbox} title={t("settings.history.empty")} />
     );
   } else if (visibleEntries.length === 0) {
     content = (
-      <div className="px-4 py-6 text-center text-mid-gray">
-        {t("settings.history.noResults")}
-      </div>
+      <EmptyState icon={SearchX} title={t("settings.history.noResults")} />
     );
   } else {
     content = (
