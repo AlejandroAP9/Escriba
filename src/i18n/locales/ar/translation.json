@@ -20,7 +20,11 @@
     "interpreter": "Live Interpreter",
     "translator": "Translator",
     "mcp": "Agents (MCP)",
-    "home": "Home"
+    "home": "Home",
+    "groupDictation": "Dictation",
+    "groupTools": "Tools",
+    "groupDevelopers": "Developers",
+    "groupConfig": "Settings"
   },
   "onboarding": {
     "subtitle": "للبدء، اختر نموذج التفريغ الصوتي",
@@ -602,6 +606,10 @@
       "whatsNewUpdates": {
         "label": "إظهار الجديد",
         "description": "إظهار ملاحظات الإصدار بعد تحديثات Escriba"
+      },
+      "identity": {
+        "openSource": "Open Source",
+        "mit": "MIT License"
       }
     },
     "modelSettings": {
@@ -780,7 +788,7 @@
   },
   "home": {
     "headline1": "Speak.",
-    "headline2": "We write it down.",
+    "headline2": "Escriba does the rest.",
     "start": "Start dictating",
     "timeSaved": "Time saved",
     "lastDictation": "Last dictation",

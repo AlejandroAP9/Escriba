@@ -20,7 +20,11 @@
     "interpreter": "Live Interpreter",
     "translator": "Translator",
     "mcp": "Agents (MCP)",
-    "home": "Home"
+    "home": "Home",
+    "groupDictation": "Dictation",
+    "groupTools": "Tools",
+    "groupDevelopers": "Developers",
+    "groupConfig": "Settings"
   },
   "onboarding": {
     "subtitle": "시작하려면 음성 인식 모델을 선택하세요",
@@ -623,6 +627,10 @@
       "whatsNewUpdates": {
         "label": "새 소식 표시",
         "description": "Escriba 업데이트 후 릴리스 노트를 표시합니다"
+      },
+      "identity": {
+        "openSource": "Open Source",
+        "mit": "MIT License"
       }
     }
   },
@@ -780,7 +788,7 @@
   },
   "home": {
     "headline1": "Speak.",
-    "headline2": "We write it down.",
+    "headline2": "Escriba does the rest.",
     "start": "Start dictating",
     "timeSaved": "Time saved",
     "lastDictation": "Last dictation",

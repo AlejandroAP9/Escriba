@@ -129,6 +129,19 @@ interface SidebarProps {
   onSectionChange: (section: SidebarSection) => void;
 }
 
+// Navegación agrupada por contexto (no una lista plana): la app tiene sentido
+// de un vistazo. Inicio arriba sin encabezado; el resto en secciones.
+const NAV_GROUPS: { labelKey?: string; ids: SidebarSection[] }[] = [
+  { ids: ["home"] },
+  { labelKey: "sidebar.groupDictation", ids: ["models", "history", "studio"] },
+  { labelKey: "sidebar.groupTools", ids: ["translator", "interpreter"] },
+  { labelKey: "sidebar.groupDevelopers", ids: ["mcp", "postprocessing"] },
+  {
+    labelKey: "sidebar.groupConfig",
+    ids: ["general", "advanced", "debug", "about"],
+  },
+];
+
 export const Sidebar: React.FC<SidebarProps> = ({
   activeSection,
   onSectionChange,
@@ -136,13 +149,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { t } = useTranslation();
   const { settings } = useSettings();
 
-  const availableSections = Object.entries(SECTIONS_CONFIG)
-    .filter(([_, config]) => config.enabled(settings))
-    .map(([id, config]) => ({ id: id as SidebarSection, ...config }));
+  const isEnabled = (id: SidebarSection) =>
+    SECTIONS_CONFIG[id]?.enabled(settings) ?? false;
 
   return (
     <div
-      className="flex flex-col w-56 h-full items-center px-3 text-ink-fg"
+      className="flex flex-col w-56 h-full items-center px-3 text-ink-fg overflow-y-auto"
       style={{
         // Tapa de libro: gradiente vertical muy leve, borde e highlight interior.
         background: "linear-gradient(180deg, #21192f 0%, var(--color-ink) 60%)",
@@ -151,29 +163,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
           "inset 0 1px 0 rgba(255,255,255,0.04), inset -12px 0 24px -18px rgba(0,0,0,0.6)",
       }}
     >
-      <EscribaLogo width={168} className="mt-10 mb-8" onDark tagline />
-      <div className="flex flex-col w-full items-center gap-1 pt-4 border-t border-white/10">
-        {availableSections.map((section) => {
-          const Icon = section.icon;
-          const isActive = activeSection === section.id;
-
+      <EscribaLogo width={168} className="mt-10 mb-6 shrink-0" onDark tagline />
+      <div className="flex w-full flex-col gap-4 border-t border-white/10 pb-6 pt-4">
+        {NAV_GROUPS.map((group, gi) => {
+          const ids = group.ids.filter(isEnabled);
+          if (ids.length === 0) return null;
           return (
-            <div
-              key={section.id}
-              className={`flex gap-2.5 items-center px-3 py-2.5 w-full rounded-lg cursor-pointer transition-colors ${
-                isActive
-                  ? "bg-logo-primary text-ink font-semibold shadow-sm"
-                  : "text-ink-fg/80 hover:bg-white/10 hover:text-ink-fg"
-              }`}
-              onClick={() => onSectionChange(section.id)}
-            >
-              <Icon width={21} height={21} className="shrink-0" />
-              <p
-                className="text-sm font-medium truncate"
-                title={t(section.labelKey)}
-              >
-                {t(section.labelKey)}
-              </p>
+            <div key={gi} className="flex w-full flex-col gap-1">
+              {group.labelKey && (
+                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-fg/35">
+                  {t(group.labelKey)}
+                </p>
+              )}
+              {ids.map((id) => {
+                const config = SECTIONS_CONFIG[id];
+                const Icon = config.icon;
+                const isActive = activeSection === id;
+                return (
+                  <div
+                    key={id}
+                    className={`flex gap-2.5 items-center px-3 py-2 w-full rounded-lg cursor-pointer transition-colors ${
+                      isActive
+                        ? "bg-logo-primary text-ink font-semibold shadow-sm"
+                        : "text-ink-fg/80 hover:bg-white/10 hover:text-ink-fg"
+                    }`}
+                    onClick={() => onSectionChange(id)}
+                  >
+                    <Icon width={20} height={20} className="shrink-0" />
+                    <p
+                      className="text-sm font-medium truncate"
+                      title={t(config.labelKey)}
+                    >
+                      {t(config.labelKey)}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           );
         })}

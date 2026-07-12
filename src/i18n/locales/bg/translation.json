@@ -20,7 +20,11 @@
     "interpreter": "Live Interpreter",
     "translator": "Translator",
     "mcp": "Agents (MCP)",
-    "home": "Home"
+    "home": "Home",
+    "groupDictation": "Dictation",
+    "groupTools": "Tools",
+    "groupDevelopers": "Developers",
+    "groupConfig": "Settings"
   },
   "onboarding": {
     "subtitle": "За да започнете, изберете модел за транскрипция",
@@ -623,6 +627,10 @@
       "whatsNewUpdates": {
         "label": "Показвай новостите",
         "description": "Показвай бележки към изданието след актуализации на Escriba"
+      },
+      "identity": {
+        "openSource": "Open Source",
+        "mit": "MIT License"
       }
     }
   },
@@ -780,7 +788,7 @@
   },
   "home": {
     "headline1": "Speak.",
-    "headline2": "We write it down.",
+    "headline2": "Escriba does the rest.",
     "start": "Start dictating",
     "timeSaved": "Time saved",
     "lastDictation": "Last dictation",

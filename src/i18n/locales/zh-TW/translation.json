@@ -20,7 +20,11 @@
     "interpreter": "Live Interpreter",
     "translator": "Translator",
     "mcp": "Agents (MCP)",
-    "home": "Home"
+    "home": "Home",
+    "groupDictation": "Dictation",
+    "groupTools": "Tools",
+    "groupDevelopers": "Developers",
+    "groupConfig": "Settings"
   },
   "onboarding": {
     "subtitle": "首先，請選擇一種模型",
@@ -623,6 +627,10 @@
       "whatsNewUpdates": {
         "label": "顯示新功能",
         "description": "Escriba 更新後顯示版本資訊"
+      },
+      "identity": {
+        "openSource": "Open Source",
+        "mit": "MIT License"
       }
     }
   },
@@ -780,7 +788,7 @@
   },
   "home": {
     "headline1": "Speak.",
-    "headline2": "We write it down.",
+    "headline2": "Escriba does the rest.",
     "start": "Start dictating",
     "timeSaved": "Time saved",
     "lastDictation": "Last dictation",

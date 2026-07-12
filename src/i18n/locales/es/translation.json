@@ -20,7 +20,11 @@
     "interpreter": "Intérprete en vivo",
     "translator": "Traductor",
     "mcp": "Agentes (MCP)",
-    "home": "Inicio"
+    "home": "Inicio",
+    "groupDictation": "Dictado",
+    "groupTools": "Herramientas",
+    "groupDevelopers": "Desarrolladores",
+    "groupConfig": "Configuración"
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
@@ -172,8 +176,8 @@
         "allLanguages": "Todos los idiomas"
       },
       "noModelsMatch": "Ningún modelo coincide con este filtro.",
-      "yourModels": "Modelos descargados",
-      "availableModels": "Disponibles para descargar",
+      "yourModels": "Instalados",
+      "availableModels": "Biblioteca de modelos",
       "searchPlaceholder": "Buscar modelos por nombre…",
       "rescan": {
         "label": "Volver a escanear",
@@ -623,6 +627,10 @@
       "whatsNewUpdates": {
         "label": "Mostrar novedades",
         "description": "Mostrar notas de la versión después de las actualizaciones de Escriba"
+      },
+      "identity": {
+        "openSource": "Código abierto",
+        "mit": "Licencia MIT"
       }
     }
   },
@@ -780,7 +788,7 @@
   },
   "home": {
     "headline1": "Habla.",
-    "headline2": "Nosotros escribimos.",
+    "headline2": "Escriba hace el resto.",
     "start": "Comenzar a dictar",
     "timeSaved": "Tiempo ahorrado",
     "lastDictation": "Último dictado",

@@ -10,6 +10,8 @@ import { AppLanguageSelector } from "../AppLanguageSelector";
 import { ShowWhatsNewOnUpdate } from "../ShowWhatsNewOnUpdate";
 import { LogDirectory } from "../debug";
 
+const BRAND = "Escriba";
+
 export const AboutSettings: React.FC = () => {
   const { t } = useTranslation();
   const [version, setVersion] = useState("");
@@ -38,6 +40,38 @@ export const AboutSettings: React.FC = () => {
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
+      {/* Identidad de marca: lo primero que se ve en "Acerca de". */}
+      <div
+        className="relative overflow-hidden rounded-xl border border-logo-primary/25 p-6 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04),0_14px_30px_-18px_rgba(27,20,38,0.14)]"
+        style={{
+          background:
+            "linear-gradient(135deg, var(--color-background), var(--color-vitela))",
+        }}
+      >
+        <div
+          className="text-2xl text-text"
+          style={{ fontFamily: "var(--font-serif)", fontWeight: 600 }}
+        >
+          {BRAND}
+        </div>
+        {/* eslint-disable-next-line i18next/no-literal-string */}
+        <div className="mt-1 font-mono text-xs text-mid-gray">v{version}</div>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          {[
+            t("settings.general.hero.local"),
+            t("settings.about.identity.openSource"),
+            t("settings.about.identity.mit"),
+          ].map((chip) => (
+            <span
+              key={chip}
+              className="rounded-full border border-logo-primary/30 bg-logo-primary/5 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-logo-primary"
+            >
+              {chip}
+            </span>
+          ))}
+        </div>
+      </div>
+
       <SettingsGroup title={t("settings.about.title")}>
         <AppLanguageSelector descriptionMode="tooltip" grouped={true} />
         <SettingContainer
@@ -69,7 +103,7 @@ export const AboutSettings: React.FC = () => {
           <Button
             variant="secondary"
             size="md"
-            onClick={() => openUrl("https://github.com/cjpais/Handy")}
+            onClick={() => openUrl("https://github.com/AlejandroAP9/Escriba")}
           >
             {t("settings.about.sourceCode.button")}
           </Button>
