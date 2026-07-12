@@ -506,7 +506,15 @@
       "retranscribe": "Erneut transkribieren",
       "retranscribeError": "Erneute Transkription fehlgeschlagen. Bitte versuche es erneut.",
       "transcribing": "Transkribiere...",
-      "transcriptionFailed": "Transkription fehlgeschlagen. Du kannst über das Wiederholen-Symbol erneut transkribieren."
+      "transcriptionFailed": "Transkription fehlgeschlagen. Du kannst über das Wiederholen-Symbol erneut transkribieren.",
+      "searchPlaceholder": "Search dictations…",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "filterAll": "All",
+      "filterSaved": "Favorites",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "noResults": "No dictations match your search."
     },
     "debug": {
       "title": "Debug",

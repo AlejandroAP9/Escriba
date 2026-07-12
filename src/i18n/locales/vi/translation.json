@@ -506,7 +506,15 @@
       "retranscribe": "Phiên âm lại",
       "retranscribeError": "Không thể phiên âm lại. Vui lòng thử lại.",
       "transcribing": "Đang phiên âm...",
-      "transcriptionFailed": "Phiên âm thất bại. Bạn có thể phiên âm lại bằng biểu tượng thử lại."
+      "transcriptionFailed": "Phiên âm thất bại. Bạn có thể phiên âm lại bằng biểu tượng thử lại.",
+      "searchPlaceholder": "Search dictations…",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "filterAll": "All",
+      "filterSaved": "Favorites",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "noResults": "No dictations match your search."
     },
     "debug": {
       "title": "Gỡ lỗi",

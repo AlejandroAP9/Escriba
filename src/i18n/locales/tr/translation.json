@@ -506,7 +506,15 @@
       "retranscribe": "Yeniden yazıya dök",
       "retranscribeError": "Yeniden yazıya dökme başarısız oldu. Lütfen tekrar deneyin.",
       "transcribing": "Yazıya döküyor...",
-      "transcriptionFailed": "Transkripsiyon başarısız oldu. Yeniden deneme simgesini kullanarak tekrar yazıya dökebilirsiniz."
+      "transcriptionFailed": "Transkripsiyon başarısız oldu. Yeniden deneme simgesini kullanarak tekrar yazıya dökebilirsiniz.",
+      "searchPlaceholder": "Search dictations…",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "filterAll": "All",
+      "filterSaved": "Favorites",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "noResults": "No dictations match your search."
     },
     "debug": {
       "title": "Hata Ayıklama",

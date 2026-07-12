@@ -506,7 +506,15 @@
       "retranscribe": "תמלל מחדש",
       "retranscribeError": "תמלול מחדש נכשל. נסה שוב.",
       "transcribing": "מתמלל...",
-      "transcriptionFailed": "התמלול נכשל. אפשר לתמלל מחדש באמצעות אייקון הניסיון החוזר."
+      "transcriptionFailed": "התמלול נכשל. אפשר לתמלל מחדש באמצעות אייקון הניסיון החוזר.",
+      "searchPlaceholder": "Search dictations…",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "filterAll": "All",
+      "filterSaved": "Favorites",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "noResults": "No dictations match your search."
     },
     "debug": {
       "title": "ניפוי שגיאות",

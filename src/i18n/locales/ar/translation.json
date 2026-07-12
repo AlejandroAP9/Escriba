@@ -485,7 +485,15 @@
       "retranscribe": "إعادة النسخ",
       "retranscribeError": "فشلت إعادة النسخ. يرجى المحاولة مرة أخرى.",
       "transcribing": "جارٍ النسخ...",
-      "transcriptionFailed": "فشل النسخ. يمكنك إعادة النسخ باستخدام أيقونة إعادة المحاولة."
+      "transcriptionFailed": "فشل النسخ. يمكنك إعادة النسخ باستخدام أيقونة إعادة المحاولة.",
+      "searchPlaceholder": "Search dictations…",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "filterAll": "All",
+      "filterSaved": "Favorites",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "noResults": "No dictations match your search."
     },
     "debug": {
       "title": "تصحيح الأخطاء",

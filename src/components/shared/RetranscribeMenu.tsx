@@ -8,6 +8,8 @@ interface RetranscribeMenuProps {
   disabled?: boolean;
   /** Model id used for the current transcription, to mark it in the list. */
   currentModelId?: string | null;
+  /** Etiqueta corta del placeholder (p.ej. "Re-transcribir"); por defecto la larga. */
+  label?: string;
 }
 
 /**
@@ -19,6 +21,7 @@ export const RetranscribeMenu: React.FC<RetranscribeMenuProps> = ({
   onRetranscribe,
   disabled = false,
   currentModelId,
+  label,
 }) => {
   const { t } = useTranslation();
   const [models, setModels] = useState<ModelInfo[]>([]);
@@ -47,7 +50,7 @@ export const RetranscribeMenu: React.FC<RetranscribeMenuProps> = ({
         title={t("retranscribe.title")}
         className="px-2 py-1 rounded-lg border border-mid-gray/30 bg-background text-text text-xs disabled:opacity-50"
       >
-        <option value="">{t("retranscribe.action")}</option>
+        <option value="">{label ?? t("retranscribe.action")}</option>
         {models.map((m) => (
           <option key={m.id} value={m.id}>
             {m.name}

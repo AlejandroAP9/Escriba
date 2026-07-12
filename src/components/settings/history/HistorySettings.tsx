@@ -1,7 +1,14 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { readFile } from "@tauri-apps/plugin-fs";
-import { Check, Copy, FolderOpen, RotateCcw, Star, Trash2 } from "lucide-react";
+import {
+  Check,
+  Copy,
+  FolderOpen,
+  Search,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
@@ -10,12 +17,9 @@ import {
   type HistoryEntry,
   type HistoryUpdatePayload,
 } from "@/bindings";
-import { UsageStatsCard } from "./UsageStatsCard";
 import { RetranscribeMenu } from "../../shared/RetranscribeMenu";
 import { useOsType } from "@/hooks/useOsType";
-import { formatDateTime } from "@/utils/dateFormat";
 import { AudioPlayer } from "../../ui/AudioPlayer";
-import { Button } from "../../ui/Button";
 
 const IconButton: React.FC<{
   onClick: () => void;
@@ -30,7 +34,7 @@ const IconButton: React.FC<{
     className={`p-1.5 rounded-md flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed disabled:text-text/20 ${
       active
         ? "text-logo-primary hover:text-logo-primary/80"
-        : "text-text/50 hover:text-logo-primary"
+        : "text-mid-gray hover:text-logo-primary"
     }`}
     title={title}
   >
@@ -40,33 +44,28 @@ const IconButton: React.FC<{
 
 const PAGE_SIZE = 30;
 
-interface OpenRecordingsButtonProps {
-  onClick: () => void;
-  label: string;
+// Umbral de recorte: sobre esto, la tarjeta muestra 3 líneas + "Ver más".
+const PREVIEW_CHAR_LIMIT = 280;
+
+// Tiempo relativo localizado ("hace 14 minutos") sin cadenas por idioma.
+function relativeTime(tsSeconds: number, locale: string): string {
+  const diffSec = Math.round((tsSeconds * 1000 - Date.now()) / 1000);
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  const abs = Math.abs(diffSec);
+  if (abs < 60) return rtf.format(Math.round(diffSec), "second");
+  if (abs < 3600) return rtf.format(Math.round(diffSec / 60), "minute");
+  if (abs < 86400) return rtf.format(Math.round(diffSec / 3600), "hour");
+  return rtf.format(Math.round(diffSec / 86400), "day");
 }
 
-const OpenRecordingsButton: React.FC<OpenRecordingsButtonProps> = ({
-  onClick,
-  label,
-}) => (
-  <Button
-    onClick={onClick}
-    variant="secondary"
-    size="sm"
-    className="flex items-center gap-2"
-    title={label}
-  >
-    <FolderOpen className="w-4 h-4" />
-    <span>{label}</span>
-  </Button>
-);
-
 export const HistorySettings: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const osType = useOsType();
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "saved">("all");
   const sentinelRef = useRef<HTMLDivElement>(null);
   const entriesRef = useRef<HistoryEntry[]>([]);
   const loadingRef = useRef(false);
@@ -236,34 +235,93 @@ export const HistorySettings: React.FC = () => {
     }
   };
 
+  // Filtro (texto + favoritos) sobre las entradas cargadas.
+  const visibleEntries = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return entries.filter((e) => {
+      if (filter === "saved" && !e.saved) return false;
+      if (q && !e.transcription_text.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [entries, searchQuery, filter]);
+
+  // Agrupar por día: HOY / AYER / fecha. La unidad es la idea, no el archivo.
+  const groups = useMemo(() => {
+    const out: { key: string; label: string; items: HistoryEntry[] }[] = [];
+    const now = new Date();
+    const todayKey = now.toDateString();
+    const yesterdayKey = new Date(
+      now.getTime() - 24 * 60 * 60 * 1000,
+    ).toDateString();
+    const fmt = new Intl.DateTimeFormat(i18n.language, {
+      day: "numeric",
+      month: "long",
+    });
+    const fmtWithYear = new Intl.DateTimeFormat(i18n.language, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    for (const entry of visibleEntries) {
+      const d = new Date(entry.timestamp * 1000);
+      const key = d.toDateString();
+      let label: string;
+      if (key === todayKey) label = t("settings.history.today");
+      else if (key === yesterdayKey) label = t("settings.history.yesterday");
+      else
+        label = (
+          d.getFullYear() === now.getFullYear() ? fmt : fmtWithYear
+        ).format(d);
+
+      const last = out[out.length - 1];
+      if (last && last.key === key) last.items.push(entry);
+      else out.push({ key, label, items: [entry] });
+    }
+    return out;
+  }, [visibleEntries, i18n.language, t]);
+
   let content: React.ReactNode;
 
   if (loading) {
     content = (
-      <div className="px-4 py-3 text-center text-text/60">
+      <div className="px-4 py-6 text-center text-mid-gray">
         {t("settings.history.loading")}
       </div>
     );
   } else if (entries.length === 0) {
     content = (
-      <div className="px-4 py-3 text-center text-text/60">
+      <div className="px-4 py-6 text-center text-mid-gray">
         {t("settings.history.empty")}
+      </div>
+    );
+  } else if (visibleEntries.length === 0) {
+    content = (
+      <div className="px-4 py-6 text-center text-mid-gray">
+        {t("settings.history.noResults")}
       </div>
     );
   } else {
     content = (
       <>
-        <div className="divide-y divide-mid-gray/20">
-          {entries.map((entry) => (
-            <HistoryEntryComponent
-              key={entry.id}
-              entry={entry}
-              onToggleSaved={() => toggleSaved(entry.id)}
-              onCopyText={() => copyToClipboard(entry.transcription_text)}
-              getAudioUrl={getAudioUrl}
-              deleteAudio={deleteAudioEntry}
-              retryTranscription={retryHistoryEntry}
-            />
+        <div className="space-y-5">
+          {groups.map((group) => (
+            <div key={group.key} className="space-y-2.5">
+              <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+                {group.label}
+              </p>
+              {group.items.map((entry) => (
+                <HistoryEntryComponent
+                  key={entry.id}
+                  entry={entry}
+                  onToggleSaved={() => toggleSaved(entry.id)}
+                  onCopyText={() => copyToClipboard(entry.transcription_text)}
+                  getAudioUrl={getAudioUrl}
+                  deleteAudio={deleteAudioEntry}
+                  retryTranscription={retryHistoryEntry}
+                />
+              ))}
+            </div>
           ))}
         </div>
         {/* Sentinel for infinite scroll */}
@@ -273,24 +331,58 @@ export const HistorySettings: React.FC = () => {
   }
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <UsageStatsCard />
-      <div className="space-y-2">
-        <div className="px-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-xs font-medium text-mid-gray uppercase tracking-wide">
-              {t("settings.history.title")}
-            </h2>
+    <div className="max-w-3xl w-full mx-auto space-y-4">
+      {/* Encabezado: título + filtros + carpeta (discreta) */}
+      <div className="flex items-center justify-between gap-2 px-1">
+        <h2 className="text-xs font-medium text-mid-gray uppercase tracking-wide">
+          {t("settings.history.title")}
+        </h2>
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center rounded-lg bg-mid-gray/10 p-0.5 text-xs">
+            <button
+              onClick={() => setFilter("all")}
+              className={`rounded-md px-2.5 py-1 transition-colors ${
+                filter === "all"
+                  ? "bg-background text-text shadow-sm"
+                  : "text-mid-gray hover:text-text"
+              }`}
+            >
+              {t("settings.history.filterAll")}
+            </button>
+            <button
+              onClick={() => setFilter("saved")}
+              className={`flex items-center gap-1 rounded-md px-2.5 py-1 transition-colors ${
+                filter === "saved"
+                  ? "bg-background text-text shadow-sm"
+                  : "text-mid-gray hover:text-text"
+              }`}
+            >
+              <Star width={11} height={11} />
+              {t("settings.history.filterSaved")}
+            </button>
           </div>
-          <OpenRecordingsButton
+          <IconButton
             onClick={openRecordingsFolder}
-            label={t("settings.history.openFolder")}
-          />
-        </div>
-        <div className="bg-background border border-mid-gray/20 rounded-lg overflow-visible">
-          {content}
+            title={t("settings.history.openFolder")}
+          >
+            <FolderOpen width={16} height={16} />
+          </IconButton>
         </div>
       </div>
+
+      {/* Búsqueda: la pantalla es un historial de ideas; se busca por texto. */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mid-gray pointer-events-none" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={t("settings.history.searchPlaceholder")}
+          className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-mid-gray/50 rounded-lg shadow-[inset_0_1px_3px_rgba(27,20,38,0.06)] focus:outline-none focus:ring-1 focus:ring-logo-primary placeholder:text-mid-gray/70"
+        />
+      </div>
+
+      {content}
     </div>
   );
 };
@@ -315,8 +407,10 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
   const { t, i18n } = useTranslation();
   const [showCopied, setShowCopied] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const hasTranscription = entry.transcription_text.trim().length > 0;
+  const isLong = entry.transcription_text.length > PREVIEW_CHAR_LIMIT;
 
   const handleLoadAudio = useCallback(
     () => getAudioUrl(entry.file_name),
@@ -354,77 +448,65 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
     }
   };
 
-  const formattedDate = formatDateTime(String(entry.timestamp), i18n.language);
+  const timeLabel = new Intl.DateTimeFormat(i18n.language, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(entry.timestamp * 1000));
 
   return (
-    <div className="px-4 py-2 pb-5 flex flex-col gap-3">
-      <div className="flex justify-between items-center">
-        <p className="text-sm font-medium">{formattedDate}</p>
-        <div className="flex items-center">
-          <IconButton
-            onClick={handleCopyText}
-            disabled={!hasTranscription || retrying}
-            title={t("settings.history.copyToClipboard")}
-          >
-            {showCopied ? (
-              <Check width={16} height={16} />
-            ) : (
-              <Copy width={16} height={16} />
-            )}
-          </IconButton>
-          <IconButton
-            onClick={onToggleSaved}
-            disabled={retrying}
-            active={entry.saved}
-            title={
-              entry.saved
-                ? t("settings.history.unsave")
-                : t("settings.history.save")
-            }
-          >
-            <Star
-              width={16}
-              height={16}
-              fill={entry.saved ? "currentColor" : "none"}
-            />
-          </IconButton>
-          <IconButton
-            onClick={() => handleRetranscribe(null)}
-            disabled={retrying}
-            title={t("settings.history.retranscribe")}
-          >
-            <RotateCcw
-              width={16}
-              height={16}
-              style={
-                retrying
-                  ? { animation: "spin 1s linear infinite reverse" }
-                  : undefined
-              }
-            />
-          </IconButton>
-          <RetranscribeMenu
-            onRetranscribe={(modelId) => handleRetranscribe(modelId)}
-            disabled={retrying}
+    <div className="group relative rounded-xl border border-mid-gray/10 bg-background px-4 py-3 shadow-[0_1px_2px_rgba(27,20,38,0.03)] transition-all duration-150 hover:-translate-y-0.5 hover:border-logo-primary/30 hover:shadow-[0_10px_24px_-14px_rgba(27,20,38,0.25)]">
+      {/* Acciones: aparecen al pasar el cursor (o con teclado), como toolbar flotante */}
+      <div className="pointer-events-none absolute right-2.5 top-2 z-10 flex items-center gap-0.5 rounded-lg border border-mid-gray/15 bg-background/95 px-1 py-0.5 opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
+        <IconButton
+          onClick={handleCopyText}
+          disabled={!hasTranscription || retrying}
+          title={t("settings.history.copyToClipboard")}
+        >
+          {showCopied ? (
+            <Check width={15} height={15} />
+          ) : (
+            <Copy width={15} height={15} />
+          )}
+        </IconButton>
+        <IconButton
+          onClick={onToggleSaved}
+          disabled={retrying}
+          active={entry.saved}
+          title={
+            entry.saved
+              ? t("settings.history.unsave")
+              : t("settings.history.save")
+          }
+        >
+          <Star
+            width={15}
+            height={15}
+            fill={entry.saved ? "currentColor" : "none"}
           />
-          <IconButton
-            onClick={handleDeleteEntry}
-            disabled={retrying}
-            title={t("settings.history.delete")}
-          >
-            <Trash2 width={16} height={16} />
-          </IconButton>
-        </div>
+        </IconButton>
+        <RetranscribeMenu
+          onRetranscribe={(modelId) => handleRetranscribe(modelId)}
+          disabled={retrying}
+          label={t("settings.history.retranscribe")}
+        />
+        <IconButton
+          onClick={handleDeleteEntry}
+          disabled={retrying}
+          title={t("settings.history.delete")}
+        >
+          <Trash2 width={15} height={15} />
+        </IconButton>
       </div>
 
+      {/* El texto es el protagonista: primera línea de la tarjeta. */}
       <p
-        className={`italic text-sm pb-2 ${
+        className={`text-[15px] leading-relaxed ${
           retrying
             ? ""
             : hasTranscription
-              ? "text-text/90 select-text cursor-text whitespace-pre-wrap break-words"
+              ? "text-text select-text cursor-text whitespace-pre-wrap wrap-break-word"
               : "text-text/40"
-        }`}
+        } ${!expanded && isLong ? "line-clamp-3" : ""}`}
         style={
           retrying
             ? { animation: "transcribe-pulse 3s ease-in-out infinite" }
@@ -445,8 +527,36 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
             ? entry.transcription_text
             : t("settings.history.transcriptionFailed")}
       </p>
+      {isLong && !retrying && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 text-xs font-medium text-logo-primary hover:underline"
+        >
+          {expanded
+            ? t("settings.history.showLess")
+            : t("settings.history.showMore")}
+        </button>
+      )}
 
-      <AudioPlayer onLoadRequest={handleLoadAudio} className="w-full" />
+      {/* Metadatos: hora + tiempo relativo + audio de respaldo, en una línea. */}
+      <div className="mt-2 flex items-center gap-2 text-xs text-mid-gray">
+        {entry.saved && (
+          <Star
+            width={12}
+            height={12}
+            className="shrink-0 text-logo-primary"
+            fill="currentColor"
+          />
+        )}
+        <span>{relativeTime(entry.timestamp, i18n.language)}</span>
+        <span aria-hidden="true">·</span>
+        <span className="tabular-nums">{timeLabel}</span>
+        <AudioPlayer
+          onLoadRequest={handleLoadAudio}
+          compact
+          className="ms-auto w-44 max-w-[45%]"
+        />
+      </div>
     </div>
   );
 };

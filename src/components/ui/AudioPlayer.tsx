@@ -8,6 +8,9 @@ interface AudioPlayerProps {
   onLoadRequest?: () => Promise<string | null>;
   className?: string;
   autoPlay?: boolean;
+  /** Estilo Voice Memos: ▶ + barra + duración (sin tiempo actual). El audio es
+      un metadato de respaldo, no el protagonista. */
+  compact?: boolean;
 }
 
 export const AudioPlayer: React.FC<AudioPlayerProps> = ({
@@ -15,6 +18,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   onLoadRequest,
   className = "",
   autoPlay = false,
+  compact = false,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -228,7 +232,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const progressPercent = getProgressPercent();
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div
+      className={`flex items-center ${compact ? "gap-2" : "gap-3"} ${className}`}
+    >
       <audio ref={audioRef} src={src ?? undefined} preload="metadata" />
 
       <button
@@ -238,16 +244,26 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         aria-label={isPlaying ? "Pause" : "Play"}
       >
         {isPlaying ? (
-          <Pause width={20} height={20} fill="currentColor" />
+          <Pause
+            width={compact ? 15 : 20}
+            height={compact ? 15 : 20}
+            fill="currentColor"
+          />
         ) : (
-          <Play width={20} height={20} fill="currentColor" />
+          <Play
+            width={compact ? 15 : 20}
+            height={compact ? 15 : 20}
+            fill="currentColor"
+          />
         )}
       </button>
 
       <div className="flex-1 flex items-center gap-2">
-        <span className="text-xs text-text/60 min-w-[30px] tabular-nums">
-          {formatTime(currentTime)}
-        </span>
+        {!compact && (
+          <span className="text-xs text-text/60 min-w-[30px] tabular-nums">
+            {formatTime(currentTime)}
+          </span>
+        )}
 
         <input
           type="range"

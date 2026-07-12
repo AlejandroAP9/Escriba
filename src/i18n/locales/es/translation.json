@@ -506,7 +506,15 @@
       "retranscribe": "Re-transcribir",
       "retranscribeError": "No se pudo re-transcribir. Por favor, inténtalo de nuevo.",
       "transcribing": "Transcribiendo...",
-      "transcriptionFailed": "La transcripción falló. Puedes re-transcribir usando el ícono de reintentar."
+      "transcriptionFailed": "La transcripción falló. Puedes re-transcribir usando el ícono de reintentar.",
+      "searchPlaceholder": "Buscar dictados…",
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "filterAll": "Todos",
+      "filterSaved": "Favoritos",
+      "showMore": "Ver más",
+      "showLess": "Ver menos",
+      "noResults": "Ningún dictado coincide con tu búsqueda."
     },
     "debug": {
       "title": "Depuración",
