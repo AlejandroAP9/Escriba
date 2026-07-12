@@ -225,6 +225,18 @@
         "local": "100% local",
         "noCloud": "No cloud",
         "free": "Free"
+      },
+      "contextTitle": "General settings",
+      "contextSubtitle": "Tune how Escriba listens, transcribes and pastes your text.",
+      "activeModel": "Active model",
+      "dictationTitle": "Dictation",
+      "audioTitle": "Audio",
+      "advancedTitle": "Advanced",
+      "flow": {
+        "speak": "You speak",
+        "whisper": "Whisper",
+        "text": "Text",
+        "anywhere": "Anywhere"
       }
     },
     "sound": {
@@ -693,6 +705,9 @@
         "label": "إعادة الفحص",
         "tooltip": "إعادة الفحص بحثًا عن النماذج المضافة إلى مجلد النماذج أو ذاكرة Hugging Face التخزينية المؤقتة خارج Escriba"
       }
+    },
+    "transcription": {
+      "title": "Transcription"
     }
   },
   "footer": {

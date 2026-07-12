@@ -246,6 +246,18 @@
         "local": "100% local",
         "noCloud": "Sin nube",
         "free": "Gratis"
+      },
+      "contextTitle": "Configuración general",
+      "contextSubtitle": "Ajusta cómo Escriba escucha, transcribe y pega tu texto.",
+      "activeModel": "Modelo activo",
+      "dictationTitle": "Dictado",
+      "audioTitle": "Audio",
+      "advancedTitle": "Avanzado",
+      "flow": {
+        "speak": "Hablas",
+        "whisper": "Whisper",
+        "text": "Texto",
+        "anywhere": "Donde estés"
       }
     },
     "sound": {
@@ -693,6 +705,9 @@
         "openSource": "Código abierto",
         "mit": "Licencia MIT"
       }
+    },
+    "transcription": {
+      "title": "Transcripción"
     }
   },
   "footer": {

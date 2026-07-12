@@ -228,6 +228,18 @@
         "local": "100% local",
         "noCloud": "No cloud",
         "free": "Free"
+      },
+      "contextTitle": "General settings",
+      "contextSubtitle": "Tune how Escriba listens, transcribes and pastes your text.",
+      "activeModel": "Active model",
+      "dictationTitle": "Dictation",
+      "audioTitle": "Audio",
+      "advancedTitle": "Advanced",
+      "flow": {
+        "speak": "You speak",
+        "whisper": "Whisper",
+        "text": "Text",
+        "anywhere": "Anywhere"
       }
     },
     "models": {
@@ -693,6 +705,9 @@
         "openSource": "Open Source",
         "mit": "MIT License"
       }
+    },
+    "transcription": {
+      "title": "Transcription"
     }
   },
   "footer": {
