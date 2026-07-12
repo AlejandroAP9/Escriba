@@ -298,7 +298,10 @@
         "output": "輸出",
         "transcription": "轉錄",
         "history": "歷史",
-        "experimental": "實驗性"
+        "experimental": "實驗性",
+        "startup": "Startup",
+        "interface": "Interface",
+        "performance": "Performance"
       },
       "experimentalToggle": {
         "label": "實驗性功能",
@@ -335,7 +338,7 @@
       },
       "overlay": {
         "style": {
-          "title": "Overlay",
+          "title": "Floating indicator",
           "description": "Choose the recording overlay: None hides it, Minimal shows a compact pill, Live shows transcription in real time as you speak (streaming-capable models only — look for the Streaming badge in the model picker). On Linux 'None' is recommended.",
           "options": {
             "none": "無",
@@ -396,7 +399,7 @@
         "description": "在轉錄過程中自動將其他語言的語音翻譯為英語"
       },
       "modelUnload": {
-        "title": "卸載模型",
+        "title": "Release model from memory",
         "description": "當模型在指定時間內未使用時自動釋放 GPU/CPU 記憶體",
         "options": {
           "never": "從不",
@@ -429,7 +432,37 @@
         "regex": "Regular expression",
         "add": "Add rule",
         "remove": "Remove rule"
-      }
+      },
+      "hero": {
+        "badge": "ADVANCED MODE",
+        "title": "Advanced",
+        "subtitle": "Control Escriba’s internal behavior, performance and experimental features.",
+        "warning": "Only change these options if you know what they do."
+      },
+      "status": {
+        "title": "System status",
+        "model": "Model",
+        "mcp": "MCP server",
+        "overlay": "Floating indicator",
+        "autostart": "Start on login",
+        "experimental": "Experimental",
+        "active": "Active",
+        "inactive": "Inactive",
+        "running": "Running",
+        "stopped": "Stopped",
+        "yes": "Yes",
+        "no": "No",
+        "on": "On",
+        "off": "Off"
+      },
+      "tools": {
+        "title": "Tools",
+        "version": "Version",
+        "logsFolder": "Logs folder",
+        "dataFolder": "Data folder",
+        "open": "Open"
+      },
+      "experimentalWarning": "Enables tools still in development. They may contain bugs or change between versions."
     },
     "postProcessing": {
       "hotkey": {

@@ -298,7 +298,10 @@
         "output": "出力",
         "transcription": "文字起こし",
         "history": "履歴",
-        "experimental": "実験的"
+        "experimental": "実験的",
+        "startup": "Startup",
+        "interface": "Interface",
+        "performance": "Performance"
       },
       "experimentalToggle": {
         "label": "実験的な機能",
@@ -335,7 +338,7 @@
       },
       "overlay": {
         "style": {
-          "title": "オーバーレイ",
+          "title": "Floating indicator",
           "description": "録音中のオーバーレイを選択します。「なし」は非表示、「ミニマル」はコンパクトなカプセル型表示、「ライブ」はリアルタイムで文字起こしを表示します(ストリーミング対応モデルのみ。モデル選択画面の「ストリーミング」表示を確認してください)。Linux では「なし」を推奨します。",
           "options": {
             "none": "なし",
@@ -396,7 +399,7 @@
         "description": "文字起こし中に他の言語から英語に自動的に翻訳。"
       },
       "modelUnload": {
-        "title": "モデルのアンロード",
+        "title": "Release model from memory",
         "description": "指定時間モデルが使用されていない場合、GPU/CPU メモリを自動的に解放",
         "options": {
           "never": "しない",
@@ -429,7 +432,37 @@
         "regex": "Regular expression",
         "add": "Add rule",
         "remove": "Remove rule"
-      }
+      },
+      "hero": {
+        "badge": "ADVANCED MODE",
+        "title": "Advanced",
+        "subtitle": "Control Escriba’s internal behavior, performance and experimental features.",
+        "warning": "Only change these options if you know what they do."
+      },
+      "status": {
+        "title": "System status",
+        "model": "Model",
+        "mcp": "MCP server",
+        "overlay": "Floating indicator",
+        "autostart": "Start on login",
+        "experimental": "Experimental",
+        "active": "Active",
+        "inactive": "Inactive",
+        "running": "Running",
+        "stopped": "Stopped",
+        "yes": "Yes",
+        "no": "No",
+        "on": "On",
+        "off": "Off"
+      },
+      "tools": {
+        "title": "Tools",
+        "version": "Version",
+        "logsFolder": "Logs folder",
+        "dataFolder": "Data folder",
+        "open": "Open"
+      },
+      "experimentalWarning": "Enables tools still in development. They may contain bugs or change between versions."
     },
     "postProcessing": {
       "hotkey": {

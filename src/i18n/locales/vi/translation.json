@@ -298,7 +298,10 @@
         "output": "Đầu ra",
         "transcription": "Chuyển đổi",
         "history": "Lịch sử",
-        "experimental": "Thử nghiệm"
+        "experimental": "Thử nghiệm",
+        "startup": "Startup",
+        "interface": "Interface",
+        "performance": "Performance"
       },
       "experimentalToggle": {
         "label": "Tính năng thử nghiệm",
@@ -335,7 +338,7 @@
       },
       "overlay": {
         "style": {
-          "title": "Overlay",
+          "title": "Floating indicator",
           "description": "Choose the recording overlay: None hides it, Minimal shows a compact pill, Live shows transcription in real time as you speak (streaming-capable models only — look for the Streaming badge in the model picker). On Linux 'None' is recommended.",
           "options": {
             "none": "Không có",
@@ -396,7 +399,7 @@
         "description": "Tự động dịch giọng nói từ các ngôn ngữ khác sang tiếng Anh trong quá trình chuyển đổi."
       },
       "modelUnload": {
-        "title": "Giải phóng mô hình",
+        "title": "Release model from memory",
         "description": "Tự động giải phóng bộ nhớ GPU/CPU khi mô hình không được sử dụng trong thời gian quy định",
         "options": {
           "never": "Không bao giờ",
@@ -429,7 +432,37 @@
         "regex": "Regular expression",
         "add": "Add rule",
         "remove": "Remove rule"
-      }
+      },
+      "hero": {
+        "badge": "ADVANCED MODE",
+        "title": "Advanced",
+        "subtitle": "Control Escriba’s internal behavior, performance and experimental features.",
+        "warning": "Only change these options if you know what they do."
+      },
+      "status": {
+        "title": "System status",
+        "model": "Model",
+        "mcp": "MCP server",
+        "overlay": "Floating indicator",
+        "autostart": "Start on login",
+        "experimental": "Experimental",
+        "active": "Active",
+        "inactive": "Inactive",
+        "running": "Running",
+        "stopped": "Stopped",
+        "yes": "Yes",
+        "no": "No",
+        "on": "On",
+        "off": "Off"
+      },
+      "tools": {
+        "title": "Tools",
+        "version": "Version",
+        "logsFolder": "Logs folder",
+        "dataFolder": "Data folder",
+        "open": "Open"
+      },
+      "experimentalWarning": "Enables tools still in development. They may contain bugs or change between versions."
     },
     "postProcessing": {
       "hotkey": {

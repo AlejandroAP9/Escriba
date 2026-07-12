@@ -298,7 +298,10 @@
         "output": "Salida",
         "transcription": "Transcripción",
         "history": "Historial",
-        "experimental": "Experimental"
+        "experimental": "Experimental",
+        "startup": "Inicio",
+        "interface": "Interfaz",
+        "performance": "Rendimiento"
       },
       "experimentalToggle": {
         "label": "Funciones Experimentales",
@@ -335,7 +338,7 @@
       },
       "overlay": {
         "style": {
-          "title": "Overlay",
+          "title": "Indicador flotante",
           "description": "Choose the recording overlay: None hides it, Minimal shows a compact pill, Live shows transcription in real time as you speak (streaming-capable models only — look for the Streaming badge in the model picker). On Linux 'None' is recommended.",
           "options": {
             "none": "Ninguna",
@@ -396,7 +399,7 @@
         "description": "Traducir automáticamente el habla de otros idiomas al inglés durante la transcripción."
       },
       "modelUnload": {
-        "title": "Descargar Modelo",
+        "title": "Liberar modelo de memoria",
         "description": "Liberar automáticamente la memoria GPU/CPU cuando el modelo no se ha usado durante el tiempo especificado",
         "options": {
           "never": "Nunca",
@@ -429,7 +432,37 @@
         "regex": "Expresión regular",
         "add": "Agregar regla",
         "remove": "Quitar regla"
-      }
+      },
+      "hero": {
+        "badge": "MODO AVANZADO",
+        "title": "Avanzado",
+        "subtitle": "Controla el comportamiento interno de Escriba, el rendimiento y las funciones experimentales.",
+        "warning": "Modifica estas opciones solo si sabes lo que hacen."
+      },
+      "status": {
+        "title": "Estado del sistema",
+        "model": "Modelo",
+        "mcp": "Servidor MCP",
+        "overlay": "Indicador flotante",
+        "autostart": "Inicio automático",
+        "experimental": "Experimental",
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "running": "Activo",
+        "stopped": "Detenido",
+        "yes": "Sí",
+        "no": "No",
+        "on": "Activas",
+        "off": "Inactivas"
+      },
+      "tools": {
+        "title": "Herramientas",
+        "version": "Versión",
+        "logsFolder": "Carpeta de logs",
+        "dataFolder": "Carpeta de datos",
+        "open": "Abrir"
+      },
+      "experimentalWarning": "Activa herramientas aún en desarrollo. Pueden contener errores o cambiar entre versiones."
     },
     "postProcessing": {
       "hotkey": {
