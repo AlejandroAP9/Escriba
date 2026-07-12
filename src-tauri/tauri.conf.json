@@ -40,7 +40,7 @@
       "files": {},
       "hardenedRuntime": true,
       "minimumSystemVersion": "10.15",
-      "signingIdentity": "EducMark Presenter Self-Signed",
+      "signingIdentity": "Escriba Self-Signed",
       "entitlements": "Entitlements.plist"
     },
     "linux": {
