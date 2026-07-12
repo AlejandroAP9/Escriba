@@ -115,6 +115,19 @@ async studioExport(id: number, format: string) : Promise<Result<string, string>>
 }
 },
 /**
+ * Exporta un job y lo ESCRIBE en la ruta que el usuario eligió con el diálogo
+ * nativo. La escritura ocurre en el backend (std::fs), no en el webview, para
+ * que la app no necesite permisos de escritura al home en la capa de la UI.
+ */
+async studioExportTo(id: number, format: string, dest: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("studio_export_to", { id, format, dest }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Resume la transcripción con el motor de IA local (misma cascada del phraser).
  */
 async studioSummarize(id: number) : Promise<Result<string, string>> {

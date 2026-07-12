@@ -4,13 +4,37 @@
 //! "streamable"), escuchando SOLO en 127.0.0.1. 100% local: ni el audio ni el
 //! texto salen del equipo. Reusa el patrón del servidor axum del Intérprete.
 
-use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::post, Json, Router};
+use axum::{
+    extract::{Path, State},
+    http::{HeaderMap, StatusCode},
+    middleware::{self, Next},
+    response::IntoResponse,
+    routing::post,
+    Json, Router,
+};
 use log::{info, warn};
 use serde_json::{json, Value};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use tauri::{AppHandle, Manager};
+
+/// Genera un token hex aleatorio (CSPRNG) para autenticar el servidor local.
+/// El token va embebido en la URL que el usuario copia al agente, así que un
+/// proceso local cualquiera no puede adivinar el endpoint ni leer el historial.
+fn random_token() -> String {
+    let mut bytes = [0u8; 24];
+    // getrandom nunca debería fallar en desktop; si lo hace, mezclamos el reloj
+    // como último recurso para no dejar el servidor sin token.
+    if getrandom::getrandom(&mut bytes).is_err() {
+        let n = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        bytes[..16].copy_from_slice(&n.to_le_bytes());
+    }
+    bytes.iter().map(|b| format!("{:02x}", b)).collect()
+}
 
 const PROTOCOL_VERSION: &str = "2025-06-18";
 
@@ -21,6 +45,8 @@ const PREFERRED_PORT: u16 = 5151;
 
 pub struct McpServer {
     port: AtomicU16,
+    /// Token de acceso regenerado en cada `start()`. Va en la ruta (`/mcp/{token}`).
+    token: Mutex<Option<String>>,
     shutdown: Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
     app: Mutex<Option<AppHandle>>,
 }
@@ -30,6 +56,7 @@ static SERVER: OnceLock<McpServer> = OnceLock::new();
 pub fn global() -> &'static McpServer {
     SERVER.get_or_init(|| McpServer {
         port: AtomicU16::new(0),
+        token: Mutex::new(None),
         shutdown: Mutex::new(None),
         app: Mutex::new(None),
     })
@@ -55,14 +82,22 @@ impl McpServer {
             return None;
         }
         let port = self.port();
+        let token = self.token.lock().ok().and_then(|t| t.clone())?;
         Some(McpInfo {
             port,
-            url: format!("http://127.0.0.1:{}/mcp", port),
+            url: format!("http://127.0.0.1:{}/mcp/{}", port, token),
         })
     }
 
     fn app(&self) -> Option<AppHandle> {
         self.app.lock().ok().and_then(|a| a.clone())
+    }
+
+    fn token_matches(&self, given: &str) -> bool {
+        self.token
+            .lock()
+            .map(|t| t.as_deref() == Some(given))
+            .unwrap_or(false)
     }
 
     /// Levanta el servidor MCP en 127.0.0.1 (solo local). Idempotente.
@@ -81,15 +116,20 @@ impl McpServer {
         };
         let port = listener.local_addr().map_err(|e| e.to_string())?.port();
 
+        // Token de acceso nuevo en cada arranque: sin él, 401.
+        let token = random_token();
+        *self.token.lock().unwrap() = Some(token.clone());
+
         let router = Router::new()
-            .route("/mcp", post(mcp_handler))
+            .route("/mcp/:token", post(mcp_handler))
+            .layer(middleware::from_fn(guard_local_only))
             .with_state(self);
 
         let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
         self.port.store(port, Ordering::Relaxed);
         *self.shutdown.lock().unwrap() = Some(stop_tx);
 
-        info!("MCP server live at http://127.0.0.1:{}/mcp", port);
+        info!("MCP server live at http://127.0.0.1:{}/mcp/<token>", port);
         tauri::async_runtime::spawn(async move {
             let server = axum::serve(listener, router).with_graceful_shutdown(async {
                 let _ = stop_rx.await;
@@ -102,7 +142,7 @@ impl McpServer {
 
         Ok(McpInfo {
             port,
-            url: format!("http://127.0.0.1:{}/mcp", port),
+            url: format!("http://127.0.0.1:{}/mcp/{}", port, token),
         })
     }
 
@@ -111,7 +151,38 @@ impl McpServer {
             let _ = tx.send(());
         }
         self.port.store(0, Ordering::Relaxed);
+        *self.token.lock().unwrap() = None;
     }
+}
+
+/// Middleware anti DNS-rebinding: solo acepta requests cuyo `Host` sea loopback
+/// y cuyo `Origin` (si viene) sea `null`/loopback. Un sitio web malicioso que
+/// re-bindee su dominio a 127.0.0.1 mandaría un Origin/Host de su dominio → 403.
+async fn guard_local_only(
+    headers: HeaderMap,
+    req: axum::extract::Request,
+    next: Next,
+) -> axum::response::Response {
+    fn host_is_loopback(h: &str) -> bool {
+        let host = h.rsplit_once(':').map(|(h, _)| h).unwrap_or(h);
+        host == "127.0.0.1" || host == "localhost" || host == "[::1]" || host == "::1"
+    }
+    if let Some(host) = headers.get("host").and_then(|v| v.to_str().ok()) {
+        if !host_is_loopback(host) {
+            return StatusCode::FORBIDDEN.into_response();
+        }
+    }
+    if let Some(origin) = headers.get("origin").and_then(|v| v.to_str().ok()) {
+        let ok = origin == "null"
+            || origin
+                .rsplit_once("//")
+                .map(|(_, hostport)| host_is_loopback(hostport))
+                .unwrap_or(false);
+        if !ok {
+            return StatusCode::FORBIDDEN.into_response();
+        }
+    }
+    next.run(req).await
 }
 
 /// Definición de las tools MCP que Escriba expone a los agentes.
@@ -185,10 +256,15 @@ fn tool_definitions() -> Value {
 }
 
 /// Punto de entrada JSON-RPC 2.0. Un mensaje por request (modo sin estado).
+/// El token de la ruta autentica al cliente: sin él (o incorrecto), 401.
 async fn mcp_handler(
     State(server): State<&'static McpServer>,
+    Path(token): Path<String>,
     Json(req): Json<Value>,
 ) -> impl IntoResponse {
+    if !server.token_matches(&token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
     let method = req.get("method").and_then(|m| m.as_str()).unwrap_or("");
     let id = req.get("id").cloned();
 
@@ -298,14 +374,38 @@ async fn call_tool(
 }
 
 /// Decodifica y transcribe un archivo local, reusando el pipeline del Estudio.
+/// El path se restringe al home del usuario y al app-data dir (canonicalizado):
+/// así el tool no lee archivos del sistema ni de otros usuarios, y un único
+/// mensaje de error genérico evita usarlo como oráculo de existencia.
 async fn transcribe_file(app: &AppHandle, path: String) -> Result<String, String> {
+    // Mensaje único para "no existe", "formato no soportado" y "fuera de límites":
+    // el que llama no puede distinguir qué archivos existen en el disco.
+    const GENERIC_ERR: &str =
+        "No se pudo transcribir: archivo no accesible o formato no soportado.";
     let path_buf = PathBuf::from(&path);
+
     if !crate::studio::decode::supported_extension(&path_buf) {
-        return Err("Formato de archivo no soportado".to_string());
+        return Err(GENERIC_ERR.to_string());
     }
-    if !path_buf.exists() {
-        return Err(format!("El archivo no existe: {}", path));
+    let canonical = std::fs::canonicalize(&path_buf).map_err(|_| GENERIC_ERR.to_string())?;
+
+    // Raíces consentidas: home del usuario + app-data dir.
+    let mut roots: Vec<PathBuf> = Vec::new();
+    if let Ok(home) = app.path().home_dir() {
+        if let Ok(home) = std::fs::canonicalize(home) {
+            roots.push(home);
+        }
     }
+    if let Ok(data) = crate::portable::app_data_dir(app) {
+        if let Ok(data) = std::fs::canonicalize(data) {
+            roots.push(data);
+        }
+    }
+    if !roots.iter().any(|r| canonical.starts_with(r)) {
+        return Err(GENERIC_ERR.to_string());
+    }
+    let path_buf = canonical;
+
     let tm = app
         .state::<Arc<crate::managers::transcription::TranscriptionManager>>()
         .inner()

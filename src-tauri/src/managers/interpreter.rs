@@ -4,7 +4,7 @@
 //! sin audio todavía). 100% local: el servidor solo escucha con sala activa.
 
 use axum::{
-    extract::{Query, State},
+    extract::{ConnectInfo, Query, State},
     http::StatusCode,
     response::sse::{Event, KeepAlive, Sse},
     response::{Html, IntoResponse},
@@ -13,13 +13,44 @@ use axum::{
 };
 use log::{info, warn};
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::convert::Infallible;
+use std::net::{IpAddr, SocketAddr};
 use std::sync::atomic::{AtomicU16, AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};
+use std::time::{Duration, Instant};
 use tokio::sync::broadcast;
 use tokio_stream::StreamExt;
 
 const VISITOR_HTML: &str = include_str!("../../interpreter/visitor.html");
+
+/// Rate-limit del acceso a la sala: máx. intentos fallidos por IP antes de 429.
+const MAX_FAILED_ATTEMPTS: u32 = 10;
+/// Ventana de bloqueo tras superar el tope.
+const LOCKOUT: Duration = Duration::from_secs(30);
+
+/// Token hex aleatorio (CSPRNG) que va en la URL del QR. Sin él, el código de
+/// 4 dígitos no basta para entrar: mata el brute-force de 10.000 combinaciones.
+fn random_token() -> String {
+    let mut bytes = [0u8; 16];
+    if getrandom::getrandom(&mut bytes).is_err() {
+        let n = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        bytes.copy_from_slice(&n.to_le_bytes());
+    }
+    bytes.iter().map(|b| format!("{:02x}", b)).collect()
+}
+
+/// Código de 4 dígitos para mostrar al humano, ahora desde un CSPRNG (antes se
+/// derivaba del reloj, lo que lo hacía predecible).
+fn random_code() -> String {
+    let mut bytes = [0u8; 4];
+    let _ = getrandom::getrandom(&mut bytes);
+    let n = u32::from_le_bytes(bytes);
+    format!("{:04}", n % 10_000)
+}
 
 /// Una línea publicada por el guía. En Fase 1 es el texto de prueba; en fases
 /// siguientes traerá el texto origen y luego las traducciones por idioma.
@@ -35,6 +66,10 @@ pub struct InterpreterLine {
 pub struct InterpreterServer {
     tx: broadcast::Sender<InterpreterLine>,
     room_code: Mutex<Option<String>>,
+    /// Token de la sala (va en la URL del QR). El acceso exige código + token.
+    room_token: Mutex<Option<String>>,
+    /// Intentos fallidos por IP para el rate-limit del brute-force.
+    failed: Mutex<HashMap<IpAddr, (u32, Instant)>>,
     port: AtomicU16,
     listeners: AtomicU32,
     seq: std::sync::atomic::AtomicU64,
@@ -53,6 +88,8 @@ pub fn global() -> &'static InterpreterServer {
         InterpreterServer {
             tx,
             room_code: Mutex::new(None),
+            room_token: Mutex::new(None),
+            failed: Mutex::new(HashMap::new()),
             port: AtomicU16::new(0),
             listeners: AtomicU32::new(0),
             seq: std::sync::atomic::AtomicU64::new(0),
@@ -136,7 +173,8 @@ impl InterpreterServer {
             return Ok(existing);
         }
 
-        let code = pseudo_room_code();
+        let code = random_code();
+        let token = random_token();
         let listener = tokio::net::TcpListener::bind("0.0.0.0:0")
             .await
             .map_err(|e| format!("No se pudo abrir el servidor local: {}", e))?;
@@ -144,7 +182,7 @@ impl InterpreterServer {
 
         let ip = local_ip_address::local_ip()
             .map_err(|e| format!("No se pudo detectar la IP de la red: {}", e))?;
-        let url = format!("http://{}:{}/?room={}", ip, port, code);
+        let url = format!("http://{}:{}/?room={}&t={}", ip, port, code, token);
 
         let app = Router::new()
             .route("/", get(visitor_page))
@@ -154,14 +192,18 @@ impl InterpreterServer {
 
         let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
         *self.room_code.lock().unwrap() = Some(code.clone());
+        *self.room_token.lock().unwrap() = Some(token.clone());
+        self.failed.lock().unwrap().clear();
         self.port.store(port, Ordering::Relaxed);
         self.listeners.store(0, Ordering::Relaxed);
         self.active_langs.lock().unwrap().clear();
         *self.shutdown.lock().unwrap() = Some(stop_tx);
 
-        info!("Interpreter room {} live at {}", code, url);
+        // Log sin el token (secreto): solo el código de display.
+        info!("Interpreter room {} live on port {}", code, port);
         tauri::async_runtime::spawn(async move {
-            let server = axum::serve(listener, app).with_graceful_shutdown(async {
+            let make = app.into_make_service_with_connect_info::<SocketAddr>();
+            let server = axum::serve(listener, make).with_graceful_shutdown(async {
                 let _ = stop_rx.await;
             });
             if let Err(e) = server.await {
@@ -186,15 +228,18 @@ impl InterpreterServer {
             let _ = tx.send(());
         }
         *self.room_code.lock().unwrap() = None;
+        *self.room_token.lock().unwrap() = None;
+        self.failed.lock().unwrap().clear();
         self.listeners.store(0, Ordering::Relaxed);
         self.active_langs.lock().unwrap().clear();
     }
 
     fn current_room(&self) -> Option<RoomInfo> {
         let code = self.room_code.lock().unwrap().clone()?;
+        let token = self.room_token.lock().unwrap().clone()?;
         let port = self.port.load(Ordering::Relaxed);
         let ip = local_ip_address::local_ip().ok()?;
-        let url = format!("http://{}:{}/?room={}", ip, port, code);
+        let url = format!("http://{}:{}/?room={}&t={}", ip, port, code, token);
         let qr_svg = qr_svg(&url);
         Some(RoomInfo {
             code,
@@ -204,17 +249,65 @@ impl InterpreterServer {
         })
     }
 
-    fn code_matches(&self, given: &str) -> bool {
-        self.room_code
+    /// Valida código + token de la sala. Ambos deben coincidir para entrar.
+    fn access_ok(&self, code: &str, token: &str) -> bool {
+        let code_ok = self
+            .room_code
             .lock()
-            .map(|c| c.as_deref() == Some(given))
+            .map(|c| c.as_deref() == Some(code))
+            .unwrap_or(false);
+        let token_ok = self
+            .room_token
+            .lock()
+            .map(|t| t.as_deref() == Some(token))
+            .unwrap_or(false);
+        code_ok && token_ok
+    }
+
+    /// Rate-limit por IP: true si la IP está bloqueada (superó el tope dentro
+    /// de la ventana). Limpia entradas expiradas de paso.
+    fn is_locked(&self, ip: IpAddr) -> bool {
+        let now = Instant::now();
+        let mut map = match self.failed.lock() {
+            Ok(m) => m,
+            Err(_) => return false,
+        };
+        map.retain(|_, (_, when)| now.duration_since(*when) < LOCKOUT);
+        map.get(&ip)
+            .map(|(count, when)| {
+                *count >= MAX_FAILED_ATTEMPTS && now.duration_since(*when) < LOCKOUT
+            })
             .unwrap_or(false)
+    }
+
+    /// Registra un intento fallido de acceso desde esta IP.
+    fn record_failure(&self, ip: IpAddr) {
+        let now = Instant::now();
+        if let Ok(mut map) = self.failed.lock() {
+            let entry = map.entry(ip).or_insert((0, now));
+            // Reinicia la ventana si el último fallo ya expiró.
+            if now.duration_since(entry.1) >= LOCKOUT {
+                *entry = (0, now);
+            }
+            entry.0 += 1;
+            entry.1 = now;
+        }
+    }
+
+    /// Limpia el historial de fallos de una IP tras un acceso correcto.
+    fn clear_failures(&self, ip: IpAddr) {
+        if let Ok(mut map) = self.failed.lock() {
+            map.remove(&ip);
+        }
     }
 }
 
 #[derive(Deserialize)]
 struct EventsQuery {
     room: String,
+    /// Token secreto de la sala (viene en la URL del QR).
+    #[serde(default)]
+    t: String,
     #[serde(default)]
     lang: String,
 }
@@ -225,13 +318,20 @@ async fn visitor_page() -> Html<&'static str> {
 
 async fn join_handler(
     State(server): State<&'static InterpreterServer>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     Query(q): Query<EventsQuery>,
 ) -> impl IntoResponse {
-    if !server.code_matches(&q.room) {
+    let ip = addr.ip();
+    if server.is_locked(ip) {
+        return (StatusCode::TOO_MANY_REQUESTS, "demasiados intentos").into_response();
+    }
+    if !server.access_ok(&q.room, &q.t) {
+        server.record_failure(ip);
         return (StatusCode::FORBIDDEN, "sala no encontrada").into_response();
     }
+    server.clear_failures(ip);
     // El conteo de oyentes e idiomas lo lleva el stream SSE (con guard que
-    // descuenta al desconectar). /join solo valida el codigo.
+    // descuenta al desconectar). /join solo valida el acceso.
     (StatusCode::OK, "ok").into_response()
 }
 
@@ -279,11 +379,18 @@ impl Drop for ListenerGuard {
 
 async fn sse_handler(
     State(server): State<&'static InterpreterServer>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     Query(q): Query<EventsQuery>,
 ) -> impl IntoResponse {
-    if !server.code_matches(&q.room) {
+    let ip = addr.ip();
+    if server.is_locked(ip) {
+        return (StatusCode::TOO_MANY_REQUESTS, "demasiados intentos").into_response();
+    }
+    if !server.access_ok(&q.room, &q.t) {
+        server.record_failure(ip);
         return (StatusCode::FORBIDDEN, "sala no encontrada").into_response();
     }
+    server.clear_failures(ip);
     let lang = q.lang.clone();
     let guard = ListenerGuard::new(server, lang.clone());
     let rx = server.tx.subscribe();
@@ -319,16 +426,6 @@ async fn sse_handler(
     Sse::new(stream)
         .keep_alive(KeepAlive::default())
         .into_response()
-}
-
-/// Código de sala pseudo-aleatorio sin depender de `rand` (no está en deps):
-/// derivado del nanosegundo del reloj. Suficiente para una sala efímera.
-fn pseudo_room_code() -> String {
-    let nanos = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.subsec_nanos())
-        .unwrap_or(0);
-    format!("{:04}", nanos % 10_000)
 }
 
 fn qr_svg(url: &str) -> String {

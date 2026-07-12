@@ -224,8 +224,10 @@ fn file_sha256(path: &Path) -> Result<String, String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
-/// Extracción sin dependencias nuevas: tar del sistema en macOS/Linux,
-/// PowerShell Expand-Archive en Windows. Ambos preinstalados.
+/// Extracción del runtime: `tar` del sistema (arg-vector, sin shell) en
+/// macOS/Linux; en Windows el `.zip` se descomprime **en proceso** con el crate
+/// `zip` (nada de PowerShell: evita inyección por rutas con comillas/apóstrofos,
+/// p.ej. usuarios como `O'Brien`).
 fn extract_archive(archive: &Path, dest_dir: &Path) -> Result<(), String> {
     #[cfg(unix)]
     {
@@ -242,22 +244,39 @@ fn extract_archive(archive: &Path, dest_dir: &Path) -> Result<(), String> {
     }
     #[cfg(windows)]
     {
-        let status = Command::new("powershell")
-            .args([
-                "-NoProfile",
-                "-Command",
-                &format!(
-                    "Expand-Archive -Path '{}' -DestinationPath '{}' -Force",
-                    archive.display(),
-                    dest_dir.display()
-                ),
-            ])
-            .status()
-            .map_err(|e| format!("No se pudo ejecutar PowerShell: {}", e))?;
-        if !status.success() {
-            return Err("La extracción del runtime falló".to_string());
-        }
+        extract_zip_in_process(archive, dest_dir)?;
     }
     let _ = warn!("Runtime extracted to {}", dest_dir.display());
+    Ok(())
+}
+
+/// Descomprime un `.zip` sin shell. `enclosed_name()` sanea rutas `..`/absolutas
+/// (previene zip-slip); el archivo ya viene verificado por SHA256 antes de aquí.
+#[cfg(windows)]
+fn extract_zip_in_process(archive: &Path, dest_dir: &Path) -> Result<(), String> {
+    let file = std::fs::File::open(archive)
+        .map_err(|e| format!("No se pudo abrir el archivo del runtime: {}", e))?;
+    let mut zip = zip::ZipArchive::new(file)
+        .map_err(|e| format!("El archivo del runtime no es un zip válido: {}", e))?;
+    for i in 0..zip.len() {
+        let mut entry = zip
+            .by_index(i)
+            .map_err(|e| format!("Error leyendo el zip: {}", e))?;
+        let Some(rel) = entry.enclosed_name() else {
+            // Entrada con ruta insegura (`..`/absoluta): la ignoramos.
+            continue;
+        };
+        let out_path = dest_dir.join(rel);
+        if entry.is_dir() {
+            std::fs::create_dir_all(&out_path).map_err(|e| e.to_string())?;
+            continue;
+        }
+        if let Some(parent) = out_path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        let mut out = std::fs::File::create(&out_path)
+            .map_err(|e| format!("No se pudo escribir {}: {}", out_path.display(), e))?;
+        std::io::copy(&mut entry, &mut out).map_err(|e| e.to_string())?;
+    }
     Ok(())
 }

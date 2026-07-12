@@ -619,6 +619,7 @@ pub fn run(cli_args: CliArgs) {
             commands::studio::studio_retranscribe,
             commands::studio::studio_remove_job,
             commands::studio::studio_export,
+            commands::studio::studio_export_to,
             commands::studio::studio_summarize,
             commands::local_llm::get_local_llm_status,
             commands::local_llm::setup_local_llm,

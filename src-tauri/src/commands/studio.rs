@@ -237,6 +237,21 @@ pub fn studio_export(app: AppHandle, id: u64, format: String) -> Result<String, 
     }
 }
 
+/// Exporta un job y lo ESCRIBE en la ruta que el usuario eligió con el diálogo
+/// nativo. La escritura ocurre en el backend (std::fs), no en el webview, para
+/// que la app no necesite permisos de escritura al home en la capa de la UI.
+#[tauri::command]
+#[specta::specta]
+pub fn studio_export_to(
+    app: AppHandle,
+    id: u64,
+    format: String,
+    dest: String,
+) -> Result<(), String> {
+    let content = studio_export(app, id, format)?;
+    std::fs::write(&dest, content).map_err(|e| format!("No se pudo guardar el archivo: {}", e))
+}
+
 /// Resume la transcripción con el motor de IA local (misma cascada del phraser).
 #[tauri::command]
 #[specta::specta]

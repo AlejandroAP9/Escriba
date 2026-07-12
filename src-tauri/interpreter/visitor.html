@@ -186,6 +186,10 @@
       let es = null;
 
       if (qs.get("room")) roomInput.value = qs.get("room");
+      // Token secreto de la sala: viene en la URL del QR. Se reenvía en cada
+      // petición; sin él el servidor responde 403 (el código de 4 dígitos por
+      // sí solo ya no basta para entrar).
+      const roomToken = qs.get("t") || "";
 
       // Mantiene la pantalla despierta: en el telefono el audio del navegador
       // (la traduccion en tu oido) se corta al bloquearse la pantalla. Se
@@ -304,7 +308,9 @@
 
       function connect(room, lang) {
         if (es) es.close();
-        es = new EventSource(`/events?room=${room}&lang=${lang}`);
+        es = new EventSource(
+          `/events?room=${room}&lang=${lang}&t=${encodeURIComponent(roomToken)}`,
+        );
         es.onmessage = (ev) => {
           try {
             const line = JSON.parse(ev.data);
@@ -342,7 +348,9 @@
         const status = document.getElementById("setupStatus");
         status.textContent = "Conectando...";
         try {
-          const r = await fetch(`/join?room=${room}&lang=${lang}`);
+          const r = await fetch(
+            `/join?room=${room}&lang=${lang}&t=${encodeURIComponent(roomToken)}`,
+          );
           if (!r.ok) {
             status.textContent = "Sala no encontrada. Revisa el código.";
             return;

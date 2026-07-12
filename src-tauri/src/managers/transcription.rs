@@ -1502,7 +1502,14 @@ impl TranscriptionManager {
         if final_result.is_empty() {
             info!("Transcription result is empty");
         } else {
-            info!("Transcription result: {}", final_result);
+            // Privacidad: no escribimos el texto dictado en los logs de disco
+            // (se comparten en bug reports). Solo la longitud. El texto completo
+            // queda en `trace!`, que no se persiste ni se streamea al webview.
+            info!(
+                "Transcription result: {} chars",
+                final_result.chars().count()
+            );
+            log::trace!("Transcription result text: {}", final_result);
         }
 
         self.maybe_unload_immediately("transcription");

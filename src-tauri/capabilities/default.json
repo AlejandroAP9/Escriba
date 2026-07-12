@@ -16,8 +16,6 @@
     "global-shortcut:allow-unregister-all",
     "macos-permissions:default",
     "fs:read-files",
-    "fs:allow-write-text-file",
-    "fs:write-files",
     "dialog:allow-save",
     "fs:allow-resource-read-recursive",
     {
@@ -30,16 +28,10 @@
           "path": "$APPDATA/**/*"
         },
         {
-          "path": "$HOME/**/*"
+          "path": "$APPLOCALDATA"
         },
         {
-          "path": "$DOCUMENT/**/*"
-        },
-        {
-          "path": "$DESKTOP/**/*"
-        },
-        {
-          "path": "$DOWNLOAD/**/*"
+          "path": "$APPLOCALDATA/**/*"
         }
       ]
     }

@@ -6,7 +6,6 @@ import {
   open as openDialog,
   save as saveDialog,
 } from "@tauri-apps/plugin-dialog";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { commands, type StudioJob } from "@/bindings";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
@@ -90,20 +89,17 @@ export const StudioSettings: React.FC = () => {
   }, [enqueue]);
 
   const exportJob = async (job: StudioJob, format: string) => {
-    const result = await commands.studioExport(job.id, format);
+    const base = job.file_name.replace(/\.[^.]+$/, "");
+    const path = await saveDialog({ defaultPath: `${base}.${format}` });
+    if (!path) return;
+    // El backend genera y ESCRIBE el archivo en la ruta elegida: así la UI no
+    // necesita permiso de escritura al home (endurecido en capabilities).
+    const result = await commands.studioExportTo(job.id, format, path);
     if (result.status === "error") {
       toast.error(t("studio.exportError"), { description: result.error });
       return;
     }
-    const base = job.file_name.replace(/\.[^.]+$/, "");
-    const path = await saveDialog({ defaultPath: `${base}.${format}` });
-    if (!path) return;
-    try {
-      await writeTextFile(path, result.data);
-      toast.success(t("studio.exportSaved"));
-    } catch (e) {
-      toast.error(t("studio.exportError"), { description: String(e) });
-    }
+    toast.success(t("studio.exportSaved"));
   };
 
   const copyText = async (text: string) => {

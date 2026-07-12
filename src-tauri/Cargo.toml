@@ -79,6 +79,7 @@ rusqlite = { version = "0.37", features = ["bundled"] }
 tar = "0.4.44"
 flate2 = "1.0"
 sha2 = "0.10"
+getrandom = "0.2"
 # Whisper-family models run through transcribe-cpp (GGUF/ggml, native backends);
 # transcribe-rs is now ONNX-only (Parakeet, Moonshine, SenseVoice, GigaAM,
 # Canary, Cohere). Per-platform backend features are added in the target tables.
@@ -105,6 +106,8 @@ tauri-plugin-single-instance = "2.3.2"
 tauri-plugin-updater = "2.10.0"
 
 [target.'cfg(windows)'.dependencies]
+# Extracción in-process del runtime .zip (reemplaza PowerShell Expand-Archive).
+zip = { version = "4", default-features = false, features = ["deflate"] }
 # ONNX Runtime on Windows is CPU-only (no ort-directml), matching macOS/Linux.
 # The DirectML EP was experimental and, more importantly, pulled in pyke's
 # prebuilt ONNX Runtime which is compiled with a global /arch:AVX2 baseline that
