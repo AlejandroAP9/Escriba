@@ -55,7 +55,7 @@ export const GeneralSettings: React.FC = () => {
                 className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium ${
                   key === "whisper"
                     ? "border-logo-primary/30 bg-logo-primary/10 text-logo-primary"
-                    : "border-mid-gray/15 bg-background text-mid-gray"
+                    : "border-line bg-background text-mid-gray"
                 }`}
               >
                 {Icon && <Icon width={13} height={13} />}
@@ -79,7 +79,7 @@ export const GeneralSettings: React.FC = () => {
       </div>
 
       {/* Atajo principal: el ajuste más importante, como protagonista. */}
-      <div className="rounded-2xl border border-logo-primary/25 bg-logo-primary/5 p-1.5 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+      <div className="rounded-card border border-logo-primary/25 bg-logo-primary/5 p-1.5 shadow-card">
         <div className="flex items-center gap-2 px-3 pt-2.5 text-logo-primary">
           <Keyboard width={15} height={15} />
           <span className="text-xs font-semibold uppercase tracking-[0.08em]">

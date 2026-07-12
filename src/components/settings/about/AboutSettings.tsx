@@ -71,7 +71,7 @@ export const AboutSettings: React.FC = () => {
     <div className="mx-auto w-full max-w-3xl space-y-6 py-2">
       {/* Tarjeta de identidad: el ADN de Escriba en 10 segundos. */}
       <div
-        className="relative overflow-hidden rounded-2xl border border-logo-primary/25 px-6 py-8 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04),0_14px_30px_-18px_rgba(27,20,38,0.14)]"
+        className="relative overflow-hidden rounded-card border border-logo-primary/25 px-6 py-8 text-center shadow-lift"
         style={{
           background:
             "linear-gradient(135deg, var(--color-background), var(--color-vitela))",
@@ -122,7 +122,7 @@ export const AboutSettings: React.FC = () => {
           {numbers.map((n) => (
             <div
               key={n.label}
-              className="rounded-xl border border-mid-gray/15 bg-background p-3 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04)]"
+              className="rounded-card border border-line bg-background p-3 text-center shadow-card"
             >
               <p
                 className="text-2xl text-text"
@@ -170,7 +170,7 @@ export const AboutSettings: React.FC = () => {
       </SettingsGroup>
 
       {/* Donación reencuadrada: apoyar un proyecto abierto, no una compra. */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-lacre/25 bg-lacre/5 p-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-card border border-lacre/25 bg-lacre/5 p-5">
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-2 text-sm font-semibold text-text">
             <Heart width={15} height={15} className="text-lacre" />

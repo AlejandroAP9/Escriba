@@ -153,13 +153,13 @@ export const StudioSettings: React.FC = () => {
       <button
         type="button"
         onClick={pickFiles}
-        className={`relative w-full overflow-hidden rounded-2xl border p-10 text-center transition-all duration-200 ${
+        className={`relative w-full overflow-hidden rounded-card border p-10 text-center transition-all duration-200 ${
           dragOver
-            ? "scale-[1.01] border-logo-primary bg-logo-primary/8 shadow-[0_18px_40px_-22px_rgba(27,20,38,0.25)]"
+            ? "scale-[1.01] border-logo-primary bg-logo-primary/8 shadow-lift"
             : "border-mid-gray/25 bg-vitela/40 hover:border-logo-primary/50 hover:bg-logo-primary/4"
         }`}
       >
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-logo-primary/10 text-logo-primary">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-card bg-logo-primary/10 text-logo-primary">
           <UploadCloud width={32} height={32} strokeWidth={1.5} />
         </div>
         <p className="mt-4 text-base font-semibold text-text">
@@ -183,7 +183,7 @@ export const StudioSettings: React.FC = () => {
         {capabilities.map(({ icon: Icon, label }) => (
           <div
             key={label}
-            className="flex items-center gap-2.5 rounded-xl border border-mid-gray/15 bg-background px-3.5 py-3 shadow-[0_1px_2px_rgba(27,20,38,0.04)]"
+            className="flex items-center gap-2.5 rounded-card border border-line bg-background px-3.5 py-3 shadow-card"
           >
             <Icon width={17} height={17} className="shrink-0 text-logo-primary" />
             <span className="text-sm text-text">{label}</span>

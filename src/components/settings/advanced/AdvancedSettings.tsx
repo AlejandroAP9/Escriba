@@ -103,8 +103,8 @@ const SystemStatusPanel: React.FC = () => {
   ];
 
   return (
-    <div className="rounded-2xl border border-mid-gray/15 bg-background shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
-      <p className="border-b border-mid-gray/10 px-4 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+    <div className="rounded-card border border-line bg-background shadow-card">
+      <p className="border-b border-line px-4 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
         {t("settings.advanced.status.title")}
       </p>
       <dl className="grid grid-cols-1 sm:grid-cols-2">
@@ -112,8 +112,8 @@ const SystemStatusPanel: React.FC = () => {
           <div
             key={r.label}
             className={`flex items-center gap-2 px-4 py-2.5 ${
-              i % 2 === 0 ? "sm:border-r sm:border-mid-gray/10" : ""
-            } ${i >= 2 ? "border-t border-mid-gray/10" : ""}`}
+              i % 2 === 0 ? "sm:border-r sm:border-line" : ""
+            } ${i >= 2 ? "border-t border-line" : ""}`}
           >
             <span
               className={`h-1.5 w-1.5 shrink-0 rounded-full ${
@@ -147,7 +147,7 @@ const AdvancedTools: React.FC = () => {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-mid-gray/15 bg-background p-4 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+    <div className="rounded-card border border-line bg-background p-4 shadow-card">
       <p className="mb-3 flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
         <Terminal width={12} height={12} />
         {t("settings.advanced.tools.title")}
@@ -156,7 +156,7 @@ const AdvancedTools: React.FC = () => {
         <span className="text-mid-gray">{t("settings.advanced.tools.version")}</span>
         <span className="font-mono text-text">{version || "—"}</span>
       </div>
-      <div className="flex items-center justify-between gap-3 border-t border-mid-gray/10 py-2 text-xs">
+      <div className="flex items-center justify-between gap-3 border-t border-line py-2 text-xs">
         <span className="min-w-0 truncate font-mono text-mid-gray" title={logPath}>
           {logPath || t("settings.advanced.tools.logsFolder")}
         </span>
@@ -169,7 +169,7 @@ const AdvancedTools: React.FC = () => {
           {t("settings.advanced.tools.logsFolder")}
         </button>
       </div>
-      <div className="flex items-center justify-end border-t border-mid-gray/10 py-2">
+      <div className="flex items-center justify-end border-t border-line py-2">
         <button
           type="button"
           onClick={() => commands.openAppDataDir()}
@@ -231,7 +231,7 @@ export const AdvancedSettings: React.FC = () => {
         </CollapsibleGroup>
 
         {/* Funciones experimentales: destacadas con advertencia, no un switch más. */}
-        <div className="rounded-2xl border border-lacre/25 bg-lacre/5 p-1.5">
+        <div className="rounded-card border border-lacre/25 bg-lacre/5 p-1.5">
           <p className="flex items-center gap-1.5 px-3 pt-2.5 text-xs font-medium text-lacre">
             <AlertTriangle width={13} height={13} />
             {t("settings.advanced.experimentalWarning")}

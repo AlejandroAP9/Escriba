@@ -454,9 +454,9 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
   }).format(new Date(entry.timestamp * 1000));
 
   return (
-    <div className="group relative rounded-xl border border-mid-gray/10 bg-background px-4 py-3 shadow-[0_1px_2px_rgba(27,20,38,0.03)] transition-all duration-150 hover:-translate-y-0.5 hover:border-logo-primary/30 hover:shadow-[0_10px_24px_-14px_rgba(27,20,38,0.25)]">
+    <div className="group relative rounded-card border border-line bg-background px-4 py-3 shadow-card transition-all duration-150 hover:-translate-y-0.5 hover:border-logo-primary/30 hover:shadow-[0_10px_24px_-14px_rgba(27,20,38,0.25)]">
       {/* Acciones: aparecen al pasar el cursor (o con teclado), como toolbar flotante */}
-      <div className="pointer-events-none absolute right-2.5 top-2 z-10 flex items-center gap-0.5 rounded-lg border border-mid-gray/15 bg-background/95 px-1 py-0.5 opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
+      <div className="pointer-events-none absolute right-2.5 top-2 z-10 flex items-center gap-0.5 rounded-lg border border-line bg-background/95 px-1 py-0.5 opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
         <IconButton
           onClick={handleCopyText}
           disabled={!hasTranscription || retrying}

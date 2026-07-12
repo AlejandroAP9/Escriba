@@ -77,8 +77,17 @@
   --color-ink: var(--color-ink);
   --color-ink-fg: var(--color-ink-fg);
   --color-ink-muted: var(--color-ink-muted);
+  --color-line: var(--color-line);
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
+
+  /* Forma: un solo radio de tarjeta y dos sombras (reposo / elevado). Origen
+     único para todas las superficies; ver Escriba Design Guide, cap. 05. */
+  --radius-card: 16px;
+  --radius-control: 10px;
+  --shadow-card: 0 1px 2px rgba(27, 20, 38, 0.05);
+  --shadow-lift: 0 1px 2px rgba(27, 20, 38, 0.05),
+    0 14px 30px -18px rgba(27, 20, 38, 0.16);
 }
 
 :root {

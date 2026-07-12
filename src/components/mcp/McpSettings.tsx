@@ -177,8 +177,8 @@ export const McpSettings: React.FC = () => {
       </div>
 
       {/* Barra de estado del servidor + métricas en vivo. */}
-      <div className="overflow-hidden rounded-2xl border border-mid-gray/15 bg-background shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-mid-gray/10 px-5 py-4">
+      <div className="overflow-hidden rounded-card border border-line bg-background shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line px-5 py-4">
           <div className="flex items-center gap-3">
             <span
               className={`relative flex h-2.5 w-2.5 ${running ? "" : "opacity-40"}`}
@@ -289,7 +289,7 @@ export const McpSettings: React.FC = () => {
             ))}
           </div>
 
-          <div className="rounded-xl border border-mid-gray/15 bg-ink shadow-[0_1px_2px_rgba(27,20,38,0.06)]">
+          <div className="rounded-card border border-line bg-ink shadow-card">
             <div className="flex items-center justify-between border-b border-white/5 px-4 py-2">
               <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-muted">
                 <Terminal width={12} height={12} />
@@ -334,7 +334,7 @@ export const McpSettings: React.FC = () => {
           {TOOLS.map(({ id, icon: Icon }) => (
             <div
               key={id}
-              className="rounded-xl border border-mid-gray/15 bg-background p-4 shadow-[0_1px_2px_rgba(27,20,38,0.04)] transition-transform hover:-translate-y-0.5"
+              className="rounded-card border border-line bg-background p-4 shadow-card transition-transform hover:-translate-y-0.5"
             >
               <div className="flex items-center gap-2.5">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-logo-primary/10 text-logo-primary">
@@ -361,7 +361,7 @@ export const McpSettings: React.FC = () => {
       {running && (
         <div className="grid gap-4 lg:grid-cols-2">
           {/* Actividad reciente. */}
-          <section className="rounded-2xl border border-mid-gray/15 bg-background p-5 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+          <section className="rounded-card border border-line bg-background p-5 shadow-card">
             <h2 className="mb-3 text-sm font-semibold text-text">
               {t("mcp.activityTitle")}
             </h2>
@@ -393,7 +393,7 @@ export const McpSettings: React.FC = () => {
           </section>
 
           {/* Agentes conectados. */}
-          <section className="rounded-2xl border border-mid-gray/15 bg-background p-5 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+          <section className="rounded-card border border-line bg-background p-5 shadow-card">
             <h2 className="mb-3 text-sm font-semibold text-text">
               {t("mcp.agentsTitle")}
             </h2>
@@ -424,7 +424,7 @@ export const McpSettings: React.FC = () => {
       )}
 
       {/* Privacidad: la garantía que vende. */}
-      <section className="rounded-2xl border border-logo-primary/20 bg-logo-primary/5 p-5">
+      <section className="rounded-card border border-logo-primary/20 bg-logo-primary/5 p-5">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text">
           <Lock width={15} height={15} className="text-logo-primary" />
           {t("mcp.privacyTitle")}
@@ -448,7 +448,7 @@ export const McpSettings: React.FC = () => {
         <h2 className="text-sm font-semibold text-text">
           {t("mcp.prefsTitle")}
         </h2>
-        <div className="rounded-xl border border-mid-gray/15 bg-background px-4 py-1 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+        <div className="rounded-card border border-line bg-background px-4 py-1 shadow-card">
           <ToggleSwitch
             checked={getSetting("mcp_autostart") || false}
             onChange={(value) => {

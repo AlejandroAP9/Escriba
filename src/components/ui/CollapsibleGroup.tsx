@@ -39,7 +39,7 @@ export const CollapsibleGroup: React.FC<CollapsibleGroupProps> = ({
         />
       </button>
       {open && (
-        <div className="mt-1 overflow-visible rounded-xl border border-mid-gray/15 bg-background shadow-[0_1px_2px_rgba(27,20,38,0.04),0_14px_30px_-18px_rgba(27,20,38,0.14)]">
+        <div className="mt-1 overflow-visible rounded-card border border-line bg-background shadow-lift">
           <div className="divide-y divide-mid-gray/12">{children}</div>
         </div>
       )}

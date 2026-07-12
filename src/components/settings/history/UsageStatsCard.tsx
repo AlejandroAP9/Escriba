@@ -50,7 +50,7 @@ export const UsageStatsCard: React.FC = () => {
         <div
           key={item.label}
           title={item.title}
-          className="rounded-xl border border-mid-gray/15 p-3 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04)]"
+          className="rounded-card border border-line p-3 text-center shadow-card"
         >
           <div className="flex items-baseline justify-center gap-0.5">
             <span

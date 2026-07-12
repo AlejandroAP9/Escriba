@@ -168,7 +168,7 @@ export const HomeScreen: React.FC = () => {
           </div>
 
           {/* CTA: enseña el atajo como acción principal (casi un botón). */}
-          <div className="mt-9 inline-flex items-center gap-3 rounded-xl border border-logo-primary/40 bg-logo-primary/5 px-5 py-3.5 shadow-[0_1px_2px_rgba(27,20,38,0.05),inset_0_1px_0_rgba(255,255,255,0.35)]">
+          <div className="mt-9 inline-flex items-center gap-3 rounded-card border border-logo-primary/40 bg-logo-primary/5 px-5 py-3.5 shadow-[0_1px_2px_rgba(27,20,38,0.05),inset_0_1px_0_rgba(255,255,255,0.35)]">
             {keys.length > 0 ? (
               <span className="flex items-center gap-1.5">
                 {keys.map((k, i) => (
@@ -193,7 +193,7 @@ export const HomeScreen: React.FC = () => {
 
         {/* Panel de estado + actividad (equilibra la composición). */}
         <aside className="space-y-3">
-          <div className="rounded-xl border border-mid-gray/15 bg-background p-5 shadow-[0_1px_2px_rgba(27,20,38,0.04),0_14px_30px_-18px_rgba(27,20,38,0.14)]">
+          <div className="rounded-card border border-line bg-background p-5 shadow-lift">
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
               {t("home.systemStatus")}
             </p>
@@ -209,7 +209,7 @@ export const HomeScreen: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <div className="mt-4 border-t border-mid-gray/15 pt-3 text-xs text-mid-gray">
+            <div className="mt-4 border-t border-line pt-3 text-xs text-mid-gray">
               {t("home.lastDictation")}
               {" · "}
               <span className="text-text">
@@ -224,7 +224,7 @@ export const HomeScreen: React.FC = () => {
             {statCards.map((s) => (
               <div
                 key={s.label}
-                className="rounded-xl border border-mid-gray/15 bg-background p-3 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04)]"
+                className="rounded-card border border-line bg-background p-3 text-center shadow-card"
               >
                 <div className="flex items-baseline justify-center gap-0.5">
                   <span

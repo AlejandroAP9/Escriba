@@ -291,10 +291,10 @@ const TemplateLibraryComponent: React.FC = () => {
               key={p.id}
               type="button"
               onClick={() => selectTemplate(p.id)}
-              className={`group relative rounded-xl border p-3.5 text-left transition-all ${
+              className={`group relative rounded-card border p-3.5 text-left transition-all ${
                 active
-                  ? "border-logo-primary bg-logo-primary/5 shadow-[0_1px_2px_rgba(27,20,38,0.06)]"
-                  : "border-mid-gray/15 bg-background hover:-translate-y-0.5 hover:border-mid-gray/30"
+                  ? "border-logo-primary bg-logo-primary/5 shadow-card"
+                  : "border-line bg-background hover:-translate-y-0.5 hover:border-mid-gray/30"
               }`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -323,7 +323,7 @@ const TemplateLibraryComponent: React.FC = () => {
         <button
           type="button"
           onClick={handleStartCreate}
-          className={`flex items-center justify-center gap-2 rounded-xl border border-dashed p-3.5 text-sm font-medium transition-colors ${
+          className={`flex items-center justify-center gap-2 rounded-card border border-dashed p-3.5 text-sm font-medium transition-colors ${
             isCreating
               ? "border-logo-primary bg-logo-primary/5 text-logo-primary"
               : "border-mid-gray/30 text-mid-gray hover:border-logo-primary/50 hover:text-logo-primary"
@@ -402,7 +402,7 @@ const TemplateLibraryComponent: React.FC = () => {
 
       {/* Flujo de creación. */}
       {isCreating && (
-        <div className="space-y-3 rounded-xl border border-logo-primary/30 bg-logo-primary/5 p-4">
+        <div className="space-y-3 rounded-card border border-logo-primary/30 bg-logo-primary/5 p-4">
           <div className="flex flex-col space-y-2">
             <label className="text-sm font-semibold text-text">
               {t("settings.postProcessing.prompts.promptLabel")}
@@ -460,7 +460,7 @@ const TemplateLibraryComponent: React.FC = () => {
 const ExampleCard: React.FC<{ id: string }> = ({ id }) => {
   const { t } = useTranslation();
   return (
-    <div className="rounded-xl border border-mid-gray/15 bg-background p-4 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+    <div className="rounded-card border border-line bg-background p-4 shadow-card">
       <p className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-logo-primary">
         <Sparkles width={13} height={13} />
         {t(`settings.postProcessing.example.${id}.label`)}
@@ -515,7 +515,7 @@ export const PostProcessingSettings: React.FC = () => {
             </p>
           </div>
           {/* Interruptor compacto, sin ocupar una tarjeta entera. */}
-          <label className="flex shrink-0 cursor-pointer items-center gap-2.5 rounded-full border border-mid-gray/20 bg-background px-3.5 py-2 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+          <label className="flex shrink-0 cursor-pointer items-center gap-2.5 rounded-full border border-mid-gray/20 bg-background px-3.5 py-2 shadow-card">
             <span className="text-xs font-medium text-text">
               {enabled
                 ? t("settings.postProcessing.enabledBadge")
@@ -541,7 +541,7 @@ export const PostProcessingSettings: React.FC = () => {
                 className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium ${
                   key === "ai"
                     ? "border-logo-primary/30 bg-logo-primary/10 text-logo-primary"
-                    : "border-mid-gray/15 bg-background text-mid-gray"
+                    : "border-line bg-background text-mid-gray"
                 }`}
               >
                 {Icon && <Icon width={13} height={13} />}

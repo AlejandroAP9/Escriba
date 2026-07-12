@@ -109,7 +109,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
   );
 
   const baseClasses =
-    "flex flex-col rounded-xl px-4 py-3 gap-2 text-left transition-all duration-200";
+    "flex flex-col rounded-card px-4 py-3 gap-2 text-left transition-all duration-200";
 
   const getVariantClasses = () => {
     // El oro se reserva SOLO para el modelo activo (una única jerarquía). Los
@@ -118,7 +118,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
     if (status === "active") {
       return "border-2 border-logo-primary/50 bg-logo-primary/[0.07]";
     }
-    return "border border-mid-gray/15";
+    return "border border-line";
   };
 
   const getInteractiveClasses = () => {

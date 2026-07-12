@@ -103,7 +103,7 @@ export const InterpreterSettings: React.FC = () => {
           {[1, 2, 3, 4].map((n) => (
             <div
               key={n}
-              className="rounded-xl border border-mid-gray/15 bg-background p-3 shadow-[0_1px_2px_rgba(27,20,38,0.04)]"
+              className="rounded-card border border-line bg-background p-3 shadow-card"
             >
               <div className="font-mono text-xs font-semibold text-logo-primary">
                 {n}
@@ -125,7 +125,7 @@ export const InterpreterSettings: React.FC = () => {
               setSourceLang(e.target.value);
               commands.interpreterSetSourceLang(e.target.value);
             }}
-            className="w-full rounded-xl border border-mid-gray/25 bg-background px-4 py-3 text-base font-medium text-text shadow-[0_1px_2px_rgba(27,20,38,0.04)] focus:outline-none focus:ring-1 focus:ring-logo-primary"
+            className="w-full rounded-card border border-mid-gray/25 bg-background px-4 py-3 text-base font-medium text-text shadow-card focus:outline-none focus:ring-1 focus:ring-logo-primary"
           >
             {INTERP_LANGUAGES.map((l) => (
               <option key={l.value} value={l.value}>
@@ -152,7 +152,7 @@ export const InterpreterSettings: React.FC = () => {
   return (
     <div className="max-w-3xl w-full mx-auto space-y-4 py-2">
       {/* Estado de la sala */}
-      <div className="flex items-center gap-3 rounded-xl border border-mid-gray/15 bg-background px-4 py-3 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+      <div className="flex items-center gap-3 rounded-card border border-line bg-background px-4 py-3 shadow-card">
         <span className="relative flex h-2.5 w-2.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/60" />
           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
@@ -168,16 +168,16 @@ export const InterpreterSettings: React.FC = () => {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1fr] lg:items-start">
         {/* QR protagonista */}
-        <div className="flex flex-col items-center rounded-2xl border border-mid-gray/15 bg-vitela/30 p-5 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+        <div className="flex flex-col items-center rounded-card border border-line bg-vitela/30 p-5 text-center shadow-card">
           <div
-            className="rounded-xl bg-white p-3"
+            className="rounded-card bg-white p-3"
             dangerouslySetInnerHTML={{ __html: room.qr_svg }}
             style={{ width: 208, height: 208 }}
           />
           <p className="mt-3 text-xs text-mid-gray">
             {t("interpreter.scanHint")}
           </p>
-          <div className="mt-4 w-full rounded-xl border border-mid-gray/15 bg-background px-4 py-3">
+          <div className="mt-4 w-full rounded-card border border-line bg-background px-4 py-3">
             <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-mid-gray">
               {t("interpreter.roomCode")}
             </div>
@@ -212,14 +212,14 @@ export const InterpreterSettings: React.FC = () => {
         <div className="space-y-4">
           {/* Micrófono */}
           <div
-            className={`rounded-2xl border p-5 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04)] ${
+            className={`rounded-card border p-5 text-center shadow-card ${
               listening
                 ? "border-lacre/40 bg-lacre/6"
-                : "border-mid-gray/15 bg-background"
+                : "border-line bg-background"
             }`}
           >
             <div
-              className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
+              className={`mx-auto flex h-14 w-14 items-center justify-center rounded-card ${
                 listening
                   ? "bg-lacre/15 text-lacre"
                   : "bg-logo-primary/10 text-logo-primary"
@@ -253,7 +253,7 @@ export const InterpreterSettings: React.FC = () => {
           </div>
 
           {/* Participantes (por idioma elegido) */}
-          <div className="rounded-2xl border border-mid-gray/15 bg-background p-4 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+          <div className="rounded-card border border-line bg-background p-4 shadow-card">
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
               {t("interpreter.participants")}
             </p>
@@ -287,7 +287,7 @@ export const InterpreterSettings: React.FC = () => {
 
       {/* Última frase enviada */}
       {lastSent && (
-        <div className="rounded-xl border border-logo-primary/25 bg-logo-primary/5 px-4 py-3">
+        <div className="rounded-card border border-logo-primary/25 bg-logo-primary/5 px-4 py-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-logo-primary">
             {t("interpreter.lastPhrase")}
           </p>
@@ -296,7 +296,7 @@ export const InterpreterSettings: React.FC = () => {
       )}
 
       {/* Modo prueba (plegado por defecto) */}
-      <details className="rounded-xl border border-mid-gray/15 bg-background px-4 py-3">
+      <details className="rounded-card border border-line bg-background px-4 py-3">
         <summary className="cursor-pointer text-xs font-medium text-mid-gray">
           {t("interpreter.testMode")}
         </summary>

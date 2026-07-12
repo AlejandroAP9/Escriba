@@ -84,7 +84,7 @@ export const TranslatorSettings: React.FC = () => {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-mid-gray/25 bg-background px-4 py-3 text-base font-medium text-text shadow-[0_1px_2px_rgba(27,20,38,0.04)] focus:outline-none focus:ring-1 focus:ring-logo-primary"
+      className="w-full rounded-card border border-mid-gray/25 bg-background px-4 py-3 text-base font-medium text-text shadow-card focus:outline-none focus:ring-1 focus:ring-logo-primary"
     >
       {LANGUAGES.map((l) => (
         <option key={l.value} value={l.value}>
@@ -119,7 +119,7 @@ export const TranslatorSettings: React.FC = () => {
               type="button"
               onClick={swapLangs}
               title={t("translator.swap")}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-mid-gray/25 bg-background text-mid-gray shadow-[0_1px_2px_rgba(27,20,38,0.04)] transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card border border-mid-gray/25 bg-background text-mid-gray shadow-card transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
             >
               <ArrowLeftRight width={18} height={18} />
             </button>
@@ -127,7 +127,7 @@ export const TranslatorSettings: React.FC = () => {
           </div>
 
           {/* Voz como switch claro. */}
-          <div className="rounded-xl border border-mid-gray/15 bg-background px-4 py-1 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+          <div className="rounded-card border border-line bg-background px-4 py-1 shadow-card">
             <ToggleSwitch
               checked={voiceOn}
               onChange={(v) => {
@@ -144,7 +144,7 @@ export const TranslatorSettings: React.FC = () => {
           <button
             type="button"
             onClick={toggleListening}
-            className={`flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-base font-semibold shadow-[0_1px_2px_rgba(27,20,38,0.15),inset_0_1px_0_rgba(255,255,255,0.25)] transition-all ${
+            className={`flex w-full items-center justify-center gap-3 rounded-card px-6 py-4 text-base font-semibold shadow-[0_1px_2px_rgba(27,20,38,0.15),inset_0_1px_0_rgba(255,255,255,0.25)] transition-all ${
               listening
                 ? "border border-lacre/40 bg-lacre/10 text-lacre"
                 : "gold-surface text-ink hover:brightness-105"
@@ -166,7 +166,7 @@ export const TranslatorSettings: React.FC = () => {
             {capabilities.map(({ icon: Icon, label }) => (
               <div
                 key={label}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-mid-gray/15 bg-background px-2 py-3 text-center shadow-[0_1px_2px_rgba(27,20,38,0.04)]"
+                className="flex flex-col items-center gap-1.5 rounded-card border border-line bg-background px-2 py-3 text-center shadow-card"
               >
                 <Icon width={17} height={17} className="text-logo-primary" />
                 <span className="text-[11px] leading-tight text-mid-gray">
@@ -178,7 +178,7 @@ export const TranslatorSettings: React.FC = () => {
         </div>
 
         {/* Derecha: vista previa / conversación en vivo (estilo Messages). */}
-        <div className="rounded-2xl border border-mid-gray/15 bg-vitela/30 p-5 shadow-[0_1px_2px_rgba(27,20,38,0.04)]">
+        <div className="rounded-card border border-line bg-vitela/30 p-5 shadow-card">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
               {last ? t("translator.conversation") : t("translator.preview")}
@@ -191,14 +191,14 @@ export const TranslatorSettings: React.FC = () => {
           {last ? (
             <div className="space-y-3">
               {/* Lo que dijiste. */}
-              <div className="rounded-2xl rounded-tl-sm bg-background px-4 py-3 shadow-sm">
+              <div className="rounded-card rounded-tl-sm bg-background px-4 py-3 shadow-sm">
                 <p className="mb-1 text-[10px] uppercase tracking-wide text-mid-gray">
                   {t("translator.youSaid")}
                 </p>
                 <p className="text-sm text-text/80">{last.source}</p>
               </div>
               {/* La traducción, grande, para mostrarle a la otra persona. */}
-              <div className="ms-6 rounded-2xl rounded-tr-sm border border-logo-primary/30 bg-logo-primary/5 px-4 py-3 shadow-sm">
+              <div className="ms-6 rounded-card rounded-tr-sm border border-logo-primary/30 bg-logo-primary/5 px-4 py-3 shadow-sm">
                 <p className="mb-1 text-[10px] uppercase tracking-wide text-logo-primary">
                   {langLabel(last.target_lang)}
                 </p>
@@ -213,7 +213,7 @@ export const TranslatorSettings: React.FC = () => {
           ) : (
             // Vista previa estática: el usuario imagina el resultado.
             <div className="space-y-3 opacity-90">
-              <div className="rounded-2xl rounded-tl-sm bg-background/70 px-4 py-3">
+              <div className="rounded-card rounded-tl-sm bg-background/70 px-4 py-3">
                 <p className="mb-1 text-[10px] uppercase tracking-wide text-mid-gray">
                   {t("translator.youSaid")}
                 </p>
@@ -221,7 +221,7 @@ export const TranslatorSettings: React.FC = () => {
                   {t("translator.previewSource")}
                 </p>
               </div>
-              <div className="ms-6 rounded-2xl rounded-tr-sm border border-logo-primary/20 bg-logo-primary/5 px-4 py-3">
+              <div className="ms-6 rounded-card rounded-tr-sm border border-logo-primary/20 bg-logo-primary/5 px-4 py-3">
                 <p className="mb-1 text-[10px] uppercase tracking-wide text-logo-primary">
                   {langLabel(langB)}
                 </p>
