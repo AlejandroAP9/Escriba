@@ -713,12 +713,12 @@
         "description": "Escriba 存储数据的位置"
       },
       "sourceCode": {
-        "title": "源代码",
+        "title": "Official repository",
         "description": "查看源代码并贡献",
         "button": "在 GitHub 上查看"
       },
       "supportDevelopment": {
-        "title": "支持开发",
+        "title": "Support the project",
         "description": "帮助我们继续开发 Escriba",
         "button": "捐赠"
       },
@@ -731,13 +731,33 @@
         }
       },
       "whatsNewUpdates": {
-        "label": "显示新功能",
+        "label": "Show what’s new after updating",
         "description": "Escriba 更新后显示发行说明"
       },
       "identity": {
         "openSource": "Open Source",
-        "mit": "MIT License"
-      }
+        "mit": "MIT License",
+        "tagline": "Your voice, in ink.",
+        "pitch": "Local dictation, translation and AI. Private by design."
+      },
+      "numbers": {
+        "title": "Escriba by the numbers",
+        "models": "Supported models",
+        "local": "Local",
+        "telemetry": "Telemetry",
+        "servers": "Cloud servers",
+        "license": "License"
+      },
+      "support": {
+        "title": "Support the project",
+        "body": "If Escriba saves you time and you find it useful, you can help keep it alive."
+      },
+      "tech": {
+        "title": "Built with",
+        "basedOn": "Based on Handy, by cjpais — under the MIT license.",
+        "basedOnButton": "View Handy"
+      },
+      "closing": "Your voice never leaves your computer."
     },
     "transcription": {
       "title": "Transcription"

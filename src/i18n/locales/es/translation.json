@@ -713,12 +713,12 @@
         "description": "Ubicación donde Escriba almacena sus datos"
       },
       "sourceCode": {
-        "title": "Código Fuente",
+        "title": "Repositorio oficial",
         "description": "Ver código fuente y contribuir",
         "button": "Ver en GitHub"
       },
       "supportDevelopment": {
-        "title": "Apoyar el Desarrollo",
+        "title": "Apoya el proyecto",
         "description": "Ayúdanos a continuar construyendo Escriba",
         "button": "Donar"
       },
@@ -731,13 +731,33 @@
         }
       },
       "whatsNewUpdates": {
-        "label": "Mostrar novedades",
+        "label": "Mostrar novedades después de actualizar",
         "description": "Mostrar notas de la versión después de las actualizaciones de Escriba"
       },
       "identity": {
         "openSource": "Código abierto",
-        "mit": "Licencia MIT"
-      }
+        "mit": "Licencia MIT",
+        "tagline": "Tu voz, en tinta.",
+        "pitch": "Dictado local, traducción e IA. Privado por diseño."
+      },
+      "numbers": {
+        "title": "Escriba en números",
+        "models": "Modelos compatibles",
+        "local": "Local",
+        "telemetry": "Telemetría",
+        "servers": "Servidores en la nube",
+        "license": "Licencia"
+      },
+      "support": {
+        "title": "Apoya el proyecto",
+        "body": "Si Escriba te ahorra tiempo y te resulta útil, puedes ayudar a mantenerlo vivo."
+      },
+      "tech": {
+        "title": "Construido con",
+        "basedOn": "Basado en Handy, de cjpais — bajo licencia MIT.",
+        "basedOnButton": "Ver Handy"
+      },
+      "closing": "Tu voz nunca abandona tu computador."
     },
     "transcription": {
       "title": "Transcripción"

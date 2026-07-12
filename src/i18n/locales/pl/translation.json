@@ -713,12 +713,12 @@
         "description": "Miejsce, gdzie Escriba przechowuje swoje dane"
       },
       "sourceCode": {
-        "title": "Kod źródłowy",
+        "title": "Official repository",
         "description": "Zobacz kod źródłowy i współtwórz",
         "button": "Zobacz na GitHub"
       },
       "supportDevelopment": {
-        "title": "Wspieraj rozwój",
+        "title": "Support the project",
         "description": "Pomóż nam dalej rozwijać Escriba",
         "button": "Wesprzyj"
       },
@@ -731,13 +731,33 @@
         }
       },
       "whatsNewUpdates": {
-        "label": "Pokaż nowości",
+        "label": "Show what’s new after updating",
         "description": "Pokazuj informacje o wydaniu po aktualizacjach Escriba"
       },
       "identity": {
         "openSource": "Open Source",
-        "mit": "MIT License"
-      }
+        "mit": "MIT License",
+        "tagline": "Your voice, in ink.",
+        "pitch": "Local dictation, translation and AI. Private by design."
+      },
+      "numbers": {
+        "title": "Escriba by the numbers",
+        "models": "Supported models",
+        "local": "Local",
+        "telemetry": "Telemetry",
+        "servers": "Cloud servers",
+        "license": "License"
+      },
+      "support": {
+        "title": "Support the project",
+        "body": "If Escriba saves you time and you find it useful, you can help keep it alive."
+      },
+      "tech": {
+        "title": "Built with",
+        "basedOn": "Based on Handy, by cjpais — under the MIT license.",
+        "basedOnButton": "View Handy"
+      },
+      "closing": "Your voice never leaves your computer."
     },
     "transcription": {
       "title": "Transcription"
