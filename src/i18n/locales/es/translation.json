@@ -491,7 +491,54 @@
           "title": "Idioma de destino",
           "description": "Dicta en cualquier idioma con el atajo de traducción y Escriba pega el texto traducido a este idioma, usando el motor local."
         }
-      }
+      },
+      "heroTitle": "Escritura Inteligente",
+      "heroSubtitle": "Después de dictar, Escriba puede corregir, reescribir, resumir o traducir tu texto con IA. Tú eliges el estilo; el resultado queda listo para pegar.",
+      "flow": {
+        "speak": "Hablas",
+        "transcribe": "Transcripción local",
+        "ai": "IA",
+        "ready": "Texto listo"
+      },
+      "examplesTitle": "Lo que puede hacer",
+      "example": {
+        "natural": {
+          "label": "Dictado natural",
+          "in": "oye eh quería avisarte que mañana no no voy a poder ir a la reunión",
+          "out": "Quería avisarte que mañana no voy a poder ir a la reunión."
+        },
+        "email": {
+          "label": "Email profesional",
+          "in": "dile al cliente que el informe ya está listo y que lo mando hoy",
+          "out": "Estimado cliente:\n\nLe informo que el informe ya está listo y se lo enviaré hoy mismo.\n\nSaludos cordiales."
+        },
+        "notes": {
+          "label": "Apuntes al vuelo",
+          "in": "comprar pilas llamar al dentista y terminar la propuesta antes del viernes",
+          "out": "• Comprar pilas\n• Llamar al dentista\n• Terminar la propuesta antes del viernes"
+        },
+        "translate": {
+          "label": "Traducción",
+          "in": "nos vemos mañana a las diez en la entrada",
+          "out": "See you tomorrow at ten at the entrance."
+        }
+      },
+      "templatesTitle": "Plantillas de IA",
+      "templatesSubtitle": "Elige cómo quieres que la IA transforme tu dictado. Puedes editar cualquiera o crear la tuya.",
+      "customBadge": "Personalizada",
+      "editTemplate": "Editar plantilla",
+      "templateDesc": {
+        "escriba_dictado_natural": "Limpia muletillas y arregla la puntuación conservando tu voz.",
+        "escriba_prompt_maestro": "Convierte ideas sueltas en un prompt estructurado para IA.",
+        "escriba_whatsapp": "Un mensaje cercano y listo para enviar.",
+        "escriba_email": "Un correo cordial y profesional.",
+        "escriba_apuntes": "Notas claras y accionables con viñetas.",
+        "default_improve_transcriptions": "Limpia la transcripción en su idioma original."
+      },
+      "shortcutsTitle": "Atajos",
+      "advancedTitle": "Opciones avanzadas",
+      "enabledBadge": "Activada",
+      "disabledBadge": "Desactivada"
     },
     "history": {
       "title": "Historial",

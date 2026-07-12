@@ -470,7 +470,54 @@
           "title": "Target language",
           "description": "Dictate in any language with the translate shortcut and Escriba pastes the text translated to this language, using the local engine."
         }
-      }
+      },
+      "heroTitle": "Smart Writing",
+      "heroSubtitle": "After you dictate, Escriba can fix, rewrite, summarize or translate your text with AI. You pick the style; the result is ready to paste.",
+      "flow": {
+        "speak": "You speak",
+        "transcribe": "Local transcription",
+        "ai": "AI",
+        "ready": "Ready text"
+      },
+      "examplesTitle": "What it can do",
+      "example": {
+        "natural": {
+          "label": "Natural dictation",
+          "in": "hey uh I wanted to let you know that tomorrow I I won't be able to make the meeting",
+          "out": "I wanted to let you know that tomorrow I won't be able to make the meeting."
+        },
+        "email": {
+          "label": "Professional email",
+          "in": "tell the client the report is ready and I'll send it today",
+          "out": "Dear client,\n\nThe report is now ready and I will send it to you today.\n\nBest regards."
+        },
+        "notes": {
+          "label": "Quick notes",
+          "in": "buy batteries call the dentist and finish the proposal before friday",
+          "out": "• Buy batteries\n• Call the dentist\n• Finish the proposal before Friday"
+        },
+        "translate": {
+          "label": "Translation",
+          "in": "see you tomorrow at ten at the entrance",
+          "out": "Nos vemos mañana a las diez en la entrada."
+        }
+      },
+      "templatesTitle": "AI templates",
+      "templatesSubtitle": "Pick how the AI should transform your dictation. Edit any of them or create your own.",
+      "customBadge": "Custom",
+      "editTemplate": "Edit template",
+      "templateDesc": {
+        "escriba_dictado_natural": "Cleans filler words and fixes punctuation while keeping your voice.",
+        "escriba_prompt_maestro": "Turns loose ideas into a structured prompt for AI.",
+        "escriba_whatsapp": "A warm message ready to send.",
+        "escriba_email": "A cordial, professional email.",
+        "escriba_apuntes": "Clear, actionable notes with bullets.",
+        "default_improve_transcriptions": "Cleans up the transcript in its original language."
+      },
+      "shortcutsTitle": "Shortcuts",
+      "advancedTitle": "Advanced options",
+      "enabledBadge": "On",
+      "disabledBadge": "Off"
     },
     "history": {
       "title": "السجل",
