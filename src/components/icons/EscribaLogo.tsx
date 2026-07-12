@@ -3,8 +3,7 @@ import markInk from "../../assets/escriba-mark-ink.png";
 import markParchment from "../../assets/escriba-mark-parchment.png";
 
 const BRAND = "Escriba";
-const SERIF =
-  "'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif";
+const SERIF = "var(--font-serif)";
 
 // Logo de Escriba (diseno de Flor): pluma + onda de voz + firma, con "Escriba"
 // en serif debajo. La marca viene en dos versiones (tinta y pergamino) que se
@@ -51,11 +50,11 @@ const EscribaLogo = ({
         className="text-text"
         style={{
           fontFamily: SERIF,
-          fontWeight: 400,
-          fontSize: Math.round(width * 0.14),
-          letterSpacing: "0.06em",
+          fontWeight: 600,
+          fontSize: Math.round(width * 0.15),
+          letterSpacing: "0.02em",
           lineHeight: 1,
-          opacity: 0.9,
+          opacity: 0.92,
         }}
       >
         {BRAND}

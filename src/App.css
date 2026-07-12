@@ -1,6 +1,23 @@
 @import "tailwindcss";
 @import "./styles/theme.css";
 
+/* EB Garamond — serif de manuscrito de la marca, empaquetada en la app (se ve
+   igual en macOS y Windows; no depende de fuentes del sistema). */
+@font-face {
+  font-family: "EB Garamond";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("./assets/fonts/eb-garamond-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("./assets/fonts/eb-garamond-600.woff2") format("woff2");
+}
+
 /* Logo (EscribaLogo): la marca viene en dos versiones que se intercambian
    segun el tema del sistema (tinta en claro, pergamino en oscuro). */
 .escriba-mark--dark {
@@ -20,11 +37,14 @@
 @theme inline {
   --color-text: var(--color-text);
   --color-background: var(--color-background);
+  --color-vitela: var(--color-vitela);
   --color-background-ui: var(--color-background-ui);
   --color-logo-primary: var(--color-logo-primary);
   --color-logo-stroke: var(--color-logo-stroke);
   --color-text-stroke: var(--color-text-stroke);
   --color-mid-gray: var(--color-mid-gray);
+  --color-lacre: var(--color-lacre);
+  --font-serif: var(--font-serif);
 }
 
 :root {

@@ -36,8 +36,7 @@ export const DictationHero: React.FC = () => {
           <h2
             className="max-w-md text-xl font-medium leading-snug text-text sm:text-[1.6rem]"
             style={{
-              fontFamily:
-                "'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif",
+              fontFamily: "var(--font-serif)",
               letterSpacing: "0.01em",
             }}
           >

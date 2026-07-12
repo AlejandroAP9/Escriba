@@ -1,22 +1,39 @@
-/* Escriba Colors — paleta pergamino / tinta / oro (alineada con la landing) */
+/* Escriba — sistema de marca: pergamino, tinta y oro.
+   Paleta refinada del brand board (v1.1). Un único origen de verdad; el overlay
+   y toda la UI derivan de estos tokens, así que rebrandean solos. */
 
 :root {
-  --color-text: #241c14;
-  --color-background: #fbf8f1;
-  /* Accion principal (botones, toggles, slider): oro-bronce. Texto blanco pasa
-     AA en tema claro y oscuro, asi el boton primario no necesita logica por tema. */
+  /* Tinta: negro-violeta cálido de tinta ferrogálica. */
+  --color-text: #1b1426;
+  /* Pergamino. */
+  --color-background: #fbf6ea;
+  /* Vitela: superficie de tarjetas/paneles, un tono más cálido que el fondo. */
+  --color-vitela: #efe3c8;
+  /* Acción principal (botones, toggles, slider): oro-bronce profundo. Texto
+     blanco pasa AA en claro y oscuro, así el botón no necesita lógica por tema. */
   --color-background-ui: #9a6f27;
-  --color-logo-primary: #b8933f;
-  --color-logo-stroke: #14102a;
-  --color-text-stroke: #faf6ec;
-  --color-mid-gray: #8a7f66;
+  /* Oro viejo: acento (logo, estados activos, realces). */
+  --color-logo-primary: #a8792a;
+  --color-logo-stroke: #1b1426;
+  --color-text-stroke: #fbf6ea;
+  /* Sepia: texto secundario / tenue. */
+  --color-mid-gray: #6e6152;
+  /* Lacre: sello de "grabando" (y acentos cálidos puntuales). */
+  --color-lacre: #9e4230;
+
+  /* Tipografía de la marca: Garamond para titulares/wordmark (manuscrito). */
+  --font-serif: "EB Garamond", "Iowan Old Style", "Palatino Linotype", Palatino,
+    "Hoefler Text", Georgia, serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-text: #f0e2c4;
-    --color-background: #17132e;
-    --color-logo-primary: #e6d2a8;
-    --color-logo-stroke: #e6d2a8;
+    --color-text: #ede2c6;
+    --color-background: #1b1426;
+    --color-vitela: #241b31;
+    --color-logo-primary: #e4c878;
+    --color-logo-stroke: #e4c878;
+    /* Sepia claro para que el texto tenue tenga contraste sobre la tinta. */
+    --color-mid-gray: #a2937b;
   }
 }

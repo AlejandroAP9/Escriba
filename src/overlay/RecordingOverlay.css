@@ -15,8 +15,8 @@
   /* Neutrals. Hairlines reuse the app's mid-gray at low opacity — same vocabulary
      as the app's border-mid-gray/* utilities. muted/faint are overlay-specific
      secondary/tertiary text grays (no theme equivalent). */
-  --s-muted: #6e6e6e;
-  --s-faint: #9a9a9a;
+  --s-muted: #6b6255;
+  --s-faint: #9a917f;
   --s-border: color-mix(in srgb, var(--color-mid-gray) 22%, transparent);
   --s-hair: color-mix(in srgb, var(--color-mid-gray) 12%, transparent);
 
