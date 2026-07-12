@@ -82,11 +82,13 @@
 }
 
 :root {
-  /* Typography */
+  /* Typography — Inter aireada: peso normal + tracking sutil para que la
+     interfaz respire (menos "pesada"). */
   font-family: var(--font-sans);
   font-size: 15px;
-  line-height: 24px;
+  line-height: 25px;
   font-weight: 400;
+  letter-spacing: -0.006em;
 
   /* Typography settings */
   font-synthesis: none;
@@ -172,7 +174,36 @@ input[type="radio"] {
 /* Iconos más finos (Lucide): trazo delicado, look editorial. La CSS pisa el
    atributo stroke-width del SVG. */
 svg.lucide {
-  stroke-width: 1.6;
+  stroke-width: 1.4;
+}
+
+/* Oro como lenguaje del foco: teclado siempre en oro viejo, en toda la app. */
+*:focus-visible {
+  outline: 2px solid var(--color-logo-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Firma de tinta: un trazo dorado que se dibuja como si una pluma lo acabara
+   de escribir. Sutil, una sola vez. */
+@keyframes ink-draw {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+.ink-stroke {
+  transform-origin: left center;
+  animation: ink-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ink-stroke {
+    animation: none;
+  }
 }
 
 .logo-primary {

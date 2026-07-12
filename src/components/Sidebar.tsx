@@ -134,7 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <div className="flex flex-col w-56 h-full items-center px-3 bg-ink text-ink-fg border-e border-logo-primary/25">
-      <EscribaLogo width={132} className="mt-7 mb-6" onDark tagline />
+      <EscribaLogo width={140} className="mt-9 mb-7" onDark tagline />
       <div className="flex flex-col w-full items-center gap-1 pt-4 border-t border-white/10">
         {availableSections.map((section) => {
           const Icon = section.icon;
@@ -150,7 +150,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
               onClick={() => onSectionChange(section.id)}
             >
-              <Icon width={24} height={24} className="shrink-0" />
+              <Icon width={21} height={21} className="shrink-0" />
               <p
                 className="text-sm font-medium truncate"
                 title={t(section.labelKey)}

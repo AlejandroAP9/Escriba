@@ -1,6 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Mic, ArrowRight, ClipboardPaste } from "lucide-react";
+import markInk from "../../../assets/escriba-mark-ink.png";
+import markParchment from "../../../assets/escriba-mark-parchment.png";
 
 // Apps donde el dictado aparece directo (proper nouns, no traducibles).
 const APPS = ["Cursor", "Claude", "WhatsApp", "Terminal"];
@@ -20,10 +22,10 @@ export const DictationHero: React.FC = () => {
 
   return (
     <div
-      className="relative overflow-hidden rounded-xl border border-logo-primary/25 p-5 sm:p-6"
+      className="relative overflow-hidden rounded-xl border border-logo-primary/25 shadow-[0_1px_2px_rgba(27,20,38,0.04),0_18px_40px_-22px_rgba(27,20,38,0.20)] p-5 sm:p-6"
       style={{
         background:
-          "linear-gradient(135deg, var(--color-background), var(--color-vitela))",
+          "radial-gradient(130% 90% at 0% 0%, rgba(255,255,255,0.45), transparent 55%), linear-gradient(135deg, var(--color-background), var(--color-vitela))",
       }}
     >
       {/* Textura de papel casi imperceptible (grano de pergamino). */}
@@ -33,6 +35,17 @@ export const DictationHero: React.FC = () => {
           backgroundImage:
             "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E\")",
         }}
+      />
+      {/* Marca de agua: la pluma como firma del panel (muy tenue). */}
+      <img
+        src={markInk}
+        aria-hidden="true"
+        className="escriba-mark--light pointer-events-none absolute -bottom-10 right-2 w-56 select-none opacity-[0.05]"
+      />
+      <img
+        src={markParchment}
+        aria-hidden="true"
+        className="escriba-mark--dark pointer-events-none absolute -bottom-10 right-2 w-56 select-none opacity-[0.06]"
       />
       <div className="relative">
         <div className="mb-3 flex items-center justify-between gap-2">
@@ -56,6 +69,7 @@ export const DictationHero: React.FC = () => {
             {t("settings.general.hero.headline")}
           </h2>
           <div className="flex shrink-0 items-center gap-1.5 text-logo-primary">
+
             <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-logo-primary/30 bg-logo-primary/10">
               <Mic width={18} height={18} />
             </span>
@@ -66,7 +80,17 @@ export const DictationHero: React.FC = () => {
           </div>
         </div>
 
-        <p className="mt-2 max-w-lg text-sm text-mid-gray">
+        {/* Firma: un trazo de tinta dorado que se dibuja bajo el titular. */}
+        <div
+          aria-hidden="true"
+          className="ink-stroke mt-3 h-0.5 w-20 rounded-full"
+          style={{
+            background:
+              "linear-gradient(to right, var(--color-logo-primary), transparent)",
+          }}
+        />
+
+        <p className="mt-3 max-w-lg text-sm text-mid-gray">
           {t("settings.general.hero.description")}
         </p>
 
