@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="./.github/banner.svg" width="760" alt="Escriba — Tu voz, en tinta" />
+  <img src="./.github/banner.svg" width="760" alt="Escriba — Tu voz en tinta" />
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/github/v/release/AlejandroAP9/Escriba?sort=semver&display_name=tag&style=for-the-badge&labelColor=14102a&color=e6d2a8&label=versi%C3%B3n" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-1.2.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -67,6 +67,24 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 - **Ilimitado.** Sin cupos de palabras por semana ni límites de minutos.
 - **Open source.** Puedes leer, auditar y extender cada línea.
 
+## 🎯 Filosofía
+
+> **Escriba existe para que la interfaz desaparezca.**
+
+Cada elemento responde una sola pregunta: **¿ayuda a escribir?** Si la respuesta es no, desaparece.
+
+Escriba no compite por atención, compite por desaparecer. Cuando el usuario recuerda la interfaz, hemos fallado; cuando recuerda lo que escribió, hemos acertado.
+
+**Cinco principios** gobiernan cada decisión de producto y diseño:
+
+- **Privado** — nada parece conectado a internet; tu voz nunca sale del equipo.
+- **Elegante** — pocas distracciones, mucho aire, la tipografía como protagonista.
+- **Rápido** — cada acción importante está a un clic, sin pasos innecesarios.
+- **Profesional** — la herramienta de un periodista o un escritor, no un experimento.
+- **Atemporal** — sin modas; que en cinco años se siga viendo moderna.
+
+> El sistema de diseño completo de Escriba —color, tipografía, motion, componentes y patrones— se documenta en la **Escriba Design Guide**.
+
 ## ⚙️ Cómo funciona
 
 1. **Aprieta** el atajo configurable (o usa _push-to-talk_).
@@ -86,6 +104,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                      |
 | ------- | ------ | ---------------------------------------------- |
+| 1.2.0   | 12-jul | 🎨 Rework de las 11 pantallas + Design System  |
 | 1.1.0   | 11-jul | 🔒 Auditoría de seguridad (MCP + privacidad)   |
 | 1.0.0   | 11-jul | Rebrand visual + español total                 |
 | 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono |

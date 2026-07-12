@@ -9,6 +9,46 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.2.0] — 2026-07-12
+
+Rework completo de la interfaz y nacimiento del **sistema de diseño de Escriba**.
+Se recorrieron las once pantallas una por una y, al terminar, se destiló todo en
+un sistema reutilizable para que Escriba se sienta coherente incluso cuando sume
+nuevas funciones.
+
+### Diseño
+
+- **Rework de las 11 pantallas:** Inicio, Modelos, Historial, Estudio, Traductor,
+  Intérprete en vivo, Agentes (MCP), Escritura Inteligente, General, Avanzado y
+  Acerca de. Cada una repensada como experiencia, no como formulario.
+- **Escriba Design Guide (sistema de diseño v2):** filosofía y principios, color,
+  tipografía, iconografía, espaciado y _layout_, forma, **motion**, estados,
+  **accesibilidad**, componentes, patrones y microcopy.
+- **Consolidación en código:** tokens únicos de forma (un radio, dos sombras, un
+  borde), primitiva `Card` (config/hero/metric), biblioteca de estados
+  (vacío/cargando) y comportamiento definido (transiciones 150–220 ms, estado
+  _pressed_ en botones, `prefers-reduced-motion` global).
+- **Inicio como experiencia:** _"Habla. Escriba hace el resto."_ con estado del
+  sistema y estadísticas; barra lateral reorganizada por contexto.
+
+### Añadido
+
+- **Dashboard de Agentes (MCP) en vivo:** tiempo activo, número de llamadas,
+  actividad reciente y agentes conectados, con **datos reales** del servidor.
+- **Panel de estado del sistema** en Avanzado (modelo, MCP, overlay, inicio) y
+  herramientas de usuario avanzado (abrir carpeta de logs y de datos).
+- **Escritura Inteligente:** las plantillas de IA como biblioteca visual, con
+  ejemplos de entrada → salida.
+- **Acerca de:** tarjeta de identidad y _"Escriba en números"_.
+
+### Cambiado
+
+- **Microcopy** con tono más humano y tranquilo (_"No pudimos… Inténtalo de nuevo."_).
+- **Lema** ajustado a _"Tu voz en tinta"_ (sin coma), en el _wordmark_ y Acerca de.
+- **Firma de macOS:** el `.app` deja de reutilizar un certificado ajeno; en el
+  repo va ad-hoc (portable, compatible con CI) y los _builds_ locales usan un
+  certificado propio **Escriba Self-Signed**.
+
 ## [1.1.0] — 2026-07-11
 
 Auditoría de seguridad completa antes de repartir la app. La promesa de Escriba
