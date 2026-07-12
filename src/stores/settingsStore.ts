@@ -126,6 +126,8 @@ const settingUpdaters: {
     commands.changeNoiseSuppressionSetting(value as boolean),
   pause_media_on_dictate: (value) =>
     commands.changePauseMediaOnDictateSetting(value as boolean),
+  mcp_autostart: (value) =>
+    commands.changeMcpAutostartSetting(value as boolean),
   word_correction_threshold: (value) =>
     commands.changeWordCorrectionThresholdSetting(value as number),
   paste_delay_ms: (value) =>

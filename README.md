@@ -53,7 +53,7 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | 🎬 **Estudio**                 | Arrastra un audio o video (incluso notas de voz `.opus` de WhatsApp) → transcripción con marcas de tiempo → exporta **SRT / VTT / TXT / JSON** + **resumen con IA**. Subtítulos para tus Reels, gratis y sin nube. |
 | 📡 **Intérprete en vivo**      | Tu Mac levanta una sala y muestra un **QR**; cada asistente lo abre en su teléfono y lee los subtítulos **en su propio idioma**. Para guías turísticos, clases y charlas con extranjeros.                          |
 | 🔄 **Traductor cara a cara**   | Conversación 1-a-1 bidireccional con **detección automática de idioma**, pantalla grande y voz.                                                                                                                    |
-| 🤖 **Agentes (MCP)**           | Un servidor local para que **Claude Code, Cursor o Cline** usen la transcripción, traducción y resumen de Escriba como herramientas. 100% local.                                                                   |
+| 🤖 **Agentes (MCP)**           | Un servidor local (puerto fijo) para que **Claude Code, Cursor o Cline** usen a Escriba como herramientas: transcribir, traducir, resumir, pulir texto y **leer tu historial de dictados**. 100% local.            |
 | 🎚️ **Re-transcribir**          | Mismo audio, otro modelo: compara precisión sin volver a subir nada.                                                                                                                                               |
 | 🎤 **Micrófono en los campos** | Dicta directo dentro de la propia app, en cualquier campo de texto.                                                                                                                                                |
 | 🔇 **Supresión de ruido**      | Limpia ventilador, teclado y tráfico del micrófono antes de transcribir. 100% local (RNNoise).                                                                                                                     |
@@ -84,18 +84,18 @@ Interfaz en **21 idiomas** (español primero) y transcripción multilingüe seg�
 
 Toda la evolución de Escriba, versión por versión (fechas reales de la dupla en los Juegos Imperiales):
 
-| Versión | Fecha  | Novedades                                                                   |
-| ------- | ------ | --------------------------------------------------------------------------- |
-| 1.0.0   | 11-jul | Rebrand visual + español total                                              |
-| 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono                              |
-| 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                |
-| 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                                                 |
-| 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar                                  |
-| 0.5.0   | 09-jul | Onboarding es-first + estadísticas                                          |
-| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`)                                        |
-| 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)                                 |
-| 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar                                   |
-| 0.2.0   | 07-jul | Rebrand + **motor de IA local**                                             |
+| Versión | Fecha  | Novedades                                      |
+| ------- | ------ | ---------------------------------------------- |
+| 1.0.0   | 11-jul | Rebrand visual + español total                 |
+| 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono |
+| 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar   |
+| 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                    |
+| 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar     |
+| 0.5.0   | 09-jul | Onboarding es-first + estadísticas             |
+| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`)           |
+| 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)    |
+| 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar      |
+| 0.2.0   | 07-jul | Rebrand + **motor de IA local**                |
 
 ## 🙏 Construido sobre Handy
 

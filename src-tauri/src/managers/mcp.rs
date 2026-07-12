@@ -14,6 +14,11 @@ use tauri::{AppHandle, Manager};
 
 const PROTOCOL_VERSION: &str = "2025-06-18";
 
+/// Puerto preferido del servidor MCP. Fijo para que la configuración del
+/// agente (`claude mcp add ... --url http://127.0.0.1:5151/mcp`) sobreviva a
+/// los reinicios de la app. Si está ocupado, se cae a un puerto efímero.
+const PREFERRED_PORT: u16 = 5151;
+
 pub struct McpServer {
     port: AtomicU16,
     shutdown: Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
@@ -67,9 +72,13 @@ impl McpServer {
         }
         *self.app.lock().unwrap() = Some(app);
 
-        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
-            .await
-            .map_err(|e| format!("No se pudo abrir el servidor MCP: {}", e))?;
+        // Puerto fijo primero (config estable en el agente); efímero de respaldo.
+        let listener = match tokio::net::TcpListener::bind(("127.0.0.1", PREFERRED_PORT)).await {
+            Ok(l) => l,
+            Err(_) => tokio::net::TcpListener::bind("127.0.0.1:0")
+                .await
+                .map_err(|e| format!("No se pudo abrir el servidor MCP: {}", e))?,
+        };
         let port = listener.local_addr().map_err(|e| e.to_string())?.port();
 
         let router = Router::new()
@@ -144,6 +153,33 @@ fn tool_definitions() -> Value {
                 },
                 "required": ["text"]
             }
+        },
+        {
+            "name": "polish",
+            "description": "Corrige y pule un texto con el motor local de Escriba: elimina muletillas y repeticiones, arregla puntuación y mayúsculas. Conserva idioma y significado.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "text": { "type": "string", "description": "Texto a corregir." }
+                },
+                "required": ["text"]
+            }
+        },
+        {
+            "name": "list_dictations",
+            "description": "Lista los dictados recientes del historial de Escriba (fecha + texto). Útil para resumir o retomar lo que el usuario dictó. Todo local.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "limit": { "type": "number", "description": "Máximo de dictados a devolver (por defecto 10, tope 50)." },
+                    "query": { "type": "string", "description": "Filtro opcional: solo dictados que contengan este texto." }
+                }
+            }
+        },
+        {
+            "name": "usage_stats",
+            "description": "Estadísticas de uso de Escriba: transcripciones, palabras, racha y minutos ahorrados.",
+            "inputSchema": { "type": "object", "properties": {} }
         }
     ])
 }
@@ -230,6 +266,18 @@ async fn call_tool(
                 .await
                 .ok_or_else(|| "No se pudo traducir (¿motor local disponible?)".to_string())
         }
+        "polish" => {
+            let text = args
+                .get("text")
+                .and_then(|t| t.as_str())
+                .unwrap_or("")
+                .to_string();
+            crate::actions::polish_text(&app, &text)
+                .await
+                .ok_or_else(|| "No se pudo corregir (¿motor local disponible?)".to_string())
+        }
+        "list_dictations" => list_dictations(&app, &args).await,
+        "usage_stats" => usage_stats_text(&app),
         "summarize" => {
             let text = args
                 .get("text")
@@ -272,4 +320,73 @@ async fn transcribe_file(app: &AppHandle, path: String) -> Result<String, String
     .map_err(|e| format!("La transcripción falló: {}", e))??;
     let paragraphs = crate::studio::segments::group_paragraphs(&segments);
     Ok(paragraphs.join("\n\n"))
+}
+
+/// Dictados recientes del historial (fecha local + texto), con filtro opcional.
+async fn list_dictations(app: &AppHandle, args: &Value) -> Result<String, String> {
+    let limit = args
+        .get("limit")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(10)
+        .min(50) as usize;
+    let query = args
+        .get("query")
+        .and_then(|q| q.as_str())
+        .map(|s| s.to_lowercase());
+
+    let hm = app
+        .state::<Arc<crate::managers::history::HistoryManager>>()
+        .inner()
+        .clone();
+    let page = hm
+        .get_history_entries(None, Some(50))
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let mut lines = Vec::new();
+    for entry in page.entries {
+        let text = entry
+            .post_processed_text
+            .clone()
+            .unwrap_or_else(|| entry.transcription_text.clone());
+        if text.trim().is_empty() {
+            continue;
+        }
+        if let Some(q) = &query {
+            if !text.to_lowercase().contains(q) {
+                continue;
+            }
+        }
+        let when = chrono::DateTime::from_timestamp(entry.timestamp, 0)
+            .map(|d| {
+                d.with_timezone(&chrono::Local)
+                    .format("%Y-%m-%d %H:%M")
+                    .to_string()
+            })
+            .unwrap_or_default();
+        lines.push(format!("[{}] {}", when, text.trim()));
+        if lines.len() >= limit {
+            break;
+        }
+    }
+
+    if lines.is_empty() {
+        return Ok("Sin dictados que coincidan.".to_string());
+    }
+    Ok(lines.join("\n"))
+}
+
+/// Estadísticas de uso en texto plano para el agente.
+fn usage_stats_text(app: &AppHandle) -> Result<String, String> {
+    let hm = app.state::<Arc<crate::managers::history::HistoryManager>>();
+    let s = hm.get_usage_stats().map_err(|e| e.to_string())?;
+    Ok(format!(
+        "Transcripciones totales: {}\nPalabras totales: {}\nPalabras últimos 30 días: {}\nDías activos últimos 30: {}\nRacha actual: {} días\nMinutos ahorrados (vs teclear a 40 ppm): {}",
+        s.total_transcriptions,
+        s.total_words,
+        s.words_last_30_days,
+        s.active_days_last_30,
+        s.current_streak_days,
+        s.minutes_saved
+    ))
 }

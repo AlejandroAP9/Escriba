@@ -447,6 +447,14 @@ async changePauseMediaOnDictateSetting(enabled: boolean) : Promise<Result<null, 
     else return { status: "error", error: e  as any };
 }
 },
+async changeMcpAutostartSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_mcp_autostart_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 /**
  * Temporarily unregister a binding while the user is editing it in the UI.
  * This avoids firing the action while keys are being recorded.
@@ -1068,7 +1076,11 @@ noise_suppression?: boolean;
 /**
  * Pausar la reproducción de medios (Música/Spotify) mientras dictas.
  */
-pause_media_on_dictate?: boolean }
+pause_media_on_dictate?: boolean; 
+/**
+ * Arrancar el servidor MCP (Agentes) automáticamente al abrir la app.
+ */
+mcp_autostart?: boolean }
 export type AudioDevice = { index: string; name: string; is_default: boolean }
 export type AutoSubmitKey = "enter" | "ctrl_enter" | "cmd_enter"
 export type AvailableAccelerators = { transcribe: string[]; ort: string[]; gpu_devices: GpuDeviceOption[] }

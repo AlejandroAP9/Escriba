@@ -758,6 +758,24 @@ pub fn change_pause_media_on_dictate_setting(app: AppHandle, enabled: bool) -> R
 
 #[tauri::command]
 #[specta::specta]
+pub fn change_mcp_autostart_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.mcp_autostart = enabled;
+    settings::write_settings(&app, settings);
+    // Al activarlo, levanta el servidor de inmediato (idempotente si ya corre).
+    if enabled {
+        let ah = app.clone();
+        tauri::async_runtime::spawn(async move {
+            if let Err(e) = crate::managers::mcp::global().start(ah).await {
+                log::warn!("MCP autostart (toggle) failed: {}", e);
+            }
+        });
+    }
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn change_word_correction_threshold_setting(
     app: AppHandle,
     threshold: f64,

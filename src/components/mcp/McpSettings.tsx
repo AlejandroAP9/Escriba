@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { Check, Copy } from "lucide-react";
 import { commands, type McpStatus } from "@/bindings";
 import { Button } from "../ui/Button";
+import { ToggleSwitch } from "../ui/ToggleSwitch";
+import { useSettings } from "../../hooks/useSettings";
 
 /**
  * Sección "Agentes (MCP)": levanta un servidor MCP local para que agentes de IA
@@ -12,6 +14,7 @@ import { Button } from "../ui/Button";
  */
 export const McpSettings: React.FC = () => {
   const { t } = useTranslation();
+  const { getSetting, updateSetting, isUpdating } = useSettings();
   const [status, setStatus] = useState<McpStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -56,7 +59,14 @@ export const McpSettings: React.FC = () => {
     }
   };
 
-  const TOOLS = ["transcribe", "translate", "summarize"] as const;
+  const TOOLS = [
+    "transcribe",
+    "translate",
+    "summarize",
+    "polish",
+    "list_dictations",
+    "usage_stats",
+  ] as const;
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
@@ -83,6 +93,19 @@ export const McpSettings: React.FC = () => {
             {status?.running ? t("mcp.stop") : t("mcp.start")}
           </Button>
         </div>
+
+        <ToggleSwitch
+          checked={getSetting("mcp_autostart") || false}
+          onChange={(value) => {
+            updateSetting("mcp_autostart", value);
+            // Al activarlo, el backend levanta el servidor: refresca el estado.
+            if (value) window.setTimeout(refresh, 600);
+          }}
+          isUpdating={isUpdating("mcp_autostart")}
+          label={t("mcp.autostart.label")}
+          description={t("mcp.autostart.description")}
+          descriptionMode="tooltip"
+        />
 
         {status?.running && status.url && (
           <div className="space-y-2">

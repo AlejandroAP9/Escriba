@@ -462,6 +462,9 @@ pub struct AppSettings {
     /// Pausar la reproducción de medios (Música/Spotify) mientras dictas.
     #[serde(default)]
     pub pause_media_on_dictate: bool,
+    /// Arrancar el servidor MCP (Agentes) automáticamente al abrir la app.
+    #[serde(default)]
+    pub mcp_autostart: bool,
 }
 
 fn default_model() -> String {
@@ -965,6 +968,7 @@ pub fn get_default_settings() -> AppSettings {
         text_replacements: Vec::new(),
         noise_suppression: false,
         pause_media_on_dictate: false,
+        mcp_autostart: false,
     }
 }
 

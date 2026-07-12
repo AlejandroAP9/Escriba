@@ -760,9 +760,16 @@
     "tool": {
       "transcribe": "transcribe un archivo de audio/video local a texto",
       "translate": "traduce un texto al idioma destino",
-      "summarize": "resume un texto"
+      "summarize": "resume un texto",
+      "polish": "corrige y pule un texto (muletillas, puntuación)",
+      "list_dictations": "lee tus dictados recientes del historial",
+      "usage_stats": "tus estadísticas de uso (palabras, racha, minutos ahorrados)"
     },
-    "localNote": "100% local: el audio y el texto nunca salen de tu computador."
+    "localNote": "100% local: el audio y el texto nunca salen de tu computador.",
+    "autostart": {
+      "label": "Iniciar con la app",
+      "description": "Arranca el servidor MCP automáticamente al abrir Escriba, para que tus agentes siempre tengan las herramientas disponibles."
+    }
   },
   "micButton": {
     "start": "Dictar",

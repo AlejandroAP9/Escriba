@@ -184,6 +184,16 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     app_handle.manage(history_manager.clone());
     app_handle.manage(std::sync::Arc::new(commands::studio::StudioState::default()));
 
+    // Servidor MCP (Agentes): arrancar automáticamente si el usuario lo activó.
+    if get_settings(app_handle).mcp_autostart {
+        let ah = app_handle.clone();
+        tauri::async_runtime::spawn(async move {
+            if let Err(e) = crate::managers::mcp::global().start(ah).await {
+                log::warn!("MCP autostart failed: {}", e);
+            }
+        });
+    }
+
     // Note: Shortcuts are NOT initialized here.
     // The frontend is responsible for calling the `initialize_shortcuts` command
     // after permissions are confirmed (on macOS) or after onboarding completes.
@@ -651,6 +661,7 @@ pub fn run(cli_args: CliArgs) {
             shortcut::update_text_replacements,
             shortcut::change_noise_suppression_setting,
             shortcut::change_pause_media_on_dictate_setting,
+            shortcut::change_mcp_autostart_setting,
             shortcut::suspend_binding,
             shortcut::resume_binding,
             shortcut::change_mute_while_recording_setting,

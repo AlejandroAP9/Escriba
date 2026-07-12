@@ -760,9 +760,16 @@
     "tool": {
       "transcribe": "transcribe a local audio/video file to text",
       "translate": "translate text to a target language",
-      "summarize": "summarize a text"
+      "summarize": "summarize a text",
+      "polish": "clean up and polish a text (fillers, punctuation)",
+      "list_dictations": "read your recent dictations from history",
+      "usage_stats": "your usage stats (words, streak, minutes saved)"
     },
-    "localNote": "100% local: the audio and text never leave your computer."
+    "localNote": "100% local: the audio and text never leave your computer.",
+    "autostart": {
+      "label": "Start with the app",
+      "description": "Start the MCP server automatically when Escriba opens, so your agents always have the tools available."
+    }
   },
   "micButton": {
     "start": "Dictate",

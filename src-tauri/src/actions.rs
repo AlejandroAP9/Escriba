@@ -1338,6 +1338,61 @@ pub async fn summarize_text(app: &AppHandle, text: &str) -> Option<String> {
     }
 }
 
+/// Corrige y pule un texto con el motor local: muletillas, repeticiones y
+/// puntuación, conservando idioma y significado. Expuesto como tool MCP.
+pub async fn polish_text(app: &AppHandle, text: &str) -> Option<String> {
+    if text.trim().is_empty() {
+        return None;
+    }
+    let settings = get_settings(app);
+    let mut provider = settings
+        .post_process_providers
+        .iter()
+        .find(|p| p.id == crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()?;
+    let model = settings
+        .post_process_models
+        .get(crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()
+        .unwrap_or_default();
+
+    match resolve_local_route(&model).await {
+        LocalRoute::Sidecar(base_url) => provider.base_url = base_url,
+        LocalRoute::Ollama { base_url, .. } => {
+            provider.base_url = base_url;
+            provider.supports_structured_output = false;
+        }
+        _ => return None,
+    }
+
+    let prompt = format!(
+        "Corrige y pule el siguiente texto dictado: elimina muletillas y repeticiones, arregla puntuación y mayúsculas, y conserva el idioma y el significado original. Responde ÚNICAMENTE con el texto corregido.\n\nTexto:\n{}",
+        text
+    );
+
+    match crate::llm_client::send_chat_completion(
+        &provider,
+        String::new(),
+        &model,
+        prompt,
+        Some("none".to_string()),
+        None,
+        Some(0.2),
+    )
+    .await
+    {
+        Ok(Some(content)) => {
+            let cleaned = strip_invisible_chars(&content);
+            if cleaned.trim().is_empty() {
+                None
+            } else {
+                Some(cleaned.trim().to_string())
+            }
+        }
+        _ => None,
+    }
+}
+
 /// Traduce un texto al idioma destino (código ISO) con el motor local. Usado
 /// por el Intérprete en vivo. Devuelve None si no hay ruta local o falla.
 pub async fn translate_text(app: &AppHandle, text: &str, target_lang: &str) -> Option<String> {
