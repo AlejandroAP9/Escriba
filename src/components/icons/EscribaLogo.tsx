@@ -3,7 +3,7 @@ import markInk from "../../assets/escriba-mark-ink.png";
 import markParchment from "../../assets/escriba-mark-parchment.png";
 
 const BRAND = "Escriba";
-const TAGLINE = "Tu voz, en tinta.";
+const TAGLINE = "Tu voz en tinta.";
 const SERIF = "var(--font-serif)";
 
 // Logo de Escriba (diseno de Flor): pluma + onda de voz + firma, con "Escriba"
@@ -23,7 +23,7 @@ const EscribaLogo = ({
   // En superficies oscuras (barra lateral tinta) fija la marca pergamino y el
   // wordmark crema, sin depender del tema del sistema.
   onDark?: boolean;
-  // Muestra "Tu voz, en tinta." en oro bajo el wordmark (barra lateral).
+  // Muestra "Tu voz en tinta." en oro bajo el wordmark (barra lateral).
   tagline?: boolean;
 }) => {
   // La marca de Flor es casi cuadrada; se muestra a ~2/3 del ancho nominal para
