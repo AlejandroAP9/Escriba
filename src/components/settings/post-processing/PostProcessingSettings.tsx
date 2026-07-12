@@ -11,6 +11,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import { Button } from "../../ui/Button";
+import { CollapsibleGroup } from "../../ui/CollapsibleGroup";
 import { ResetButton } from "../../ui/ResetButton";
 import { Input } from "../../ui/Input";
 import { MicButton } from "../../shared/MicButton";
@@ -451,6 +452,7 @@ export const PostProcessingSettings: React.FC = () => {
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
+      {/* Esencial y de uso diario: activar + atajos + traducción. */}
       <SettingsGroup title={t("settings.postProcessing.enable.title")}>
         <PostProcessingToggle descriptionMode="tooltip" grouped={true} />
       </SettingsGroup>
@@ -468,10 +470,6 @@ export const PostProcessingSettings: React.FC = () => {
         />
       </SettingsGroup>
 
-      <SettingsGroup title={t("settings.postProcessing.api.title")}>
-        <PostProcessingSettingsApi />
-      </SettingsGroup>
-
       <SettingsGroup title={t("settings.postProcessing.translation.title")}>
         <ShortcutInput
           shortcutId="transcribe_translate"
@@ -481,9 +479,21 @@ export const PostProcessingSettings: React.FC = () => {
         <TranslationTargetLanguage />
       </SettingsGroup>
 
-      <SettingsGroup title={t("settings.postProcessing.prompts.title")}>
-        <PostProcessingSettingsPrompts />
-      </SettingsGroup>
+      {/* Técnico: el 95% no lo toca. Motor/proveedor/API key y prompts,
+          plegados por defecto. */}
+      <div className="space-y-2 pt-2">
+        <CollapsibleGroup title={t("settings.postProcessing.api.title")}>
+          <div className="p-4">
+            <PostProcessingSettingsApi />
+          </div>
+        </CollapsibleGroup>
+
+        <CollapsibleGroup title={t("settings.postProcessing.prompts.title")}>
+          <div className="p-4">
+            <PostProcessingSettingsPrompts />
+          </div>
+        </CollapsibleGroup>
+      </div>
     </div>
   );
 };

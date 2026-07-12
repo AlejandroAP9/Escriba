@@ -4,7 +4,7 @@ import { ShowOverlay } from "../ShowOverlay";
 import { ModelUnloadTimeoutSetting } from "../ModelUnloadTimeout";
 import { CustomWords } from "../CustomWords";
 import { TextReplacements } from "../TextReplacements";
-import { SettingsGroup } from "../../ui/SettingsGroup";
+import { CollapsibleGroup } from "../../ui/CollapsibleGroup";
 import { StartHidden } from "../StartHidden";
 import { AutostartToggle } from "../AutostartToggle";
 import { ShowTrayIcon } from "../ShowTrayIcon";
@@ -28,47 +28,47 @@ export const AdvancedSettings: React.FC = () => {
   const experimentalEnabled = getSetting("experimental_enabled") || false;
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <SettingsGroup title={t("settings.advanced.groups.app")}>
+    <div className="max-w-3xl w-full mx-auto space-y-2">
+      <CollapsibleGroup title={t("settings.advanced.groups.app")} defaultOpen>
         <StartHidden descriptionMode="tooltip" grouped={true} />
         <AutostartToggle descriptionMode="tooltip" grouped={true} />
         <ShowTrayIcon descriptionMode="tooltip" grouped={true} />
         <ShowOverlay descriptionMode="tooltip" grouped={true} />
         <ModelUnloadTimeoutSetting descriptionMode="tooltip" grouped={true} />
         <ExperimentalToggle descriptionMode="tooltip" grouped={true} />
-      </SettingsGroup>
+      </CollapsibleGroup>
 
-      <SettingsGroup title={t("settings.advanced.groups.output")}>
+      <CollapsibleGroup title={t("settings.advanced.groups.output")}>
         <PasteMethodSetting descriptionMode="tooltip" grouped={true} />
         <TypingToolSetting descriptionMode="tooltip" grouped={true} />
         <ClipboardHandlingSetting descriptionMode="tooltip" grouped={true} />
         <AutoSubmit descriptionMode="tooltip" grouped={true} />
-      </SettingsGroup>
+      </CollapsibleGroup>
 
-      <SettingsGroup title={t("settings.advanced.groups.transcription")}>
+      <CollapsibleGroup title={t("settings.advanced.groups.transcription")}>
         <VoiceActivityDetection descriptionMode="tooltip" grouped={true} />
         <CustomWords descriptionMode="tooltip" grouped />
         <TextReplacements descriptionMode="tooltip" grouped />
         <AppendTrailingSpace descriptionMode="tooltip" grouped={true} />
-      </SettingsGroup>
+      </CollapsibleGroup>
 
-      <SettingsGroup title={t("settings.advanced.groups.history")}>
+      <CollapsibleGroup title={t("settings.advanced.groups.history")}>
         <HistoryLimit descriptionMode="tooltip" grouped={true} />
         <RecordingRetentionPeriodSelector
           descriptionMode="tooltip"
           grouped={true}
         />
-      </SettingsGroup>
+      </CollapsibleGroup>
 
       {experimentalEnabled && (
-        <SettingsGroup title={t("settings.advanced.groups.experimental")}>
+        <CollapsibleGroup title={t("settings.advanced.groups.experimental")}>
           <KeyboardImplementationSelector
             descriptionMode="tooltip"
             grouped={true}
           />
           <AccelerationSelector descriptionMode="tooltip" grouped={true} />
           <LazyStreamClose descriptionMode="tooltip" grouped={true} />
-        </SettingsGroup>
+        </CollapsibleGroup>
       )}
     </div>
   );
