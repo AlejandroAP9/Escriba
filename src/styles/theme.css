@@ -21,6 +21,13 @@
   /* Lacre: sello de "grabando" (y acentos cálidos puntuales). */
   --color-lacre: #9e4230;
 
+  /* Superficie "ink": barra lateral / placas oscuras (el contrapunto de tinta
+     contra el pergamino, como las placas del brand board). En claro es tinta
+     profunda; en oscuro se levanta un punto para separarse del fondo. */
+  --color-ink: #1b1426;
+  --color-ink-fg: #ece1c5;
+  --color-ink-muted: #b3a488;
+
   /* Tipografía de la marca: Garamond para titulares/wordmark (manuscrito). */
   --font-serif: "EB Garamond", "Iowan Old Style", "Palatino Linotype", Palatino,
     "Hoefler Text", Georgia, serif;
@@ -35,5 +42,7 @@
     --color-logo-stroke: #e4c878;
     /* Sepia claro para que el texto tenue tenga contraste sobre la tinta. */
     --color-mid-gray: #a2937b;
+    /* En oscuro, la barra se levanta sobre el fondo tinta para distinguirse. */
+    --color-ink: #241b31;
   }
 }

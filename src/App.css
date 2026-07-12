@@ -44,6 +44,9 @@
   --color-text-stroke: var(--color-text-stroke);
   --color-mid-gray: var(--color-mid-gray);
   --color-lacre: var(--color-lacre);
+  --color-ink: var(--color-ink);
+  --color-ink-fg: var(--color-ink-fg);
+  --color-ink-muted: var(--color-ink-muted);
   --font-serif: var(--font-serif);
 }
 

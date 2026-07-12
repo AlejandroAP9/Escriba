@@ -13,10 +13,14 @@ const EscribaLogo = ({
   width = 120,
   height,
   className,
+  onDark = false,
 }: {
   width?: number;
   height?: number;
   className?: string;
+  // En superficies oscuras (barra lateral tinta) fija la marca pergamino y el
+  // wordmark crema, sin depender del tema del sistema.
+  onDark?: boolean;
 }) => {
   // La marca de Flor es casi cuadrada; se muestra a ~2/3 del ancho nominal para
   // que no domine junto al wordmark.
@@ -34,20 +38,26 @@ const EscribaLogo = ({
         gap: Math.round(width * 0.06),
       }}
     >
-      <img
-        className="escriba-mark--light"
-        src={markInk}
-        alt=""
-        style={imgStyle}
-      />
-      <img
-        className="escriba-mark--dark"
-        src={markParchment}
-        alt=""
-        style={imgStyle}
-      />
+      {onDark ? (
+        <img src={markParchment} alt="" style={imgStyle} />
+      ) : (
+        <>
+          <img
+            className="escriba-mark--light"
+            src={markInk}
+            alt=""
+            style={imgStyle}
+          />
+          <img
+            className="escriba-mark--dark"
+            src={markParchment}
+            alt=""
+            style={imgStyle}
+          />
+        </>
+      )}
       <span
-        className="text-text"
+        className={onDark ? "text-ink-fg" : "text-text"}
         style={{
           fontFamily: SERIF,
           fontWeight: 600,

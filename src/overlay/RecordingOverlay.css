@@ -267,13 +267,14 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--s-accent);
+  /* Lacre: el punto de grabación en rojo sello (grabando), el resto en oro. */
+  background: var(--color-lacre);
   flex: none;
   animation: sdot-pulse 1.9s infinite;
 }
 @keyframes sdot-pulse {
   0% {
-    box-shadow: 0 0 0 0 var(--s-accent-soft);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-lacre) 45%, transparent);
   }
   70% {
     box-shadow: 0 0 0 7px transparent;
