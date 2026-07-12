@@ -34,8 +34,12 @@ export const DictationHero: React.FC = () => {
 
         <div className="flex items-start justify-between gap-4">
           <h2
-            className="max-w-md text-2xl font-semibold leading-snug text-text sm:text-3xl"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            className="max-w-md text-xl font-medium leading-snug text-text sm:text-[1.6rem]"
+            style={{
+              fontFamily:
+                "'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif",
+              letterSpacing: "0.01em",
+            }}
           >
             {t("settings.general.hero.headline")}
           </h2>
