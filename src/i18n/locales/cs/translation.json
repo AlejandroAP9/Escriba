@@ -160,7 +160,13 @@
     },
     "cancel": "Zrušit",
     "cancelDownload": "Zrušit stahování",
-    "legacy": "Zastaralé"
+    "legacy": "Zastaralé",
+    "why": {
+      "bestQuality": "Best quality",
+      "fastest": "Fastest",
+      "live": "Live",
+      "mostLanguages": "Most languages"
+    }
   },
   "settings": {
     "modelSettings": {

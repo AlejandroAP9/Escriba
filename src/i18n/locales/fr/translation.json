@@ -160,7 +160,13 @@
     },
     "cancel": "Annuler",
     "cancelDownload": "Annuler le téléchargement",
-    "legacy": "Hérité"
+    "legacy": "Hérité",
+    "why": {
+      "bestQuality": "Best quality",
+      "fastest": "Fastest",
+      "live": "Live",
+      "mostLanguages": "Most languages"
+    }
   },
   "settings": {
     "modelSettings": {

@@ -160,7 +160,13 @@
     },
     "cancel": "Отмена",
     "cancelDownload": "Отменить загрузку",
-    "legacy": "Устаревшее"
+    "legacy": "Устаревшее",
+    "why": {
+      "bestQuality": "Best quality",
+      "fastest": "Fastest",
+      "live": "Live",
+      "mostLanguages": "Most languages"
+    }
   },
   "settings": {
     "modelSettings": {

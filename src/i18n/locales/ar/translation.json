@@ -160,7 +160,13 @@
       "translate": "ترجمة",
       "streaming": "يعرض النسخ المباشر أثناء التحدث"
     },
-    "legacy": "قديم"
+    "legacy": "قديم",
+    "why": {
+      "bestQuality": "Best quality",
+      "fastest": "Fastest",
+      "live": "Live",
+      "mostLanguages": "Most languages"
+    }
   },
   "settings": {
     "general": {

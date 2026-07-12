@@ -8,7 +8,9 @@ import {
   HardDrive,
   Languages,
   Loader2,
+  Star,
   Trash2,
+  Zap,
 } from "lucide-react";
 import type { ModelInfo } from "@/bindings";
 import { formatModelSize } from "../../lib/utils/format";
@@ -135,6 +137,38 @@ const ModelCard: React.FC<ModelCardProps> = ({
     }
   };
 
+  // Badge útil: en vez del "Recomendado" genérico repetido, responde POR QUÉ
+  // destaca este modelo (mejor calidad / más rápido / en vivo / más idiomas).
+  const recommendationBadge = (): {
+    icon: React.ReactNode;
+    label: string;
+  } | null => {
+    if (!showRecommended || !model.is_recommended) return null;
+    const iconCls = "w-3 h-3 mr-1";
+    if (model.accuracy_score >= 0.9)
+      return {
+        icon: <Star className={iconCls} />,
+        label: t("modelSelector.why.bestQuality"),
+      };
+    if (model.speed_score >= 0.9)
+      return {
+        icon: <Zap className={iconCls} />,
+        label: t("modelSelector.why.fastest"),
+      };
+    if (model.supports_streaming)
+      return {
+        icon: <AudioLines className={iconCls} />,
+        label: t("modelSelector.why.live"),
+      };
+    if (getUniqueCapabilityLanguages(model.supported_languages).length >= 90)
+      return {
+        icon: <Globe className={iconCls} />,
+        label: t("modelSelector.why.mostLanguages"),
+      };
+    return { icon: null, label: t("onboarding.recommended") };
+  };
+  const whyBadge = recommendationBadge();
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     onDelete?.(model.id);
@@ -166,8 +200,11 @@ const ModelCard: React.FC<ModelCardProps> = ({
             >
               {displayName}
             </h3>
-            {showRecommended && model.is_recommended && (
-              <Badge variant="primary">{t("onboarding.recommended")}</Badge>
+            {whyBadge && (
+              <Badge variant="secondary">
+                {whyBadge.icon}
+                {whyBadge.label}
+              </Badge>
             )}
             {status === "active" && (
               <Badge variant="primary">
@@ -193,29 +230,29 @@ const ModelCard: React.FC<ModelCardProps> = ({
           </p>
         </div>
         {(model.accuracy_score > 0 || model.speed_score > 0) && (
-          <div className="hidden sm:flex items-center ms-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-text/60 w-24 text-end">
-                  {t("onboarding.modelCard.accuracy")}
-                </p>
-                <div className="w-16 h-1.5 bg-mid-gray/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-logo-primary rounded-full"
-                    style={{ width: `${model.accuracy_score * 100}%` }}
-                  />
-                </div>
+          // Etiqueta pegada ARRIBA de su barra (se lee de un vistazo), barras
+          // más anchas y gruesas.
+          <div className="hidden sm:flex flex-col gap-2 ms-4 w-28 shrink-0">
+            <div>
+              <p className="mb-1 text-[11px] leading-none text-mid-gray">
+                {t("onboarding.modelCard.accuracy")}
+              </p>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-mid-gray/15">
+                <div
+                  className="h-full rounded-full bg-logo-primary"
+                  style={{ width: `${model.accuracy_score * 100}%` }}
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-text/60 w-24 text-end">
-                  {t("onboarding.modelCard.speed")}
-                </p>
-                <div className="w-16 h-1.5 bg-mid-gray/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-logo-primary rounded-full"
-                    style={{ width: `${model.speed_score * 100}%` }}
-                  />
-                </div>
+            </div>
+            <div>
+              <p className="mb-1 text-[11px] leading-none text-mid-gray">
+                {t("onboarding.modelCard.speed")}
+              </p>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-mid-gray/15">
+                <div
+                  className="h-full rounded-full bg-logo-primary"
+                  style={{ width: `${model.speed_score * 100}%` }}
+                />
               </div>
             </div>
           </div>
@@ -226,46 +263,47 @@ const ModelCard: React.FC<ModelCardProps> = ({
 
       {/* Bottom row: tags + action buttons (full width) */}
       <div className="flex items-center gap-3 w-full -mb-0.5 mt-0.5 h-5">
+        {/* Ícono en gris, texto más oscuro: la información se lee, el ícono acompaña. */}
         {capabilityLanguages.length > 0 && (
           <div
-            className="flex items-center gap-1 text-xs text-text/50"
+            className="flex items-center gap-1 text-xs text-text/75"
             title={
               capabilityLanguages.length === 1
                 ? t("modelSelector.capabilities.singleLanguage")
                 : t("modelSelector.capabilities.languageSelection")
             }
           >
-            <Globe className="w-3.5 h-3.5" />
+            <Globe className="w-3.5 h-3.5 text-mid-gray/70" />
             <span>{getLanguageDisplayText(model.supported_languages, t)}</span>
           </div>
         )}
         {model.supports_translation && (
           <div
-            className="flex items-center gap-1 text-xs text-text/50"
+            className="flex items-center gap-1 text-xs text-text/75"
             title={t("modelSelector.capabilities.translation")}
           >
-            <Languages className="w-3.5 h-3.5" />
+            <Languages className="w-3.5 h-3.5 text-mid-gray/70" />
             <span>{t("modelSelector.capabilities.translate")}</span>
           </div>
         )}
         {model.supports_streaming && (
           <div
-            className="flex items-center gap-1 text-xs text-text/50"
+            className="flex items-center gap-1 text-xs text-text/75"
             title={t("modelSelector.capabilities.streaming")}
           >
-            <AudioLines className="w-3.5 h-3.5" />
+            <AudioLines className="w-3.5 h-3.5 text-mid-gray/70" />
             <span>{t("modelSelector.streaming")}</span>
           </div>
         )}
         {showModelSize && (
-          <span className="flex items-center gap-1.5 ms-auto text-xs text-text/50">
+          <span className="flex items-center gap-1.5 ms-auto text-xs text-text/75">
             {status === "downloadable" ? (
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-mid-gray/70" />
             ) : (
-              <HardDrive className="w-3.5 h-3.5" />
+              <HardDrive className="w-3.5 h-3.5 text-mid-gray/70" />
             )}
             <span>{formattedModelSize}</span>
-            {quantLabel && <span className="text-text/40">{quantLabel}</span>}
+            {quantLabel && <span className="text-mid-gray/70">{quantLabel}</span>}
           </span>
         )}
         {onDelete && (status === "available" || status === "active") && (

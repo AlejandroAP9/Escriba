@@ -160,6 +160,12 @@
       "translation": "Can translate to English",
       "translate": "Translate",
       "streaming": "Shows live transcription as you speak"
+    },
+    "why": {
+      "bestQuality": "Best quality",
+      "fastest": "Fastest",
+      "live": "Live",
+      "mostLanguages": "Most languages"
     }
   },
   "settings": {
@@ -225,8 +231,8 @@
       }
     },
     "models": {
-      "title": "Transcription Models",
-      "description": "Select a transcription model or download additional models. Different models offer varying levels of accuracy and speed.",
+      "title": "Models",
+      "description": "Choose the engine Escriba uses to turn voice into text.",
       "searchPlaceholder": "Search models by name…",
       "yourModels": "Installed",
       "availableModels": "Model library",

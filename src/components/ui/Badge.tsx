@@ -12,9 +12,10 @@ const Badge: React.FC<BadgeProps> = ({
   className = "",
 }) => {
   const variantClasses = {
-    primary: "bg-logo-primary",
+    // Oro con texto tinta: reservado para el estado que importa (Activo).
+    primary: "bg-logo-primary text-ink font-semibold",
     success: "bg-green-500/20 text-green-400",
-    secondary: "bg-mid-gray/20 text-text/70",
+    secondary: "bg-mid-gray/15 text-text/75",
   };
 
   return (

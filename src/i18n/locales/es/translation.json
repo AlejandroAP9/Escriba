@@ -160,15 +160,21 @@
     },
     "cancel": "Cancelar",
     "cancelDownload": "Cancelar descarga",
-    "legacy": "Heredado"
+    "legacy": "Heredado",
+    "why": {
+      "bestQuality": "Mejor calidad",
+      "fastest": "Más rápido",
+      "live": "En vivo",
+      "mostLanguages": "Más idiomas"
+    }
   },
   "settings": {
     "modelSettings": {
       "title": "Configuración de {{model}}"
     },
     "models": {
-      "title": "Modelos de Transcripción",
-      "description": "Selecciona un modelo de transcripción o descarga modelos adicionales. Diferentes modelos ofrecen distintos niveles de precisión y velocidad.",
+      "title": "Modelos",
+      "description": "Selecciona el motor que usará Escriba para convertir voz en texto.",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar {{modelName}}? Necesitarás descargarlo de nuevo para usarlo.",
       "deleteActiveConfirm": "{{modelName}} es tu modelo activo. Eliminarlo detendrá las transcripciones hasta que selecciones un nuevo modelo. ¿Estás seguro?",
       "deleteTitle": "Eliminar modelo",
