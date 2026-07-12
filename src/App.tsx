@@ -25,8 +25,9 @@ const renderSettingsContent = (section: SidebarSection) => {
   const ActiveComponent =
     SECTIONS_CONFIG[section]?.component || SECTIONS_CONFIG.general.component;
   // key={section} remonta al cambiar de pestaña → replay del fade + 2px (tab-enter).
+  // Ancho máximo centrado (~1024px): el contenido respira como Apple/Arc/Linear.
   return (
-    <div key={section} className="tab-enter">
+    <div key={section} className="tab-enter w-full max-w-5xl mx-auto">
       <ActiveComponent />
     </div>
   );

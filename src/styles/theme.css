@@ -17,8 +17,9 @@
   --gold-grad: linear-gradient(180deg, #c58a2a 0%, #a8792a 55%, #8c6522 100%);
   --color-logo-stroke: #1b1426;
   --color-text-stroke: #fbf6ea;
-  /* Sepia: texto secundario / tenue. */
-  --color-mid-gray: #6e6152;
+  /* Sepia: texto secundario. Oscurecido para mejor legibilidad (no se lava
+     contra el pergamino). */
+  --color-mid-gray: #5f554a;
   /* Lacre: sello de "grabando" (y acentos cálidos puntuales). */
   --color-lacre: #9e4230;
 

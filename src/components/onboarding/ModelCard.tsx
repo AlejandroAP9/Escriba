@@ -110,19 +110,20 @@ const ModelCard: React.FC<ModelCardProps> = ({
     "flex flex-col rounded-xl px-4 py-3 gap-2 text-left transition-all duration-200";
 
   const getVariantClasses = () => {
+    // El oro se reserva SOLO para el modelo activo (una única jerarquía). Los
+    // recomendados y la biblioteca usan un borde gris fino: el ojo encuentra al
+    // instante cuál está activo.
     if (status === "active") {
-      return "border-2 border-logo-primary/50 bg-logo-primary/10";
+      return "border-2 border-logo-primary/50 bg-logo-primary/[0.07]";
     }
-    if (isFeatured) {
-      return "border-2 border-logo-primary/25 bg-logo-primary/5";
-    }
-    return "border-2 border-mid-gray/20";
+    return "border border-mid-gray/15";
   };
 
   const getInteractiveClasses = () => {
     if (!isClickable) return "";
     if (disabled) return "opacity-50 cursor-not-allowed";
-    return "cursor-pointer hover:border-logo-primary/50 hover:bg-logo-primary/5 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] group";
+    // Hover que ELEVA 2px con sombra sutil (sin zoom brusco).
+    return "cursor-pointer hover:border-logo-primary/40 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-14px_rgba(27,20,38,0.30)] group";
   };
 
   const handleClick = () => {
@@ -273,7 +274,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
             size="sm"
             onClick={handleDelete}
             title={t("modelSelector.deleteModel", { modelName: displayName })}
-            className="flex items-center gap-1.5 text-logo-primary/85 hover:text-logo-primary hover:bg-logo-primary/10"
+            className="flex items-center gap-1.5 text-mid-gray hover:text-red-600 hover:bg-red-500/10"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>{t("common.delete")}</span>
