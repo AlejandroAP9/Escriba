@@ -793,6 +793,10 @@
     "timeSaved": "Tiempo ahorrado",
     "lastDictation": "Último dictado",
     "noneYet": "aún nada",
-    "setShortcut": "Configura un atajo"
+    "setShortcut": "Configura un atajo",
+    "systemStatus": "Estado del sistema",
+    "micReady": "Micrófono listo",
+    "allLocal": "Todo se procesa localmente",
+    "audios": "Audios"
   }
 }

@@ -793,6 +793,10 @@
     "timeSaved": "Time saved",
     "lastDictation": "Last dictation",
     "noneYet": "nothing yet",
-    "setShortcut": "Set a shortcut"
+    "setShortcut": "Set a shortcut",
+    "systemStatus": "System status",
+    "micReady": "Microphone ready",
+    "allLocal": "Everything runs locally",
+    "audios": "Audios"
   }
 }

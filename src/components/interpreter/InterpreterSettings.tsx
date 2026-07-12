@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Radio } from "lucide-react";
 import { commands, type InterpreterRoom } from "@/bindings";
 import { Button } from "../ui/Button";
 
@@ -93,7 +94,13 @@ export const InterpreterSettings: React.FC = () => {
         </div>
 
         {!room ? (
-          <Button variant="primary" size="md" onClick={start}>
+          <Button
+            variant="primary"
+            size="lg"
+            className="flex w-full items-center justify-center gap-2.5 py-4 text-base"
+            onClick={start}
+          >
+            <Radio width={20} height={20} />
             {t("interpreter.start")}
           </Button>
         ) : (
