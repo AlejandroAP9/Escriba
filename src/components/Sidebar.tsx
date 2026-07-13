@@ -10,6 +10,7 @@ import {
   FileAudio,
   Radio,
   Languages,
+  MessageCircle,
   Bot,
   SlidersHorizontal,
   Feather,
@@ -19,6 +20,7 @@ import { HomeScreen } from "./home/HomeScreen";
 import { StudioSettings } from "./studio/StudioSettings";
 import { InterpreterSettings } from "./interpreter/InterpreterSettings";
 import { TranslatorSettings } from "./translator/TranslatorSettings";
+import { ConversationSettings } from "./conversation/ConversationSettings";
 import { McpSettings } from "./mcp/McpSettings";
 import { useSettings } from "../hooks/useSettings";
 import {
@@ -97,6 +99,12 @@ export const SECTIONS_CONFIG = {
     component: TranslatorSettings,
     enabled: () => true,
   },
+  conversation: {
+    labelKey: "sidebar.conversation",
+    icon: MessageCircle,
+    component: ConversationSettings,
+    enabled: () => true,
+  },
   mcp: {
     labelKey: "sidebar.mcp",
     icon: Bot,
@@ -134,7 +142,10 @@ interface SidebarProps {
 const NAV_GROUPS: { labelKey?: string; ids: SidebarSection[] }[] = [
   { ids: ["home"] },
   { labelKey: "sidebar.groupDictation", ids: ["models", "history", "studio"] },
-  { labelKey: "sidebar.groupTools", ids: ["translator", "interpreter"] },
+  {
+    labelKey: "sidebar.groupTools",
+    ids: ["conversation", "translator", "interpreter"],
+  },
   { labelKey: "sidebar.groupDevelopers", ids: ["mcp", "postprocessing"] },
   {
     labelKey: "sidebar.groupConfig",

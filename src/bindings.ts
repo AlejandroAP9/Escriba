@@ -50,6 +50,45 @@ async translatorSetListening(on: boolean) : Promise<void> {
 async translatorStatus() : Promise<TranslatorStatus> {
     return await TAURI_INVOKE("translator_status");
 },
+async conversationStart(mode: string) : Promise<ConversationStatus> {
+    return await TAURI_INVOKE("conversation_start", { mode });
+},
+async conversationStop() : Promise<ConversationStatus> {
+    return await TAURI_INVOKE("conversation_stop");
+},
+async conversationStatus() : Promise<ConversationStatus> {
+    return await TAURI_INVOKE("conversation_status");
+},
+async conversationReset() : Promise<ConversationStatus> {
+    return await TAURI_INVOKE("conversation_reset");
+},
+/**
+ * Cierra la sesión y la convierte en documento con el motor local.
+ * `converse` → nota limpia de la conversación; `listen` → acta con acuerdos.
+ */
+async conversationFinish() : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("conversation_finish") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Lee un texto con la VOZ DEL SISTEMA de macOS (`say`), que sí ve las voces
+ * neurales (Premium/Mejorada) que el usuario eligió en Ajustes; el webview no
+ * las expone. Devuelve `true` si habló nativo; `false` = que el frontend use
+ * speechSynthesis como respaldo (Windows/Linux).
+ */
+async conversationSpeak(text: string) : Promise<boolean> {
+    return await TAURI_INVOKE("conversation_speak", { text });
+},
+/**
+ * Detiene la lectura en voz alta en curso (si la hay).
+ */
+async conversationSpeakStop() : Promise<void> {
+    await TAURI_INVOKE("conversation_speak_stop");
+},
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("mcp_start") };
@@ -1099,6 +1138,11 @@ export type AutoSubmitKey = "enter" | "ctrl_enter" | "cmd_enter"
 export type AvailableAccelerators = { transcribe: string[]; ort: string[]; gpu_devices: GpuDeviceOption[] }
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
 export type ClipboardHandling = "dont_modify" | "copy_to_clipboard"
+export type ConversationStatus = { listening: boolean; 
+/**
+ * "converse" | "listen"
+ */
+mode: string; turns: Turn[] }
 export type CustomSounds = { start: boolean; stop: boolean }
 export type EngineType = 
 /**
@@ -1125,9 +1169,18 @@ export type KeyboardImplementation = "tauri" | "handy_keys"
 export type LLMPrompt = { id: string; name: string; prompt: string }
 export type LocalLlmStatus = { runtime_installed: boolean; model_installed: boolean; engine_running: boolean; setup_in_progress: boolean; model_file: string }
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error"
+/**
+ * Una llamada a tool en el feed de actividad reciente.
+ */
 export type McpActivity = { tool: string; ms: number; seconds_ago: number }
+/**
+ * Un agente que se ha conectado (Claude Code, Cursor, ...).
+ */
 export type McpClient = { name: string; version: string; seconds_ago: number }
 export type McpStatus = { running: boolean; port: number; url: string | null; uptime_seconds: number; total_calls: number; tool_counts: McpToolCount[]; activity: McpActivity[]; clients: McpClient[] }
+/**
+ * Conteo de llamadas por tool.
+ */
 export type McpToolCount = { name: string; count: number }
 export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean; supported_languages: string[]; supports_language_selection: boolean; is_custom: boolean; supports_streaming: boolean; supports_language_detection: boolean }
 export type ModelLoadStatus = { is_loaded: boolean; current_model: string | null }
@@ -1219,6 +1272,15 @@ model_id: string | null }
 export type TextReplacement = { find: string; replace: string; is_regex?: boolean }
 export type TranscribeAcceleratorSetting = "auto" | "cpu" | "gpu"
 export type TranslatorStatus = { listening: boolean; lang_a: string; lang_b: string }
+export type Turn = { 
+/**
+ * "user" | "assistant"
+ */
+role: string; text: string; 
+/**
+ * Segundos desde el inicio de la sesión (para mostrar mm:ss).
+ */
+at_secs: number }
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"
 export type UsageStats = { total_transcriptions: number; total_words: number; words_last_30_days: number; active_days_last_30: number; current_streak_days: number; 
 /**

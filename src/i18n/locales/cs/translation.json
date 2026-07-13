@@ -24,7 +24,8 @@
     "groupDictation": "Dictation",
     "groupTools": "Tools",
     "groupDevelopers": "Developers",
-    "groupConfig": "Settings"
+    "groupConfig": "Settings",
+    "conversation": "Sessions"
   },
   "onboarding": {
     "subtitle": "Pro začátek vyberte model pro přepis",
@@ -1018,5 +1019,81 @@
     "micReady": "Microphone ready",
     "allLocal": "Everything runs locally",
     "audios": "Audios"
+  },
+  "conversation": {
+    "heroTitle": "Talk for an hour. Walk away with a finished document.",
+    "heroSubtitle": "Converse with the local AI to think or draft, or let it just listen to your meeting or interview. When you finish, the session becomes a clean document.",
+    "mode": {
+      "converse": {
+        "label": "Converse",
+        "desc": "The AI replies with voice and the chat stays written."
+      },
+      "listen": {
+        "label": "Listen",
+        "desc": "The AI stays quiet: it transcribes the session and drafts the minutes."
+      }
+    },
+    "start": "Start session",
+    "pause": "Pause",
+    "resume": "Resume",
+    "finish": "Finish & create document",
+    "discard": "Discard session",
+    "active": "Session active",
+    "paused": "Session paused",
+    "hint": "Hold your dictation shortcut, speak, release. Each phrase joins the session.",
+    "thinking": "Escriba is thinking…",
+    "speakAloud": "Read replies aloud",
+    "you": "You",
+    "assistant": "Escriba",
+    "empty": "Nothing yet. Hold your dictation shortcut and say something.",
+    "docTitle": "Session document",
+    "creating": "Writing the document…",
+    "copy": "Copy",
+    "copied": "Copied",
+    "newSession": "New session",
+    "replyFailed": "We couldn’t reply. Check the local engine in Post Process.",
+    "docError": "We couldn’t create the document. Check the local engine and try again.",
+    "emptyFinish": "The session is empty: nothing to convert.",
+    "localNote": "Fully local: your voice and the conversation never leave your computer.",
+    "afterStart": "Then every phrase joins the session by holding",
+    "flow": {
+      "speak": "You speak",
+      "listen": "Escriba listens",
+      "organize": "AI organizes",
+      "doc": "Finished document"
+    },
+    "examplesTitle": "Great for",
+    "example": {
+      "meeting": {
+        "label": "Weekly meeting",
+        "result": "Minutes with agreements"
+      },
+      "brainstorm": {
+        "label": "Brainstorm",
+        "result": "Structured document"
+      },
+      "interview": {
+        "label": "Interview",
+        "result": "Organized transcript"
+      },
+      "journal": {
+        "label": "Personal journal",
+        "result": "Clean text"
+      }
+    },
+    "privacyTitle": "Everything happens here.",
+    "privacy": {
+      "p1": "Your voice never leaves your machine.",
+      "p2": "No servers.",
+      "p3": "No accounts.",
+      "p4": "No internet."
+    },
+    "preview": {
+      "title": "How the session ends",
+      "doc": "Meeting minutes",
+      "s1": "Summary",
+      "s2": "Agreements",
+      "s3": "Next steps"
+    }
   }
 }

@@ -573,6 +573,34 @@ pub(crate) async fn process_transcription_output(
         };
     }
 
+    // Modo Conversación: la sesión activa captura el dictado como un turno y
+    // no pega nada. En "converse" la IA responde (el frontend lo lee en voz
+    // alta); en "listen" solo acumula (entrevistas, actas).
+    if crate::commands::conversation::is_listening() && !final_text.trim().is_empty() {
+        // Historial ANTES de registrar el turno, para no duplicarlo en el prompt.
+        let history = crate::commands::conversation::transcript("Usuario", "Asistente");
+        let user_turn = crate::commands::conversation::push_turn("user", &final_text);
+        let _ = app.emit("conversation-turn", user_turn);
+        if crate::commands::conversation::is_converse_mode() {
+            match conversation_reply(app, &history, &final_text).await {
+                Some(reply) => {
+                    let turn = crate::commands::conversation::push_turn("assistant", &reply);
+                    let _ = app.emit("conversation-turn", turn);
+                }
+                None => {
+                    // El frontend deja de mostrar "pensando" y avisa.
+                    let _ = app.emit("conversation-reply-failed", ());
+                }
+            }
+        }
+        return ProcessedTranscription {
+            final_text,
+            post_processed_text: None,
+            post_process_prompt: None,
+            interpreter_published: true,
+        };
+    }
+
     // Modo Traductor (1-a-1): si esta escuchando, detecta idioma y traduce al
     // otro, lo emite al frontend (pantalla grande + voz) y no pega.
     if crate::commands::translator::is_listening() && !final_text.trim().is_empty() {
@@ -1527,4 +1555,130 @@ Texto:
         return Some((lang_b.to_string(), trimmed.to_string()));
     }
     None
+}
+
+/// Modo Conversación: respuesta de la IA a un turno del usuario, con el
+/// historial de la sesión como contexto. Breve y sin markdown, porque el
+/// frontend la lee en voz alta. Todo con el motor local.
+pub async fn conversation_reply(app: &AppHandle, transcript: &str, latest: &str) -> Option<String> {
+    if latest.trim().is_empty() {
+        return None;
+    }
+    let settings = get_settings(app);
+    let mut provider = settings
+        .post_process_providers
+        .iter()
+        .find(|p| p.id == crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()?;
+    let model = settings
+        .post_process_models
+        .get(crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()
+        .unwrap_or_default();
+    match resolve_local_route(&model).await {
+        LocalRoute::Sidecar(base_url) => provider.base_url = base_url,
+        LocalRoute::Ollama { base_url, .. } => {
+            provider.base_url = base_url;
+            provider.supports_structured_output = false;
+        }
+        _ => return None,
+    }
+
+    let prompt = format!(
+        "Eres el asistente de conversacion de Escriba: un interlocutor util para pensar en voz alta y redactar hablando. Reglas estrictas:\n\
+1. Responde SIEMPRE en el idioma del usuario.\n\
+2. Se breve: 1 a 4 frases. Tu respuesta se leera en voz alta.\n\
+3. Texto plano puro: sin markdown, sin listas, sin emojis, sin comillas decorativas.\n\
+4. Si el usuario dicta o pide redactar algo, entrega el texto pedido directamente.\n\
+5. No inventes datos externos (noticias, clima, cifras actuales): trabaja con lo que hay en la conversacion.\n\n\
+Conversacion hasta ahora:\n{transcript}\n\nUsuario: {latest}\n\nRespuesta:",
+    );
+
+    match crate::llm_client::send_chat_completion(
+        &provider,
+        String::new(),
+        &model,
+        prompt,
+        Some("none".to_string()),
+        None,
+        Some(0.5),
+    )
+    .await
+    {
+        Ok(Some(content)) => {
+            let cleaned = strip_invisible_chars(&content);
+            let trimmed = cleaned.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Cierra una sesión de Conversación como documento. `converse` = nota limpia
+/// de lo conversado; escucha (acta) = resumen + decisiones + acciones.
+pub async fn conversation_document(
+    app: &AppHandle,
+    transcript: &str,
+    converse: bool,
+) -> Option<String> {
+    if transcript.trim().is_empty() {
+        return None;
+    }
+    let settings = get_settings(app);
+    let mut provider = settings
+        .post_process_providers
+        .iter()
+        .find(|p| p.id == crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()?;
+    let model = settings
+        .post_process_models
+        .get(crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()
+        .unwrap_or_default();
+    match resolve_local_route(&model).await {
+        LocalRoute::Sidecar(base_url) => provider.base_url = base_url,
+        LocalRoute::Ollama { base_url, .. } => {
+            provider.base_url = base_url;
+            provider.supports_structured_output = false;
+        }
+        _ => return None,
+    }
+
+    let instructions = if converse {
+        "Convierte esta conversacion en una nota clara y util, en el idioma de la conversacion:\n\
+1. Primero 2-3 frases con la idea central.\n\
+2. Luego los puntos clave en vinetas.\n\
+3. Si se redacto un texto (correo, mensaje, parrafo), incluye la version final completa al cierre bajo el titulo 'Texto final'.\n\
+No inventes nada que no este en la conversacion. Responde solo con la nota."
+    } else {
+        "Convierte esta transcripcion en un acta breve y fiel, en el idioma de la transcripcion, con estas secciones:\n\
+Resumen (2-3 frases), Puntos tratados (vinetas), Decisiones (vinetas; 'Sin decisiones registradas' si no hay) y Proximos pasos (vinetas con responsable si se menciona; 'Sin acciones registradas' si no hay).\n\
+No inventes nada que no este en la transcripcion. Responde solo con el acta."
+    };
+
+    match crate::llm_client::send_chat_completion(
+        &provider,
+        String::new(),
+        &model,
+        format!("{}\n\nTranscripcion:\n{}", instructions, transcript),
+        Some("none".to_string()),
+        None,
+        Some(0.3),
+    )
+    .await
+    {
+        Ok(Some(content)) => {
+            let cleaned = strip_invisible_chars(&content);
+            if cleaned.trim().is_empty() {
+                None
+            } else {
+                Some(cleaned.trim().to_string())
+            }
+        }
+        _ => None,
+    }
 }

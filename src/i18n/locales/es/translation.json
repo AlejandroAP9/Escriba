@@ -24,7 +24,8 @@
     "groupDictation": "Dictado",
     "groupTools": "Herramientas",
     "groupDevelopers": "Desarrolladores",
-    "groupConfig": "Configuración"
+    "groupConfig": "Configuración",
+    "conversation": "Sesiones"
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
@@ -1018,5 +1019,81 @@
     "micReady": "Micrófono listo",
     "allLocal": "Todo se procesa localmente",
     "audios": "Audios"
+  },
+  "conversation": {
+    "heroTitle": "Habla una hora. Llévate un documento listo.",
+    "heroSubtitle": "Conversa con la IA local para pensar o redactar, o deja que solo escuche tu reunión o entrevista. Al terminar, la sesión se convierte en un documento limpio.",
+    "mode": {
+      "converse": {
+        "label": "Conversar",
+        "desc": "La IA te responde con voz y la charla queda escrita."
+      },
+      "listen": {
+        "label": "Escuchar",
+        "desc": "La IA calla: transcribe la sesión y arma el acta."
+      }
+    },
+    "start": "Comenzar la sesión",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "finish": "Terminar y crear documento",
+    "discard": "Descartar sesión",
+    "active": "Sesión activa",
+    "paused": "Sesión en pausa",
+    "hint": "Mantén tu atajo de dictado, habla y suelta. Cada frase entra a la sesión.",
+    "thinking": "Escriba está pensando…",
+    "speakAloud": "Leer respuestas en voz alta",
+    "you": "Tú",
+    "assistant": "Escriba",
+    "empty": "Aún no hay nada. Mantén tu atajo de dictado y di algo.",
+    "docTitle": "Documento de la sesión",
+    "creating": "Escribiendo el documento…",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "newSession": "Nueva sesión",
+    "replyFailed": "No pudimos responder. Revisa el motor local en Post Proceso.",
+    "docError": "No pudimos crear el documento. Revisa el motor local e inténtalo de nuevo.",
+    "emptyFinish": "La sesión está vacía: no hay nada que convertir.",
+    "localNote": "Todo local: tu voz y la conversación nunca salen de tu computador.",
+    "afterStart": "Después, cada frase entra manteniendo",
+    "flow": {
+      "speak": "Hablas",
+      "listen": "Escriba escucha",
+      "organize": "La IA organiza",
+      "doc": "Documento listo"
+    },
+    "examplesTitle": "Ideal para",
+    "example": {
+      "meeting": {
+        "label": "Reunión semanal",
+        "result": "Acta con acuerdos"
+      },
+      "brainstorm": {
+        "label": "Lluvia de ideas",
+        "result": "Documento estructurado"
+      },
+      "interview": {
+        "label": "Entrevista",
+        "result": "Transcripción organizada"
+      },
+      "journal": {
+        "label": "Diario personal",
+        "result": "Texto limpio"
+      }
+    },
+    "privacyTitle": "Todo ocurre aquí.",
+    "privacy": {
+      "p1": "Tu voz nunca sale del equipo.",
+      "p2": "Sin servidores.",
+      "p3": "Sin cuentas.",
+      "p4": "Sin internet."
+    },
+    "preview": {
+      "title": "Así termina la sesión",
+      "doc": "Acta de reunión",
+      "s1": "Resumen",
+      "s2": "Acuerdos",
+      "s3": "Próximos pasos"
+    }
   }
 }
