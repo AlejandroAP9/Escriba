@@ -75,19 +75,39 @@ async conversationFinish() : Promise<Result<string, string>> {
 }
 },
 /**
- * Lee un texto con la VOZ DEL SISTEMA de macOS (`say`), que sí ve las voces
- * neurales (Premium/Mejorada) que el usuario eligió en Ajustes; el webview no
- * las expone. Devuelve `true` si habló nativo; `false` = que el frontend use
- * speechSynthesis como respaldo (Windows/Linux).
+ * Lee un texto en voz alta con la cascada de motores de Escriba:
+ * 1) Voz neural incluida (sherpa-onnx + Piper es_MX), si está instalada y la
+ * app está en español (la voz es de español; otros idiomas caen al paso 2).
+ * 2) `say` de macOS (la voz del sistema, que sí ve las Premium/Mejorada que
+ * el webview no expone).
+ * 3) `false` → el frontend usa speechSynthesis como último respaldo.
  */
 async conversationSpeak(text: string) : Promise<boolean> {
     return await TAURI_INVOKE("conversation_speak", { text });
 },
 /**
- * Detiene la lectura en voz alta en curso (si la hay).
+ * Detiene la lectura en voz alta en curso (cualquier motor).
  */
 async conversationSpeakStop() : Promise<void> {
     await TAURI_INVOKE("conversation_speak_stop");
+},
+/**
+ * Estado de la voz neural incluida (para la tarjeta de instalación).
+ */
+async ttsStatus() : Promise<boolean> {
+    return await TAURI_INVOKE("tts_status");
+},
+/**
+ * Descarga e instala la voz neural (runtime + voz, ~95 MB, SHA256 pinneado).
+ * Emite `tts-setup-progress` durante la descarga.
+ */
+async ttsSetup() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("tts_setup") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {

@@ -32,6 +32,9 @@ import { useSettings } from "../../hooks/useSettings";
  */
 
 type Mode = "converse" | "listen";
+/// Variantes del modo Escuchar: mismo núcleo silencioso, documento distinto.
+type Variant = "listen" | "interview" | "class" | "brainstorm";
+const VARIANTS: Variant[] = ["listen", "interview", "class", "brainstorm"];
 type Phase = "idle" | "active" | "doc";
 
 // ToggleSwitch exige description; aquí el label se explica solo.
@@ -74,6 +77,7 @@ export const ConversationSettings: React.FC = () => {
   const { getSetting } = useSettings();
   const [phase, setPhase] = useState<Phase>("idle");
   const [mode, setMode] = useState<Mode>("converse");
+  const [variant, setVariant] = useState<Variant>("listen");
   const [listening, setListening] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [thinking, setThinking] = useState(false);
@@ -152,7 +156,16 @@ export const ConversationSettings: React.FC = () => {
   useEffect(() => {
     commands.conversationStatus().then((s) => {
       if (s.turns.length > 0 || s.listening) {
-        setMode(s.mode === "listen" ? "listen" : "converse");
+        if (s.mode === "converse") {
+          setMode("converse");
+        } else {
+          setMode("listen");
+          setVariant(
+            (VARIANTS as string[]).includes(s.mode)
+              ? (s.mode as Variant)
+              : "listen",
+          );
+        }
         setTurns(s.turns);
         setListening(s.listening);
         setPhase("active");
@@ -198,8 +211,11 @@ export const ConversationSettings: React.FC = () => {
     };
   }, []);
 
+  // El modo efectivo que viaja al backend: converse, o la variante de escucha.
+  const effectiveMode = mode === "converse" ? "converse" : variant;
+
   const start = async () => {
-    const s = await commands.conversationStart(mode);
+    const s = await commands.conversationStart(effectiveMode);
     setTurns(s.turns);
     setListening(true);
     setPhase("active");
@@ -208,7 +224,7 @@ export const ConversationSettings: React.FC = () => {
   const togglePause = async () => {
     const s = listening
       ? await commands.conversationStop()
-      : await commands.conversationStart(mode);
+      : await commands.conversationStart(effectiveMode);
     setListening(s.listening);
   };
 
@@ -221,6 +237,45 @@ export const ConversationSettings: React.FC = () => {
     setDoc("");
     setPhase("idle");
     setListening(false);
+  };
+
+  // Voz neural incluida: estado + instalación con progreso.
+  const [ttsReady, setTtsReady] = useState<boolean | null>(null);
+  const [ttsBusy, setTtsBusy] = useState(false);
+  const [ttsPct, setTtsPct] = useState(0);
+  useEffect(() => {
+    commands.ttsStatus().then(setTtsReady);
+    const un = listen<{ stage: string; downloaded: number; total: number }>(
+      "tts-setup-progress",
+      (e) => {
+        const { downloaded, total, stage } = e.payload;
+        if (stage === "voice" && total > 0) {
+          // El runtime es ~30% del total; la voz completa el resto.
+          setTtsPct(30 + Math.round((downloaded / total) * 70));
+        } else if (stage === "runtime" && total > 0) {
+          setTtsPct(Math.round((downloaded / total) * 30));
+        }
+      },
+    );
+    return () => {
+      un.then((fn) => fn());
+    };
+  }, []);
+
+  const installTts = async () => {
+    setTtsBusy(true);
+    setTtsPct(0);
+    try {
+      const r = await commands.ttsSetup();
+      if (r.status === "ok") {
+        setTtsReady(true);
+        toast.success(t("conversation.tts.ready"));
+      } else {
+        toast.error(t("conversation.tts.error"), { description: r.error });
+      }
+    } finally {
+      setTtsBusy(false);
+    }
   };
 
   const finish = async () => {
@@ -337,6 +392,41 @@ export const ConversationSettings: React.FC = () => {
                       />
                     )}
                   </div>
+                  {/* Variantes de escucha: mismo núcleo, documento distinto. */}
+                  {id === "listen" && active && (
+                    <div className="mt-3 border-t border-line pt-2.5">
+                      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-mid-gray">
+                        {t("conversation.variantTitle")}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {VARIANTS.map((v) => (
+                          <span
+                            key={v}
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setVariant(v);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.stopPropagation();
+                                setVariant(v);
+                              }
+                            }}
+                            title={t(`conversation.variantDoc.${v}`)}
+                            className={`cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                              variant === v
+                                ? "border-logo-primary bg-logo-primary/15 text-text"
+                                : "border-line text-mid-gray hover:border-mid-gray/40"
+                            }`}
+                          >
+                            {t(`conversation.variant.${v}`)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -367,6 +457,38 @@ export const ConversationSettings: React.FC = () => {
               </p>
             )}
           </div>
+
+          {/* Voz neural incluida: instalación de una sola vez. */}
+          {ttsReady === false && (
+            <Card className="flex flex-wrap items-center gap-3 px-4 py-3.5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-logo-primary/10 text-logo-primary">
+                <Sparkles width={17} height={17} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-text">
+                  {t("conversation.tts.title")}
+                </p>
+                <p className="text-xs leading-snug text-mid-gray">
+                  {ttsBusy
+                    ? t("conversation.tts.installing")
+                    : t("conversation.tts.desc")}
+                </p>
+                {ttsBusy && (
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-mid-gray/15">
+                    <div
+                      className="h-full rounded-full bg-logo-primary transition-all duration-300"
+                      style={{ width: `${ttsPct}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+              {!ttsBusy && (
+                <Button variant="secondary" size="sm" onClick={installTts}>
+                  {t("conversation.tts.install")}
+                </Button>
+              )}
+            </Card>
+          )}
 
           {/* Qué ocurre después: círculos conectados, se lee de un vistazo. */}
           <div className="flex items-start justify-center">
@@ -519,7 +641,9 @@ export const ConversationSettings: React.FC = () => {
                   : t("conversation.paused")}
               </span>
               <span className="rounded-full border border-line px-2 py-0.5 text-[11px] text-mid-gray">
-                {t(`conversation.mode.${mode}.label`)}
+                {mode === "converse"
+                  ? t("conversation.mode.converse.label")
+                  : t(`conversation.variant.${variant}`)}
               </span>
             </div>
             <div className="flex items-center gap-2">

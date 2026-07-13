@@ -617,6 +617,8 @@ pub fn run(cli_args: CliArgs) {
             commands::conversation::conversation_finish,
             commands::conversation::conversation_speak,
             commands::conversation::conversation_speak_stop,
+            commands::conversation::tts_status,
+            commands::conversation::tts_setup,
             commands::mcp::mcp_start,
             commands::mcp::mcp_stop,
             commands::mcp::mcp_status,

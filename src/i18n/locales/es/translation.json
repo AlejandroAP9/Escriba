@@ -1094,6 +1094,27 @@
       "s1": "Resumen",
       "s2": "Acuerdos",
       "s3": "Próximos pasos"
+    },
+    "variantTitle": "¿Qué vas a escuchar?",
+    "variant": {
+      "listen": "Reunión",
+      "interview": "Entrevista",
+      "class": "Clase",
+      "brainstorm": "Lluvia de ideas"
+    },
+    "variantDoc": {
+      "listen": "Acta con acuerdos",
+      "interview": "Entrevista organizada",
+      "class": "Apuntes de estudio",
+      "brainstorm": "Ideas accionables"
+    },
+    "tts": {
+      "title": "La voz de Escriba",
+      "desc": "Instala la voz neural incluida con la que Escriba responde. Se descarga una sola vez y funciona sin internet.",
+      "install": "Instalar voz (~95 MB)",
+      "installing": "Descargando la voz…",
+      "ready": "Voz neural instalada",
+      "error": "No pudimos instalar la voz. Inténtalo de nuevo."
     }
   }
 }

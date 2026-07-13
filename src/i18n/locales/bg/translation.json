@@ -1094,6 +1094,27 @@
       "s1": "Summary",
       "s2": "Agreements",
       "s3": "Next steps"
+    },
+    "variantTitle": "What will it listen to?",
+    "variant": {
+      "listen": "Meeting",
+      "interview": "Interview",
+      "class": "Class",
+      "brainstorm": "Brainstorm"
+    },
+    "variantDoc": {
+      "listen": "Minutes with agreements",
+      "interview": "Organized interview",
+      "class": "Study notes",
+      "brainstorm": "Actionable ideas"
+    },
+    "tts": {
+      "title": "Escriba’s voice",
+      "desc": "Install the bundled neural voice Escriba replies with. Downloads once and works offline.",
+      "install": "Install voice (~95 MB)",
+      "installing": "Downloading the voice…",
+      "ready": "Neural voice installed",
+      "error": "We couldn’t install the voice. Please try again."
     }
   }
 }

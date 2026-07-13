@@ -15,8 +15,9 @@ use std::time::Instant;
 static SPEAKING: Mutex<Option<std::process::Child>> = Mutex::new(None);
 
 static LISTENING: AtomicBool = AtomicBool::new(false);
-/// true = "converse" (IA responde), false = "listen" (solo escucha).
-static CONVERSE: AtomicBool = AtomicBool::new(true);
+/// Modo de la sesión: "converse" (la IA responde) o una variante de escucha
+/// ("listen", "interview", "class", "brainstorm") que solo cambia el documento.
+static MODE: Mutex<String> = Mutex::new(String::new());
 static TURNS: Mutex<Vec<Turn>> = Mutex::new(Vec::new());
 static STARTED: Mutex<Option<Instant>> = Mutex::new(None);
 
@@ -41,8 +42,20 @@ pub fn is_listening() -> bool {
     LISTENING.load(Ordering::Relaxed)
 }
 
+pub fn mode() -> String {
+    MODE.lock()
+        .map(|m| {
+            if m.is_empty() {
+                "converse".to_string()
+            } else {
+                m.clone()
+            }
+        })
+        .unwrap_or_else(|_| "converse".to_string())
+}
+
 pub fn is_converse_mode() -> bool {
-    CONVERSE.load(Ordering::Relaxed)
+    mode() == "converse"
 }
 
 fn elapsed_secs() -> u32 {
@@ -90,11 +103,7 @@ pub fn transcript(user_label: &str, assistant_label: &str) -> String {
 fn status() -> ConversationStatus {
     ConversationStatus {
         listening: is_listening(),
-        mode: if is_converse_mode() {
-            "converse".to_string()
-        } else {
-            "listen".to_string()
-        },
+        mode: mode(),
         turns: TURNS.lock().map(|t| t.clone()).unwrap_or_default(),
     }
 }
@@ -102,7 +111,9 @@ fn status() -> ConversationStatus {
 #[tauri::command]
 #[specta::specta]
 pub fn conversation_start(mode: String) -> ConversationStatus {
-    CONVERSE.store(mode != "listen", Ordering::Relaxed);
+    if let Ok(mut m) = MODE.lock() {
+        *m = mode;
+    }
     // Sesión nueva solo si no hay una en curso (reanudar conserva los turnos).
     {
         let mut started = STARTED.lock().unwrap();
@@ -138,13 +149,30 @@ pub fn conversation_reset() -> ConversationStatus {
     status()
 }
 
-/// Lee un texto con la VOZ DEL SISTEMA de macOS (`say`), que sí ve las voces
-/// neurales (Premium/Mejorada) que el usuario eligió en Ajustes; el webview no
-/// las expone. Devuelve `true` si habló nativo; `false` = que el frontend use
-/// speechSynthesis como respaldo (Windows/Linux).
+/// Lee un texto en voz alta con la cascada de motores de Escriba:
+/// 1) Voz neural incluida (sherpa-onnx + Piper es_MX), si está instalada y la
+///    app está en español (la voz es de español; otros idiomas caen al paso 2).
+/// 2) `say` de macOS (la voz del sistema, que sí ve las Premium/Mejorada que
+///    el webview no expone).
+/// 3) `false` → el frontend usa speechSynthesis como último respaldo.
 #[tauri::command]
 #[specta::specta]
-pub fn conversation_speak(text: String) -> bool {
+pub async fn conversation_speak(app: tauri::AppHandle, text: String) -> bool {
+    // Motor #1: voz neural incluida.
+    let app_lang = crate::settings::get_settings(&app).app_language;
+    if app_lang.starts_with("es") && crate::managers::tts::installed(&app) {
+        let app2 = app.clone();
+        let text2 = text.clone();
+        let ok = tauri::async_runtime::spawn_blocking(move || {
+            crate::managers::tts::speak_blocking(&app2, &text2).is_ok()
+        })
+        .await
+        .unwrap_or(false);
+        if ok {
+            return true;
+        }
+    }
+    // Motor #2: la voz del sistema de macOS.
     #[cfg(target_os = "macos")]
     {
         use std::io::Write;
@@ -180,16 +208,32 @@ pub fn conversation_speak(text: String) -> bool {
     }
 }
 
-/// Detiene la lectura en voz alta en curso (si la hay).
+/// Detiene la lectura en voz alta en curso (cualquier motor).
 #[tauri::command]
 #[specta::specta]
 pub fn conversation_speak_stop() {
+    crate::managers::tts::stop();
     if let Ok(mut guard) = SPEAKING.lock() {
         if let Some(mut child) = guard.take() {
             let _ = child.kill();
             let _ = child.wait();
         }
     }
+}
+
+/// Estado de la voz neural incluida (para la tarjeta de instalación).
+#[tauri::command]
+#[specta::specta]
+pub fn tts_status(app: tauri::AppHandle) -> bool {
+    crate::managers::tts::installed(&app)
+}
+
+/// Descarga e instala la voz neural (runtime + voz, ~95 MB, SHA256 pinneado).
+/// Emite `tts-setup-progress` durante la descarga.
+#[tauri::command]
+#[specta::specta]
+pub async fn tts_setup(app: tauri::AppHandle) -> Result<(), String> {
+    crate::managers::tts::setup(&app).await
 }
 
 /// Cierra la sesión y la convierte en documento con el motor local.
@@ -202,7 +246,7 @@ pub async fn conversation_finish(app: tauri::AppHandle) -> Result<String, String
     if text.trim().is_empty() {
         return Err("empty".to_string());
     }
-    crate::actions::conversation_document(&app, &text, is_converse_mode())
+    crate::actions::conversation_document(&app, &text, &mode())
         .await
         .ok_or_else(|| "llm_unavailable".to_string())
 }
