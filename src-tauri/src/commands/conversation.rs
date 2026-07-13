@@ -157,10 +157,11 @@ pub fn conversation_reset() -> ConversationStatus {
 /// 3) `false` → el frontend usa speechSynthesis como último respaldo.
 #[tauri::command]
 #[specta::specta]
-pub async fn conversation_speak(app: tauri::AppHandle, text: String) -> bool {
-    // Motor #1: voz neural incluida.
+pub async fn conversation_speak(app: tauri::AppHandle, text: String, engine: String) -> bool {
+    // Motor #1: voz neural incluida (salvo que el usuario prefiera la del
+    // sistema con el selector de la pantalla).
     let app_lang = crate::settings::get_settings(&app).app_language;
-    if app_lang.starts_with("es") && crate::managers::tts::installed(&app) {
+    if engine != "system" && app_lang.starts_with("es") && crate::managers::tts::installed(&app) {
         let app2 = app.clone();
         let text2 = text.clone();
         let ok = tauri::async_runtime::spawn_blocking(move || {

@@ -82,8 +82,8 @@ async conversationFinish() : Promise<Result<string, string>> {
  * el webview no expone).
  * 3) `false` → el frontend usa speechSynthesis como último respaldo.
  */
-async conversationSpeak(text: string) : Promise<boolean> {
-    return await TAURI_INVOKE("conversation_speak", { text });
+async conversationSpeak(text: string, engine: string) : Promise<boolean> {
+    return await TAURI_INVOKE("conversation_speak", { text, engine });
 },
 /**
  * Detiene la lectura en voz alta en curso (cualquier motor).

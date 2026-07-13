@@ -90,6 +90,20 @@ export const ConversationSettings: React.FC = () => {
   voiceOnRef.current = voiceOn;
   const modeRef = useRef(mode);
   modeRef.current = mode;
+  // Motor de voz elegido por el usuario (persistente). Default: la voz del
+  // sistema (ganó el A/B contra la incluida); la incluida queda para equipos
+  // sin voces Premium/Mejorada.
+  const [voiceEngine, setVoiceEngine] = useState<"included" | "system">(() =>
+    localStorage.getItem("escriba.voiceEngine") === "included"
+      ? "included"
+      : "system",
+  );
+  const voiceEngineRef = useRef(voiceEngine);
+  voiceEngineRef.current = voiceEngine;
+  const pickEngine = (e: "included" | "system") => {
+    setVoiceEngine(e);
+    localStorage.setItem("escriba.voiceEngine", e);
+  };
 
   // Voces del sistema (getVoices llega vacío hasta el evento voiceschanged).
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
@@ -132,10 +146,11 @@ export const ConversationSettings: React.FC = () => {
   const speak = useCallback(
     async (text: string) => {
       if (!voiceOnRef.current) return;
-      // Primero la VOZ DEL SISTEMA vía backend (`say`): usa las voces neurales
-      // que el usuario eligió en Ajustes de macOS y que el webview no ve.
+      // Cascada nativa vía backend (voz incluida o del sistema, según el
+      // selector); el webview queda como último respaldo.
       try {
-        if (await commands.conversationSpeak(text)) return;
+        if (await commands.conversationSpeak(text, voiceEngineRef.current))
+          return;
       } catch {
         /* cae al respaldo */
       }
@@ -740,11 +755,30 @@ export const ConversationSettings: React.FC = () => {
                     window.speechSynthesis?.cancel();
                     commands.conversationSpeakStop();
                   }
-                  commands.conversationSpeakStop();
                 }}
                 label={t("conversation.speakAloud")}
                 description={NO_DESCRIPTION}
               />
+              {/* Selector de motor: la voz del sistema (ganadora del A/B) vs
+                  la incluida (para equipos sin voces Premium). */}
+              {voiceOn && ttsReady === true && (
+                <div className="flex items-center gap-1.5 border-t border-line py-2.5">
+                  {(["system", "included"] as const).map((e) => (
+                    <button
+                      key={e}
+                      type="button"
+                      onClick={() => pickEngine(e)}
+                      className={`rounded-full border px-3 py-1 text-[11px] font-medium transition-colors ${
+                        voiceEngine === e
+                          ? "border-logo-primary bg-logo-primary/15 text-text"
+                          : "border-line text-mid-gray hover:border-mid-gray/40"
+                      }`}
+                    >
+                      {t(`conversation.voiceEngine.${e}`)}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

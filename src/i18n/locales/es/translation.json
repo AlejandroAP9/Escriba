@@ -1115,6 +1115,10 @@
       "installing": "Descargando la voz…",
       "ready": "Voz neural instalada",
       "error": "No pudimos instalar la voz. Inténtalo de nuevo."
+    },
+    "voiceEngine": {
+      "included": "Voz incluida",
+      "system": "Voz del sistema"
     }
   }
 }

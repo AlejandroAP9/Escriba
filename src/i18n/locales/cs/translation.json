@@ -1115,6 +1115,10 @@
       "installing": "Downloading the voice…",
       "ready": "Neural voice installed",
       "error": "We couldn’t install the voice. Please try again."
+    },
+    "voiceEngine": {
+      "included": "Bundled voice",
+      "system": "System voice"
     }
   }
 }
