@@ -124,6 +124,27 @@ fn frontmost_app() -> Option<String> {
     None
 }
 
+/// Tonos por app: la plantilla que corresponde a la app en primer plano, si
+/// la feature está activa y alguna regla coincide. `None` = usar la global.
+fn app_context_prompt(settings: &AppSettings) -> Option<String> {
+    if !settings.app_context_enabled || settings.app_context_rules.is_empty() {
+        return None;
+    }
+    let app_name = frontmost_app()?;
+    let lower = app_name.to_lowercase();
+    settings
+        .app_context_rules
+        .iter()
+        .find(|r| {
+            let m = r.app_match.trim().to_lowercase();
+            !m.is_empty() && lower.contains(&m)
+        })
+        .map(|r| {
+            debug!("Tonos por app: '{}' → plantilla '{}'", app_name, r.prompt_id);
+            r.prompt_id.clone()
+        })
+}
+
 struct TranscribeAction {
     mode: TranscribeMode,
 }
@@ -223,26 +244,7 @@ async fn post_process_transcription(
         // Tonos por app: si la app activa coincide con una regla, esa plantilla
         // pisa a la global. Así dictas igual en todas partes y cada app recibe
         // su tono (WhatsApp casual, Mail formal, Cursor → Prompt Maestro).
-        let context_prompt_id = if settings.app_context_enabled {
-            frontmost_app().and_then(|app_name| {
-                let lower = app_name.to_lowercase();
-                settings
-                    .app_context_rules
-                    .iter()
-                    .find(|r| {
-                        let m = r.app_match.trim().to_lowercase();
-                        !m.is_empty() && lower.contains(&m)
-                    })
-                    .map(|r| {
-                        debug!("Tonos por app: '{}' → plantilla '{}'", app_name, r.prompt_id);
-                        r.prompt_id.clone()
-                    })
-            })
-        } else {
-            None
-        };
-
-        let selected_prompt_id = match context_prompt_id
+        let selected_prompt_id = match app_context_prompt(settings)
             .or_else(|| settings.post_process_selected_prompt_id.clone())
         {
             Some(id) => id,
@@ -702,14 +704,32 @@ pub(crate) async fn process_transcription_output(
         };
     }
 
-    if mode != TranscribeMode::Standard {
+    // Tonos por app: un dictado NORMAL en una app con regla se post-procesa
+    // solo con la plantilla de esa app (magia sin atajo). El resto del dictado
+    // normal sigue siendo transcripción textual.
+    let ctx_prompt_id = if mode == TranscribeMode::Standard {
+        app_context_prompt(&settings)
+    } else {
+        None
+    };
+    let effective_mode = if ctx_prompt_id.is_some() {
+        TranscribeMode::PostProcess
+    } else {
+        mode
+    };
+
+    if effective_mode != TranscribeMode::Standard {
         if let Some(processed_text) =
-            post_process_transcription(app, &settings, &final_text, mode).await
+            post_process_transcription(app, &settings, &final_text, effective_mode).await
         {
             post_processed_text = Some(processed_text.clone());
             final_text = processed_text;
 
-            if let Some(prompt_id) = &settings.post_process_selected_prompt_id {
+            // El id efectivo del prompt aplicado (el de la app si hubo regla).
+            let applied_id = ctx_prompt_id
+                .as_ref()
+                .or(settings.post_process_selected_prompt_id.as_ref());
+            if let Some(prompt_id) = applied_id {
                 if let Some(prompt) = settings
                     .post_process_prompts
                     .iter()
