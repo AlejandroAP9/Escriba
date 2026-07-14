@@ -14,6 +14,9 @@ use std::time::Instant;
 /// Proceso `say` en curso (macOS): se mata antes de hablar de nuevo o al parar.
 static SPEAKING: Mutex<Option<std::process::Child>> = Mutex::new(None);
 
+/// Manos libres: micrófono abierto y el VAD corta cada intervención sola.
+static HANDS_FREE: AtomicBool = AtomicBool::new(false);
+
 static LISTENING: AtomicBool = AtomicBool::new(false);
 /// Modo de la sesión: "converse" (la IA responde) o una variante de escucha
 /// ("listen", "interview", "class", "brainstorm") que solo cambia el documento.
@@ -127,8 +130,13 @@ pub fn conversation_start(mode: String) -> ConversationStatus {
 
 #[tauri::command]
 #[specta::specta]
-pub fn conversation_stop() -> ConversationStatus {
+pub fn conversation_stop(app: tauri::AppHandle) -> ConversationStatus {
+    use tauri::Manager;
     LISTENING.store(false, Ordering::Relaxed);
+    hands_free_off(
+        &app.state::<std::sync::Arc<crate::managers::audio::AudioRecordingManager>>(),
+        &app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>(),
+    );
     status()
 }
 
@@ -140,8 +148,13 @@ pub fn conversation_status() -> ConversationStatus {
 
 #[tauri::command]
 #[specta::specta]
-pub fn conversation_reset() -> ConversationStatus {
+pub fn conversation_reset(app: tauri::AppHandle) -> ConversationStatus {
+    use tauri::Manager;
     LISTENING.store(false, Ordering::Relaxed);
+    hands_free_off(
+        &app.state::<std::sync::Arc<crate::managers::audio::AudioRecordingManager>>(),
+        &app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>(),
+    );
     if let Ok(mut t) = TURNS.lock() {
         t.clear();
     }
@@ -222,6 +235,114 @@ pub fn conversation_speak_stop() {
     }
 }
 
+pub fn is_hands_free() -> bool {
+    HANDS_FREE.load(Ordering::Relaxed)
+}
+
+/// Manos libres para los modos de escucha: abre el micrófono y deja que el
+/// VAD corte cada intervención en los silencios; cada segmento se transcribe
+/// y entra como turno, sin atajo. (Solo escucha: en Conversar la voz de la
+/// respuesta se re-capturaría a sí misma.)
+#[tauri::command]
+#[specta::specta]
+pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, String> {
+    use crate::managers::audio::AudioRecordingManager;
+    use crate::managers::transcription::TranscriptionManager;
+    use std::sync::mpsc::RecvTimeoutError;
+    use std::sync::Arc;
+    use tauri::Manager;
+
+    let rm = Arc::clone(&app.state::<Arc<AudioRecordingManager>>());
+    let tm = Arc::clone(&app.state::<Arc<TranscriptionManager>>());
+
+    if !on {
+        hands_free_off(&rm, &tm);
+        return Ok(false);
+    }
+
+    if !is_listening() || is_converse_mode() {
+        return Err("hands_free_listen_only".to_string());
+    }
+    if HANDS_FREE.swap(true, Ordering::Relaxed) {
+        return Ok(true); // ya activo
+    }
+
+    // Micrófono abierto en modo streaming (VAD con cola post-voz).
+    if let Err(e) =
+        rm.try_start_recording("hands_free", crate::audio_toolkit::VadPolicy::Streaming)
+    {
+        HANDS_FREE.store(false, Ordering::Relaxed);
+        return Err(e);
+    }
+    let rx = tm.stream_router().open_tap();
+
+    // Worker: junta frames de voz; ~0.9 s sin frames nuevos (el VAD calla en
+    // silencio) = fin de la intervención → transcribir → turno.
+    let app2 = app.clone();
+    std::thread::spawn(move || {
+        const SILENCE_MS: u128 = 900;
+        const MIN_SAMPLES: usize = 16_000 / 2; // 0.5 s: descarta chasquidos
+        let mut buffer: Vec<f32> = Vec::new();
+        let mut last_voice = std::time::Instant::now();
+        loop {
+            if !HANDS_FREE.load(Ordering::Relaxed) {
+                break;
+            }
+            match rx.recv_timeout(std::time::Duration::from_millis(250)) {
+                Ok(frame) => {
+                    buffer.extend_from_slice(&frame);
+                    last_voice = std::time::Instant::now();
+                }
+                Err(RecvTimeoutError::Timeout) => {
+                    if buffer.is_empty() || last_voice.elapsed().as_millis() < SILENCE_MS {
+                        continue;
+                    }
+                    if buffer.len() < MIN_SAMPLES {
+                        buffer.clear();
+                        continue;
+                    }
+                    let samples = std::mem::take(&mut buffer);
+                    let app3 = app2.clone();
+                    let tm3 = Arc::clone(&app2.state::<Arc<TranscriptionManager>>());
+                    tauri::async_runtime::spawn(async move {
+                        let segs = tauri::async_runtime::spawn_blocking(move || {
+                            crate::studio::pipeline::transcribe_samples(&tm3, &samples, |_| {})
+                        })
+                        .await;
+                        if let Ok(Ok(segs)) = segs {
+                            let text = crate::studio::segments::group_paragraphs(&segs)
+                                .join(" ")
+                                .trim()
+                                .to_string();
+                            if !text.is_empty() && is_listening() {
+                                let turn = push_turn("user", &text);
+                                use tauri::Emitter;
+                                let _ = app3.emit("conversation-turn", turn);
+                            }
+                        }
+                    });
+                }
+                Err(RecvTimeoutError::Disconnected) => break,
+            }
+        }
+    });
+
+    Ok(true)
+}
+
+/// Apaga manos libres: cierra el tap y suelta el micrófono (buffer descartado).
+fn hands_free_off(
+    rm: &crate::managers::audio::AudioRecordingManager,
+    tm: &crate::managers::transcription::TranscriptionManager,
+) {
+    if !HANDS_FREE.swap(false, Ordering::Relaxed) {
+        return;
+    }
+    tm.stream_router().close_tap();
+    let gen = rm.cancel_generation();
+    let _ = rm.stop_recording("hands_free", gen);
+}
+
 /// Estado de la voz neural incluida (para la tarjeta de instalación).
 #[tauri::command]
 #[specta::specta]
@@ -242,7 +363,12 @@ pub async fn tts_setup(app: tauri::AppHandle) -> Result<(), String> {
 #[tauri::command]
 #[specta::specta]
 pub async fn conversation_finish(app: tauri::AppHandle) -> Result<String, String> {
+    use tauri::Manager;
     LISTENING.store(false, Ordering::Relaxed);
+    hands_free_off(
+        &app.state::<std::sync::Arc<crate::managers::audio::AudioRecordingManager>>(),
+        &app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>(),
+    );
     let text = transcript("Usuario", "Asistente");
     if text.trim().is_empty() {
         return Err("empty".to_string());

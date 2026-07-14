@@ -1119,6 +1119,11 @@
     "voiceEngine": {
       "included": "Voz incluida",
       "system": "Voz del sistema"
+    },
+    "handsFree": {
+      "label": "Manos libres",
+      "hint": "Escriba escucha la sala y corta cada intervención sola. Habla con normalidad, sin atajo.",
+      "error": "Manos libres es para los modos de escucha."
     }
   }
 }

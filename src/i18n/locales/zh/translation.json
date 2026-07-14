@@ -1119,6 +1119,11 @@
     "voiceEngine": {
       "included": "Bundled voice",
       "system": "System voice"
+    },
+    "handsFree": {
+      "label": "Hands-free",
+      "hint": "Escriba listens to the room and cuts each intervention on its own. Speak naturally, no shortcut.",
+      "error": "Hands-free is for listening modes."
     }
   }
 }

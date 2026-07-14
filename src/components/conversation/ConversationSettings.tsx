@@ -236,14 +236,28 @@ export const ConversationSettings: React.FC = () => {
     setPhase("active");
   };
 
+  // Manos libres: el micrófono queda abierto y el VAD corta cada intervención.
+  const [handsFree, setHandsFree] = useState(false);
+  const toggleHandsFree = async () => {
+    const next = !handsFree;
+    const r = await commands.conversationHandsFree(next);
+    if (r.status === "ok") {
+      setHandsFree(r.data);
+    } else {
+      toast.error(t("conversation.handsFree.error"));
+    }
+  };
+
   const togglePause = async () => {
     const s = listening
       ? await commands.conversationStop()
       : await commands.conversationStart(effectiveMode);
     setListening(s.listening);
+    if (!s.listening) setHandsFree(false); // pausar apaga manos libres
   };
 
   const discard = async () => {
+    setHandsFree(false);
     await commands.conversationReset();
     window.speechSynthesis?.cancel();
     commands.conversationSpeakStop();
@@ -300,6 +314,7 @@ export const ConversationSettings: React.FC = () => {
     }
     setCreating(true);
     setListening(false);
+    setHandsFree(false);
     try {
       const r = await commands.conversationFinish();
       if (r.status === "ok") {
@@ -662,6 +677,18 @@ export const ConversationSettings: React.FC = () => {
               </span>
             </div>
             <div className="flex items-center gap-2">
+              {/* Manos libres: solo en modos de escucha (en Conversar la voz
+                  de respuesta se re-capturaría a sí misma). */}
+              {mode !== "converse" && listening && (
+                <Button
+                  variant={handsFree ? "primary-soft" : "secondary"}
+                  size="sm"
+                  onClick={toggleHandsFree}
+                >
+                  <Mic width={13} height={13} className="mr-1.5" />
+                  {t("conversation.handsFree.label")}
+                </Button>
+              )}
               <Button variant="secondary" size="sm" onClick={togglePause}>
                 {listening ? (
                   <Pause width={13} height={13} className="mr-1.5" />
@@ -740,7 +767,9 @@ export const ConversationSettings: React.FC = () => {
             </div>
             {turns.length > 0 && (
               <p className="mt-3 border-t border-line pt-2 text-center text-[11px] text-mid-gray">
-                {t("conversation.hint")}
+                {handsFree
+                  ? t("conversation.handsFree.hint")
+                  : t("conversation.hint")}
               </p>
             )}
           </Card>

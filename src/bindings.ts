@@ -109,6 +109,20 @@ async ttsSetup() : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Manos libres para los modos de escucha: abre el micrófono y deja que el
+ * VAD corte cada intervención en los silencios; cada segmento se transcribe
+ * y entra como turno, sin atajo. (Solo escucha: en Conversar la voz de la
+ * respuesta se re-capturaría a sí misma.)
+ */
+async conversationHandsFree(on: boolean) : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("conversation_hands_free", { on }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("mcp_start") };

@@ -105,6 +105,10 @@ pub struct StreamRouter {
     /// True while a stream is pending or active (channel is open). The audio
     /// callback checks this first to avoid the mutex lock when no stream runs.
     open: Arc<AtomicBool>,
+    /// Tap independiente (Sesiones manos libres): recibe los mismos frames
+    /// VAD-gated sin interferir con el worker de streaming.
+    tap_tx: Mutex<Option<mpsc::Sender<Vec<f32>>>>,
+    tap_open: Arc<AtomicBool>,
 }
 
 impl StreamRouter {
@@ -112,7 +116,24 @@ impl StreamRouter {
         Self {
             tx: Mutex::new(None),
             open: Arc::new(AtomicBool::new(false)),
+            tap_tx: Mutex::new(None),
+            tap_open: Arc::new(AtomicBool::new(false)),
         }
+    }
+
+    /// Abre el tap de manos libres y devuelve el receptor de frames (16 kHz,
+    /// ya filtrados por el VAD: en silencio no llegan frames).
+    pub fn open_tap(&self) -> mpsc::Receiver<Vec<f32>> {
+        let (tx, rx) = mpsc::channel::<Vec<f32>>();
+        *self.tap_tx.lock().unwrap() = Some(tx);
+        self.tap_open.store(true, Ordering::Relaxed);
+        rx
+    }
+
+    /// Cierra el tap (el worker de manos libres ve el canal cerrado y termina).
+    pub fn close_tap(&self) {
+        self.tap_open.store(false, Ordering::Relaxed);
+        *self.tap_tx.lock().unwrap() = None;
     }
 
     /// Open a fresh command channel for a new streaming session, returning the
@@ -142,6 +163,12 @@ impl StreamRouter {
     /// Forward a 16 kHz frame to the active streaming worker. Cheap no-op (a
     /// single relaxed atomic load) when no stream is pending.
     pub fn feed(&self, frame: &[f32]) {
+        // Tap de manos libres (independiente del streaming).
+        if self.tap_open.load(Ordering::Relaxed) {
+            if let Some(tx) = self.tap_tx.lock().unwrap().as_ref() {
+                let _ = tx.send(frame.to_vec());
+            }
+        }
         if !self.open.load(Ordering::Relaxed) {
             return;
         }
@@ -1128,10 +1155,31 @@ impl TranscriptionManager {
             self.load_model(&model_id)?;
         }
 
-        let language = match settings.selected_language.as_str() {
+        // Sesiones: con el idioma en "auto", las frases cortas confunden a la
+        // detección automática (dictados en español salían en otros idiomas).
+        // Durante una sesión activa se fija el idioma de la interfaz.
+        let session_lang = if crate::commands::conversation::is_listening()
+            && matches!(settings.selected_language.as_str(), "" | "auto")
+        {
+            let ui = settings
+                .app_language
+                .split(['-', '_'])
+                .next()
+                .unwrap_or("")
+                .to_lowercase();
+            if ui.len() == 2 {
+                Some(ui)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        let language = session_lang.or_else(|| match settings.selected_language.as_str() {
             "" | "auto" => None,
             lang => Some(lang.to_string()),
-        };
+        });
 
         let is_transcribe_cpp = {
             let engine_guard = self.lock_engine();
