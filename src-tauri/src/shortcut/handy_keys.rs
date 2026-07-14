@@ -409,16 +409,31 @@ fn modifiers_to_strings(modifiers: handy_keys::Modifiers) -> Vec<String> {
 }
 
 /// Validate a shortcut string for the HandyKeys implementation.
-/// HandyKeys is more permissive: allows modifier-only combos and the fn key.
+/// HandyKeys admite fn y teclas sueltas, pero rechazamos combos SOLO de
+/// modificadores: con push-to-talk activo dispararían al teclear normal
+/// (issue Handy #998), y el backend Tauri ya los rechaza (consistencia).
 pub fn validate_shortcut(raw: &str) -> Result<(), String> {
     if raw.trim().is_empty() {
         return Err("Shortcut cannot be empty".into());
     }
-    // HandyKeys accepts modifier-only, key-only, and modifier+key combos
-    // Just verify the string is parseable
     raw.parse::<Hotkey>()
-        .map(|_| ())
-        .map_err(|e| format!("Invalid shortcut for HandyKeys: {}", e))
+        .map_err(|e| format!("Invalid shortcut for HandyKeys: {}", e))?;
+
+    // Un atajo necesita al menos una tecla que NO sea modificador.
+    const MODIFIERS: [&str; 9] = [
+        "ctrl", "control", "alt", "option", "opt", "shift", "cmd", "command", "super",
+    ];
+    let has_real_key = raw
+        .split('+')
+        .map(|t| t.trim().to_lowercase())
+        .any(|t| !t.is_empty() && t != "fn" && !MODIFIERS.contains(&t.as_str()));
+    if !has_real_key {
+        return Err(
+            "El atajo necesita una tecla además de los modificadores (ej: Option+Espacio)."
+                .into(),
+        );
+    }
+    Ok(())
 }
 
 /// Initialize handy-keys shortcuts

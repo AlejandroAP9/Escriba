@@ -61,7 +61,15 @@ fn paste_via_clipboard(
         }
     }
 
-    std::thread::sleep(std::time::Duration::from_millis(50));
+    // Espera antes de restaurar el portapapeles del usuario: la app destino
+    // debe LEER el texto pegado antes de que devolvamos el contenido original.
+    // Con 50 ms, las apps lentas (navegador, Slack, Notion) todavía no lo han
+    // leído y terminan pegando el clipboard viejo (issue Handy #508). 180 ms da
+    // margen a esas apps sin dejar el clipboard "sucio" de forma perceptible.
+    const CLIPBOARD_RESTORE_DELAY_MS: u64 = 180;
+    std::thread::sleep(std::time::Duration::from_millis(
+        CLIPBOARD_RESTORE_DELAY_MS,
+    ));
 
     // Restore original clipboard content
     // On Wayland, prefer wl-copy for better compatibility

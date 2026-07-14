@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../hooks/useSettings";
 import { Input } from "../ui/Input";
@@ -16,13 +16,27 @@ export const HistoryLimit: React.FC<HistoryLimitProps> = ({
   const { t } = useTranslation();
   const { getSetting, updateSetting, isUpdating } = useSettings();
 
-  const historyLimit = getSetting("history_limit") ?? 5;
+  const historyLimit = (getSetting("history_limit") ?? 5) as number;
 
-  const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value, 10);
-    if (!isNaN(value) && value >= 0) {
-      updateSetting("history_limit", value);
+  // Estado local para no persistir en cada tecla: bajar el límite ejecuta un
+  // borrado IRREVERSIBLE de grabaciones (issue Handy #1281). Solo commiteamos
+  // al salir del campo o con Enter, ya con el valor final.
+  const [draft, setDraft] = useState(String(historyLimit));
+  useEffect(() => {
+    setDraft(String(historyLimit));
+  }, [historyLimit]);
+
+  const commit = () => {
+    const value = parseInt(draft, 10);
+    if (isNaN(value) || value < 0) {
+      setDraft(String(historyLimit)); // revertir entrada inválida
+      return;
     }
+    const clamped = Math.min(value, 1000);
+    if (clamped !== historyLimit) {
+      updateSetting("history_limit", clamped);
+    }
+    setDraft(String(clamped));
   };
 
   return (
@@ -38,8 +52,12 @@ export const HistoryLimit: React.FC<HistoryLimitProps> = ({
           type="number"
           min="0"
           max="1000"
-          value={historyLimit}
-          onChange={handleChange}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
           disabled={isUpdating("history_limit")}
           className="w-20"
         />

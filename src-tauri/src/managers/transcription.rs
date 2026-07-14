@@ -715,19 +715,21 @@ impl TranscriptionManager {
 
     /// Kicks off the model loading in a background thread if it's not already loaded
     pub fn initiate_model_load(&self) {
-        let mut is_loading = self.is_loading.lock().unwrap();
-        if *is_loading {
-            return;
-        }
-
         let reload_pending = self.reload_model_on_next_use.load(Ordering::Acquire);
         if !reload_pending && self.is_model_loaded() {
             return;
         }
 
-        *is_loading = true;
+        // Tomar el flag vía el guard RAII: si `load_model` hace panic, el Drop
+        // del guard igual limpia `is_loading` y despierta a los que esperan, en
+        // vez de dejar toda transcripción futura colgada (issue Handy #1234).
+        let Some(guard) = self.try_start_loading() else {
+            return; // ya hay una carga en curso
+        };
+
         let self_clone = self.clone();
         thread::spawn(move || {
+            let _guard = guard; // vive hasta el final (o el panic) del hilo
             if reload_pending {
                 self_clone
                     .reload_model_on_next_use
@@ -737,9 +739,6 @@ impl TranscriptionManager {
             if let Err(e) = self_clone.load_model(&settings.selected_model) {
                 error!("Failed to load model: {}", e);
             }
-            let mut is_loading = self_clone.is_loading.lock().unwrap();
-            *is_loading = false;
-            self_clone.loading_condvar.notify_all();
         });
     }
 
