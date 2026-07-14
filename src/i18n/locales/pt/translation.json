@@ -588,7 +588,18 @@
       "shortcutsTitle": "Shortcuts",
       "advancedTitle": "Advanced options",
       "enabledBadge": "On",
-      "disabledBadge": "Off"
+      "disabledBadge": "Off",
+      "appContext": {
+        "title": "Tone by app",
+        "enable": "Adjust tone by app",
+        "enableDesc": "When dictating with AI, if the active app matches a rule, use that template instead of the global one.",
+        "empty": "No rules yet. Add one so each app gets its own tone.",
+        "appPlaceholder": "App name (e.g. WhatsApp)",
+        "pickTemplate": "Pick a template",
+        "add": "Add rule",
+        "remove": "Remove",
+        "hint": "Matches by case-insensitive substring. First matching rule wins. Applies only to AI dictation (Post Process)."
+      }
     },
     "history": {
       "title": "Histórico",

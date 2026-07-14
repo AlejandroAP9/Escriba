@@ -95,6 +95,15 @@ pub struct LLMPrompt {
     pub prompt: String,
 }
 
+/// Tonos por app: si la app activa al dictar coincide con `app_match`
+/// (subcadena, sin distinguir mayúsculas), el post-proceso usa `prompt_id`
+/// en vez de la plantilla global. WhatsApp casual, Mail formal, etc.
+#[derive(Serialize, Deserialize, Debug, Clone, Type)]
+pub struct AppContextRule {
+    pub app_match: String,
+    pub prompt_id: String,
+}
+
 /// Regla determinista de buscar/reemplazar que se aplica al texto final tras
 /// transcribir (antes de pegar). `is_regex` interpreta `find` como expresión
 /// regular; si el patrón es inválido, la regla se ignora sin romper nada.
@@ -413,6 +422,13 @@ pub struct AppSettings {
     pub post_process_models: HashMap<String, String>,
     #[serde(default = "default_post_process_prompts")]
     pub post_process_prompts: Vec<LLMPrompt>,
+
+    /// Tonos por app: activa el override de plantilla según la app activa.
+    #[serde(default)]
+    pub app_context_enabled: bool,
+    /// Reglas app → plantilla (evaluadas en orden; gana la primera que coincide).
+    #[serde(default)]
+    pub app_context_rules: Vec<AppContextRule>,
     #[serde(default)]
     pub post_process_selected_prompt_id: Option<String>,
     #[serde(default = "default_translation_target_language")]
@@ -957,6 +973,8 @@ pub fn get_default_settings() -> AppSettings {
         post_process_api_keys: default_post_process_api_keys(),
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
+        app_context_enabled: false,
+        app_context_rules: Vec::new(),
         post_process_selected_prompt_id: Some("escriba_dictado_natural".to_string()),
         translation_target_language: default_translation_target_language(),
         mute_while_recording: false,

@@ -89,6 +89,41 @@ fn capture_selection(app: &AppHandle) -> Option<String> {
     Some(captured)
 }
 
+/// Nombre de la app en primer plano (para Tonos por app). En macOS usa
+/// `lsappinfo` (~20 ms, sin dependencias nuevas ni permisos). En otras
+/// plataformas aún no hay detección → None (la feature cae a la plantilla
+/// global sola).
+#[cfg(target_os = "macos")]
+fn frontmost_app() -> Option<String> {
+    use std::process::Command;
+    let front = Command::new("/usr/bin/lsappinfo")
+        .arg("front")
+        .output()
+        .ok()?;
+    let asn = String::from_utf8_lossy(&front.stdout).trim().to_string();
+    if asn.is_empty() {
+        return None;
+    }
+    let out = Command::new("/usr/bin/lsappinfo")
+        .args(["info", "-only", "name"])
+        .arg(&asn)
+        .output()
+        .ok()?;
+    let s = String::from_utf8_lossy(&out.stdout);
+    // Formato: "LSDisplayName"="Google Chrome"
+    let name = s.rsplit('=').next()?.trim().trim_matches('"').to_string();
+    if name.is_empty() {
+        None
+    } else {
+        Some(name)
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn frontmost_app() -> Option<String> {
+    None
+}
+
 struct TranscribeAction {
     mode: TranscribeMode,
 }
@@ -185,8 +220,32 @@ async fn post_process_transcription(
             target
         )
     } else {
-        let selected_prompt_id = match &settings.post_process_selected_prompt_id {
-            Some(id) => id.clone(),
+        // Tonos por app: si la app activa coincide con una regla, esa plantilla
+        // pisa a la global. Así dictas igual en todas partes y cada app recibe
+        // su tono (WhatsApp casual, Mail formal, Cursor → Prompt Maestro).
+        let context_prompt_id = if settings.app_context_enabled {
+            frontmost_app().and_then(|app_name| {
+                let lower = app_name.to_lowercase();
+                settings
+                    .app_context_rules
+                    .iter()
+                    .find(|r| {
+                        let m = r.app_match.trim().to_lowercase();
+                        !m.is_empty() && lower.contains(&m)
+                    })
+                    .map(|r| {
+                        debug!("Tonos por app: '{}' → plantilla '{}'", app_name, r.prompt_id);
+                        r.prompt_id.clone()
+                    })
+            })
+        } else {
+            None
+        };
+
+        let selected_prompt_id = match context_prompt_id
+            .or_else(|| settings.post_process_selected_prompt_id.clone())
+        {
+            Some(id) => id,
             None => {
                 debug!("Post-processing skipped because no prompt is selected");
                 return None;

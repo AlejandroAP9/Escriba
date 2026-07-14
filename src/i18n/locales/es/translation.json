@@ -588,7 +588,18 @@
       "shortcutsTitle": "Atajos",
       "advancedTitle": "Opciones avanzadas",
       "enabledBadge": "Activada",
-      "disabledBadge": "Desactivada"
+      "disabledBadge": "Desactivada",
+      "appContext": {
+        "title": "Tonos por app",
+        "enable": "Ajustar el tono según la app",
+        "enableDesc": "Cuando dictes con IA, si la app activa coincide con una regla, usa esa plantilla en vez de la global.",
+        "empty": "Sin reglas todavía. Agrega una para que cada app tenga su tono.",
+        "appPlaceholder": "Nombre de la app (ej: WhatsApp)",
+        "pickTemplate": "Elige una plantilla",
+        "add": "Agregar regla",
+        "remove": "Quitar",
+        "hint": "El nombre coincide por coincidencia parcial y sin distinguir mayúsculas. Gana la primera regla que calza. Solo aplica al dictado con IA (Post Proceso)."
+      }
     },
     "history": {
       "title": "Historial",

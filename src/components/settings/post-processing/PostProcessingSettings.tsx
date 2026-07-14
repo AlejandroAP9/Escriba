@@ -31,6 +31,7 @@ import { ApiKeyField } from "../PostProcessingSettingsApi/ApiKeyField";
 import { ModelSelect } from "../PostProcessingSettingsApi/ModelSelect";
 import { usePostProcessProviderState } from "../PostProcessingSettingsApi/usePostProcessProviderState";
 import { ShortcutInput } from "../ShortcutInput";
+import { AppContextRules } from "../AppContextRules";
 import { TranslationTargetLanguage } from "../TranslationTargetLanguage";
 import { useSettings } from "../../../hooks/useSettings";
 
@@ -569,6 +570,13 @@ export const PostProcessingSettings: React.FC = () => {
 
       {/* Bloque 2 — Qué quieres que haga la IA: plantillas, traducción, atajos. */}
       <TemplateLibraryComponent />
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold text-text">
+          {t("settings.postProcessing.appContext.title")}
+        </h2>
+        <AppContextRules />
+      </section>
 
       <SettingsGroup title={t("settings.postProcessing.translation.title")}>
         <ShortcutInput
