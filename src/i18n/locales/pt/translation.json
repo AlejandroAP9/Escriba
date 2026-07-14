@@ -202,6 +202,10 @@
           "voice_edit": {
             "name": "Edit Selection by Voice",
             "description": "Copies the selected text, listens to your instruction, and replaces the selection with the result."
+          },
+          "read_selection": {
+            "name": "Read selection aloud",
+            "description": "Select text in any app and Escriba reads it aloud. Press again to stop."
           }
         },
         "errors": {

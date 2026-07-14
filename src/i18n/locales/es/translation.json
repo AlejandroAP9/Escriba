@@ -220,6 +220,10 @@
           "voice_edit": {
             "name": "Editar selección por voz",
             "description": "Copia el texto seleccionado, escucha tu instrucción y reemplaza la selección con el resultado."
+          },
+          "read_selection": {
+            "name": "Leer selección en voz alta",
+            "description": "Selecciona un texto en cualquier app y Escriba te lo lee con su voz. Pulsa de nuevo para detener."
           }
         },
         "errors": {

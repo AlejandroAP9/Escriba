@@ -171,12 +171,18 @@ pub fn conversation_reset(app: tauri::AppHandle) -> ConversationStatus {
 #[tauri::command]
 #[specta::specta]
 pub async fn conversation_speak(app: tauri::AppHandle, text: String, engine: String) -> bool {
+    speak_native(&app, &text, &engine).await
+}
+
+/// Cascada nativa reutilizable (Sesiones y "Tu tinta en voz"): voz incluida →
+/// `say` del sistema → false (que el llamador decida su respaldo).
+pub async fn speak_native(app: &tauri::AppHandle, text: &str, engine: &str) -> bool {
     // Motor #1: voz neural incluida (salvo que el usuario prefiera la del
     // sistema con el selector de la pantalla).
-    let app_lang = crate::settings::get_settings(&app).app_language;
-    if engine != "system" && app_lang.starts_with("es") && crate::managers::tts::installed(&app) {
+    let app_lang = crate::settings::get_settings(app).app_language;
+    if engine != "system" && app_lang.starts_with("es") && crate::managers::tts::installed(app) {
         let app2 = app.clone();
-        let text2 = text.clone();
+        let text2 = text.to_string();
         let ok = tauri::async_runtime::spawn_blocking(move || {
             crate::managers::tts::speak_blocking(&app2, &text2).is_ok()
         })
@@ -222,10 +228,26 @@ pub async fn conversation_speak(app: tauri::AppHandle, text: String, engine: Str
     }
 }
 
-/// Detiene la lectura en voz alta en curso (cualquier motor).
-#[tauri::command]
-#[specta::specta]
-pub fn conversation_speak_stop() {
+/// ¿Hay lectura nativa en curso (voz incluida o `say`)?
+pub fn is_speaking_native() -> bool {
+    if crate::managers::tts::is_playing() {
+        return true;
+    }
+    if let Ok(mut guard) = SPEAKING.lock() {
+        if let Some(child) = guard.as_mut() {
+            match child.try_wait() {
+                Ok(None) => return true,
+                _ => {
+                    *guard = None;
+                }
+            }
+        }
+    }
+    false
+}
+
+/// Detiene toda lectura nativa en curso.
+pub fn stop_speaking_native() {
     crate::managers::tts::stop();
     if let Ok(mut guard) = SPEAKING.lock() {
         if let Some(mut child) = guard.take() {
@@ -233,6 +255,13 @@ pub fn conversation_speak_stop() {
             let _ = child.wait();
         }
     }
+}
+
+/// Detiene la lectura en voz alta en curso (cualquier motor).
+#[tauri::command]
+#[specta::specta]
+pub fn conversation_speak_stop() {
+    stop_speaking_native();
 }
 
 pub fn is_hands_free() -> bool {

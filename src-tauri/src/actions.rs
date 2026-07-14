@@ -1149,6 +1149,44 @@ impl ShortcutAction for TranscribeAction {
 }
 
 // Cancel Action
+/// "Tu tinta, en voz": lee la selección actual con la cascada nativa de voz
+/// (voz del sistema primero, como en Sesiones). Mismo atajo para detener:
+/// si ya está leyendo, el toggle corta la lectura.
+struct ReadSelectionAction;
+
+impl ShortcutAction for ReadSelectionAction {
+    fn start(&self, app: &AppHandle, _binding_id: &str, _shortcut_str: &str) {
+        // Toggle: segunda pulsación = silencio.
+        if crate::commands::conversation::is_speaking_native() {
+            crate::commands::conversation::stop_speaking_native();
+            return;
+        }
+        let ah = app.clone();
+        tauri::async_runtime::spawn(async move {
+            let ah_capture = ah.clone();
+            let selection =
+                tauri::async_runtime::spawn_blocking(move || capture_selection(&ah_capture))
+                    .await
+                    .ok()
+                    .flatten();
+            match selection {
+                Some(text) => {
+                    // Voz del sistema (ganadora del A/B). v1 honesta: en
+                    // plataformas sin `say` aún no hay lectura de selección.
+                    let _ = crate::commands::conversation::speak_native(&ah, &text, "system").await;
+                }
+                None => {
+                    debug!("read_selection: sin selección, nada que leer");
+                }
+            }
+        });
+    }
+
+    fn stop(&self, _app: &AppHandle, _binding_id: &str, _shortcut_str: &str) {
+        // El toggle vive en start; soltar la tecla no hace nada.
+    }
+}
+
 struct CancelAction;
 
 impl ShortcutAction for CancelAction {
@@ -1210,6 +1248,10 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
         Arc::new(TranscribeAction {
             mode: TranscribeMode::Edit,
         }) as Arc<dyn ShortcutAction>,
+    );
+    map.insert(
+        "read_selection".to_string(),
+        Arc::new(ReadSelectionAction) as Arc<dyn ShortcutAction>,
     );
     map.insert(
         "cancel".to_string(),

@@ -245,6 +245,21 @@ pub fn speak_blocking(app: &AppHandle, text: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// ¿Hay una reproducción de la voz incluida en curso?
+pub fn is_playing() -> bool {
+    if let Ok(mut guard) = PLAYING.lock() {
+        if let Some(child) = guard.as_mut() {
+            match child.try_wait() {
+                Ok(None) => return true,
+                _ => {
+                    *guard = None;
+                }
+            }
+        }
+    }
+    false
+}
+
 /// Detiene la reproducción en curso (si la hay).
 pub fn stop() {
     if let Ok(mut guard) = PLAYING.lock() {

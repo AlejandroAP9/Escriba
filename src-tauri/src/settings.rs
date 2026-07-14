@@ -898,6 +898,17 @@ pub fn get_default_settings() -> AppSettings {
         },
     );
     bindings.insert(
+        "read_selection".to_string(),
+        ShortcutBinding {
+            id: "read_selection".to_string(),
+            name: "Read Selection Aloud".to_string(),
+            description: "Reads the selected text aloud with Escriba's voice. Press again to stop."
+                .to_string(),
+            default_binding: "alt+shift+r".to_string(),
+            current_binding: "alt+shift+r".to_string(),
+        },
+    );
+    bindings.insert(
         "cancel".to_string(),
         ShortcutBinding {
             id: "cancel".to_string(),

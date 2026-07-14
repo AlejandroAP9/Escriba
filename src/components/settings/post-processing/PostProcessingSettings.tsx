@@ -590,6 +590,11 @@ export const PostProcessingSettings: React.FC = () => {
           descriptionMode="tooltip"
           grouped={true}
         />
+        <ShortcutInput
+          shortcutId="read_selection"
+          descriptionMode="tooltip"
+          grouped={true}
+        />
       </SettingsGroup>
 
       {/* Bloque 3 — Opciones avanzadas: el 95% no lo toca. */}
