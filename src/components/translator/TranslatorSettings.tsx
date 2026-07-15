@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { ArrowLeftRight, Globe, Lock, Mic, Volume2, Zap } from "lucide-react";
 import { commands } from "@/bindings";
 import { ToggleSwitch } from "../ui/ToggleSwitch";
+import { EngineRequiredCard } from "../shared/EngineRequiredCard";
 
 const LANGUAGES: { value: string; label: string }[] = [
   { value: "es", label: "Español" },
@@ -108,6 +109,8 @@ export const TranslatorSettings: React.FC = () => {
           {t("translator.heroSubtitle")}
         </p>
       </div>
+
+      <EngineRequiredCard />
 
       <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-start">
         {/* Izquierda: configuración mínima + la acción protagonista. */}

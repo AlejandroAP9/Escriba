@@ -9,6 +9,26 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.3.1] — 2026-07-15
+
+Los dos hallazgos del primer QA real de la dupla (Flor, 15-jul), cerrados el
+mismo día.
+
+### Añadido
+
+- **Aviso de motor de IA local faltante** en Traductor, Intérprete, Sesiones y
+  Estudio: qué falta, cuánto pesa y botón directo a instalarlo. Antes esas
+  pantallas fallaban en silencio para todo usuario nuevo.
+- **Indicador global de modo activo:** si hay una sala del Intérprete, un
+  Traductor escuchando o una Sesión viva, un pill flotante lo muestra desde
+  cualquier pantalla, con botones Ver y Detener. Una sala olvidada ya no se
+  traga los dictados sin explicación.
+
+### Cambiado
+
+- "Detener sala" del Intérprete ahora es un botón inconfundible (rojo lacre,
+  ancho completo), no un enlace gris.
+
 ## [1.3.0] — 2026-07-15
 
 La voz completa el círculo: Escriba ahora también **lee** y **escucha los dos

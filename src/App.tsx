@@ -13,6 +13,8 @@ import AccessibilityPermissions from "./components/AccessibilityPermissions";
 import Footer from "./components/footer";
 import Onboarding, { AccessibilityOnboarding } from "./components/onboarding";
 import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
+import { ActiveModeBanner } from "./components/shared/ActiveModeBanner";
+import { NAVIGATE_EVENT } from "./lib/navigation";
 import { WhatsNewGate } from "./components/whats-new";
 import { useSettings } from "./hooks/useSettings";
 import { useSettingsStore } from "./stores/settingsStore";
@@ -54,6 +56,16 @@ function App() {
 
   useEffect(() => {
     checkOnboardingStatus();
+  }, []);
+
+  // Navegación desde cualquier componente (p. ej. "Instalar motor" →
+  // Post Proceso) sin acoplar cada feature al estado de App.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setCurrentSection((e as CustomEvent<SidebarSection>).detail);
+    };
+    window.addEventListener(NAVIGATE_EVENT, handler);
+    return () => window.removeEventListener(NAVIGATE_EVENT, handler);
   }, []);
 
   // Initialize RTL direction when language changes
@@ -335,6 +347,12 @@ function App() {
           </div>
         </div>
       </div>
+      {/* Sala/sesión activa visible desde cualquier pantalla */}
+      <ActiveModeBanner
+        currentSection={currentSection}
+        onGo={setCurrentSection}
+      />
+
       {/* Fixed footer at bottom */}
       <Footer />
     </div>

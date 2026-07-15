@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Copy, Link2, Mic, Radio, Users } from "lucide-react";
+import { Copy, Link2, Mic, Radio, Square, Users } from "lucide-react";
 import { commands, type InterpreterRoom } from "@/bindings";
 import { Button } from "../ui/Button";
+import { EngineRequiredCard } from "../shared/EngineRequiredCard";
 
 const INTERP_LANGUAGES: { value: string; label: string; flag: string }[] = [
   { value: "es", label: "Español", flag: "🇪🇸" },
@@ -103,6 +104,8 @@ export const InterpreterSettings: React.FC = () => {
             {t("interpreter.subtitle")}
           </p>
         </div>
+
+        <EngineRequiredCard />
 
         {/* Cómo funciona */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -324,13 +327,17 @@ export const InterpreterSettings: React.FC = () => {
         </div>
       </details>
 
-      <button
-        type="button"
+      {/* Detener debe ser inconfundible: una sala olvidada se traga los
+          dictados (feedback de Flor). Nada de enlaces grises tímidos. */}
+      <Button
+        variant="secondary"
+        size="lg"
+        className="flex w-full items-center justify-center gap-2 border-lacre/40 text-lacre hover:bg-lacre/10"
         onClick={stop}
-        className="text-sm font-medium text-mid-gray hover:text-lacre"
       >
+        <Square width={14} height={14} />
         {t("interpreter.stop")}
-      </button>
+      </Button>
     </div>
   );
 };

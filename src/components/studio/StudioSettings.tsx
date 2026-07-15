@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { EngineRequiredCard } from "../shared/EngineRequiredCard";
 import { listen } from "@tauri-apps/api/event";
 import {
   open as openDialog,
@@ -153,6 +154,8 @@ export const StudioSettings: React.FC = () => {
         </h1>
         <p className="mt-2 text-sm text-mid-gray">{t("studio.heroSubtitle")}</p>
       </div>
+
+      <EngineRequiredCard />
 
       {/* Dropzone sólido (no punteado), con ícono grande y chips de formato. */}
       <button

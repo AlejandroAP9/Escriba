@@ -22,6 +22,7 @@ import { commands, type Turn } from "@/bindings";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { EmptyState } from "../ui/EmptyState";
+import { EngineRequiredCard } from "../shared/EngineRequiredCard";
 import { ToggleSwitch } from "../ui/ToggleSwitch";
 import { useSettings } from "../../hooks/useSettings";
 
@@ -409,6 +410,7 @@ export const ConversationSettings: React.FC = () => {
 
       {phase === "idle" && (
         <div className="space-y-6 pt-3">
+          <EngineRequiredCard />
           {/* Modos: un selector compacto, pensado para admitir más modos. */}
           <div className="grid gap-3 sm:grid-cols-2">
             {MODES.map(({ id, icon: Icon }) => {

@@ -1155,5 +1155,17 @@
       "micTip": "System audio on. To add your own voice to the session, also enable “Hands-free” (or dictate with your shortcut)."
     },
     "others": "Others"
+  },
+  "engine": {
+    "requiredTitle": "This feature needs the local AI engine",
+    "requiredBody": "Translations, replies and documents are generated on your computer, no cloud. Download the engine once (~2.5 GB) from Post Process. Ollama works too.",
+    "requiredCta": "Install engine"
+  },
+  "activeMode": {
+    "conversation": "Session listening",
+    "translator": "Translator active",
+    "interpreter": "Interpreter room open",
+    "view": "View",
+    "stop": "Stop"
   }
 }

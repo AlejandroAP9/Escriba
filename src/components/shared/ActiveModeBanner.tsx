@@ -1,0 +1,112 @@
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Languages, MessageCircle, Radio, Square } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { commands } from "@/bindings";
+import type { SidebarSection } from "../Sidebar";
+
+type ActiveMode = {
+  id: Extract<SidebarSection, "conversation" | "interpreter" | "translator">;
+  labelKey: string;
+  icon: LucideIcon;
+};
+
+/**
+ * Indicador global de modo activo: si hay una sala del Intérprete, un
+ * Traductor escuchando o una Sesión viva, un pill persistente lo dice desde
+ * cualquier pantalla, con acceso directo y botón Detener. Sin esto, una sala
+ * olvidada se traga los dictados en silencio y el usuario no tiene forma de
+ * saber por qué "el dictado dejó de andar" (hallazgo de Flor, 15-jul).
+ */
+export const ActiveModeBanner: React.FC<{
+  currentSection: SidebarSection;
+  onGo: (s: SidebarSection) => void;
+}> = ({ currentSection, onGo }) => {
+  const { t } = useTranslation();
+  const [mode, setMode] = useState<ActiveMode | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const poll = async () => {
+      try {
+        const [conv, interp, trans] = await Promise.all([
+          commands.conversationStatus(),
+          commands.interpreterStatus(),
+          commands.translatorStatus(),
+        ]);
+        if (!alive) return;
+        // Prioridad = orden de los interceptores del backend: quien captura
+        // primero el dictado es lo primero que hay que mostrar.
+        if (conv.listening) {
+          setMode({
+            id: "conversation",
+            labelKey: "activeMode.conversation",
+            icon: MessageCircle,
+          });
+        } else if (trans.listening) {
+          setMode({
+            id: "translator",
+            labelKey: "activeMode.translator",
+            icon: Languages,
+          });
+        } else if (interp.running) {
+          setMode({
+            id: "interpreter",
+            labelKey: "activeMode.interpreter",
+            icon: Radio,
+          });
+        } else {
+          setMode(null);
+        }
+      } catch {
+        /* backend aún no listo: sin banner */
+      }
+    };
+    poll();
+    const id = window.setInterval(poll, 2500);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, []);
+
+  // En la pantalla del propio modo ya hay UI de estado: el pill solo aparece
+  // donde el usuario NO está viendo esa feature.
+  if (!mode || mode.id === currentSection) return null;
+
+  const stop = async () => {
+    if (mode.id === "conversation") await commands.conversationStop();
+    else if (mode.id === "translator")
+      await commands.translatorSetListening(false);
+    else await commands.interpreterStop();
+    setMode(null);
+  };
+
+  const Icon = mode.icon;
+
+  return (
+    <div className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/15 bg-ink py-2 pe-2 ps-4 text-ink-fg shadow-lift">
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/60" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+      </span>
+      <Icon width={14} height={14} />
+      <span className="text-xs font-medium">{t(mode.labelKey)}</span>
+      <button
+        type="button"
+        onClick={() => onGo(mode.id)}
+        className="rounded-full px-2.5 py-1 text-xs text-ink-fg/80 transition-colors hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-white/40"
+      >
+        {t("activeMode.view")}
+      </button>
+      <button
+        type="button"
+        onClick={stop}
+        className="flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/20 focus:outline-none focus:ring-1 focus:ring-white/40"
+      >
+        <Square width={10} height={10} />
+        {t("activeMode.stop")}
+      </button>
+    </div>
+  );
+};

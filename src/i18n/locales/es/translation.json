@@ -1155,5 +1155,17 @@
       "micTip": "Audio del sistema activado. Para que tu voz también entre a la sesión, activa además “Manos libres” (o dicta con tu atajo)."
     },
     "others": "Otros"
+  },
+  "engine": {
+    "requiredTitle": "Esta función necesita el motor de IA local",
+    "requiredBody": "Traducciones, respuestas y documentos se generan en tu computador, sin nube. Descarga el motor una sola vez (~2.5 GB) desde Post Proceso. Si usas Ollama, también sirve.",
+    "requiredCta": "Instalar motor"
+  },
+  "activeMode": {
+    "conversation": "Sesión escuchando",
+    "translator": "Traductor activo",
+    "interpreter": "Sala del Intérprete abierta",
+    "view": "Ver",
+    "stop": "Detener"
   }
 }
