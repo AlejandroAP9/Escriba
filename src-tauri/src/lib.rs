@@ -18,6 +18,7 @@ mod settings;
 mod shortcut;
 mod signal_handle;
 mod studio;
+mod system_audio;
 mod transcription_coordinator;
 mod tray;
 mod tray_i18n;
@@ -620,6 +621,8 @@ pub fn run(cli_args: CliArgs) {
             commands::conversation::tts_status,
             commands::conversation::tts_setup,
             commands::conversation::conversation_hands_free,
+            commands::conversation::conversation_system_audio,
+            commands::conversation::system_audio_supported,
             commands::mcp::mcp_start,
             commands::mcp::mcp_stop,
             commands::mcp::mcp_status,
@@ -1005,6 +1008,14 @@ pub fn run(cli_args: CliArgs) {
                 api.prevent_close();
                 let _res = window.hide();
 
+                // Cerrar la ventana principal pausa la Sesión activa: sin UI
+                // visible no pueden quedar el micrófono (manos libres) ni la
+                // captura del audio del sistema corriendo en silencio. Misma
+                // regla que al salir de la pantalla de Sesiones.
+                if window.label() == "main" {
+                    let _ = commands::conversation::conversation_stop(window.app_handle().clone());
+                }
+
                 #[cfg(target_os = "macos")]
                 {
                     let settings = get_settings(window.app_handle());
@@ -1043,6 +1054,9 @@ pub fn run(cli_args: CliArgs) {
                     let _ = tm.unload_model();
                 }
                 managers::local_llm::shutdown_on_exit();
+                // Sin esto, `say`/`afplay` sobreviven al Cmd+Q y la voz sigue
+                // sonando con la app ya cerrada (Child no mata en Drop).
+                commands::conversation::stop_speaking_native();
             }
             _ => {}
         });

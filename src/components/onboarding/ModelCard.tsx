@@ -303,7 +303,9 @@ const ModelCard: React.FC<ModelCardProps> = ({
               <HardDrive className="w-3.5 h-3.5 text-mid-gray/70" />
             )}
             <span>{formattedModelSize}</span>
-            {quantLabel && <span className="text-mid-gray/70">{quantLabel}</span>}
+            {quantLabel && (
+              <span className="text-mid-gray/70">{quantLabel}</span>
+            )}
           </span>
         )}
         {onDelete && (status === "available" || status === "active") && (

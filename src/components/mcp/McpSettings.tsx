@@ -242,10 +242,19 @@ export const McpSettings: React.FC = () => {
         {running ? (
           <div className="grid grid-cols-2 divide-mid-gray/10 sm:grid-cols-4 sm:divide-x">
             {[
-              { label: t("mcp.stat.uptime"), value: formatDuration(status!.uptime_seconds) },
-              { label: t("mcp.stat.calls"), value: String(status!.total_calls) },
+              {
+                label: t("mcp.stat.uptime"),
+                value: formatDuration(status!.uptime_seconds),
+              },
+              {
+                label: t("mcp.stat.calls"),
+                value: String(status!.total_calls),
+              },
               { label: t("mcp.stat.tools"), value: String(TOOLS.length) },
-              { label: t("mcp.stat.agents"), value: String(status!.clients.length) },
+              {
+                label: t("mcp.stat.agents"),
+                value: String(status!.clients.length),
+              },
             ].map((s) => (
               <div key={s.label} className="px-5 py-4">
                 <p
@@ -261,7 +270,9 @@ export const McpSettings: React.FC = () => {
             ))}
           </div>
         ) : (
-          <p className="px-5 py-4 text-sm text-mid-gray">{t("mcp.stoppedHint")}</p>
+          <p className="px-5 py-4 text-sm text-mid-gray">
+            {t("mcp.stoppedHint")}
+          </p>
         )}
       </div>
 
@@ -369,14 +380,15 @@ export const McpSettings: React.FC = () => {
               {t("mcp.activityTitle")}
             </h2>
             {status!.activity.length === 0 ? (
-              <EmptyState compact icon={Activity} title={t("mcp.activityEmpty")} />
+              <EmptyState
+                compact
+                icon={Activity}
+                title={t("mcp.activityEmpty")}
+              />
             ) : (
               <ul className="space-y-2.5">
                 {status!.activity.map((a, i) => (
-                  <li
-                    key={i}
-                    className="flex items-center gap-3 text-xs"
-                  >
+                  <li key={i} className="flex items-center gap-3 text-xs">
                     <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-logo-primary" />
                     <span className="font-mono font-semibold text-text">
                       {a.tool}

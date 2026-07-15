@@ -154,11 +154,16 @@ const AdvancedTools: React.FC = () => {
         {t("settings.advanced.tools.title")}
       </p>
       <div className="flex items-center justify-between py-1.5 text-xs">
-        <span className="text-mid-gray">{t("settings.advanced.tools.version")}</span>
+        <span className="text-mid-gray">
+          {t("settings.advanced.tools.version")}
+        </span>
         <span className="font-mono text-text">{version || "—"}</span>
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-line py-2 text-xs">
-        <span className="min-w-0 truncate font-mono text-mid-gray" title={logPath}>
+        <span
+          className="min-w-0 truncate font-mono text-mid-gray"
+          title={logPath}
+        >
           {logPath || t("settings.advanced.tools.logsFolder")}
         </span>
         <button

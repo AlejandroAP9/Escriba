@@ -790,7 +790,9 @@
     "checkForUpdates": "Rechercher des mises à jour",
     "portableUpdateTitle": "Mise à jour manuelle requise",
     "portableUpdateMessage": "Les installations portables ne peuvent pas être mises à jour automatiquement. Pour mettre à jour : téléchargez le dernier installateur NSIS depuis GitHub Releases, installez-le dans le même dossier, puis copiez votre dossier Data/ (paramètres, modèles, enregistrements) de l’ancienne version vers la nouvelle.",
-    "portableUpdateButton": "Ouvrir GitHub Releases"
+    "portableUpdateButton": "Ouvrir GitHub Releases",
+    "updateCheckFailed": "Could not check for updates. Check your connection and try again.",
+    "updateInstallFailed": "The update could not be installed. Please try again later."
   },
   "common": {
     "loading": "Chargement...",
@@ -821,7 +823,9 @@
     "modelLoadFailedUnknown": "modèle inconnu",
     "pasteFailedTitle": "Échec du collage du texte",
     "pasteFailed": "Le texte n'a pas pu être collé dans l'application active.",
-    "transcriptionFailedTitle": "Échec de la transcription"
+    "transcriptionFailedTitle": "Échec de la transcription",
+    "sessionActiveTitle": "A Session is listening",
+    "sessionActive": "The microphone is in use by the Sessions hands-free mode. Pause the session to dictate with your shortcut."
   },
   "appLanguage": {
     "title": "Langue de l'application",
@@ -867,7 +871,8 @@
       "local": "100% Local",
       "languages": "100+ languages",
       "engine": "Whisper"
-    }
+    },
+    "summaryError": "Could not generate the summary. Check that the local AI engine is installed in Smart Writing."
   },
   "historyStats": {
     "words": "Words dictated",
@@ -910,7 +915,8 @@
       "s2": "Guests scan the QR",
       "s3": "You speak normally",
       "s4": "They get the translation"
-    }
+    },
+    "startError": "Could not start the room. The port may be busy; try again in a few seconds."
   },
   "translator": {
     "title": "Face-to-face translator",
@@ -1139,6 +1145,15 @@
       "label": "Hands-free",
       "hint": "Escriba listens to the room and cuts each intervention on its own. Speak naturally, no shortcut.",
       "error": "Hands-free is for listening modes."
-    }
+    },
+    "systemAudio": {
+      "label": "System audio",
+      "hint": "Escriba also hears what plays on your computer: the other side of the meeting joins the session as “Others”.",
+      "error": "Could not start system audio capture.",
+      "permissionTitle": "Screen Recording permission needed",
+      "permissionHint": "macOS requires it to capture system audio (the screen itself is not recorded). Grant it in System Settings → Privacy & Security → Screen & System Audio Recording, then reopen Escriba.",
+      "micTip": "System audio on. To add your own voice to the session, also enable “Hands-free” (or dictate with your shortcut)."
+    },
+    "others": "Others"
   }
 }

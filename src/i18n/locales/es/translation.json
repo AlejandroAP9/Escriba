@@ -29,10 +29,10 @@
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
-    "existingModelsTitle": "Compatible Models",
-    "downloadModelsTitle": "Available to Download",
-    "showAllModels": "Show all {{total}} models",
-    "showFewerModels": "Show fewer models",
+    "existingModelsTitle": "Modelos compatibles",
+    "downloadModelsTitle": "Disponibles para descargar",
+    "showAllModels": "Mostrar los {{total}} modelos",
+    "showFewerModels": "Mostrar menos modelos",
     "recommended": "Recomendado",
     "customModelDescription": "Sin soporte oficial",
     "modelCard": {
@@ -106,7 +106,7 @@
       }
     },
     "errors": {
-      "selectModel": "Failed to select model"
+      "selectModel": "No se pudo seleccionar el modelo"
     },
     "permissions": {
       "title": "Permisos Requeridos",
@@ -210,7 +210,7 @@
             "description": "El atajo de teclado para cancelar la grabación actual."
           },
           "transcribe_with_post_process": {
-            "name": "Tecla de Post Procesamiento",
+            "name": "Tecla de Post Proceso",
             "description": "Opcional: Una tecla de acceso rápido dedicada que siempre aplica post procesamiento con IA a tu transcripción."
           },
           "transcribe_translate": {
@@ -344,7 +344,7 @@
       "overlay": {
         "style": {
           "title": "Indicador flotante",
-          "description": "Choose the recording overlay: None hides it, Minimal shows a compact pill, Live shows transcription in real time as you speak (streaming-capable models only — look for the Streaming badge in the model picker). On Linux 'None' is recommended.",
+          "description": "Elige el overlay de grabación: Ninguno lo oculta, Mínimo muestra una píldora compacta, En vivo muestra la transcripción en tiempo real mientras hablas (solo modelos con streaming; busca la insignia Streaming en el selector de modelos). En Linux se recomienda 'Ninguno'.",
           "options": {
             "none": "Ninguna",
             "minimal": "Minimal",
@@ -426,8 +426,8 @@
         "duplicate": "\"{{word}}\" ya existe"
       },
       "voiceActivityDetection": {
-        "title": "Voice Activity Detection",
-        "description": "Filter silence from recordings. Streaming-capable models use a longer VAD tail; disabling VAD records raw audio."
+        "title": "Detección de actividad de voz",
+        "description": "Filtra el silencio de las grabaciones. Los modelos con streaming usan una cola de VAD más larga; al desactivarlo se graba el audio crudo."
       },
       "textReplacements": {
         "title": "Buscar y reemplazar",
@@ -681,7 +681,7 @@
         "description": "Micrófono a usar cuando la tapa del portátil está cerrada"
       },
       "postProcessingToggle": {
-        "label": "Post Procesamiento",
+        "label": "Post Proceso",
         "description": "Habilitar refinamiento de texto impulsado por IA después de la transcripción"
       },
       "muteWhileRecording": {
@@ -790,7 +790,9 @@
     "checkForUpdates": "Buscar actualizaciones",
     "portableUpdateTitle": "Actualización manual necesaria",
     "portableUpdateMessage": "Las instalaciones portátiles no se pueden actualizar automáticamente. Para actualizar: descarga el instalador NSIS más reciente desde GitHub Releases, instálalo en la misma carpeta y luego copia tu carpeta Data/ (ajustes, modelos, grabaciones) de la versión anterior a la nueva.",
-    "portableUpdateButton": "Abrir GitHub Releases"
+    "portableUpdateButton": "Abrir GitHub Releases",
+    "updateCheckFailed": "No se pudo buscar actualizaciones. Revisa tu conexión e inténtalo de nuevo.",
+    "updateInstallFailed": "La actualización no se pudo instalar. Inténtalo de nuevo más tarde."
   },
   "common": {
     "loading": "Cargando...",
@@ -821,7 +823,9 @@
     "modelLoadFailedUnknown": "modelo desconocido",
     "pasteFailedTitle": "Error al pegar el texto",
     "pasteFailed": "No se pudo pegar el texto en la aplicación activa.",
-    "transcriptionFailedTitle": "Error de transcripción"
+    "transcriptionFailedTitle": "Error de transcripción",
+    "sessionActiveTitle": "Hay una Sesión escuchando",
+    "sessionActive": "El micrófono está en uso por el modo manos libres de Sesiones. Pausa la sesión para dictar con el atajo."
   },
   "appLanguage": {
     "title": "Idioma de la aplicación",
@@ -867,7 +871,8 @@
       "local": "100% Local",
       "languages": "100+ idiomas",
       "engine": "Whisper"
-    }
+    },
+    "summaryError": "No se pudo generar el resumen. Revisa que el motor de IA local esté instalado en Escritura Inteligente."
   },
   "historyStats": {
     "words": "Palabras dictadas",
@@ -910,7 +915,8 @@
       "s2": "Los asistentes escanean el QR",
       "s3": "Tú hablas normalmente",
       "s4": "Ellos reciben la traducción"
-    }
+    },
+    "startError": "No se pudo crear la sala. Puede que el puerto esté ocupado; prueba de nuevo en unos segundos."
   },
   "translator": {
     "title": "Traductor cara a cara",
@@ -1139,6 +1145,15 @@
       "label": "Manos libres",
       "hint": "Escriba escucha la sala y corta cada intervención sola. Habla con normalidad, sin atajo.",
       "error": "Manos libres es para los modos de escucha."
-    }
+    },
+    "systemAudio": {
+      "label": "Audio del sistema",
+      "hint": "Escriba también escucha lo que suena en tu computador: la otra parte de la reunión entra a la sesión como “Otros”.",
+      "error": "No se pudo iniciar la captura del audio del sistema.",
+      "permissionTitle": "Falta el permiso de Grabación de pantalla",
+      "permissionHint": "macOS lo exige para capturar el audio del sistema (la pantalla no se graba). Concédelo en Ajustes del Sistema → Privacidad y seguridad → Grabación de pantalla y audio del sistema, y vuelve a abrir Escriba.",
+      "micTip": "Audio del sistema activado. Para que tu voz también entre a la sesión, activa además “Manos libres” (o dicta con tu atajo)."
+    },
+    "others": "Otros"
   }
 }

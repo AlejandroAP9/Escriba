@@ -185,22 +185,6 @@
         }
       );
 
-      # NixOS module for system-level integration (udev, input group)
-      nixosModules.default =
-        { lib, pkgs, ... }:
-        {
-          imports = [ ./nix/module.nix ];
-          programs.handy.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.handy;
-        };
-
-      # Home-manager module for per-user service
-      homeManagerModules.default =
-        { lib, pkgs, ... }:
-        {
-          imports = [ ./nix/hm-module.nix ];
-          services.handy.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.handy;
-        };
-
       # Development shell for building from source
       devShells = forAllSystems (
         system:

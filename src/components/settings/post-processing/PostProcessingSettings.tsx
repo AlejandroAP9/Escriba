@@ -196,7 +196,12 @@ const TemplateLibraryComponent: React.FC = () => {
       setDraftName("");
       setDraftText("");
     }
-  }, [isCreating, selectedPromptId, selectedPrompt?.name, selectedPrompt?.prompt]);
+  }, [
+    isCreating,
+    selectedPromptId,
+    selectedPrompt?.name,
+    selectedPrompt?.prompt,
+  ]);
 
   const selectTemplate = (promptId: string) => {
     if (isUpdating("post_process_selected_prompt_id")) return;
@@ -265,7 +270,11 @@ const TemplateLibraryComponent: React.FC = () => {
   const describe = (id: string, prompt: string) =>
     KNOWN_TEMPLATE_IDS.has(id)
       ? t(`settings.postProcessing.templateDesc.${id}`)
-      : prompt.replace(/\$\{output\}/g, "").replace(/\s+/g, " ").trim().slice(0, 90) + "…";
+      : prompt
+          .replace(/\$\{output\}/g, "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 90) + "…";
 
   const isDirty =
     !!selectedPrompt &&
@@ -549,7 +558,11 @@ export const PostProcessingSettings: React.FC = () => {
                 {t(`settings.postProcessing.flow.${key}`)}
               </span>
               {i < FLOW.length - 1 && (
-                <ArrowRight width={14} height={14} className="text-mid-gray/40" />
+                <ArrowRight
+                  width={14}
+                  height={14}
+                  className="text-mid-gray/40"
+                />
               )}
             </React.Fragment>
           ))}

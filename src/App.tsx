@@ -41,8 +41,7 @@ function App() {
   // Track if this is a returning user who just needs to grant permissions
   // (vs a new user who needs full onboarding including model selection)
   const [isReturningUser, setIsReturningUser] = useState(false);
-  const [currentSection, setCurrentSection] =
-    useState<SidebarSection>("home");
+  const [currentSection, setCurrentSection] = useState<SidebarSection>("home");
   const { settings, updateSetting } = useSettings();
   const direction = getLanguageDirection(i18n.language);
   const refreshAudioDevices = useSettingsStore(
@@ -147,6 +146,10 @@ function App() {
       } else if (error_type === "no_input_device") {
         toast.error(t("errors.noInputDeviceTitle"), {
           description: t("errors.noInputDevice"),
+        });
+      } else if (error_type === "session_active") {
+        toast.error(t("errors.sessionActiveTitle"), {
+          description: t("errors.sessionActive"),
         });
       } else {
         toast.error(

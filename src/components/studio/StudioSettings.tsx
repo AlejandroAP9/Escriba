@@ -116,8 +116,13 @@ export const StudioSettings: React.FC = () => {
 
   const summarize = async (job: StudioJob) => {
     setSummarizing(job.id);
-    await commands.studioSummarize(job.id);
+    const result = await commands.studioSummarize(job.id);
     setSummarizing(null);
+    if (result.status === "error") {
+      // Motor local no instalado / sin proveedor: sin esto el botón "no hace nada".
+      toast.error(t("studio.summaryError"), { description: result.error });
+      return;
+    }
     refresh();
   };
 
@@ -165,7 +170,9 @@ export const StudioSettings: React.FC = () => {
         <p className="mt-4 text-base font-semibold text-text">
           {t("studio.dropZoneTitle")}
         </p>
-        <p className="mt-1 text-sm text-mid-gray">{t("studio.dropZoneClick")}</p>
+        <p className="mt-1 text-sm text-mid-gray">
+          {t("studio.dropZoneClick")}
+        </p>
         <div className="mt-4 flex flex-wrap justify-center gap-1.5">
           {SUPPORTED_FORMATS.map((fmt) => (
             <span
@@ -185,7 +192,11 @@ export const StudioSettings: React.FC = () => {
             key={label}
             className="flex items-center gap-2.5 rounded-card border border-line bg-background px-3.5 py-3 shadow-card"
           >
-            <Icon width={17} height={17} className="shrink-0 text-logo-primary" />
+            <Icon
+              width={17}
+              height={17}
+              className="shrink-0 text-logo-primary"
+            />
             <span className="text-sm text-text">{label}</span>
           </div>
         ))}

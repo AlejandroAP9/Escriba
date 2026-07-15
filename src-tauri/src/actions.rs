@@ -140,7 +140,10 @@ fn app_context_prompt(settings: &AppSettings) -> Option<String> {
             !m.is_empty() && lower.contains(&m)
         })
         .map(|r| {
-            debug!("Tonos por app: '{}' → plantilla '{}'", app_name, r.prompt_id);
+            debug!(
+                "Tonos por app: '{}' → plantilla '{}'",
+                app_name, r.prompt_id
+            );
             r.prompt_id.clone()
         })
 }
@@ -639,7 +642,7 @@ pub(crate) async fn process_transcription_output(
     // alta); en "listen" solo acumula (entrevistas, actas).
     if crate::commands::conversation::is_listening() && !final_text.trim().is_empty() {
         // Historial ANTES de registrar el turno, para no duplicarlo en el prompt.
-        let history = crate::commands::conversation::transcript("Usuario", "Asistente");
+        let history = crate::commands::conversation::transcript("Usuario", "Asistente", "Otros");
         let user_turn = crate::commands::conversation::push_turn("user", &final_text);
         let _ = app.emit("conversation-turn", user_turn);
         if crate::commands::conversation::is_converse_mode() {
@@ -917,6 +920,11 @@ impl ShortcutAction for TranscribeAction {
                     "microphone_permission_denied"
                 } else if is_no_input_device_error(&err) {
                     "no_input_device"
+                } else if err.contains("Already recording") {
+                    // El mic está tomado por manos libres de una Sesión: el
+                    // atajo global no puede grabar y el usuario merece saber
+                    // por qué, no un "error desconocido".
+                    "session_active"
                 } else {
                     "unknown"
                 };
@@ -1805,6 +1813,22 @@ No inventes ideas nuevas ni completes las que faltan. Responde solo con el docum
 Resumen (2-3 frases), Puntos tratados (vinetas), Decisiones (vinetas; 'Sin decisiones registradas' si no hay) y Proximos pasos (vinetas con responsable si se menciona; 'Sin acciones registradas' si no hay).\n\
 No inventes nada que no este en la transcripcion. Responde solo con el acta."
         }
+    };
+
+    // En los modos de escucha, varias personas pueden llegar mezcladas bajo el
+    // rotulo "Usuario" (un solo microfono para toda la sala: no hay diarizacion
+    // de voz, la separacion es por canal). El LLM si puede atribuir por
+    // contexto cuando el dialogo lo deja claro; si no, que no lo fuerce.
+    let instructions = if mode == "converse" {
+        instructions.to_string()
+    } else {
+        format!(
+            "{instructions}\n\nNota sobre hablantes: las lineas 'Usuario' pueden mezclar a varias \
+personas que comparten el microfono, y 'Otros' es el audio del computador (la otra parte de una \
+reunion). Si el contenido deja claro que hablan personas distintas, atribuye cada idea o cita a su \
+hablante (usa sus nombres si se mencionan; si no, 'Persona 1', 'Persona 2'). Si no se distingue \
+con claridad, no inventes la atribucion."
+        )
     };
 
     match crate::llm_client::send_chat_completion(

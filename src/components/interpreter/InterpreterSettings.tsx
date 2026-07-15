@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Copy, Link2, Mic, Radio, Users } from "lucide-react";
 import { commands, type InterpreterRoom } from "@/bindings";
 import { Button } from "../ui/Button";
@@ -58,7 +59,12 @@ export const InterpreterSettings: React.FC = () => {
 
   const start = async () => {
     const result = await commands.interpreterStart();
-    if (result.status === "ok") setRoom(result.data);
+    if (result.status === "ok") {
+      setRoom(result.data);
+    } else {
+      // Puerto ocupado / fallo de red local: sin esto el botón parece muerto.
+      toast.error(t("interpreter.startError"), { description: result.error });
+    }
   };
 
   const stop = async () => {
@@ -195,7 +201,9 @@ export const InterpreterSettings: React.FC = () => {
               className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-mid-gray/20 py-2 text-xs font-medium text-text transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
             >
               <Copy width={13} height={13} />
-              {copied === "code" ? t("interpreter.copied") : t("interpreter.copyCode")}
+              {copied === "code"
+                ? t("interpreter.copied")
+                : t("interpreter.copyCode")}
             </button>
             <button
               type="button"
@@ -203,7 +211,9 @@ export const InterpreterSettings: React.FC = () => {
               className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-mid-gray/20 py-2 text-xs font-medium text-text transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
             >
               <Link2 width={13} height={13} />
-              {copied === "link" ? t("interpreter.copied") : t("interpreter.copyLink")}
+              {copied === "link"
+                ? t("interpreter.copied")
+                : t("interpreter.copyLink")}
             </button>
           </div>
         </div>

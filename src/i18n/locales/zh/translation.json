@@ -790,7 +790,9 @@
     "checkForUpdates": "检查更新",
     "portableUpdateTitle": "需要手动更新",
     "portableUpdateMessage": "便携版无法自动更新。更新方法：从 GitHub Releases 下载最新的 NSIS 安装程序，安装到同一文件夹，然后将旧版本的 Data/ 文件夹（设置、模型、录音）复制到新版本。",
-    "portableUpdateButton": "打开 GitHub Releases"
+    "portableUpdateButton": "打开 GitHub Releases",
+    "updateCheckFailed": "Could not check for updates. Check your connection and try again.",
+    "updateInstallFailed": "The update could not be installed. Please try again later."
   },
   "common": {
     "loading": "加载中...",
@@ -821,7 +823,9 @@
     "modelLoadFailedUnknown": "未知模型",
     "pasteFailedTitle": "粘贴文本失败",
     "pasteFailed": "无法将文本粘贴到当前活动的应用程序中。",
-    "transcriptionFailedTitle": "转录失败"
+    "transcriptionFailedTitle": "转录失败",
+    "sessionActiveTitle": "A Session is listening",
+    "sessionActive": "The microphone is in use by the Sessions hands-free mode. Pause the session to dictate with your shortcut."
   },
   "appLanguage": {
     "title": "应用语言",
@@ -867,7 +871,8 @@
       "local": "100% Local",
       "languages": "100+ languages",
       "engine": "Whisper"
-    }
+    },
+    "summaryError": "Could not generate the summary. Check that the local AI engine is installed in Smart Writing."
   },
   "historyStats": {
     "words": "Words dictated",
@@ -910,7 +915,8 @@
       "s2": "Guests scan the QR",
       "s3": "You speak normally",
       "s4": "They get the translation"
-    }
+    },
+    "startError": "Could not start the room. The port may be busy; try again in a few seconds."
   },
   "translator": {
     "title": "Face-to-face translator",
@@ -1139,6 +1145,15 @@
       "label": "Hands-free",
       "hint": "Escriba listens to the room and cuts each intervention on its own. Speak naturally, no shortcut.",
       "error": "Hands-free is for listening modes."
-    }
+    },
+    "systemAudio": {
+      "label": "System audio",
+      "hint": "Escriba also hears what plays on your computer: the other side of the meeting joins the session as “Others”.",
+      "error": "Could not start system audio capture.",
+      "permissionTitle": "Screen Recording permission needed",
+      "permissionHint": "macOS requires it to capture system audio (the screen itself is not recorded). Grant it in System Settings → Privacy & Security → Screen & System Audio Recording, then reopen Escriba.",
+      "micTip": "System audio on. To add your own voice to the session, also enable “Hands-free” (or dictate with your shortcut)."
+    },
+    "others": "Others"
   }
 }

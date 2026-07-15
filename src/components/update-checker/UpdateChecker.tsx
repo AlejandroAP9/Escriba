@@ -4,6 +4,7 @@ import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { listen } from "@tauri-apps/api/event";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { toast } from "sonner";
 import { ProgressBar } from "../shared";
 import { useSettings } from "../../hooks/useSettings";
 import { commands } from "../../bindings";
@@ -87,6 +88,10 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
       }
     } catch (error) {
       console.error("Failed to check for updates:", error);
+      // Solo en chequeos manuales: el chequeo de fondo no debe interrumpir.
+      if (isManualCheckRef.current) {
+        toast.error(t("footer.updateCheckFailed"));
+      }
     } finally {
       setIsChecking(false);
       isManualCheckRef.current = false;
@@ -142,6 +147,7 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
       await relaunch();
     } catch (error) {
       console.error("Failed to install update:", error);
+      toast.error(t("footer.updateInstallFailed"));
     } finally {
       setIsInstalling(false);
       setDownloadProgress(0);
@@ -203,7 +209,9 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
               <button
                 className="px-3 py-1.5 text-sm rounded bg-logo-primary text-white hover:bg-logo-primary/80 transition-colors"
                 onClick={() => {
-                  openUrl("https://github.com/cjpais/Handy/releases/latest");
+                  openUrl(
+                    "https://github.com/AlejandroAP9/Escriba/releases/latest",
+                  );
                   setShowPortableUpdateDialog(false);
                 }}
               >

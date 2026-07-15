@@ -47,7 +47,15 @@ fn random_token() -> String {
 /// derivaba del reloj, lo que lo hacía predecible).
 fn random_code() -> String {
     let mut bytes = [0u8; 4];
-    let _ = getrandom::getrandom(&mut bytes);
+    if getrandom::getrandom(&mut bytes).is_err() {
+        // Mismo respaldo que random_token: sin esto, un fallo del CSPRNG
+        // dejaría los bytes en cero y el código sería siempre "0000".
+        let n = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos() as u32)
+            .unwrap_or(0);
+        bytes.copy_from_slice(&n.to_le_bytes());
+    }
     let n = u32::from_le_bytes(bytes);
     format!("{:04}", n % 10_000)
 }

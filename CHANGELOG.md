@@ -9,6 +9,56 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.3.0] — 2026-07-15
+
+La voz completa el círculo: Escriba ahora también **lee** y **escucha los dos
+lados de una reunión**. Y una auditoría operacional de punta a punta dejó la
+app más honesta, más robusta y sin rastros del upstream donde no correspondía.
+
+### Añadido
+
+- **Audio del sistema (Sesiones · Escuchar):** un botón y Escriba también oye
+  lo que suena en el computador: la otra parte de tu reunión Zoom/Meet, un
+  video, un webinar. Cada intervención se corta con el mismo VAD neural del
+  micrófono, se transcribe local y entra como turno de "Otros" con marca de
+  tiempo. El acta final incluye ambas voces. Escriba se excluye a sí misma de
+  la captura (su voz no entra al acta). Solo macOS 13+; captura nativa con
+  ScreenCaptureKit compilada dentro del binario.
+- **Tu tinta en voz (⌥⇧R):** selecciona texto en cualquier aplicación y
+  Escriba lo lee en voz alta con la cascada de motores de voz. El portapapeles
+  se restaura solo: leer no deja huellas.
+- **Tonos por app:** reglas por aplicación (WhatsApp casual, correo formal,
+  IDE → prompt estructurado) que se aplican también al dictado normal, sin
+  atajo especial.
+- **Manos libres en Sesiones:** el detector de voz corta cada intervención en
+  los silencios; hablas sin tocar el atajo. El idioma queda fijado durante la
+  sesión (adiós detecciones erráticas en frases cortas).
+- El documento final de una sesión **atribuye hablantes por contexto** cuando
+  el diálogo lo permite (sin inventar cuando no se distingue).
+
+### Corregido
+
+- **El portapapeles ya no se pierde si el pegado falla** (p. ej. permiso de
+  Accesibilidad revocado a mitad de sesión): se restaura siempre.
+- Cerrar la ventana con una Sesión activa **apaga el micrófono y la captura
+  del sistema**; salir de la app corta cualquier lectura en voz alta en curso.
+- Fallos que antes eran silenciosos ahora avisan: resumen del Estudio, sala
+  del Intérprete, chequeo e instalación de actualizaciones, extracción de
+  modelos. Dictar con el atajo durante una sesión manos libres explica el
+  motivo en vez de "error desconocido".
+- Cuatro arreglos de raíz heredados del upstream: bajar el límite del
+  historial ya no borra grabaciones al teclear, restauración del portapapeles
+  con margen para apps lentas, los atajos ya no aceptan combinaciones de solo
+  modificadores, y la carga de modelos no queda trabada tras un fallo.
+
+### Cambiado
+
+- Auditoría de marca: la bandeja, el título de la ventana, las novedades y los
+  enlaces de actualización y apoyo ahora son 100% de Escriba (la atribución a
+  Handy en Acerca de se mantiene, como corresponde).
+- Onboarding y Avanzado completamente en español; terminología unificada.
+- Limpieza del repositorio: sponsors e infraestructura del upstream fuera.
+
 ## [1.2.0] — 2026-07-12
 
 Rework completo de la interfaz y nacimiento del **sistema de diseño de Escriba**.

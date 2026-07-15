@@ -44,22 +44,28 @@ fn paste_via_clipboard(
 
     std::thread::sleep(Duration::from_millis(paste_delay_ms));
 
-    // Send paste key combo
-    #[cfg(target_os = "linux")]
-    let key_combo_sent = try_send_key_combo_linux(paste_method)?;
+    // Enviar la tecla de pegado. El resultado NO se propaga con `?` todavía:
+    // pase lo que pase, el portapapeles del usuario se restaura más abajo
+    // (si el pegado falla, p. ej. permiso de Accesibilidad revocado a mitad
+    // de sesión, no podemos además robarle lo que tenía copiado).
+    let paste_result: Result<(), String> = (|| {
+        #[cfg(target_os = "linux")]
+        let key_combo_sent = try_send_key_combo_linux(paste_method)?;
 
-    #[cfg(not(target_os = "linux"))]
-    let key_combo_sent = false;
+        #[cfg(not(target_os = "linux"))]
+        let key_combo_sent = false;
 
-    // Fall back to enigo if no native tool handled it
-    if !key_combo_sent {
-        match paste_method {
-            PasteMethod::CtrlV => input::send_paste_ctrl_v(enigo)?,
-            PasteMethod::CtrlShiftV => input::send_paste_ctrl_shift_v(enigo)?,
-            PasteMethod::ShiftInsert => input::send_paste_shift_insert(enigo)?,
-            _ => return Err("Invalid paste method for clipboard paste".into()),
+        // Fall back to enigo if no native tool handled it
+        if !key_combo_sent {
+            match paste_method {
+                PasteMethod::CtrlV => input::send_paste_ctrl_v(enigo)?,
+                PasteMethod::CtrlShiftV => input::send_paste_ctrl_shift_v(enigo)?,
+                PasteMethod::ShiftInsert => input::send_paste_shift_insert(enigo)?,
+                _ => return Err("Invalid paste method for clipboard paste".into()),
+            }
         }
-    }
+        Ok(())
+    })();
 
     // Espera antes de restaurar el portapapeles del usuario: la app destino
     // debe LEER el texto pegado antes de que devolvamos el contenido original.
@@ -67,9 +73,7 @@ fn paste_via_clipboard(
     // leído y terminan pegando el clipboard viejo (issue Handy #508). 180 ms da
     // margen a esas apps sin dejar el clipboard "sucio" de forma perceptible.
     const CLIPBOARD_RESTORE_DELAY_MS: u64 = 180;
-    std::thread::sleep(std::time::Duration::from_millis(
-        CLIPBOARD_RESTORE_DELAY_MS,
-    ));
+    std::thread::sleep(std::time::Duration::from_millis(CLIPBOARD_RESTORE_DELAY_MS));
 
     // Restore original clipboard content
     // On Wayland, prefer wl-copy for better compatibility
@@ -83,7 +87,7 @@ fn paste_via_clipboard(
     #[cfg(not(target_os = "linux"))]
     let _ = clipboard.write_text(&clipboard_content);
 
-    Ok(())
+    paste_result
 }
 
 /// Attempts to send a key combination using Linux-native tools.

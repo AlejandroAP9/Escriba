@@ -396,6 +396,9 @@ export const useModelStore = create<ModelsStore>()(
               state.error = `Failed to extract model: ${event.payload.error}`;
             }),
           );
+          // Mismo tratamiento que model-download-failed: sin toast, un modelo
+          // corrupto al extraer falla en silencio y el usuario no ve nada.
+          toast.error(event.payload.error);
         },
       );
 

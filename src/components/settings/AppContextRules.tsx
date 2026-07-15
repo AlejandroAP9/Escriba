@@ -27,10 +27,7 @@ export const AppContextRules: React.FC = React.memo(() => {
   };
 
   const addRule = () =>
-    persist([
-      ...rules,
-      { app_match: "", prompt_id: prompts[0]?.id ?? "" },
-    ]);
+    persist([...rules, { app_match: "", prompt_id: prompts[0]?.id ?? "" }]);
   const removeRule = (i: number) => persist(rules.filter((_, x) => x !== i));
   const editApp = (i: number, v: string) =>
     setRules(rules.map((r, x) => (x === i ? { ...r, app_match: v } : r)));
@@ -70,7 +67,9 @@ export const AppContextRules: React.FC = React.memo(() => {
                 value={rule.app_match}
                 onChange={(e) => editApp(i, e.target.value)}
                 onBlur={commit}
-                placeholder={t("settings.postProcessing.appContext.appPlaceholder")}
+                placeholder={t(
+                  "settings.postProcessing.appContext.appPlaceholder",
+                )}
                 variant="compact"
                 className="min-w-[140px] flex-1"
               />
@@ -79,7 +78,9 @@ export const AppContextRules: React.FC = React.memo(() => {
                 selectedValue={rule.prompt_id || null}
                 options={promptOptions}
                 onSelect={(v) => setPrompt(i, v)}
-                placeholder={t("settings.postProcessing.appContext.pickTemplate")}
+                placeholder={t(
+                  "settings.postProcessing.appContext.pickTemplate",
+                )}
                 className="min-w-[180px] flex-1"
               />
               <button

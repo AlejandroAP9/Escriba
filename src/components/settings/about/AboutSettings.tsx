@@ -48,9 +48,10 @@ export const AboutSettings: React.FC = () => {
 
   const handleDonateClick = async () => {
     try {
-      await openUrl("https://handy.computer/donate");
+      // Apoyar el desarrollo = el repo de Escriba (estrella/feedback).
+      await openUrl("https://github.com/AlejandroAP9/Escriba");
     } catch (error) {
-      console.error("Failed to open donate link:", error);
+      console.error("Failed to open support link:", error);
     }
   };
 
@@ -61,7 +62,10 @@ export const AboutSettings: React.FC = () => {
   ];
 
   const numbers = [
-    { value: modelCount > 0 ? String(modelCount) : "—", label: t("settings.about.numbers.models") },
+    {
+      value: modelCount > 0 ? String(modelCount) : "—",
+      label: t("settings.about.numbers.models"),
+    },
     { value: "100%", label: t("settings.about.numbers.local") },
     { value: "0", label: t("settings.about.numbers.telemetry") },
     { value: "0", label: t("settings.about.numbers.servers") },
