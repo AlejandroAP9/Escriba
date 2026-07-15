@@ -2,6 +2,9 @@ fn main() {
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     build_apple_intelligence_bridge();
 
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    build_system_audio_bridge();
+
     generate_tray_translations();
 
     // Linux ships transcribe-cpp as a shared libtranscribe + loadable ggml
@@ -327,6 +330,98 @@ fn escape_string(s: &str) -> String {
         .replace('\n', "\\n")
         .replace('\r', "\\r")
         .replace('\t', "\\t")
+}
+
+/// Compile the ScreenCaptureKit system-audio capture bridge (Sesiones ·
+/// "Incluir audio del sistema") as a static library, mirroring the Apple
+/// Intelligence bridge below. ScreenCaptureKit ships since macOS 12.3 but the
+/// deployment target is 11.0, so it is weak-linked and the Swift side gates
+/// every entry point behind `#available(macOS 13.0, *)`.
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+fn build_system_audio_bridge() {
+    use std::env;
+    use std::path::PathBuf;
+    use std::process::Command;
+
+    const SWIFT_FILE: &str = "swift/system_audio.swift";
+    println!("cargo:rerun-if-changed={SWIFT_FILE}");
+
+    let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR not set"));
+    let object_path = out_dir.join("system_audio.o");
+    let static_lib_path = out_dir.join("libsystem_audio.a");
+
+    // Same SDKROOT/SWIFTC env-override discovery as the Apple Intelligence
+    // bridge (see build_apple_intelligence_bridge for the rationale).
+    let sdk_path = env::var("SDKROOT").unwrap_or_else(|_| {
+        String::from_utf8(
+            Command::new("xcrun")
+                .args(["--sdk", "macosx", "--show-sdk-path"])
+                .output()
+                .expect("Failed to locate macOS SDK")
+                .stdout,
+        )
+        .expect("SDK path is not valid UTF-8")
+        .trim()
+        .to_string()
+    });
+    let swiftc_path = env::var("SWIFTC").unwrap_or_else(|_| {
+        String::from_utf8(
+            Command::new("xcrun")
+                .args(["--find", "swiftc"])
+                .output()
+                .expect("Failed to locate swiftc")
+                .stdout,
+        )
+        .expect("swiftc path is not valid UTF-8")
+        .trim()
+        .to_string()
+    });
+
+    let status = Command::new(&swiftc_path)
+        .args([
+            "-parse-as-library",
+            "-target",
+            "arm64-apple-macosx11.0",
+            "-sdk",
+            &sdk_path,
+            "-O",
+            "-c",
+            SWIFT_FILE,
+            "-o",
+            object_path
+                .to_str()
+                .expect("Failed to convert object path to string"),
+        ])
+        .status()
+        .expect("Failed to invoke swiftc for system audio bridge");
+    if !status.success() {
+        panic!("swiftc failed to compile {SWIFT_FILE}");
+    }
+
+    let status = Command::new("libtool")
+        .args([
+            "-static",
+            "-o",
+            static_lib_path
+                .to_str()
+                .expect("Failed to convert static lib path to string"),
+            object_path
+                .to_str()
+                .expect("Failed to convert object path to string"),
+        ])
+        .status()
+        .expect("Failed to create static library for system audio bridge");
+    if !status.success() {
+        panic!("libtool failed for system audio bridge");
+    }
+
+    println!("cargo:rustc-link-search=native={}", out_dir.display());
+    println!("cargo:rustc-link-lib=static=system_audio");
+    println!("cargo:rustc-link-lib=framework=CoreGraphics");
+    println!("cargo:rustc-link-lib=framework=CoreMedia");
+    // Weak: the app must still launch on macOS 11/12, where SCK is absent.
+    println!("cargo:rustc-link-arg=-weak_framework");
+    println!("cargo:rustc-link-arg=ScreenCaptureKit");
 }
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]

@@ -17,6 +17,10 @@ static SPEAKING: Mutex<Option<std::process::Child>> = Mutex::new(None);
 /// Manos libres: micrófono abierto y el VAD corta cada intervención sola.
 static HANDS_FREE: AtomicBool = AtomicBool::new(false);
 
+/// Audio del sistema: captura lo que suena en el computador (Zoom, Meet, un
+/// video) y lo suma a la sesión como turnos de "Otros".
+static SYSTEM_AUDIO: AtomicBool = AtomicBool::new(false);
+
 static LISTENING: AtomicBool = AtomicBool::new(false);
 /// Modo de la sesión: "converse" (la IA responde) o una variante de escucha
 /// ("listen", "interview", "class", "brainstorm") que solo cambia el documento.
@@ -84,16 +88,18 @@ pub fn push_turn(role: &str, text: &str) -> Turn {
 }
 
 /// Transcripción completa para los prompts del LLM ("Usuario: …\nAsistente: …").
-pub fn transcript(user_label: &str, assistant_label: &str) -> String {
+/// El rol "system" son los turnos del audio del sistema (la otra parte de una
+/// reunión, un video): entra con su propia etiqueta.
+pub fn transcript(user_label: &str, assistant_label: &str, system_label: &str) -> String {
     TURNS
         .lock()
         .map(|t| {
             t.iter()
                 .map(|turn| {
-                    let who = if turn.role == "assistant" {
-                        assistant_label
-                    } else {
-                        user_label
+                    let who = match turn.role.as_str() {
+                        "assistant" => assistant_label,
+                        "system" => system_label,
+                        _ => user_label,
                     };
                     format!("{}: {}", who, turn.text)
                 })
@@ -133,6 +139,7 @@ pub fn conversation_start(mode: String) -> ConversationStatus {
 pub fn conversation_stop(app: tauri::AppHandle) -> ConversationStatus {
     use tauri::Manager;
     LISTENING.store(false, Ordering::Relaxed);
+    system_audio_off();
     hands_free_off(
         &app.state::<std::sync::Arc<crate::managers::audio::AudioRecordingManager>>(),
         &app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>(),
@@ -151,6 +158,7 @@ pub fn conversation_status() -> ConversationStatus {
 pub fn conversation_reset(app: tauri::AppHandle) -> ConversationStatus {
     use tauri::Manager;
     LISTENING.store(false, Ordering::Relaxed);
+    system_audio_off();
     hands_free_off(
         &app.state::<std::sync::Arc<crate::managers::audio::AudioRecordingManager>>(),
         &app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>(),
@@ -297,8 +305,7 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
     }
 
     // Micrófono abierto en modo streaming (VAD con cola post-voz).
-    if let Err(e) =
-        rm.try_start_recording("hands_free", crate::audio_toolkit::VadPolicy::Streaming)
+    if let Err(e) = rm.try_start_recording("hands_free", crate::audio_toolkit::VadPolicy::Streaming)
     {
         HANDS_FREE.store(false, Ordering::Relaxed);
         return Err(e);
@@ -359,6 +366,152 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
     Ok(true)
 }
 
+/// ¿Este equipo puede capturar el audio del sistema? (macOS 13+, Apple Silicon)
+#[tauri::command]
+#[specta::specta]
+pub fn system_audio_supported() -> bool {
+    crate::system_audio::supported()
+}
+
+/// Suma a la sesión lo que suena en el computador (la otra parte de una
+/// reunión Zoom/Meet, un video). El mismo VAD del micrófono (Silero) separa
+/// voz de música/silencio; cada intervención se corta en las pausas (o a los
+/// 25 s si nadie pausa, como en un podcast), se transcribe local y entra como
+/// turno de "Otros". Solo modos de escucha.
+#[tauri::command]
+#[specta::specta]
+pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool, String> {
+    use crate::audio_toolkit::vad::{
+        SileroVad, SmoothedVad, VoiceActivityDetector, VAD_ONSET_FRAMES, VAD_PREFILL_FRAMES,
+    };
+    use tauri::Manager;
+
+    if !on {
+        system_audio_off();
+        return Ok(false);
+    }
+
+    if !is_listening() || is_converse_mode() {
+        return Err("listen_only".to_string());
+    }
+    if !crate::system_audio::supported() {
+        return Err("unsupported".to_string());
+    }
+    if !crate::system_audio::permission_granted() {
+        // Dispara el diálogo del sistema (solo la primera vez); tras conceder
+        // el permiso de Grabación de pantalla macOS exige relanzar la app.
+        crate::system_audio::request_permission();
+        return Err("screen_permission".to_string());
+    }
+
+    // VAD propio para este stream (el del micrófono vive en su recorder).
+    // Se construye antes de arrancar nada para que un fallo salga por la UI.
+    let vad_path = app
+        .path()
+        .resolve(
+            "resources/models/silero_vad_v4.onnx",
+            tauri::path::BaseDirectory::Resource,
+        )
+        .map_err(|_| "start_failed".to_string())?;
+    let silero = SileroVad::new(&vad_path, 0.3).map_err(|_| "start_failed".to_string())?;
+    // Cola post-voz corta (15 frames ≈ 450 ms): las pausas de una conversación
+    // real cierran el segmento rápido, sin esperar la cola larga del streaming.
+    let mut vad = SmoothedVad::new(Box::new(silero), VAD_PREFILL_FRAMES, 15, VAD_ONSET_FRAMES);
+
+    if SYSTEM_AUDIO.swap(true, Ordering::Relaxed) {
+        return Ok(true); // ya activo
+    }
+
+    if let Err(e) = crate::system_audio::start() {
+        SYSTEM_AUDIO.store(false, Ordering::Relaxed);
+        return Err(e);
+    }
+
+    // Worker: drena el ring buffer del bridge cada ~100 ms y pasa el audio por
+    // el VAD en frames de 30 ms. Una intervención termina tras ~0.6 s sin voz
+    // (más la cola del VAD ≈ 1 s de pausa real) o al tope de 25 s → turno.
+    let app2 = app.clone();
+    std::thread::spawn(move || {
+        use std::sync::Arc;
+        use tauri::Manager;
+
+        const FRAME: usize = 480; // 30 ms @ 16 kHz, el tamaño que espera el VAD
+        const SILENCE_MS: u128 = 300; // + cola del VAD (~450 ms) ≈ 0.75 s de pausa real
+        const MIN_SAMPLES: usize = 16_000 / 2; // 0.5 s: descarta pitidos sueltos
+                                               // Un locutor no pausa: corte duro corto para que el turno aparezca
+                                               // rápido (el delay percibido es este tope + lo que tarde el modelo).
+        const MAX_SAMPLES: usize = 16_000 * 12;
+
+        let mut chunk = vec![0f32; 16_000];
+        let mut pending: Vec<f32> = Vec::new(); // crudo, a la espera del VAD
+        let mut buffer: Vec<f32> = Vec::new(); // solo voz (salida del VAD)
+        let mut last_voice = std::time::Instant::now();
+
+        loop {
+            if !SYSTEM_AUDIO.load(Ordering::Relaxed) {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(100));
+            let n = crate::system_audio::read(&mut chunk);
+            if n > 0 {
+                pending.extend_from_slice(&chunk[..n]);
+            }
+            // El VAD decide qué es voz; la música y el silencio se descartan.
+            let mut offset = 0;
+            while offset + FRAME <= pending.len() {
+                if let Ok(f) = vad.push_frame(&pending[offset..offset + FRAME]) {
+                    if let crate::audio_toolkit::vad::VadFrame::Speech(speech) = f {
+                        buffer.extend_from_slice(speech);
+                        last_voice = std::time::Instant::now();
+                    }
+                }
+                offset += FRAME;
+            }
+            pending.drain(..offset);
+
+            if !buffer.is_empty()
+                && (last_voice.elapsed().as_millis() >= SILENCE_MS || buffer.len() >= MAX_SAMPLES)
+            {
+                let samples = std::mem::take(&mut buffer);
+                if samples.len() < MIN_SAMPLES {
+                    continue;
+                }
+                let app3 = app2.clone();
+                let tm3 = Arc::clone(
+                    &app2.state::<Arc<crate::managers::transcription::TranscriptionManager>>(),
+                );
+                tauri::async_runtime::spawn(async move {
+                    let segs = tauri::async_runtime::spawn_blocking(move || {
+                        crate::studio::pipeline::transcribe_samples(&tm3, &samples, |_| {})
+                    })
+                    .await;
+                    if let Ok(Ok(segs)) = segs {
+                        let text = crate::studio::segments::group_paragraphs(&segs)
+                            .join(" ")
+                            .trim()
+                            .to_string();
+                        if !text.is_empty() && is_listening() {
+                            let turn = push_turn("system", &text);
+                            use tauri::Emitter;
+                            let _ = app3.emit("conversation-turn", turn);
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    Ok(true)
+}
+
+/// Apaga la captura del audio del sistema (el worker sale en su próximo tick).
+fn system_audio_off() {
+    if !SYSTEM_AUDIO.swap(false, Ordering::Relaxed) {
+        return;
+    }
+    crate::system_audio::stop();
+}
+
 /// Apaga manos libres: cierra el tap y suelta el micrófono (buffer descartado).
 fn hands_free_off(
     rm: &crate::managers::audio::AudioRecordingManager,
@@ -394,11 +547,12 @@ pub async fn tts_setup(app: tauri::AppHandle) -> Result<(), String> {
 pub async fn conversation_finish(app: tauri::AppHandle) -> Result<String, String> {
     use tauri::Manager;
     LISTENING.store(false, Ordering::Relaxed);
+    system_audio_off();
     hands_free_off(
         &app.state::<std::sync::Arc<crate::managers::audio::AudioRecordingManager>>(),
         &app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>(),
     );
-    let text = transcript("Usuario", "Asistente");
+    let text = transcript("Usuario", "Asistente", "Otros");
     if text.trim().is_empty() {
         return Err("empty".to_string());
     }

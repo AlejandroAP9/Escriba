@@ -53,9 +53,7 @@ fn voice_dir(app: &AppHandle) -> Result<PathBuf, String> {
 /// ¿Runtime + voz listos para hablar?
 pub fn installed(app: &AppHandle) -> bool {
     match (tts_bin(app), voice_dir(app)) {
-        (Ok(bin), Ok(voice)) => {
-            bin.is_file() && voice.join("es_MX-claude-high.onnx").is_file()
-        }
+        (Ok(bin), Ok(voice)) => bin.is_file() && voice.join("es_MX-claude-high.onnx").is_file(),
         _ => false,
     }
 }
@@ -190,8 +188,15 @@ pub async fn setup(app: &AppHandle) -> Result<(), String> {
 
         if !tts_bin(app)?.is_file() {
             let archive = dir.join("runtime.tar.bz2");
-            download_verified(app, "runtime", RUNTIME_URL, &archive, RUNTIME_SHA256, RUNTIME_SIZE)
-                .await?;
+            download_verified(
+                app,
+                "runtime",
+                RUNTIME_URL,
+                &archive,
+                RUNTIME_SHA256,
+                RUNTIME_SIZE,
+            )
+            .await?;
             emit_progress(app, "extract", 0, 0, "Extrayendo runtime");
             extract_tar_bz2(&archive, &dir)?;
             resign_runtime(&dir.join(RUNTIME_DIR))?;
@@ -222,9 +227,18 @@ pub fn speak_blocking(app: &AppHandle, text: &str) -> Result<(), String> {
     stop();
 
     let status = Command::new(&bin)
-        .arg(format!("--vits-model={}", voice.join("es_MX-claude-high.onnx").display()))
-        .arg(format!("--vits-tokens={}", voice.join("tokens.txt").display()))
-        .arg(format!("--vits-data-dir={}", voice.join("espeak-ng-data").display()))
+        .arg(format!(
+            "--vits-model={}",
+            voice.join("es_MX-claude-high.onnx").display()
+        ))
+        .arg(format!(
+            "--vits-tokens={}",
+            voice.join("tokens.txt").display()
+        ))
+        .arg(format!(
+            "--vits-data-dir={}",
+            voice.join("espeak-ng-data").display()
+        ))
         .arg(format!("--output-filename={}", wav.display()))
         .arg(text)
         .stdout(Stdio::null())

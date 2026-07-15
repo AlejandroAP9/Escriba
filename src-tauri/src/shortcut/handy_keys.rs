@@ -429,8 +429,7 @@ pub fn validate_shortcut(raw: &str) -> Result<(), String> {
         .any(|t| !t.is_empty() && t != "fn" && !MODIFIERS.contains(&t.as_str()));
     if !has_real_key {
         return Err(
-            "El atajo necesita una tecla además de los modificadores (ej: Option+Espacio)."
-                .into(),
+            "El atajo necesita una tecla además de los modificadores (ej: Option+Espacio).".into(),
         );
     }
     Ok(())

@@ -11,6 +11,7 @@ import {
   Lock,
   MessageCircle,
   Mic,
+  MonitorSpeaker,
   Pause,
   Play,
   Sparkles,
@@ -194,7 +195,9 @@ export const ConversationSettings: React.FC = () => {
       setTurns((prev) => [...prev, e.payload]);
       if (e.payload.role === "user") {
         if (modeRef.current === "converse") setThinking(true);
-      } else {
+      } else if (e.payload.role === "assistant") {
+        // Solo la respuesta de la IA se lee en voz alta. Los turnos "system"
+        // (audio del sistema) jamás: la app se pondría a repetir la reunión.
         setThinking(false);
         speak(e.payload.text);
       }
@@ -248,16 +251,46 @@ export const ConversationSettings: React.FC = () => {
     }
   };
 
+  // Audio del sistema: lo que suena en el computador (la otra parte de una
+  // reunión Zoom/Meet, un video) entra a la sesión como turnos de "Otros".
+  const [sysAudio, setSysAudio] = useState(false);
+  const [sysAudioSupported, setSysAudioSupported] = useState(false);
+  useEffect(() => {
+    commands.systemAudioSupported().then(setSysAudioSupported);
+  }, []);
+  const toggleSysAudio = async () => {
+    const next = !sysAudio;
+    const r = await commands.conversationSystemAudio(next);
+    if (r.status === "ok") {
+      setSysAudio(r.data);
+      // Para un acta de ambos lados hace falta también el micrófono abierto.
+      if (r.data && !handsFree) {
+        toast.info(t("conversation.systemAudio.micTip"), { duration: 7000 });
+      }
+    } else if (r.error === "screen_permission") {
+      toast.error(t("conversation.systemAudio.permissionTitle"), {
+        description: t("conversation.systemAudio.permissionHint"),
+        duration: 9000,
+      });
+    } else {
+      toast.error(t("conversation.systemAudio.error"));
+    }
+  };
+
   const togglePause = async () => {
     const s = listening
       ? await commands.conversationStop()
       : await commands.conversationStart(effectiveMode);
     setListening(s.listening);
-    if (!s.listening) setHandsFree(false); // pausar apaga manos libres
+    if (!s.listening) {
+      setHandsFree(false); // pausar apaga manos libres
+      setSysAudio(false); // y la captura del sistema
+    }
   };
 
   const discard = async () => {
     setHandsFree(false);
+    setSysAudio(false);
     await commands.conversationReset();
     window.speechSynthesis?.cancel();
     commands.conversationSpeakStop();
@@ -315,6 +348,7 @@ export const ConversationSettings: React.FC = () => {
     setCreating(true);
     setListening(false);
     setHandsFree(false);
+    setSysAudio(false);
     try {
       const r = await commands.conversationFinish();
       if (r.status === "ok") {
@@ -689,6 +723,18 @@ export const ConversationSettings: React.FC = () => {
                   {t("conversation.handsFree.label")}
                 </Button>
               )}
+              {/* Audio del sistema: solo modos de escucha y equipos que lo
+                  soportan (macOS 13+). Capta la otra parte de la reunión. */}
+              {mode !== "converse" && listening && sysAudioSupported && (
+                <Button
+                  variant={sysAudio ? "primary-soft" : "secondary"}
+                  size="sm"
+                  onClick={toggleSysAudio}
+                >
+                  <MonitorSpeaker width={13} height={13} className="mr-1.5" />
+                  {t("conversation.systemAudio.label")}
+                </Button>
+              )}
               <Button variant="secondary" size="sm" onClick={togglePause}>
                 {listening ? (
                   <Pause width={13} height={13} className="mr-1.5" />
@@ -735,6 +781,25 @@ export const ConversationSettings: React.FC = () => {
                           {turn.text}
                         </p>
                       </div>
+                    ) : turn.role === "system" ? (
+                      // Audio del sistema: la otra parte de la reunión / el video.
+                      <div
+                        key={i}
+                        className="me-8 rounded-2xl rounded-tl-sm border border-line bg-mid-gray/5 px-4 py-3"
+                      >
+                        <p className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-mid-gray">
+                          <span className="flex items-center gap-1.5">
+                            <MonitorSpeaker width={11} height={11} />
+                            {t("conversation.others")}
+                          </span>
+                          <span className="font-mono normal-case">
+                            {stamp(turn.at_secs)}
+                          </span>
+                        </p>
+                        <p className="text-sm leading-relaxed text-text/85">
+                          {turn.text}
+                        </p>
+                      </div>
                     ) : (
                       <div
                         key={i}
@@ -767,9 +832,11 @@ export const ConversationSettings: React.FC = () => {
             </div>
             {turns.length > 0 && (
               <p className="mt-3 border-t border-line pt-2 text-center text-[11px] text-mid-gray">
-                {handsFree
-                  ? t("conversation.handsFree.hint")
-                  : t("conversation.hint")}
+                {sysAudio
+                  ? t("conversation.systemAudio.hint")
+                  : handsFree
+                    ? t("conversation.handsFree.hint")
+                    : t("conversation.hint")}
               </p>
             )}
           </Card>

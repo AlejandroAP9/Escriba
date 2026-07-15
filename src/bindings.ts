@@ -123,6 +123,27 @@ async conversationHandsFree(on: boolean) : Promise<Result<boolean, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Suma a la sesión lo que suena en el computador (la otra parte de una
+ * reunión Zoom/Meet, un video). El mismo VAD del micrófono (Silero) separa
+ * voz de música/silencio; cada intervención se corta en las pausas (o a los
+ * 25 s si nadie pausa, como en un podcast), se transcribe local y entra como
+ * turno de "Otros". Solo modos de escucha.
+ */
+async conversationSystemAudio(on: boolean) : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("conversation_system_audio", { on }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * ¿Este equipo puede capturar el audio del sistema? (macOS 13+, Apple Silicon)
+ */
+async systemAudioSupported() : Promise<boolean> {
+    return await TAURI_INVOKE("system_audio_supported");
+},
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("mcp_start") };
