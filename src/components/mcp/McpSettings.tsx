@@ -316,7 +316,7 @@ export const McpSettings: React.FC = () => {
               >
                 {copied ? (
                   <>
-                    <Check width={13} height={13} className="text-green-400" />
+                    <Check width={13} height={13} className="text-green-600" />
                     {t("mcp.copied")}
                   </>
                 ) : (

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { type } from "@tauri-apps/plugin-os";
 import { ArrowRight, Keyboard, Mic, Sparkles } from "lucide-react";
 import { AppearanceSettings } from "../AppearanceSettings";
+import { PermissionsPanel } from "../PermissionsPanel";
 import { MicrophoneSelector } from "../MicrophoneSelector";
 import { ShortcutInput } from "../ShortcutInput";
 import { SettingsGroup } from "../../ui/SettingsGroup";
@@ -24,6 +25,7 @@ export const GeneralSettings: React.FC = () => {
   const { currentModel, models } = useModelStore();
   const pushToTalk = getSetting("push_to_talk");
   const isLinux = type() === "linux";
+  const isMacos = type() === "macos";
 
   const activeModelName = models.find((m) => m.id === currentModel)?.name;
 
@@ -95,6 +97,12 @@ export const GeneralSettings: React.FC = () => {
       </div>
 
       {/* Dictado: modo (push-to-talk) y cancelación. */}
+      {isMacos && (
+        <SettingsGroup title={t("settings.general.permissions.title")}>
+          <PermissionsPanel />
+        </SettingsGroup>
+      )}
+
       <SettingsGroup title={t("settings.general.appearance.title")}>
         <AppearanceSettings />
       </SettingsGroup>

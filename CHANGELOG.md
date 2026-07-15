@@ -9,6 +9,35 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.5.0] — 2026-07-15
+
+La tanda premium: los momentos que separan una app de hackathon de una app
+de verdad, más el design system cerrado de punta a punta.
+
+### Añadido
+
+- **Panel de Permisos** (Ajustes → General): accesibilidad, micrófono y
+  grabación de pantalla con su estado real y botón directo a Ajustes del
+  Sistema. Se refresca solo al volver a la app. Adiós a descubrir permisos
+  a golpes, feature por feature.
+- **Estado del sistema real en Inicio:** los checks del panel ya no son
+  decorativos; consultan el modelo seleccionado y los permisos de verdad, y
+  si algo falta lo marcan en lacre con enlace directo a arreglarlo.
+- **Cold start honesto:** el primer dictado del día muestra "Preparando el
+  motor…" mientras carga el modelo, en vez de un "Transcribiendo" eterno que
+  parecía cuelgue.
+- **La ventana recuerda su tamaño y posición** entre lanzamientos.
+
+### Cambiado
+
+- **Onboarding reconstruido con el design system:** botones y tarjetas de
+  marca (antes componentes ad-hoc pensados para fondo oscuro), estados
+  concedidos en verde consistente, foco de teclado visible.
+- **54 títulos y botones en español** corregidos a mayúscula inicial natural
+  (adiós al Title Case heredado del inglés).
+- Etiquetas de accesibilidad (aria/title) traducidas en toda la app; verdes
+  de estado unificados.
+
 ## [1.4.0] — 2026-07-15
 
 La tanda de inclusión, nacida de una sugerencia de la comunidad: Escriba para

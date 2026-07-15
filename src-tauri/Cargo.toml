@@ -1,6 +1,6 @@
 [package]
 name = "escriba"
-version = "1.4.0"
+version = "1.5.0"
 description = "Escriba: tu Escriba personal. Hablas, el escribe."
 authors = ["Alejandro y Flor", "cjpais (Handy upstream)"]
 edition = "2021"
@@ -39,6 +39,7 @@ tauri = { version = "2.10.2", features = [
 tauri-plugin-log = "2.7.1"
 tauri-plugin-opener = "2.5.2"
 tauri-plugin-store = "2.4.1"
+tauri-plugin-window-state = "2"
 tauri-plugin-os = "2.3.2"
 tauri-plugin-clipboard-manager = "2.3.2"
 tauri-plugin-macos-permissions = "2.3.0"

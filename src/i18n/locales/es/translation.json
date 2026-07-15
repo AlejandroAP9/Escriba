@@ -109,17 +109,17 @@
       "selectModel": "No se pudo seleccionar el modelo"
     },
     "permissions": {
-      "title": "Permisos Requeridos",
+      "title": "Permisos requeridos",
       "description": "Escriba necesita algunos permisos para funcionar correctamente.",
       "microphone": {
-        "title": "Acceso al Micrófono",
+        "title": "Acceso al micrófono",
         "description": "Necesario para escuchar tu voz para la transcripción."
       },
       "accessibility": {
-        "title": "Acceso de Accesibilidad",
+        "title": "Acceso de accesibilidad",
         "description": "Necesario para escribir el texto transcrito en tus aplicaciones."
       },
-      "grant": "Conceder Permiso",
+      "grant": "Conceder permiso",
       "granted": "Concedido",
       "waiting": "Esperando...",
       "allGranted": "¡Todo listo!",
@@ -142,12 +142,12 @@
     "extractingGeneric": "Extrayendo...",
     "downloading": "Descargando {{percentage}}%",
     "downloadingMultiple": "Descargando {{count}} modelos...",
-    "modelReady": "Modelo Listo",
+    "modelReady": "Modelo listo",
     "loading": "Cargando {{modelName}}...",
     "loadingGeneric": "Cargando...",
-    "modelError": "Error del Modelo",
-    "modelUnloaded": "Modelo Descargado",
-    "noModelDownloadRequired": "Sin Modelo - Descarga Requerida",
+    "modelError": "Error del modelo",
+    "modelUnloaded": "Modelo descargado",
+    "noModelDownloadRequired": "Sin modelo - descarga requerida",
     "deleteModel": "Eliminar {{modelName}}",
     "downloadSpeed": "{{speed}} MB/s",
     "capabilities": {
@@ -202,11 +202,11 @@
         "pressKeys": "Presiona teclas...",
         "bindings": {
           "transcribe": {
-            "name": "Atajo de Transcripción",
+            "name": "Atajo de transcripción",
             "description": "El atajo de teclado para grabar y transcribir tu voz."
           },
           "cancel": {
-            "name": "Atajo de Cancelar",
+            "name": "Atajo de cancelar",
             "description": "El atajo de teclado para cancelar la grabación actual."
           },
           "transcribe_with_post_process": {
@@ -240,7 +240,7 @@
         "auto": "Auto"
       },
       "pushToTalk": {
-        "label": "Presionar para Hablar",
+        "label": "Presionar para hablar",
         "description": "Mantén presionado para grabar, suelta para detener"
       },
       "hero": {
@@ -276,6 +276,24 @@
         "textSizeTitle": "Tamaño del texto",
         "textSizeDescription": "Agranda toda la interfaz. Para ojos cansados o para leer con comodidad.",
         "textSizeOption": "Tamaño del texto {{pct}}%"
+      },
+      "permissions": {
+        "title": "Permisos",
+        "granted": "Concedido",
+        "missing": "Falta",
+        "open": "Abrir Ajustes",
+        "accessibility": {
+          "title": "Accesibilidad",
+          "description": "Permite escribir el texto dictado en otras aplicaciones."
+        },
+        "microphone": {
+          "title": "Micrófono",
+          "description": "Permite escuchar tu voz para transcribirla."
+        },
+        "screen": {
+          "title": "Grabación de pantalla y audio",
+          "description": "Permite capturar el audio del sistema en Sesiones (la pantalla no se graba)."
+        }
       }
     },
     "sound": {
@@ -287,11 +305,11 @@
         "loading": "Cargando..."
       },
       "audioFeedback": {
-        "label": "Retroalimentación de Audio",
+        "label": "Retroalimentación de audio",
         "description": "Reproducir sonido cuando la grabación inicia y se detiene"
       },
       "outputDevice": {
-        "title": "Dispositivo de Salida",
+        "title": "Dispositivo de salida",
         "description": "Selecciona tu dispositivo de salida de audio preferido para los sonidos de retroalimentación",
         "placeholder": "Seleccionar dispositivo de salida...",
         "loading": "Cargando..."
@@ -322,7 +340,7 @@
         "performance": "Rendimiento"
       },
       "experimentalToggle": {
-        "label": "Funciones Experimentales",
+        "label": "Funciones experimentales",
         "description": "Habilitar funciones experimentales que aún están en desarrollo."
       },
       "lazyStreamClose": {
@@ -343,15 +361,15 @@
         }
       },
       "startHidden": {
-        "label": "Iniciar Oculto",
+        "label": "Iniciar oculto",
         "description": "Lanzar en la bandeja del sistema sin abrir la ventana."
       },
       "autostart": {
-        "label": "Iniciar al Arranque",
+        "label": "Iniciar al arranque",
         "description": "Iniciar Escriba automáticamente cuando inicies sesión en tu computadora."
       },
       "showTrayIcon": {
-        "label": "Mostrar Icono de Bandeja",
+        "label": "Mostrar icono de bandeja",
         "description": "Mostrar el icono de Escriba en la bandeja del sistema."
       },
       "overlay": {
@@ -365,7 +383,7 @@
           }
         },
         "position": {
-          "title": "Posición de Superposición",
+          "title": "Posición de superposición",
           "description": "Mostrar superposición de retroalimentación visual durante la grabación y transcripción. En Linux se recomienda 'Ninguna'.",
           "options": {
             "bottom": "Abajo",
@@ -374,7 +392,7 @@
         }
       },
       "pasteMethod": {
-        "title": "Método de Pegado",
+        "title": "Método de pegado",
         "description": "Elige cómo se inserta el texto. Directo: simula escritura mediante entrada del sistema. Ninguno: omite el pegado, solo actualiza historial/portapapeles.",
         "options": {
           "clipboard": "Portapapeles ({{modifier}}+V)",
@@ -387,18 +405,18 @@
         "externalScriptPlaceholder": "/ruta/a/su/script.sh"
       },
       "typingTool": {
-        "title": "Herramienta de Escritura",
+        "title": "Herramienta de escritura",
         "description": "Elige qué herramienta de escritura de Linux usar para el método de pegado directo. Auto detectará y usará automáticamente la mejor herramienta disponible para tu sistema.",
         "options": {
-          "auto": "Auto (Recomendado)"
+          "auto": "Auto (recomendado)"
         }
       },
       "clipboardHandling": {
-        "title": "Manejo del Portapapeles",
-        "description": "No Modificar Portapapeles conserva el contenido actual de tu portapapeles después de la transcripción. Copiar al Portapapeles deja el resultado de la transcripción en tu portapapeles después de pegar.",
+        "title": "Manejo del portapapeles",
+        "description": "No modificar portapapeles conserva el contenido actual de tu portapapeles después de la transcripción. Copiar al portapapeles deja el resultado de la transcripción en tu portapapeles después de pegar.",
         "options": {
-          "dontModify": "No Modificar Portapapeles",
-          "copyToClipboard": "Copiar al Portapapeles"
+          "dontModify": "No modificar portapapeles",
+          "copyToClipboard": "Copiar al portapapeles"
         }
       },
       "autoSubmit": {
@@ -413,7 +431,7 @@
         }
       },
       "translateToEnglish": {
-        "label": "Traducir al Inglés",
+        "label": "Traducir al inglés",
         "description": "Traducir automáticamente el habla de otros idiomas al inglés durante la transcripción."
       },
       "modelUnload": {
@@ -431,7 +449,7 @@
         }
       },
       "customWords": {
-        "title": "Palabras Personalizadas",
+        "title": "Palabras personalizadas",
         "description": "Agrega palabras que a menudo se escuchan mal o se escriben incorrectamente durante la transcripción. El sistema corregirá automáticamente palabras similares para que coincidan con tu lista.",
         "placeholder": "Agregar una palabra",
         "add": "Agregar",
@@ -496,7 +514,7 @@
           "unavailable": "Apple Intelligence no está disponible en este dispositivo. Requiere un Mac con Apple Silicon ejecutando macOS Tahoe (26.0) o posterior con Apple Intelligence habilitado en Ajustes del Sistema."
         },
         "baseUrl": {
-          "title": "URL Base",
+          "title": "URL base",
           "description": "URL base de la API para el proveedor seleccionado. Solo se puede editar el proveedor personalizado.",
           "placeholder": "https://api.openai.com/v1"
         },
@@ -517,23 +535,23 @@
       "prompts": {
         "title": "Prompt",
         "selectedPrompt": {
-          "title": "Prompt Seleccionado",
+          "title": "Prompt seleccionado",
           "description": "Selecciona una plantilla para refinar las transcripciones o crea una nueva. Usa ${output} dentro del texto del prompt para hacer referencia a la transcripción capturada."
         },
         "noPrompts": "No hay prompts disponibles",
         "selectPrompt": "Seleccionar un prompt",
-        "createNew": "Crear Nuevo Prompt",
-        "promptLabel": "Etiqueta del Prompt",
+        "createNew": "Crear nuevo prompt",
+        "promptLabel": "Etiqueta del prompt",
         "promptLabelPlaceholder": "Ingresa el nombre del prompt",
-        "promptInstructions": "Instrucciones del Prompt",
+        "promptInstructions": "Instrucciones del prompt",
         "promptInstructionsPlaceholder": "Escribe las instrucciones para ejecutar después de la transcripción. Ejemplo: Mejora la gramática y claridad del siguiente texto: ${output}",
         "promptTip": "Consejo: Usa <code>${output}</code> para insertar el texto transcrito en tu prompt.",
-        "updatePrompt": "Actualizar Prompt",
-        "deletePrompt": "Eliminar Prompt",
-        "createPrompt": "Crear Prompt",
+        "updatePrompt": "Actualizar prompt",
+        "deletePrompt": "Eliminar prompt",
+        "createPrompt": "Crear prompt",
         "cancel": "Cancelar",
         "selectToEdit": "Selecciona un prompt arriba para ver y editar sus detalles.",
-        "createFirst": "Haz clic en 'Crear Nuevo Prompt' arriba para crear tu primer prompt de post procesamiento."
+        "createFirst": "Haz clic en 'Crear nuevo prompt' arriba para crear tu primer prompt de post procesamiento."
       },
       "localLlm": {
         "title": "Motor local de Escriba",
@@ -616,7 +634,7 @@
     },
     "history": {
       "title": "Historial",
-      "openFolder": "Abrir Carpeta de Grabaciones",
+      "openFolder": "Abrir carpeta de grabaciones",
       "loading": "Cargando historial...",
       "empty": "Aún no hay transcripciones. ¡Comienza a grabar para crear tu historial!",
       "copyToClipboard": "Copiar transcripción al portapapeles",
@@ -640,18 +658,18 @@
     "debug": {
       "title": "Depuración",
       "logDirectory": {
-        "title": "Directorio de Registros",
+        "title": "Directorio de registros",
         "description": "Ubicación donde se almacenan los archivos de registro"
       },
       "logLevel": {
-        "title": "Nivel de Registro",
+        "title": "Nivel de registro",
         "description": "Establece el nivel de detalle del registro"
       },
       "liveLogs": {
-        "title": "Registros en Vivo",
-        "description": "Transmite los registros de la aplicación en tiempo real para diagnosticar problemas sin abrir el archivo de registro. Solo se muestran los registros emitidos mientras este panel está abierto; respeta el ajuste de Nivel de Registro de arriba.",
-        "live": "En Vivo",
-        "paused": "En Pausa",
+        "title": "Registros en vivo",
+        "description": "Transmite los registros de la aplicación en tiempo real para diagnosticar problemas sin abrir el archivo de registro. Solo se muestran los registros emitidos mientras este panel está abierto; respeta el ajuste de Nivel de registro de arriba.",
+        "live": "En vivo",
+        "paused": "En pausa",
         "pause": "Pausar",
         "resume": "Reanudar",
         "copied": "Copiado",
@@ -659,19 +677,19 @@
         "empty": "Esperando registros… Las entradas aparecerán aquí a medida que la aplicación las emita."
       },
       "updateChecks": {
-        "label": "Buscar Actualizaciones",
+        "label": "Buscar actualizaciones",
         "description": "Buscar automáticamente nuevas versiones de Escriba"
       },
       "soundTheme": {
-        "label": "Tema de Sonido",
+        "label": "Tema de sonido",
         "description": "Elige un tema de sonido para la retroalimentación de inicio y parada de grabación"
       },
       "wordCorrectionThreshold": {
-        "title": "Umbral de Corrección de Palabras",
+        "title": "Umbral de corrección de palabras",
         "description": "Sensibilidad para correcciones de palabras personalizadas"
       },
       "historyLimit": {
-        "title": "Límite de Historial",
+        "title": "Límite de historial",
         "description": "Número máximo de entradas de historial a conservar",
         "entries": "entradas"
       },
@@ -686,11 +704,11 @@
         "placeholder": "Seleccionar período de retención..."
       },
       "alwaysOnMicrophone": {
-        "label": "Micrófono Siempre Activo",
+        "label": "Micrófono siempre activo",
         "description": "Mantener el micrófono activo para una respuesta más rápida"
       },
       "clamshellMicrophone": {
-        "title": "Micrófono en Modo Clamshell",
+        "title": "Micrófono en modo clamshell",
         "description": "Micrófono a usar cuando la tapa del portátil está cerrada"
       },
       "postProcessingToggle": {
@@ -698,11 +716,11 @@
         "description": "Habilitar refinamiento de texto impulsado por IA después de la transcripción"
       },
       "muteWhileRecording": {
-        "label": "Silenciar Durante la Grabación",
+        "label": "Silenciar durante la grabación",
         "description": "Silenciar el audio del sistema durante la grabación"
       },
       "appendTrailingSpace": {
-        "label": "Agregar Espacio Final",
+        "label": "Agregar espacio final",
         "description": "Agregar un espacio después de la transcripción pegada"
       },
       "keyboardImplementation": {
@@ -711,7 +729,7 @@
         "bindingsReset": "Los atajos de teclado eran incompatibles y se restablecieron a los valores predeterminados"
       },
       "paths": {
-        "appData": "Datos de la Aplicación:",
+        "appData": "Datos de la aplicación:",
         "models": "Modelos:",
         "settings": "Configuración:"
       },
@@ -738,7 +756,7 @@
         "description": "Versión actual de Escriba"
       },
       "appDataDirectory": {
-        "title": "Directorio de Datos de la Aplicación",
+        "title": "Directorio de datos de la aplicación",
         "description": "Ubicación donde Escriba almacena sus datos"
       },
       "sourceCode": {
@@ -796,7 +814,7 @@
     "checkingUpdates": "Buscando actualizaciones...",
     "updateAvailableShort": "Actualización disponible",
     "upToDate": "Actualizado",
-    "updateCheckingDisabled": "Búsqueda de Actualizaciones Deshabilitada",
+    "updateCheckingDisabled": "Búsqueda de actualizaciones deshabilitada",
     "downloading": "Descargando... {{progress}}%",
     "installing": "Instalando...",
     "preparing": "Preparando...",
@@ -846,7 +864,8 @@
   },
   "overlay": {
     "transcribing": "Transcribiendo...",
-    "processing": "Procesando..."
+    "processing": "Procesando...",
+    "warming": "Preparando el motor…"
   },
   "whatsNew": {
     "title": "Nuevo en Escriba v{{version}}"
@@ -1053,7 +1072,13 @@
     "systemStatus": "Estado del sistema",
     "micReady": "Micrófono listo",
     "allLocal": "Todo se procesa localmente",
-    "audios": "Audios"
+    "audios": "Audios",
+    "status": {
+      "modelMissing": "Falta el modelo de transcripción",
+      "accessibility": "Accesibilidad concedida",
+      "accessibilityMissing": "Falta el permiso de Accesibilidad",
+      "micMissing": "Falta el permiso del micrófono"
+    }
   },
   "conversation": {
     "heroTitle": "Habla una hora. Llévate un documento listo.",
@@ -1181,5 +1206,13 @@
     "interpreter": "Sala del Intérprete abierta",
     "view": "Ver",
     "stop": "Detener"
+  },
+  "a11y": {
+    "moreInfo": "Más información",
+    "copyToClipboard": "Copiar al portapapeles",
+    "previewSound": "Escuchar los sonidos del tema (inicio y fin)",
+    "debugPaths": "Rutas de depuración",
+    "cancel": "Cancelar",
+    "modelStatus": "Estado del modelo: {{status}}"
   }
 }

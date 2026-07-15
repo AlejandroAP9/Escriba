@@ -181,7 +181,7 @@ export const LiveLogViewer: React.FC<LiveLogViewerProps> = ({
         <div className="flex items-center gap-2 text-xs text-mid-gray min-w-0">
           <span
             className={`inline-block w-2 h-2 rounded-full shrink-0 ${
-              paused ? "bg-mid-gray" : "bg-emerald-500 animate-pulse"
+              paused ? "bg-mid-gray" : "bg-green-600 animate-pulse"
             }`}
           />
           <span className="shrink-0">

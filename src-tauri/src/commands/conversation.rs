@@ -373,6 +373,13 @@ pub fn system_audio_supported() -> bool {
     crate::system_audio::supported()
 }
 
+/// ¿Está concedido el permiso de Grabación de pantalla? (panel de permisos)
+#[tauri::command]
+#[specta::specta]
+pub fn system_audio_permission() -> bool {
+    crate::system_audio::permission_granted()
+}
+
 /// Suma a la sesión lo que suena en el computador (la otra parte de una
 /// reunión Zoom/Meet, un video). El mismo VAD del micrófono (Silero) separa
 /// voz de música/silencio; cada intervención se corta en las pausas (o a los

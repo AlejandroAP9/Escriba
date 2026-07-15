@@ -12,7 +12,12 @@ import type {
 import i18n, { syncLanguageFromSettings } from "@/i18n";
 import { getLanguageDirection } from "@/lib/utils/rtl";
 
-type OverlayState = "recording" | "streaming" | "transcribing" | "processing";
+type OverlayState =
+  | "recording"
+  | "streaming"
+  | "transcribing"
+  | "processing"
+  | "warming";
 
 // Number of reactive bars in the waveform (the simple, smoothed style shared by
 // every overlay form). Mic levels arrive as 16 FFT buckets; we take the first N.
@@ -188,7 +193,7 @@ const RecordingOverlay: React.FC = () => {
   const cancelBtn = (
     <button
       className="sx"
-      aria-label="cancel"
+      aria-label={t("a11y.cancel")}
       onClick={() => commands.cancelOperation()}
     >
       <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -306,11 +311,14 @@ const RecordingOverlay: React.FC = () => {
   // ---- Minimal overlay: exactly one row at a time — waveform (recording), or a
   // spinner + label (transcribing / processing). Never both. The pill animates its
   // width between them; the cancel button is in both rows so it stays put.
-  const working = state === "transcribing" || state === "processing";
+  const working =
+    state === "transcribing" || state === "processing" || state === "warming";
   const workLabel =
     state === "processing"
       ? t("overlay.processing")
-      : t("overlay.transcribing");
+      : state === "warming"
+        ? t("overlay.warming")
+        : t("overlay.transcribing");
 
   return (
     <div

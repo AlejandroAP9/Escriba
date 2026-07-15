@@ -966,6 +966,11 @@ impl ShortcutAction for TranscribeAction {
             (OverlayStyle::Live, true) => {
                 tm.emit_stream_working(StreamWorkKind::Transcribing);
             }
+            // Cold start honesto: el primer dictado del día puede cargar el
+            // motor por decenas de segundos. "Preparando el motor" y
+            // "transcribiendo" son esperas distintas; mentir con la segunda
+            // hace que la app parezca colgada.
+            _ if !tm.is_model_loaded() => crate::overlay::show_warming_overlay(app),
             _ => show_transcribing_overlay(app),
         }
 

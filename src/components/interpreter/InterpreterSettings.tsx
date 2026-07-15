@@ -163,8 +163,8 @@ export const InterpreterSettings: React.FC = () => {
       {/* Estado de la sala */}
       <div className="flex items-center gap-3 rounded-card border border-line bg-background px-4 py-3 shadow-card">
         <span className="relative flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/60" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-600/60" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-600" />
         </span>
         <span className="text-sm font-semibold text-text">
           {t("interpreter.roomActive")}
@@ -286,7 +286,7 @@ export const InterpreterSettings: React.FC = () => {
                       <span className="text-base">{info?.flag ?? "🌐"}</span>
                       <span>{info?.label ?? code}</span>
                       <span className="ms-auto flex items-center gap-1.5 text-xs text-green-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-600" />
                         {t("interpreter.connected")}
                       </span>
                     </li>

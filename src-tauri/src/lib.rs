@@ -623,6 +623,7 @@ pub fn run(cli_args: CliArgs) {
             commands::conversation::conversation_hands_free,
             commands::conversation::conversation_system_audio,
             commands::conversation::system_audio_supported,
+            commands::conversation::system_audio_permission,
             commands::mcp::mcp_start,
             commands::mcp::mcp_stop,
             commands::mcp::mcp_status,
@@ -855,6 +856,13 @@ pub fn run(cli_args: CliArgs) {
         .plugin(tauri_plugin_macos_permissions::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        // La ventana principal recuerda tamaño y posición entre lanzamientos.
+        // El overlay se excluye: su posición la calcula overlay.rs en cada show.
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_denylist(&["recording_overlay"])
+                .build(),
+        )
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,

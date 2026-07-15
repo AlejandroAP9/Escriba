@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { SettingContainer } from "./SettingContainer";
 
 interface TextDisplayProps {
@@ -24,6 +25,7 @@ export const TextDisplay: React.FC<TextDisplayProps> = ({
   monospace = false,
   onCopy,
 }) => {
+  const { t } = useTranslation();
   const [showCopied, setShowCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -64,7 +66,7 @@ export const TextDisplay: React.FC<TextDisplayProps> = ({
           <button
             onClick={handleCopy}
             className="flex items-center justify-center px-2 py-1 w-12 min-h-8 text-xs font-semibold bg-mid-gray/10 hover:bg-logo-primary/10 border border-mid-gray/80 hover:border-logo-primary hover:text-logo-primary rounded-md transition-all duration-150 flex-shrink-0 cursor-pointer"
-            title="Copy to clipboard"
+            title={t("a11y.copyToClipboard")}
           >
             {showCopied ? (
               <div className="flex items-center space-x-1">

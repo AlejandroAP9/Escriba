@@ -15,7 +15,7 @@ export const DebugPaths: React.FC<DebugPathsProps> = ({
 
   return (
     <SettingContainer
-      title="Debug Paths"
+      title={t("a11y.debugPaths")}
       description="Display internal file paths and directories for debugging purposes"
       descriptionMode={descriptionMode}
       grouped={grouped}

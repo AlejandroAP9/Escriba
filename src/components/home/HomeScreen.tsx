@@ -1,7 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check } from "lucide-react";
+import { AlertTriangle, Check } from "lucide-react";
+import { platform } from "@tauri-apps/plugin-os";
+import {
+  checkAccessibilityPermission,
+  checkMicrophonePermission,
+} from "tauri-plugin-macos-permissions-api";
 import { commands, type UsageStats } from "@/bindings";
+import { navigateTo } from "@/lib/navigation";
 import i18n from "@/i18n";
 import { useSettings } from "../../hooks/useSettings";
 import { Card } from "../ui/Card";
@@ -109,11 +115,56 @@ export const HomeScreen: React.FC = () => {
     },
   ];
 
-  const statusItems = [
-    modelName,
-    t("home.micReady"),
-    t("home.allLocal"),
-  ].filter(Boolean);
+  // Estado REAL del sistema (antes eran checks decorativos siempre en verde):
+  // modelo seleccionado, permiso de micrófono y de accesibilidad. Cada uno se
+  // consulta de verdad; si algo falta, se marca y lleva a arreglarlo.
+  const [micOk, setMicOk] = useState<boolean | null>(null);
+  const [accOk, setAccOk] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (platform() !== "macos") return;
+    checkMicrophonePermission()
+      .then(setMicOk)
+      .catch(() => {});
+    checkAccessibilityPermission()
+      .then(setAccOk)
+      .catch(() => {});
+  }, []);
+
+  const statusItems: {
+    key: string;
+    label: string;
+    ok: boolean | null;
+    goTo?: () => void;
+  }[] = [
+    {
+      key: "model",
+      label: modelName || t("home.status.modelMissing"),
+      ok: modelName ? true : false,
+      goTo: modelName ? undefined : () => navigateTo("models"),
+    },
+    ...(platform() === "macos"
+      ? [
+          {
+            key: "mic",
+            label:
+              micOk === false
+                ? t("home.status.micMissing")
+                : t("home.micReady"),
+            ok: micOk,
+            goTo: micOk === false ? () => navigateTo("general") : undefined,
+          },
+          {
+            key: "acc",
+            label:
+              accOk === false
+                ? t("home.status.accessibilityMissing")
+                : t("home.status.accessibility"),
+            ok: accOk,
+            goTo: accOk === false ? () => navigateTo("general") : undefined,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <div className="relative mx-auto flex min-h-full max-w-5xl items-center px-6 py-12">
@@ -200,13 +251,34 @@ export const HomeScreen: React.FC = () => {
             </p>
             <ul className="mt-3 space-y-2.5">
               {statusItems.map((item) => (
-                <li key={item} className="flex items-center gap-2.5 text-sm">
-                  <Check
-                    width={15}
-                    height={15}
-                    className="shrink-0 text-logo-primary"
-                  />
-                  <span className="truncate text-text">{item}</span>
+                <li
+                  key={item.key}
+                  className="flex items-center gap-2.5 text-sm"
+                >
+                  {item.ok === false ? (
+                    <AlertTriangle
+                      width={15}
+                      height={15}
+                      className="shrink-0 text-lacre"
+                    />
+                  ) : (
+                    <Check
+                      width={15}
+                      height={15}
+                      className="shrink-0 text-logo-primary"
+                    />
+                  )}
+                  {item.goTo ? (
+                    <button
+                      type="button"
+                      onClick={item.goTo}
+                      className="truncate text-start text-lacre underline-offset-2 hover:underline focus:outline-none focus:underline"
+                    >
+                      {item.label}
+                    </button>
+                  ) : (
+                    <span className="truncate text-text">{item.label}</span>
+                  )}
                 </li>
               ))}
             </ul>

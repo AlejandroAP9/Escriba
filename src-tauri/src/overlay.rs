@@ -418,6 +418,13 @@ pub fn show_transcribing_overlay(app_handle: &AppHandle) {
     show_overlay_state(app_handle, "transcribing");
 }
 
+/// Shows the "warming up the engine" overlay: the first dictation of the day
+/// can spend tens of seconds loading the model, and that wait deserves its own
+/// honest label instead of pretending it is already transcribing.
+pub fn show_warming_overlay(app_handle: &AppHandle) {
+    show_overlay_state(app_handle, "warming");
+}
+
 /// Shows the processing overlay window
 pub fn show_processing_overlay(app_handle: &AppHandle) {
     show_overlay_state(app_handle, "processing");

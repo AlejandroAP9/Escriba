@@ -258,6 +258,24 @@
         "textSizeTitle": "Text size",
         "textSizeDescription": "Scales the whole interface. For tired eyes or comfortable reading.",
         "textSizeOption": "Text size {{pct}}%"
+      },
+      "permissions": {
+        "title": "Permissions",
+        "granted": "Granted",
+        "missing": "Missing",
+        "open": "Open Settings",
+        "accessibility": {
+          "title": "Accessibility",
+          "description": "Lets Escriba type the dictated text into other apps."
+        },
+        "microphone": {
+          "title": "Microphone",
+          "description": "Lets Escriba hear your voice to transcribe it."
+        },
+        "screen": {
+          "title": "Screen & audio recording",
+          "description": "Lets Sessions capture system audio (the screen itself is not recorded)."
+        }
       }
     },
     "sound": {
@@ -846,7 +864,8 @@
   },
   "overlay": {
     "transcribing": "텍스트로 변환 중...",
-    "processing": "처리 중..."
+    "processing": "처리 중...",
+    "warming": "Warming up the engine…"
   },
   "whatsNew": {
     "title": "Escriba v{{version}}의 새 소식"
@@ -1053,7 +1072,13 @@
     "systemStatus": "System status",
     "micReady": "Microphone ready",
     "allLocal": "Everything runs locally",
-    "audios": "Audios"
+    "audios": "Audios",
+    "status": {
+      "modelMissing": "Transcription model missing",
+      "accessibility": "Accessibility granted",
+      "accessibilityMissing": "Accessibility permission missing",
+      "micMissing": "Microphone permission missing"
+    }
   },
   "conversation": {
     "heroTitle": "Talk for an hour. Walk away with a finished document.",
@@ -1181,5 +1206,13 @@
     "interpreter": "Interpreter room open",
     "view": "View",
     "stop": "Stop"
+  },
+  "a11y": {
+    "moreInfo": "More information",
+    "copyToClipboard": "Copy to clipboard",
+    "previewSound": "Preview sound theme (plays start then stop)",
+    "debugPaths": "Debug paths",
+    "cancel": "Cancel",
+    "modelStatus": "Model status: {{status}}"
   }
 }

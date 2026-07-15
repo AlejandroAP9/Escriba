@@ -144,6 +144,12 @@ async conversationSystemAudio(on: boolean) : Promise<Result<boolean, string>> {
 async systemAudioSupported() : Promise<boolean> {
     return await TAURI_INVOKE("system_audio_supported");
 },
+/**
+ * ¿Está concedido el permiso de Grabación de pantalla? (panel de permisos)
+ */
+async systemAudioPermission() : Promise<boolean> {
+    return await TAURI_INVOKE("system_audio_permission");
+},
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("mcp_start") };
