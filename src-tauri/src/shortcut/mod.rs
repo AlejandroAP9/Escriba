@@ -502,6 +502,27 @@ pub fn change_audio_feedback_volume_setting(app: AppHandle, volume: f32) -> Resu
 
 #[tauri::command]
 #[specta::specta]
+pub fn change_ui_theme_setting(app: AppHandle, theme: String) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.ui_theme = match theme.as_str() {
+        "light" | "dark" => theme,
+        _ => "system".to_string(),
+    };
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_ui_scale_setting(app: AppHandle, scale: u32) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.ui_scale = scale.clamp(90, 130);
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn change_sound_theme_setting(app: AppHandle, theme: String) -> Result<(), String> {
     let mut settings = settings::get_settings(&app);
     let parsed = match theme.as_str() {

@@ -356,6 +356,13 @@ pub struct AppSettings {
     pub audio_feedback_volume: f32,
     #[serde(default = "default_sound_theme")]
     pub sound_theme: SoundTheme,
+    /// Apariencia de la interfaz: "system" (sigue a macOS), "light" o "dark".
+    #[serde(default = "default_ui_theme")]
+    pub ui_theme: String,
+    /// Escala del texto de toda la interfaz, en porcentaje (90-130).
+    /// Accesibilidad: ojos cansados o vista reducida sin tocar el sistema.
+    #[serde(default = "default_ui_scale")]
+    pub ui_scale: u32,
     #[serde(default = "default_start_hidden")]
     pub start_hidden: bool,
     #[serde(default = "default_autostart_enabled")]
@@ -574,6 +581,14 @@ fn default_recording_retention_period() -> RecordingRetentionPeriod {
 
 fn default_audio_feedback_volume() -> f32 {
     1.0
+}
+
+fn default_ui_theme() -> String {
+    "system".to_string()
+}
+
+fn default_ui_scale() -> u32 {
+    100
 }
 
 fn default_sound_theme() -> SoundTheme {
@@ -942,6 +957,8 @@ pub fn get_default_settings() -> AppSettings {
         audio_feedback: false,
         audio_feedback_volume: default_audio_feedback_volume(),
         sound_theme: default_sound_theme(),
+        ui_theme: default_ui_theme(),
+        ui_scale: default_ui_scale(),
         start_hidden: default_start_hidden(),
         autostart_enabled: default_autostart_enabled(),
         update_checks_enabled: default_update_checks_enabled(),

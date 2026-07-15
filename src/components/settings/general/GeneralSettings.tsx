@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { type } from "@tauri-apps/plugin-os";
 import { ArrowRight, Keyboard, Mic, Sparkles } from "lucide-react";
+import { AppearanceSettings } from "../AppearanceSettings";
 import { MicrophoneSelector } from "../MicrophoneSelector";
 import { ShortcutInput } from "../ShortcutInput";
 import { SettingsGroup } from "../../ui/SettingsGroup";
@@ -94,6 +95,10 @@ export const GeneralSettings: React.FC = () => {
       </div>
 
       {/* Dictado: modo (push-to-talk) y cancelación. */}
+      <SettingsGroup title={t("settings.general.appearance.title")}>
+        <AppearanceSettings />
+      </SettingsGroup>
+
       <SettingsGroup title={t("settings.general.dictationTitle")}>
         <PushToTalk descriptionMode="inline" grouped={true} />
         {/* El atajo de cancelar se oculta con push-to-talk (soltar cancela) y en Linux. */}

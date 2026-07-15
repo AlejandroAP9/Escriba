@@ -9,6 +9,26 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.4.0] — 2026-07-15
+
+La tanda de inclusión, nacida de una sugerencia de la comunidad: Escriba para
+todos los ojos.
+
+### Añadido
+
+- **Tema Día / Noche / Sistema** en Ajustes → General. El modo nocturno (tinta
+  y oro sobre fondo oscuro) ya existía siguiendo al sistema; ahora se puede
+  fijar a mano, independiente de macOS.
+- **Tamaño del texto** (90% a 130%): agranda toda la interfaz de una vez, para
+  ojos cansados o vista reducida. Cuatro escalas curadas, sin perderse en
+  porcentajes.
+
+### Cambiado
+
+- Barrido de colores fuera de paleta que desentonaban en el modo oscuro:
+  alertas, botones de peligro (ahora en rojo lacre de marca) y esqueletos de
+  carga. Foco de teclado visible en todos los botones.
+
 ## [1.3.2] — 2026-07-15
 
 ### Cambiado

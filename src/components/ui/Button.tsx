@@ -29,11 +29,11 @@ export const Button: React.FC<ButtonProps> = ({
     "primary-soft":
       "text-text bg-logo-primary/20 border-transparent hover:bg-logo-primary/30 active:bg-logo-primary/40 focus:ring-1 focus:ring-logo-primary",
     secondary:
-      "bg-mid-gray/10 border-mid-gray/20 hover:bg-background-ui/30 hover:border-logo-primary active:bg-background-ui/40 focus:outline-none",
+      "bg-mid-gray/10 border-mid-gray/20 hover:bg-background-ui/30 hover:border-logo-primary active:bg-background-ui/40 focus:outline-none focus-visible:ring-1 focus-visible:ring-logo-primary",
     danger:
-      "text-white bg-red-600 border-mid-gray/20 hover:bg-red-700 hover:border-red-700 active:bg-red-800 focus:ring-1 focus:ring-red-500",
+      "text-white bg-lacre border-lacre/30 hover:bg-lacre/90 active:bg-lacre/80 focus:ring-1 focus:ring-lacre",
     "danger-ghost":
-      "text-red-400 border-transparent hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20 focus:bg-red-500/20",
+      "text-lacre border-transparent hover:bg-lacre/10 active:bg-lacre/20 focus:ring-1 focus:ring-lacre",
     ghost:
       "text-current border-transparent hover:bg-mid-gray/10 hover:border-logo-primary active:bg-mid-gray/20 focus:bg-mid-gray/20",
   };

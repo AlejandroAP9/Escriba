@@ -263,6 +263,19 @@
         "whisper": "Whisper",
         "text": "Texto",
         "anywhere": "Donde estés"
+      },
+      "appearance": {
+        "title": "Apariencia",
+        "themeTitle": "Tema",
+        "themeDescription": "Día, noche, o que Escriba siga el modo de tu sistema.",
+        "theme": {
+          "system": "Sistema",
+          "light": "Día",
+          "dark": "Noche"
+        },
+        "textSizeTitle": "Tamaño del texto",
+        "textSizeDescription": "Agranda toda la interfaz. Para ojos cansados o para leer con comodidad.",
+        "textSizeOption": "Tamaño del texto {{pct}}%"
       }
     },
     "sound": {

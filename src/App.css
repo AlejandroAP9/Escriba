@@ -61,6 +61,18 @@
     display: block;
   }
 }
+:root[data-theme="dark"] .escriba-mark--light {
+  display: none;
+}
+:root[data-theme="dark"] .escriba-mark--dark {
+  display: block;
+}
+:root[data-theme="light"] .escriba-mark--light {
+  display: block;
+}
+:root[data-theme="light"] .escriba-mark--dark {
+  display: none;
+}
 
 /* Register the shared color tokens (src/styles/theme.css) as Tailwind
    utilities */
@@ -86,8 +98,8 @@
   --radius-card: 16px;
   --radius-control: 10px;
   --shadow-card: 0 1px 2px rgba(27, 20, 38, 0.05);
-  --shadow-lift: 0 1px 2px rgba(27, 20, 38, 0.05),
-    0 14px 30px -18px rgba(27, 20, 38, 0.16);
+  --shadow-lift:
+    0 1px 2px rgba(27, 20, 38, 0.05), 0 14px 30px -18px rgba(27, 20, 38, 0.16);
 }
 
 :root {
@@ -139,6 +151,12 @@
     /* Just a bit darker than the (already dark) background, keeping its warm tint */
     --color-log-surface: color-mix(in srgb, var(--color-background), black 15%);
   }
+}
+:root[data-theme="dark"] {
+  --color-log-surface: color-mix(in srgb, var(--color-background), black 15%);
+}
+:root[data-theme="light"] {
+  --color-log-surface: color-mix(in srgb, var(--color-background), black 6%);
 }
 
 /* macOS - tint native overlay scrollbar thumb */

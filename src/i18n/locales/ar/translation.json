@@ -242,6 +242,19 @@
         "whisper": "Whisper",
         "text": "Text",
         "anywhere": "Anywhere"
+      },
+      "appearance": {
+        "title": "Appearance",
+        "themeTitle": "Theme",
+        "themeDescription": "Day, night, or let Escriba follow your system mode.",
+        "theme": {
+          "system": "System",
+          "light": "Day",
+          "dark": "Night"
+        },
+        "textSizeTitle": "Text size",
+        "textSizeDescription": "Scales the whole interface. For tired eyes or comfortable reading.",
+        "textSizeOption": "Text size {{pct}}%"
       }
     },
     "sound": {
