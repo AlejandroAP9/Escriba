@@ -9,6 +9,17 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.3.2] — 2026-07-15
+
+### Cambiado
+
+- **La pluma de Escriba llegó a la barra de menú:** los 9 iconos del tray
+  (reposo, grabando, transcribiendo × tres temas) ahora son la marca propia,
+  en dorado con punto lacre al grabar. Era el último rastro visual de Handy,
+  y el más visible de todos (QA de Flor).
+- La pantalla de Agentes (MCP) explica cómo reconectar el agente si la
+  dirección cambió al actualizar desde una versión sin token.
+
 ## [1.3.1] — 2026-07-15
 
 Los dos hallazgos del primer QA real de la dupla (Flor, 15-jul), cerrados el

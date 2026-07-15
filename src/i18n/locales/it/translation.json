@@ -1020,7 +1020,8 @@
     "autostart": {
       "label": "Start with the app",
       "description": "Start the MCP server automatically when Escriba opens, so your agents always have the tools available."
-    }
+    },
+    "reconnectHint": "Did your agent lose the connection after updating Escriba? The address now includes a security token: remove the old connection in your agent and copy this command again."
   },
   "micButton": {
     "start": "Dictate",

@@ -336,6 +336,9 @@ export const McpSettings: React.FC = () => {
           <p className="font-mono text-[10px] text-mid-gray">
             {t("mcp.tokenNote")}
           </p>
+          {/* Migración desde versiones sin token: la URL vieja muere y el
+              agente "pierde la conexión" sin explicación (QA de Flor). */}
+          <p className="text-xs text-mid-gray">{t("mcp.reconnectHint")}</p>
         </section>
       )}
 

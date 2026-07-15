@@ -1020,7 +1020,8 @@
     "autostart": {
       "label": "Iniciar con la app",
       "description": "Arranca el servidor MCP automáticamente al abrir Escriba, para que tus agentes siempre tengan las herramientas disponibles."
-    }
+    },
+    "reconnectHint": "¿Tu agente perdió la conexión tras actualizar Escriba? La dirección ahora incluye un token de seguridad: elimina la conexión antigua en tu agente y vuelve a copiar este comando."
   },
   "micButton": {
     "start": "Dictar",
