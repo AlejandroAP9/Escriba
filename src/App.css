@@ -327,3 +327,27 @@ label {
   user-select: none;
   cursor: default;
 }
+
+/* Onda de voz viva (LiveWave): las barras respiran con desfase. Amplitud
+   contenida: presencia, no distracción. Con reduced-motion queda estática. */
+@keyframes livewave {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.livewave-bar {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation-name: livewave;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .livewave-bar {
+    animation: none;
+  }
+}

@@ -11,6 +11,7 @@ import { navigateTo } from "@/lib/navigation";
 import i18n from "@/i18n";
 import { useSettings } from "../../hooks/useSettings";
 import { Card } from "../ui/Card";
+import LiveWave from "../icons/LiveWave";
 import markInk from "../../assets/escriba-mark-ink.png";
 import markParchment from "../../assets/escriba-mark-parchment.png";
 
@@ -201,14 +202,8 @@ export const HomeScreen: React.FC = () => {
             <span className="text-mid-gray">{t("home.headline2")}</span>
           </h1>
 
-          <div
-            aria-hidden="true"
-            className="ink-stroke mt-5 h-0.5 w-24 rounded-full"
-            style={{
-              background:
-                "linear-gradient(to right, var(--color-logo-primary), transparent)",
-            }}
-          />
+          {/* La onda de la marca, viva: reemplaza al divisor estático. */}
+          <LiveWave width={110} className="mt-5 text-logo-primary" />
 
           <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px] uppercase tracking-[0.08em] text-mid-gray">
             {promises.map((p) => (

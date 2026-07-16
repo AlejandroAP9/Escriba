@@ -1,6 +1,7 @@
 import React from "react";
 import markInk from "../../assets/escriba-mark-ink.png";
 import markParchment from "../../assets/escriba-mark-parchment.png";
+import LiveWave from "./LiveWave";
 
 const BRAND = "Escriba";
 const TAGLINE = "Tu voz en tinta.";
@@ -16,6 +17,7 @@ const EscribaLogo = ({
   className,
   onDark = false,
   tagline = false,
+  liveWave = false,
 }: {
   width?: number;
   height?: number;
@@ -25,6 +27,8 @@ const EscribaLogo = ({
   onDark?: boolean;
   // Muestra "Tu voz en tinta." en oro bajo el wordmark (barra lateral).
   tagline?: boolean;
+  // Onda de voz viva bajo el lockup (complementa la onda estática del PNG).
+  liveWave?: boolean;
 }) => {
   // La marca de Flor es casi cuadrada; se muestra a ~2/3 del ancho nominal para
   // que no domine junto al wordmark.
@@ -73,6 +77,12 @@ const EscribaLogo = ({
       >
         {BRAND}
       </span>
+      {liveWave && (
+        <LiveWave
+          width={Math.round(width * 0.42)}
+          className="text-logo-primary"
+        />
+      )}
       {tagline && (
         <span
           className="text-logo-primary"

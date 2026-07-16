@@ -174,7 +174,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           "inset 0 1px 0 rgba(255,255,255,0.04), inset -12px 0 24px -18px rgba(0,0,0,0.6)",
       }}
     >
-      <EscribaLogo width={168} className="mt-10 mb-6 shrink-0" onDark tagline />
+      <EscribaLogo
+        width={168}
+        className="mt-10 mb-6 shrink-0"
+        onDark
+        tagline
+        liveWave
+      />
       <div className="flex w-full flex-col gap-4 border-t border-white/10 pb-6 pt-4">
         {NAV_GROUPS.map((group, gi) => {
           const ids = group.ids.filter(isEnabled);
