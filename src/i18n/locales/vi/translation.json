@@ -6,7 +6,13 @@
     "unloadModel": "Dỡ mô hình",
     "model": "Mô hình",
     "quit": "Thoát",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "openApp": "Open Escriba",
+    "dictateNow": "Dictate now",
+    "freeDictationOn": "Enable free dictation",
+    "freeDictationOff": "Disable free dictation",
+    "quickListen": "Quick session: listen to meeting",
+    "openHistory": "Open history"
   },
   "sidebar": {
     "general": "Chung",
@@ -1208,7 +1214,8 @@
     "translator": "Translator active",
     "interpreter": "Interpreter room open",
     "view": "View",
-    "stop": "Stop"
+    "stop": "Stop",
+    "freeDictation": "Free dictation active"
   },
   "a11y": {
     "moreInfo": "More information",

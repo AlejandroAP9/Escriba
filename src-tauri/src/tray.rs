@@ -145,6 +145,41 @@ pub fn update_tray_menu(app: &AppHandle, state: &TrayIconState, locale: Option<&
     let model_loaded = app.state::<Arc<TranscriptionManager>>().is_model_loaded();
     let quit_i = MenuItem::with_id(app, "quit", &strings.quit, true, quit_accelerator)
         .expect("failed to create quit item");
+    let open_app_i = MenuItem::with_id(app, "open_app", &strings.open_app, true, None::<&str>)
+        .expect("failed to create open app item");
+    let dictate_now_i =
+        MenuItem::with_id(app, "dictate_now", &strings.dictate_now, true, None::<&str>)
+            .expect("failed to create dictate now item");
+    // El label del Dictado libre refleja su estado real (activar/desactivar).
+    let free_dictation_label = if crate::commands::free_dictation::is_active() {
+        &strings.free_dictation_off
+    } else {
+        &strings.free_dictation_on
+    };
+    let free_dictation_i = MenuItem::with_id(
+        app,
+        "free_dictation",
+        free_dictation_label,
+        true,
+        None::<&str>,
+    )
+    .expect("failed to create free dictation item");
+    let quick_listen_i = MenuItem::with_id(
+        app,
+        "quick_listen",
+        &strings.quick_listen,
+        true,
+        None::<&str>,
+    )
+    .expect("failed to create quick listen item");
+    let open_history_i = MenuItem::with_id(
+        app,
+        "open_history",
+        &strings.open_history,
+        true,
+        None::<&str>,
+    )
+    .expect("failed to create open history item");
     let separator = || PredefinedMenuItem::separator(app).expect("failed to create separator");
 
     // Build model submenu — label is the active model name
@@ -195,6 +230,8 @@ pub fn update_tray_menu(app: &AppHandle, state: &TrayIconState, locale: Option<&
                 &[
                     &version_i,
                     &separator(),
+                    &open_app_i,
+                    &free_dictation_i,
                     &cancel_i,
                     &separator(),
                     &copy_last_transcript_i,
@@ -211,6 +248,12 @@ pub fn update_tray_menu(app: &AppHandle, state: &TrayIconState, locale: Option<&
             app,
             &[
                 &version_i,
+                &separator(),
+                &open_app_i,
+                &dictate_now_i,
+                &free_dictation_i,
+                &quick_listen_i,
+                &open_history_i,
                 &separator(),
                 &copy_last_transcript_i,
                 &separator(),

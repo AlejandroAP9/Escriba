@@ -66,7 +66,16 @@ function App() {
       setCurrentSection((e as CustomEvent<SidebarSection>).detail);
     };
     window.addEventListener(NAVIGATE_EVENT, handler);
-    return () => window.removeEventListener(NAVIGATE_EVENT, handler);
+    // El tray navega por evento tauri (Sesión rápida, Historial).
+    const unTray = listen<string>("escriba-navigate", (e) => {
+      if (e.payload in SECTIONS_CONFIG) {
+        setCurrentSection(e.payload as SidebarSection);
+      }
+    });
+    return () => {
+      window.removeEventListener(NAVIGATE_EVENT, handler);
+      unTray.then((fn) => fn());
+    };
   }, []);
 
   // Initialize RTL direction when language changes

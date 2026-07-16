@@ -6,7 +6,13 @@
     "unloadModel": "Descargar modelo",
     "model": "Modelo",
     "quit": "Salir",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "openApp": "Abrir Escriba",
+    "dictateNow": "Dictar ahora",
+    "freeDictationOn": "Activar dictado libre",
+    "freeDictationOff": "Desactivar dictado libre",
+    "quickListen": "Sesión rápida: escuchar reunión",
+    "openHistory": "Abrir historial"
   },
   "sidebar": {
     "general": "General",
@@ -1208,7 +1214,8 @@
     "translator": "Traductor activo",
     "interpreter": "Sala del Intérprete abierta",
     "view": "Ver",
-    "stop": "Detener"
+    "stop": "Detener",
+    "freeDictation": "Dictado libre activo"
   },
   "a11y": {
     "moreInfo": "Más información",

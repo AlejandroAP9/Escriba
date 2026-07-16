@@ -1,6 +1,7 @@
 pub mod audio;
 pub mod conversation;
 pub mod field_dictation;
+pub mod free_dictation;
 pub mod history;
 pub mod interpreter;
 pub mod local_llm;

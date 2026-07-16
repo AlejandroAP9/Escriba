@@ -235,6 +235,30 @@ fn initialize_core_logic(app_handle: &AppHandle) {
         .show_menu_on_left_click(true)
         .icon_as_template(true)
         .on_menu_event(|app, event| match event.id.as_ref() {
+            "open_app" => {
+                show_main_window(app);
+            }
+            "dictate_now" => {
+                signal_handle::send_transcription_input(app, "transcribe", "tray");
+            }
+            "free_dictation" => {
+                let on = !commands::free_dictation::is_active();
+                if let Err(e) = commands::free_dictation::set_active(app, on) {
+                    log::error!("Dictado libre desde el tray: {}", e);
+                }
+            }
+            "quick_listen" => {
+                // Sesión rápida: arranca a escuchar (reunión) y abre la pantalla.
+                let _ = commands::conversation::conversation_start("listen".to_string());
+                show_main_window(app);
+                use tauri::Emitter;
+                let _ = app.emit("escriba-navigate", "conversation");
+            }
+            "open_history" => {
+                show_main_window(app);
+                use tauri::Emitter;
+                let _ = app.emit("escriba-navigate", "history");
+            }
             "settings" => {
                 show_main_window(app);
             }
@@ -628,6 +652,8 @@ pub fn run(cli_args: CliArgs) {
             commands::mcp::mcp_stop,
             commands::mcp::mcp_status,
             commands::field_dictation::field_dictation_toggle,
+            commands::free_dictation::free_dictation_set,
+            commands::free_dictation::free_dictation_status,
             commands::studio::studio_enqueue,
             commands::studio::studio_jobs,
             commands::studio::studio_retranscribe,

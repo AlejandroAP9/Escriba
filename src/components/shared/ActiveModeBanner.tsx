@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Languages, MessageCircle, Radio, Square } from "lucide-react";
+import { Languages, MessageCircle, Mic, Radio, Square } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { commands } from "@/bindings";
 import type { SidebarSection } from "../Sidebar";
 
 type ActiveMode = {
-  id: Extract<SidebarSection, "conversation" | "interpreter" | "translator">;
+  // "free" = Dictado libre: no tiene pantalla propia, solo Detener.
+  id:
+    | Extract<SidebarSection, "conversation" | "interpreter" | "translator">
+    | "free";
   labelKey: string;
   icon: LucideIcon;
 };
@@ -29,15 +32,22 @@ export const ActiveModeBanner: React.FC<{
     let alive = true;
     const poll = async () => {
       try {
-        const [conv, interp, trans] = await Promise.all([
+        const [conv, interp, trans, free] = await Promise.all([
           commands.conversationStatus(),
           commands.interpreterStatus(),
           commands.translatorStatus(),
+          commands.freeDictationStatus(),
         ]);
         if (!alive) return;
         // Prioridad = orden de los interceptores del backend: quien captura
         // primero el dictado es lo primero que hay que mostrar.
-        if (conv.listening) {
+        if (free) {
+          setMode({
+            id: "free",
+            labelKey: "activeMode.freeDictation",
+            icon: Mic,
+          });
+        } else if (conv.listening) {
           setMode({
             id: "conversation",
             labelKey: "activeMode.conversation",
@@ -75,7 +85,8 @@ export const ActiveModeBanner: React.FC<{
   if (!mode || mode.id === currentSection) return null;
 
   const stop = async () => {
-    if (mode.id === "conversation") await commands.conversationStop();
+    if (mode.id === "free") await commands.freeDictationSet(false);
+    else if (mode.id === "conversation") await commands.conversationStop();
     else if (mode.id === "translator")
       await commands.translatorSetListening(false);
     else await commands.interpreterStop();
@@ -92,13 +103,15 @@ export const ActiveModeBanner: React.FC<{
       </span>
       <Icon width={14} height={14} />
       <span className="text-xs font-medium">{t(mode.labelKey)}</span>
-      <button
-        type="button"
-        onClick={() => onGo(mode.id)}
-        className="rounded-full px-2.5 py-1 text-xs text-ink-fg/80 transition-colors hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-white/40"
-      >
-        {t("activeMode.view")}
-      </button>
+      {mode.id !== "free" && (
+        <button
+          type="button"
+          onClick={() => onGo(mode.id as SidebarSection)}
+          className="rounded-full px-2.5 py-1 text-xs text-ink-fg/80 transition-colors hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-white/40"
+        >
+          {t("activeMode.view")}
+        </button>
+      )}
       <button
         type="button"
         onClick={stop}

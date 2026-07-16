@@ -173,6 +173,23 @@ async fieldDictationToggle() : Promise<void> {
     await TAURI_INVOKE("field_dictation_toggle");
 },
 /**
+ * Enciende o apaga el Dictado libre desde la UI.
+ */
+async freeDictationSet(on: boolean) : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("free_dictation_set", { on }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * ¿Está activo? (para el pill de modo activo y el estado del tray)
+ */
+async freeDictationStatus() : Promise<boolean> {
+    return await TAURI_INVOKE("free_dictation_status");
+},
+/**
  * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
  */
 async studioEnqueue(paths: string[]) : Promise<Result<number[], string>> {

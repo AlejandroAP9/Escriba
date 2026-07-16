@@ -6,7 +6,13 @@
     "unloadModel": "卸載模型",
     "model": "模型",
     "quit": "結束",
-    "cancel": "取消"
+    "cancel": "取消",
+    "openApp": "Open Escriba",
+    "dictateNow": "Dictate now",
+    "freeDictationOn": "Enable free dictation",
+    "freeDictationOff": "Disable free dictation",
+    "quickListen": "Quick session: listen to meeting",
+    "openHistory": "Open history"
   },
   "sidebar": {
     "general": "一般",
@@ -1208,7 +1214,8 @@
     "translator": "Translator active",
     "interpreter": "Interpreter room open",
     "view": "View",
-    "stop": "Stop"
+    "stop": "Stop",
+    "freeDictation": "Free dictation active"
   },
   "a11y": {
     "moreInfo": "More information",

@@ -9,6 +9,26 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.6.0] — 2026-07-15
+
+"Solo habla", literal: cero teclas.
+
+### Añadido
+
+- **Dictado libre:** micrófono abierto y cero atajos. El detector de voz corta
+  cada frase en los silencios y el texto se escribe donde esté tu cursor,
+  frase por frase. Se activa a mano (tray o pill), y como escribe TODO lo que
+  se hable, su estado es imposible de ignorar: icono de grabación en la barra
+  de menú + pill de modo activo con botón Detener. Tonos por app y los
+  interceptores de Sesiones/Traductor aplican igual que con el atajo.
+- **Menú de bandeja extendido:** Abrir Escriba, Dictar ahora, activar el
+  Dictado libre, Sesión rápida (escuchar reunión) y Abrir historial, sin
+  pasar por la ventana.
+- **Traductor:** banderas en ambos selectores de idioma (y en el resultado),
+  botón Copiar con confirmación, y botón Escuchar para reproducir la
+  traducción de nuevo (funciona aunque la lectura automática esté apagada:
+  un clic explícito es el permiso).
+
 ## [1.5.0] — 2026-07-15
 
 La tanda premium: los momentos que separan una app de hackathon de una app
