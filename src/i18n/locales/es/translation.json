@@ -974,7 +974,9 @@
       "local": "Todo local",
       "instant": "Instantáneo"
     },
-    "copy": "Copiar"
+    "copy": "Copiar",
+    "replay": "Escuchar",
+    "replayTitle": "Reproducir la traducción en voz alta"
   },
   "retranscribe": {
     "action": "Re-transcribir con…",

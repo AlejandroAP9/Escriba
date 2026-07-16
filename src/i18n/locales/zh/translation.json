@@ -974,7 +974,9 @@
       "local": "Runs locally",
       "instant": "Instant"
     },
-    "copy": "Copy"
+    "copy": "Copy",
+    "replay": "Listen",
+    "replayTitle": "Play the translation aloud"
   },
   "retranscribe": {
     "action": "Re-transcribe with…",

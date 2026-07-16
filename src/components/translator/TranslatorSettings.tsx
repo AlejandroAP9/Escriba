@@ -49,17 +49,28 @@ export const TranslatorSettings: React.FC = () => {
     });
   };
 
+  // Habla siempre (para el botón de reproducir): ignora el toggle de voz,
+  // porque un clic explícito ES el permiso.
+  const speakNow = useCallback((text: string, lang: string) => {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    u.rate = 0.98;
+    window.speechSynthesis.speak(u);
+  }, []);
+
+  // Reproducción automática de cada resultado, gobernada por el toggle.
   const speak = useCallback(
     (text: string, lang: string) => {
-      if (!voiceOn || !("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang;
-      u.rate = 0.98;
-      window.speechSynthesis.speak(u);
+      if (voiceOn) speakNow(text, lang);
     },
-    [voiceOn],
+    [voiceOn, speakNow],
   );
+
+  const replayTranslation = () => {
+    if (last) speakNow(last.translation, last.target_lang);
+  };
 
   useEffect(() => {
     const unlisten = listen<Result>("translator-result", (e) => {
@@ -226,23 +237,34 @@ export const TranslatorSettings: React.FC = () => {
                   <p className="text-[10px] uppercase tracking-wide text-logo-primary">
                     {langLabel(last.target_lang)}
                   </p>
-                  <button
-                    type="button"
-                    title={t("a11y.copyToClipboard")}
-                    onClick={copyTranslation}
-                    className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
-                  >
-                    {copiedT ? (
-                      <Check
-                        width={12}
-                        height={12}
-                        className="text-green-600"
-                      />
-                    ) : (
-                      <Copy width={12} height={12} />
-                    )}
-                    {copiedT ? t("mcp.copied") : t("translator.copy")}
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      title={t("translator.replayTitle")}
+                      onClick={replayTranslation}
+                      className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                    >
+                      <Volume2 width={12} height={12} />
+                      {t("translator.replay")}
+                    </button>
+                    <button
+                      type="button"
+                      title={t("a11y.copyToClipboard")}
+                      onClick={copyTranslation}
+                      className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                    >
+                      {copiedT ? (
+                        <Check
+                          width={12}
+                          height={12}
+                          className="text-green-600"
+                        />
+                      ) : (
+                        <Copy width={12} height={12} />
+                      )}
+                      {copiedT ? t("mcp.copied") : t("translator.copy")}
+                    </button>
+                  </div>
                 </div>
                 <p
                   className="text-xl leading-snug text-text"
