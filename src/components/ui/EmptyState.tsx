@@ -32,7 +32,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       compact ? "gap-1.5 py-6" : "gap-2 py-10"
     } ${className}`}
   >
-    {plumin && <Plumin pose={plumin} size={compact ? 84 : 116} />}
+    {plumin && <Plumin pose={plumin} size={compact ? 104 : 136} />}
     {!plumin && Icon && (
       <span
         className={`flex items-center justify-center rounded-card bg-vitela/50 text-mid-gray ${
