@@ -1,24 +1,33 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
-import { ArrowLeftRight, Globe, Lock, Mic, Volume2, Zap } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Check,
+  Copy,
+  Globe,
+  Lock,
+  Mic,
+  Volume2,
+  Zap,
+} from "lucide-react";
 import { commands } from "@/bindings";
 import { ToggleSwitch } from "../ui/ToggleSwitch";
 import { EngineRequiredCard } from "../shared/EngineRequiredCard";
 
-const LANGUAGES: { value: string; label: string }[] = [
-  { value: "es", label: "Español" },
-  { value: "en", label: "English (Inglés)" },
-  { value: "pt", label: "Português (Portugués)" },
-  { value: "fr", label: "Français (Francés)" },
-  { value: "de", label: "Deutsch (Alemán)" },
-  { value: "it", label: "Italiano" },
-  { value: "zh", label: "中文 (Chino)" },
-  { value: "ja", label: "日本語 (Japonés)" },
-  { value: "ko", label: "한국어 (Coreano)" },
-  { value: "ru", label: "Русский (Ruso)" },
-  { value: "lt", label: "Lietuvių (Lituano)" },
-  { value: "ar", label: "العربية (Árabe)" },
+const LANGUAGES: { value: string; label: string; flag: string }[] = [
+  { value: "es", label: "Español", flag: "🇪🇸" },
+  { value: "en", label: "English (Inglés)", flag: "🇬🇧" },
+  { value: "pt", label: "Português (Portugués)", flag: "🇵🇹" },
+  { value: "fr", label: "Français (Francés)", flag: "🇫🇷" },
+  { value: "de", label: "Deutsch (Alemán)", flag: "🇩🇪" },
+  { value: "it", label: "Italiano", flag: "🇮🇹" },
+  { value: "zh", label: "中文 (Chino)", flag: "🇨🇳" },
+  { value: "ja", label: "日本語 (Japonés)", flag: "🇯🇵" },
+  { value: "ko", label: "한국어 (Coreano)", flag: "🇰🇷" },
+  { value: "ru", label: "Русский (Ruso)", flag: "🇷🇺" },
+  { value: "lt", label: "Lietuvių (Lituano)", flag: "🇱🇹" },
+  { value: "ar", label: "العربية (Árabe)", flag: "🇸🇦" },
 ];
 
 type Result = { source: string; target_lang: string; translation: string };
@@ -30,6 +39,15 @@ export const TranslatorSettings: React.FC = () => {
   const [listening, setListening] = useState(false);
   const [last, setLast] = useState<Result | null>(null);
   const [voiceOn, setVoiceOn] = useState(true);
+  const [copiedT, setCopiedT] = useState(false);
+
+  const copyTranslation = () => {
+    if (!last) return;
+    navigator.clipboard.writeText(last.translation).then(() => {
+      setCopiedT(true);
+      window.setTimeout(() => setCopiedT(false), 1500);
+    });
+  };
 
   const speak = useCallback(
     (text: string, lang: string) => {
@@ -69,8 +87,10 @@ export const TranslatorSettings: React.FC = () => {
     setLangB(langA);
   };
 
-  const langLabel = (code: string) =>
-    LANGUAGES.find((l) => l.value === code)?.label ?? code;
+  const langLabel = (code: string) => {
+    const l = LANGUAGES.find((x) => x.value === code);
+    return l ? `${l.flag} ${l.label}` : code;
+  };
 
   const capabilities = [
     { icon: Globe, label: t("translator.caps.languages") },
@@ -89,7 +109,7 @@ export const TranslatorSettings: React.FC = () => {
     >
       {LANGUAGES.map((l) => (
         <option key={l.value} value={l.value}>
-          {l.label}
+          {l.flag} {l.label}
         </option>
       ))}
     </select>
@@ -202,9 +222,28 @@ export const TranslatorSettings: React.FC = () => {
               </div>
               {/* La traducción, grande, para mostrarle a la otra persona. */}
               <div className="ms-6 rounded-card rounded-tr-sm border border-logo-primary/30 bg-logo-primary/5 px-4 py-3 shadow-sm">
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-logo-primary">
-                  {langLabel(last.target_lang)}
-                </p>
+                <div className="mb-1 flex items-center justify-between">
+                  <p className="text-[10px] uppercase tracking-wide text-logo-primary">
+                    {langLabel(last.target_lang)}
+                  </p>
+                  <button
+                    type="button"
+                    title={t("a11y.copyToClipboard")}
+                    onClick={copyTranslation}
+                    className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                  >
+                    {copiedT ? (
+                      <Check
+                        width={12}
+                        height={12}
+                        className="text-green-600"
+                      />
+                    ) : (
+                      <Copy width={12} height={12} />
+                    )}
+                    {copiedT ? t("mcp.copied") : t("translator.copy")}
+                  </button>
+                </div>
                 <p
                   className="text-xl leading-snug text-text"
                   style={{ fontFamily: "var(--font-serif)", fontWeight: 600 }}

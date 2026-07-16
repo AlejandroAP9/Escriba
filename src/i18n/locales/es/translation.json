@@ -973,7 +973,8 @@
       "languages": "100+ idiomas",
       "local": "Todo local",
       "instant": "Instantáneo"
-    }
+    },
+    "copy": "Copiar"
   },
   "retranscribe": {
     "action": "Re-transcribir con…",
