@@ -9,6 +9,21 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.7.0] — 2026-07-15
+
+Escriba tiene alma nueva: nace **Plumín**, el aprendiz de escriba.
+
+### Añadido
+
+- **Plumín** 🪶: la mascota de Escriba (pluma aprendiz + su gotita de tinta),
+  diseñada por la dupla y bautizada por el jurado infantil de QA. Debuta
+  donde aporta y jamás flota sobre tu trabajo: guía el onboarding, acompaña
+  los estados vacíos (Historial, Sesiones), y celebra cuando tu documento se
+  escribe solo. El anti-Clippy con el corazón de Clippy.
+- **La onda de voz de la marca cobra vida:** respira con desfase por barra en
+  la barra lateral y el héroe de Inicio. Con "reducir movimiento" activado
+  queda estática.
+
 ## [1.6.0] — 2026-07-15
 
 "Solo habla", literal: cero teclas.

@@ -1,5 +1,6 @@
 import React from "react";
 import { Loader2, type LucideIcon } from "lucide-react";
+import { Plumin, type PluminPose } from "../shared/Plumin";
 
 /**
  * Estados reutilizables (Escriba Design Guide, cap. 09). Nunca una lista vacía
@@ -8,6 +9,8 @@ import { Loader2, type LucideIcon } from "lucide-react";
  */
 interface EmptyStateProps {
   icon?: LucideIcon;
+  /** Plumín acompaña el estado vacío (tiene prioridad sobre el icono). */
+  plumin?: PluminPose;
   title: string;
   description?: string;
   action?: React.ReactNode;
@@ -17,6 +20,7 @@ interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
   icon: Icon,
+  plumin,
   title,
   description,
   action,
@@ -28,7 +32,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       compact ? "gap-1.5 py-6" : "gap-2 py-10"
     } ${className}`}
   >
-    {Icon && (
+    {plumin && <Plumin pose={plumin} size={compact ? 84 : 116} />}
+    {!plumin && Icon && (
       <span
         className={`flex items-center justify-center rounded-card bg-vitela/50 text-mid-gray ${
           compact ? "h-9 w-9" : "h-12 w-12"

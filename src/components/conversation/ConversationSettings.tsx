@@ -23,6 +23,7 @@ import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { EmptyState } from "../ui/EmptyState";
 import { EngineRequiredCard } from "../shared/EngineRequiredCard";
+import { Plumin } from "../shared/Plumin";
 import { ToggleSwitch } from "../ui/ToggleSwitch";
 import { useSettings } from "../../hooks/useSettings";
 
@@ -761,7 +762,7 @@ export const ConversationSettings: React.FC = () => {
               {turns.length === 0 && !thinking ? (
                 <EmptyState
                   compact
-                  icon={Mic}
+                  plumin="escucha"
                   title={t("conversation.empty")}
                   description={t("conversation.hint")}
                 />
@@ -895,6 +896,10 @@ export const ConversationSettings: React.FC = () => {
 
       {phase === "doc" && (
         <div className="space-y-4">
+          {/* Plumín celebra: el documento se escribió solo. */}
+          <div className="flex justify-center">
+            <Plumin pose="celebra" size={92} />
+          </div>
           <Card className="p-5">
             <div className="mb-3 flex items-center justify-between border-b border-line pb-3">
               <p className="flex items-center gap-2 text-sm font-semibold text-text">

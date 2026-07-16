@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { Plumin } from "../shared/Plumin";
 import { useTranslation } from "react-i18next";
 import { platform } from "@tauri-apps/plugin-os";
 import {
@@ -314,7 +315,9 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
       </div>
 
       <div className="max-w-md w-full flex flex-col items-center gap-4">
-        <div className="text-center mb-2">
+        <div className="flex flex-col items-center text-center mb-2">
+          {/* Plumín guía la bienvenida: presenta los permisos, no interrumpe. */}
+          <Plumin pose="guia" size={96} className="mb-1" />
           <h2 className="text-xl font-serif font-semibold text-text mb-2">
             {t("onboarding.permissions.title")}
           </h2>

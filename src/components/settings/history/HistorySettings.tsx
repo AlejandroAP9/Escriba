@@ -295,7 +295,9 @@ export const HistorySettings: React.FC = () => {
   if (loading) {
     content = <LoadingState label={t("settings.history.loading")} />;
   } else if (entries.length === 0) {
-    content = <EmptyState icon={Inbox} title={t("settings.history.empty")} />;
+    content = (
+      <EmptyState plumin="neutral" title={t("settings.history.empty")} />
+    );
   } else if (visibleEntries.length === 0) {
     content = (
       <EmptyState icon={SearchX} title={t("settings.history.noResults")} />
