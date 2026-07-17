@@ -9,6 +9,32 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.9.0] — 2026-07-17
+
+La tanda del QA a dos continentes: lo que encontró la dupla probando en
+Windows y en la vida real, más la feature que la comunidad definió.
+
+### Añadido
+
+- **Revisar antes de pegar** (opcional, apagado por defecto): el dictado se
+  muestra en pantalla antes de escribirse — pégalo, descártalo o dicta una
+  corrección con tu atajo, las veces que quieras. Para correos delicados y
+  documentos formales. Nace del benchmark del mercado y del "game over" que
+  pidió la comunidad: dictar sin que corregir sea un quilombo.
+
+### Corregido
+
+- **La pluma ya no desaparece en la barra de tareas oscura de Windows** (fix
+  de la dupla): Windows permite pintar la barra independiente del modo de las
+  apps; ahora se lee el ajuste real del registro y un vigía lo sigue si
+  cambia. (QA de Flor)
+- **Plumín también recibe en Windows y Linux:** la bienvenida vivía en la
+  pantalla de permisos exclusiva de macOS; ahora está en la selección de
+  modelo, que ven todos. (QA de Flor)
+- **El Estudio rescata los MP4 rebeldes** (videos de cursos y plataformas que
+  el decodificador no leía): en macOS entra el motor de QuickTime como
+  respaldo. En Windows/Linux el límite se mantiene, dicho de frente.
+
 ## [1.8.0] — 2026-07-16
 
 La tanda comunidad: dos features nacidas de los comentarios del hackathon,
