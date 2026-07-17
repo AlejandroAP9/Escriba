@@ -57,8 +57,50 @@ pub fn decode_to_16k_mono(path: &Path) -> Result<Vec<f32>, String> {
             log::debug!("symphonia fallo ({}), probando decoder opus", err);
             decode_ogg_opus(path)
         }
+        // El soporte MP4 de symphonia es incompleto: los videos descargados
+        // de plataformas (cursos, redes) vienen a veces fragmentados o con
+        // átomos que no entiende ("overread atom", QA 16-jul). macOS trae
+        // afconvert de fábrica y lee todo lo que QuickTime lee: se convierte
+        // a WAV 16k mono temporal y se decodifica eso. En Windows/Linux no
+        // hay equivalente incluido: ahí se mantiene el error original.
+        #[cfg(target_os = "macos")]
+        Err(err) if matches!(ext.as_str(), "mp4" | "m4a" | "mov" | "m4v" | "aac") => {
+            log::warn!("symphonia falló con .{} ({}), probando afconvert", ext, err);
+            decode_via_afconvert(path).map_err(|af_err| {
+                log::error!("afconvert también falló: {}", af_err);
+                err
+            })
+        }
         Err(err) => Err(err),
     }
+}
+
+/// Respaldo macOS: convierte el archivo a WAV 16 kHz mono con `afconvert`
+/// (incluido en el sistema, motor de QuickTime) y decodifica ese WAV con el
+/// camino normal. Rescata los MP4/M4A que symphonia no sabe leer.
+#[cfg(target_os = "macos")]
+fn decode_via_afconvert(path: &Path) -> Result<Vec<f32>, String> {
+    use std::process::Command;
+
+    let tmp = std::env::temp_dir().join(format!("escriba-afconvert-{}.wav", std::process::id()));
+    let status = Command::new("/usr/bin/afconvert")
+        .arg("-f")
+        .arg("WAVE")
+        .arg("-d")
+        .arg("LEI16@16000")
+        .arg("-c")
+        .arg("1")
+        .arg(path)
+        .arg(&tmp)
+        .status()
+        .map_err(|e| format!("No se pudo ejecutar afconvert: {}", e))?;
+    if !status.success() {
+        let _ = std::fs::remove_file(&tmp);
+        return Err(format!("afconvert terminó con estado {}", status));
+    }
+    let result = decode_symphonia(&tmp);
+    let _ = std::fs::remove_file(&tmp);
+    result
 }
 
 fn decode_symphonia(path: &Path) -> Result<Vec<f32>, String> {
