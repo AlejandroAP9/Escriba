@@ -51,7 +51,7 @@ const OVERLAY_STREAM_HEIGHT: f64 = 120.0;
 
 /// Overlay window size (logical) for a given UI state.
 fn overlay_dimensions(state: &str) -> (f64, f64) {
-    if state == "streaming" {
+    if state == "streaming" || state == "review" {
         (OVERLAY_STREAM_WIDTH, OVERLAY_STREAM_HEIGHT)
     } else {
         (OVERLAY_WIDTH, OVERLAY_HEIGHT)
@@ -416,6 +416,17 @@ pub fn show_streaming_overlay(app_handle: &AppHandle) {
 /// Shows the transcribing overlay window
 pub fn show_transcribing_overlay(app_handle: &AppHandle) {
     show_overlay_state(app_handle, "transcribing");
+}
+
+/// Shows the review panel with the pending dictation text: the user decides
+/// (paste / discard / dictate a correction) before anything touches their
+/// document. Emits the text to the overlay webview after showing the panel.
+pub fn show_review_overlay(app_handle: &AppHandle, text: &str) {
+    show_overlay_state(app_handle, "review");
+    if let Some(overlay_window) = app_handle.get_webview_window("recording_overlay") {
+        use tauri::Emitter;
+        let _ = overlay_window.emit("review-text", text.to_string());
+    }
 }
 
 /// Shows the "warming up the engine" overlay: the first dictation of the day

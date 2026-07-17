@@ -10,6 +10,7 @@ import { SettingsGroup } from "../../ui/SettingsGroup";
 import { CollapsibleGroup } from "../../ui/CollapsibleGroup";
 import { OutputDeviceSelector } from "../OutputDeviceSelector";
 import { PushToTalk } from "../PushToTalk";
+import { ReviewBeforePaste } from "../ReviewBeforePaste";
 import { AudioFeedback } from "../AudioFeedback";
 import { useSettings } from "../../../hooks/useSettings";
 import { useModelStore } from "../../../stores/modelStore";
@@ -109,6 +110,7 @@ export const GeneralSettings: React.FC = () => {
 
       <SettingsGroup title={t("settings.general.dictationTitle")}>
         <PushToTalk descriptionMode="inline" grouped={true} />
+        <ReviewBeforePaste descriptionMode="inline" grouped={true} />
         {/* El atajo de cancelar se oculta con push-to-talk (soltar cancela) y en Linux. */}
         {!isLinux && !pushToTalk && (
           <ShortcutInput

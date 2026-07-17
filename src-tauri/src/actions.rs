@@ -59,6 +59,15 @@ pub(crate) enum TranscribeMode {
 /// guarda la longitud en logs, jamas el contenido.
 static EDIT_SELECTION: Mutex<Option<String>> = Mutex::new(None);
 
+/// Deja un texto como "selección" del modo edición por voz. Lo usa la
+/// revisión antes de pegar: la corrección dictada se aplica al texto
+/// pendiente con la misma maquinaria que la edición de una selección real.
+pub(crate) fn set_edit_selection(text: String) {
+    if let Ok(mut g) = EDIT_SELECTION.lock() {
+        *g = Some(text);
+    }
+}
+
 /// Copia la seleccion actual sin perder el clipboard del usuario: lee el
 /// clipboard previo, manda Cmd/Ctrl+C, espera, lee de nuevo y SIEMPRE
 /// restaura el original. Si nada cambio, no habia seleccion.
@@ -1118,8 +1127,37 @@ impl ShortcutAction for TranscribeAction {
                                     show_processing_overlay(&ah);
                                 }
                             }
+                            // Revisión antes de pegar: si hay un texto en
+                            // revisión, esta dictada es una CORRECCIÓN sobre
+                            // él (misma maquinaria de la edición por voz).
+                            let review_prev = crate::commands::review::pending_text();
+                            let effective_mode =
+                                if review_prev.is_some() && mode == TranscribeMode::Standard {
+                                    crate::actions::set_edit_selection(
+                                        review_prev.clone().unwrap_or_default(),
+                                    );
+                                    TranscribeMode::Edit
+                                } else {
+                                    mode
+                                };
                             let processed =
-                                process_transcription_output(&ah, &transcription, mode).await;
+                                process_transcription_output(&ah, &transcription, effective_mode)
+                                    .await;
+
+                            if let Some(prev) = review_prev {
+                                // Corrección aplicada (o fallida → se conserva
+                                // el texto anterior; notify_fallback ya avisó).
+                                let updated = if processed.post_processed_text.is_some()
+                                    && !processed.final_text.is_empty()
+                                {
+                                    processed.final_text.clone()
+                                } else {
+                                    prev
+                                };
+                                crate::commands::review::set_pending(&ah, updated);
+                                change_tray_icon(&ah, TrayIconState::Idle);
+                                return;
+                            }
 
                             if processed.interpreter_published {
                                 debug!("dictado publicado al interprete; no se pega");
@@ -1155,6 +1193,20 @@ impl ShortcutAction for TranscribeAction {
                                 ) {
                                     error!("Failed to save history entry: {}", err);
                                 }
+                            }
+
+                            // Revisar antes de pegar (ajuste opcional): el
+                            // texto va al overlay y el usuario decide.
+                            if get_settings(&ah).review_before_paste
+                                && mode == TranscribeMode::Standard
+                                && !processed.final_text.is_empty()
+                            {
+                                crate::commands::review::set_pending(
+                                    &ah,
+                                    processed.final_text.clone(),
+                                );
+                                change_tray_icon(&ah, TrayIconState::Idle);
+                                return;
                             }
 
                             if processed.final_text.is_empty() {

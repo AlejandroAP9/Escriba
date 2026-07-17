@@ -363,6 +363,10 @@ pub struct AppSettings {
     /// Accesibilidad: ojos cansados o vista reducida sin tocar el sistema.
     #[serde(default = "default_ui_scale")]
     pub ui_scale: u32,
+    /// Revisar antes de pegar: el dictado normal se muestra en el overlay
+    /// (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
+    #[serde(default)]
+    pub review_before_paste: bool,
     #[serde(default = "default_start_hidden")]
     pub start_hidden: bool,
     #[serde(default = "default_autostart_enabled")]
@@ -959,6 +963,7 @@ pub fn get_default_settings() -> AppSettings {
         sound_theme: default_sound_theme(),
         ui_theme: default_ui_theme(),
         ui_scale: default_ui_scale(),
+        review_before_paste: false,
         start_hidden: default_start_hidden(),
         autostart_enabled: default_autostart_enabled(),
         update_checks_enabled: default_update_checks_enabled(),

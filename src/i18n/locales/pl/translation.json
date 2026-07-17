@@ -300,6 +300,10 @@
           "title": "Screen & audio recording",
           "description": "Lets Sessions capture system audio (the screen itself is not recorded)."
         }
+      },
+      "reviewBeforePaste": {
+        "label": "Review before pasting",
+        "description": "The dictation shows on screen before it is typed: paste it, discard it, or dictate a correction with your shortcut. For delicate emails and formal documents."
       }
     },
     "sound": {
@@ -873,7 +877,12 @@
   "overlay": {
     "transcribing": "Transkrypcja...",
     "processing": "Przetwarzanie...",
-    "warming": "Warming up the engine…"
+    "warming": "Warming up the engine…",
+    "review": {
+      "hint": "Or dictate a correction with your shortcut",
+      "discard": "Discard",
+      "paste": "Paste"
+    }
   },
   "whatsNew": {
     "title": "Nowości w Escriba v{{version}}"

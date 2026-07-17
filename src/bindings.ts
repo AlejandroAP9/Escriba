@@ -318,6 +318,14 @@ async changeSoundThemeSetting(theme: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async changeReviewBeforePasteSetting(on: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_review_before_paste_setting", { on }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changeUiThemeSetting(theme: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_ui_theme_setting", { theme }) };
@@ -1118,6 +1126,20 @@ async suggestCustomWords() : Promise<Result<string[], string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Pegar el texto pendiente donde está el cursor y cerrar la revisión.
+ * El overlay es un panel sin foco (NSPanel/focusable=false), así que la app
+ * destino sigue siendo la del usuario; el pequeño delay da margen igual.
+ */
+async reviewConfirm() : Promise<void> {
+    await TAURI_INVOKE("review_confirm");
+},
+/**
+ * Descartar el texto pendiente sin pegar nada.
+ */
+async reviewDiscard() : Promise<void> {
+    await TAURI_INVOKE("review_discard");
+},
 async toggleHistoryEntrySaved(id: number) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("toggle_history_entry_saved", { id }) };
@@ -1228,7 +1250,12 @@ ui_theme?: string;
  * Escala del texto de toda la interfaz, en porcentaje (90-130).
  * Accesibilidad: ojos cansados o vista reducida sin tocar el sistema.
  */
-ui_scale?: number; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; show_whats_new_on_update?: boolean; 
+ui_scale?: number; 
+/**
+ * Revisar antes de pegar: el dictado normal se muestra en el overlay
+ * (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
+ */
+review_before_paste?: boolean; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; show_whats_new_on_update?: boolean; 
 /**
  * The app version whose What's New the user has already seen. Fresh installs
  * default to the current version (nothing is "new" to them). Existing users

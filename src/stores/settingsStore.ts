@@ -86,6 +86,8 @@ const settingUpdaters: {
   sound_theme: (value) => commands.changeSoundThemeSetting(value as string),
   ui_theme: (value) => commands.changeUiThemeSetting(value as string),
   ui_scale: (value) => commands.changeUiScaleSetting(value as number),
+  review_before_paste: (value) =>
+    commands.changeReviewBeforePasteSetting(value as boolean),
   start_hidden: (value) => commands.changeStartHiddenSetting(value as boolean),
   autostart_enabled: (value) =>
     commands.changeAutostartSetting(value as boolean),

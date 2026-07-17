@@ -444,3 +444,42 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Revisión antes de pegar: fila de decisión bajo el texto pendiente. */
+.review-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 8px;
+}
+.review-hint {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--color-mid-gray);
+}
+.review-btn {
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text);
+}
+.review-btn.primary {
+  background: var(--gold-grad);
+  border-color: transparent;
+  color: #1b1426;
+}
+.review-btn.ghost:hover {
+  background: rgba(158, 66, 48, 0.1);
+  color: var(--color-lacre);
+}
+.review-btn.primary:hover {
+  filter: brightness(1.05);
+}

@@ -73,7 +73,9 @@ fn windows_taskbar_uses_light_theme() -> Option<bool> {
     let personalize = RegKey::predef(HKEY_CURRENT_USER)
         .open_subkey(r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
         .ok()?;
-    let uses_light = personalize.get_value::<u32, _>("SystemUsesLightTheme").ok()?;
+    let uses_light = personalize
+        .get_value::<u32, _>("SystemUsesLightTheme")
+        .ok()?;
     Some(uses_light != 0)
 }
 

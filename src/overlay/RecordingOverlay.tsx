@@ -17,7 +17,8 @@ type OverlayState =
   | "streaming"
   | "transcribing"
   | "processing"
-  | "warming";
+  | "warming"
+  | "review";
 
 // Number of reactive bars in the waveform (the simple, smoothed style shared by
 // every overlay form). Mic levels arrive as 16 FFT buckets; we take the first N.
@@ -53,9 +54,18 @@ const RecordingOverlay: React.FC = () => {
   // Live-text scroll-back: the text region "sticks" to the newest line while the
   // user is at the bottom; if they scroll up to read history, auto-follow pauses
   // until they scroll back down.
+  const [reviewText, setReviewText] = useState("");
   const capRef = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef(true);
   const direction = getLanguageDirection(i18n.language);
+
+  // Texto pendiente de revisión (llega junto con el estado "review").
+  useEffect(() => {
+    const un = listen<string>("review-text", (e) => setReviewText(e.payload));
+    return () => {
+      un.then((fn) => fn());
+    };
+  }, []);
 
   useEffect(() => {
     const setupEventListeners = async () => {
@@ -251,6 +261,42 @@ const RecordingOverlay: React.FC = () => {
               strokeLinejoin="round"
             />
           </svg>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- Revisión antes de pegar: el texto espera tu decisión ----
+  if (state === "review") {
+    return (
+      <div dir={direction} className={`ov-stage ${position}`}>
+        <div className={`scard open ${isVisible ? "" : "leaving"}`}>
+          <div className="stext">
+            <div className="stext-clip">
+              <div className="stext-cap overflowing">
+                <p>
+                  <span className="committed">{reviewText}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="review-row">
+            <span className="review-hint">{t("overlay.review.hint")}</span>
+            <button
+              type="button"
+              className="review-btn ghost"
+              onClick={() => commands.reviewDiscard()}
+            >
+              {t("overlay.review.discard")}
+            </button>
+            <button
+              type="button"
+              className="review-btn primary"
+              onClick={() => commands.reviewConfirm()}
+            >
+              {t("overlay.review.paste")}
+            </button>
+          </div>
         </div>
       </div>
     );
