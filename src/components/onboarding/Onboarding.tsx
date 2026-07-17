@@ -7,6 +7,7 @@ import type { ModelInfo } from "@/bindings";
 import type { ModelCardStatus } from "./ModelCard";
 import ModelCard, { isLegacySource } from "./ModelCard";
 import EscribaLogo from "../icons/EscribaLogo";
+import { Plumin } from "../shared/Plumin";
 import { Button } from "../ui/Button";
 import { useModelStore } from "../../stores/modelStore";
 
@@ -146,6 +147,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
     <div className="h-screen w-screen flex flex-col p-6 gap-4 inset-0">
       <div className="flex flex-col items-center gap-2 shrink-0">
         <EscribaLogo width={200} className="text-text" />
+        {/* Plumín también recibe aquí: en Windows/Linux no existe la pantalla
+            de permisos (macOS), así que esta es SU bienvenida (QA de Flor,
+            17-jul: "Plumín no sale en la instalación"). */}
+        <Plumin pose="guia" size={84} />
         <p className="text-mid-gray max-w-md font-medium mx-auto">
           {t("onboarding.subtitle")}
         </p>

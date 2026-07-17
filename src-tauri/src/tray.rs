@@ -29,19 +29,82 @@ pub enum AppTheme {
 pub fn get_current_theme(app: &AppHandle) -> AppTheme {
     if cfg!(target_os = "linux") {
         // On Linux, always use the colored theme
-        AppTheme::Colored
-    } else {
-        // On other platforms, map system theme to our app theme
-        if let Some(main_window) = app.get_webview_window("main") {
-            match main_window.theme().unwrap_or(Theme::Dark) {
-                Theme::Light => AppTheme::Light,
-                Theme::Dark => AppTheme::Dark,
-                _ => AppTheme::Dark, // Default fallback
-            }
+        return AppTheme::Colored;
+    }
+
+    // On Windows, the taskbar's own light/dark mode is independent from the
+    // app's theme: Settings > Personalization > Colors lets users pick
+    // separate "app mode" / "system mode" values (and/or an accent color for
+    // the taskbar). `window.theme()` only reflects app mode, so a dark
+    // taskbar paired with a light app mode (or vice versa) picks the
+    // wrong-colored tray icon, making it blend into the taskbar. Read the
+    // taskbar's own setting instead, falling back to window.theme() below if
+    // the registry read fails.
+    #[cfg(target_os = "windows")]
+    if let Some(is_light) = windows_taskbar_uses_light_theme() {
+        return if is_light {
+            AppTheme::Light
         } else {
             AppTheme::Dark
-        }
+        };
     }
+
+    // macOS (and Windows registry-read fallback): map window theme to our app theme
+    if let Some(main_window) = app.get_webview_window("main") {
+        match main_window.theme().unwrap_or(Theme::Dark) {
+            Theme::Light => AppTheme::Light,
+            Theme::Dark => AppTheme::Dark,
+            _ => AppTheme::Dark, // Default fallback
+        }
+    } else {
+        AppTheme::Dark
+    }
+}
+
+/// Reads whether Windows' taskbar/Start menu ("system") is set to light mode,
+/// via the same registry value Explorer itself uses. Returns `None` if the
+/// key is missing or unreadable (e.g. unexpected Windows version), so the
+/// caller can fall back to `window.theme()`.
+#[cfg(target_os = "windows")]
+fn windows_taskbar_uses_light_theme() -> Option<bool> {
+    use winreg::enums::HKEY_CURRENT_USER;
+    use winreg::RegKey;
+
+    let personalize = RegKey::predef(HKEY_CURRENT_USER)
+        .open_subkey(r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
+        .ok()?;
+    let uses_light = personalize.get_value::<u32, _>("SystemUsesLightTheme").ok()?;
+    Some(uses_light != 0)
+}
+
+/// Watches the taskbar's own light/dark setting in the background and
+/// refreshes the tray icon whenever it changes on its own (i.e. the user
+/// only touched "system mode" / the taskbar color, without changing the
+/// app's theme, so `WindowEvent::ThemeChanged` never fires). Runs for the
+/// lifetime of the process, same as the idle-unload watcher in
+/// `managers/local_llm.rs` — no explicit shutdown, it just dies with the app.
+///
+/// A background poll (rather than hooking the raw `WM_SETTINGCHANGE`/
+/// "ImmersiveColorSet" window message) is a deliberate simplicity trade-off:
+/// it avoids subclassing the window's WndProc with unsafe FFI, at the cost of
+/// the icon taking up to a couple seconds to catch up instead of updating
+/// instantly.
+#[cfg(target_os = "windows")]
+pub fn start_taskbar_theme_watcher(app: &AppHandle) {
+    use std::time::Duration;
+
+    let app_handle = app.clone();
+    let mut last_is_light = windows_taskbar_uses_light_theme();
+
+    std::thread::spawn(move || loop {
+        std::thread::sleep(Duration::from_secs(2));
+
+        let current_is_light = windows_taskbar_uses_light_theme();
+        if current_is_light != last_is_light {
+            last_is_light = current_is_light;
+            change_tray_icon(&app_handle, TrayIconState::Idle);
+        }
+    });
 }
 
 /// Gets the appropriate icon path for the given theme and state

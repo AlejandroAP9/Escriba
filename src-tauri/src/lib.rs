@@ -317,6 +317,12 @@ fn initialize_core_logic(app_handle: &AppHandle) {
         .unwrap();
     app_handle.manage(tray);
 
+    // Keep the tray icon in sync if the user changes the taskbar's own
+    // light/dark setting independently of the app's theme (see
+    // `tray::get_current_theme` for why the two can diverge on Windows).
+    #[cfg(target_os = "windows")]
+    tray::start_taskbar_theme_watcher(app_handle);
+
     // Initialize tray menu with idle state
     utils::update_tray_menu(app_handle, &utils::TrayIconState::Idle, None);
 
