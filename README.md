@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-1.7.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-1.9.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -48,6 +48,7 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 🎙️ **Dictado con IA**          | Atajo global, hablas, y el texto aparece donde estés. Filtrado de silencios (VAD) + Whisper/Parakeet locales con aceleración por GPU.                                                                              |
 | 🗽 **Dictado libre**           | Cero atajos: actívalo y habla. Cada frase se escribe sola donde esté tu cursor, cortada por el detector de voz. Con indicador siempre visible.                                                                     |
+| 👁️ **Revisar antes de pegar** | Opcional: el dictado se muestra en pantalla antes de escribirse — pégalo, descártalo o dicta una corrección con tu atajo. Para correos delicados.                                                                  |
 | 💬 **Sesiones**                | Habla una hora y llévate un documento listo: conversa con la IA local (te responde con voz) o deja que solo escuche tu reunión, entrevista o clase. Al terminar: acta, apuntes o nota, redactados por el motor local. |
 | 🖥️ **Audio del sistema**       | Sesiones también escucha lo que suena en tu computador: la otra parte del Zoom/Meet entra al acta como "Otros", con marca de tiempo. Actas de reunión a dos voces, sin nube. (macOS 13+)                            |
 | 🔊 **Tu tinta en voz**         | Selecciona texto en cualquier app y ⌥⇧R: Escriba lo lee en voz alta con la mejor voz de tu equipo. Revisa tus borradores con los oídos.                                                                            |
@@ -109,6 +110,8 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                      |
 | ------- | ------ | ---------------------------------------------- |
+| 1.9.0   | 17-jul | **Revisar antes de pegar** + fixes del QA Windows de la dupla |
+| 1.8.0   | 16-jul | 🤝 Tanda comunidad: sugerencias de diccionario + Plumín empático |
 | 1.7.0   | 15-jul | 🪶 Nace **Plumín** (mascota) + onda de voz viva |
 | 1.6.0   | 15-jul | **Dictado libre** (cero teclas) + bandeja con acciones |
 | 1.5.0   | 15-jul | Panel de **Permisos** + estado real + ventana con memoria |
