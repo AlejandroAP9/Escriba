@@ -460,7 +460,9 @@
         "placeholder": "Agregar una palabra",
         "add": "Agregar",
         "remove": "Eliminar {{word}}",
-        "duplicate": "\"{{word}}\" ya existe"
+        "duplicate": "\"{{word}}\" ya existe",
+        "suggestionsTitle": "Sugerencias de Escriba, según tu historial",
+        "suggestionsAdd": "Agregar al diccionario"
       },
       "voiceActivityDetection": {
         "title": "Detección de actividad de voz",

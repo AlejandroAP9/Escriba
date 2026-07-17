@@ -460,7 +460,9 @@
         "placeholder": "Dodaj słowo",
         "add": "Dodaj",
         "remove": "Usuń {{word}}",
-        "duplicate": "\"{{word}}\" już istnieje"
+        "duplicate": "\"{{word}}\" już istnieje",
+        "suggestionsTitle": "Escriba's suggestions, from your history",
+        "suggestionsAdd": "Add to dictionary"
       },
       "voiceActivityDetection": {
         "title": "Voice Activity Detection",

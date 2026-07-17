@@ -460,7 +460,9 @@
         "placeholder": "新增詞彙",
         "add": "新增",
         "remove": "刪除 {{word}}",
-        "duplicate": "「{{word}}」已存在"
+        "duplicate": "「{{word}}」已存在",
+        "suggestionsTitle": "Escriba's suggestions, from your history",
+        "suggestionsAdd": "Add to dictionary"
       },
       "voiceActivityDetection": {
         "title": "Voice Activity Detection",

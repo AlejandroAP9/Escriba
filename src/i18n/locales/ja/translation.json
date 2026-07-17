@@ -460,7 +460,9 @@
         "placeholder": "単語を追加",
         "add": "追加",
         "remove": "{{word}}を削除",
-        "duplicate": "「{{word}}」は既に存在します"
+        "duplicate": "「{{word}}」は既に存在します",
+        "suggestionsTitle": "Escriba's suggestions, from your history",
+        "suggestionsAdd": "Add to dictionary"
       },
       "voiceActivityDetection": {
         "title": "音声区間検出 (VAD)",

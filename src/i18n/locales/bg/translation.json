@@ -460,7 +460,9 @@
         "placeholder": "Добавете дума",
         "add": "Добавяне",
         "remove": "Премахване на {{word}}",
-        "duplicate": "„{{word}}“ вече съществува"
+        "duplicate": "„{{word}}“ вече съществува",
+        "suggestionsTitle": "Escriba's suggestions, from your history",
+        "suggestionsAdd": "Add to dictionary"
       },
       "voiceActivityDetection": {
         "title": "Voice Activity Detection",

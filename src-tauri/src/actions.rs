@@ -1835,6 +1835,14 @@ hablante (usa sus nombres si se mencionan; si no, 'Persona 1', 'Persona 2'). Si 
 con claridad, no inventes la atribucion."
         )
     };
+    // Ánimo de la sesión (idea de Pedro Sánchez, comunidad 16-jul-2026): el
+    // modelo ya leyó todo el transcript; pedirle el tono general es gratis.
+    // Plumín reacciona con la carita acorde al entregar el documento.
+    let instructions = format!(
+        "{instructions}
+
+Al cierre, en una linea final aparte, escribe exactamente [[animo:positivo]], [[animo:neutral]] o [[animo:tenso]] segun el tono general de la sesion. Solo el marcador en esa linea, nada mas."
+    );
 
     match crate::llm_client::send_chat_completion(
         &provider,

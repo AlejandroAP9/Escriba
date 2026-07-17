@@ -66,7 +66,7 @@ async conversationReset() : Promise<ConversationStatus> {
  * Cierra la sesión y la convierte en documento con el motor local.
  * `converse` → nota limpia de la conversación; `listen` → acta con acuerdos.
  */
-async conversationFinish() : Promise<Result<string, string>> {
+async conversationFinish() : Promise<Result<SessionDoc, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("conversation_finish") };
 } catch (e) {
@@ -1102,6 +1102,22 @@ async getHistoryEntries(cursor: number | null, limit: number | null) : Promise<R
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Sugerencias de diccionario a partir del historial (idea de Benjamín
+ * Carreño, comunidad 16-jul-2026): detecta palabras "inusuales" que el
+ * usuario repite en sus dictados — nombres propios, marcas, jerga técnica —
+ * y las propone para Palabras personalizadas, donde el post-proceso las
+ * respeta siempre. Heurística local, cero red: mayúscula fuera de inicio de
+ * frase, mezcla de mayúsculas o dígitos, repetida al menos 3 veces.
+ */
+async suggestCustomWords() : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("suggest_custom_words") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async toggleHistoryEntrySaved(id: number) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("toggle_history_entry_saved", { id }) };
@@ -1341,6 +1357,15 @@ export type PermissionAccess = "allowed" | "denied" | "unknown"
 export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null; supports_structured_output?: boolean }
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
 export type SecretMap = Partial<{ [key in string]: string }>
+/**
+ * Documento final + ánimo general de la sesión (idea de Pedro Sánchez,
+ * comunidad): Plumín entrega el acta con la carita acorde.
+ */
+export type SessionDoc = { text: string; 
+/**
+ * "positivo" | "neutral" | "tenso" (neutral si el modelo no lo marcó).
+ */
+mood: string }
 export type ShortcutBinding = { id: string; name: string; description: string; default_binding: string; current_binding: string }
 export type SoundTheme = "marimba" | "pop" | "custom"
 /**

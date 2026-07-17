@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Plus, Sparkles } from "lucide-react";
+import { commands } from "@/bindings";
 import { useSettings } from "../../hooks/useSettings";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
@@ -18,6 +20,21 @@ export const CustomWords: React.FC<CustomWordsProps> = React.memo(
     const { getSetting, updateSetting, isUpdating } = useSettings();
     const [newWord, setNewWord] = useState("");
     const customWords = getSetting("custom_words") || [];
+
+    // Sugerencias desde el historial (idea de Benjamín Carreño, comunidad):
+    // palabras inusuales que el usuario repite y el modelo puede escribir mal.
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    useEffect(() => {
+      commands.suggestCustomWords().then((r) => {
+        if (r.status === "ok") setSuggestions(r.data);
+      });
+    }, []);
+    const addSuggestion = (word: string) => {
+      if (!customWords.includes(word)) {
+        updateSetting("custom_words", [...customWords, word]);
+      }
+      setSuggestions((prev) => prev.filter((w) => w !== word));
+    };
 
     const handleAddWord = () => {
       const trimmedWord = newWord.trim();
@@ -94,6 +111,30 @@ export const CustomWords: React.FC<CustomWordsProps> = React.memo(
             </Button>
           </div>
         </SettingContainer>
+        {suggestions.length > 0 && (
+          <div
+            className={`px-4 py-2.5 ${grouped ? "" : "rounded-lg border border-mid-gray/20"}`}
+          >
+            <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-mid-gray">
+              <Sparkles width={11} height={11} className="text-logo-primary" />
+              {t("settings.advanced.customWords.suggestionsTitle")}
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {suggestions.map((word) => (
+                <button
+                  key={word}
+                  type="button"
+                  onClick={() => addSuggestion(word)}
+                  title={t("settings.advanced.customWords.suggestionsAdd")}
+                  className="flex items-center gap-1 rounded-full border border-logo-primary/30 bg-logo-primary/5 px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/15 focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                >
+                  <Plus width={11} height={11} className="text-logo-primary" />
+                  {word}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {customWords.length > 0 && (
           <div
             className={`px-4 p-2 ${grouped ? "" : "rounded-lg border border-mid-gray/20"} flex flex-wrap gap-1`}

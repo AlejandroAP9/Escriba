@@ -37,6 +37,15 @@ pub struct Turn {
     pub at_secs: u32,
 }
 
+/// Documento final + ánimo general de la sesión (idea de Pedro Sánchez,
+/// comunidad): Plumín entrega el acta con la carita acorde.
+#[derive(Serialize, Clone, Type)]
+pub struct SessionDoc {
+    pub text: String,
+    /// "positivo" | "neutral" | "tenso" (neutral si el modelo no lo marcó).
+    pub mood: String,
+}
+
 #[derive(Serialize, Clone, Type)]
 pub struct ConversationStatus {
     pub listening: bool,
@@ -551,7 +560,7 @@ pub async fn tts_setup(app: tauri::AppHandle) -> Result<(), String> {
 /// `converse` → nota limpia de la conversación; `listen` → acta con acuerdos.
 #[tauri::command]
 #[specta::specta]
-pub async fn conversation_finish(app: tauri::AppHandle) -> Result<String, String> {
+pub async fn conversation_finish(app: tauri::AppHandle) -> Result<SessionDoc, String> {
     use tauri::Manager;
     LISTENING.store(false, Ordering::Relaxed);
     system_audio_off();
@@ -563,7 +572,28 @@ pub async fn conversation_finish(app: tauri::AppHandle) -> Result<String, String
     if text.trim().is_empty() {
         return Err("empty".to_string());
     }
-    crate::actions::conversation_document(&app, &text, &mode())
+    let doc = crate::actions::conversation_document(&app, &text, &mode())
         .await
-        .ok_or_else(|| "llm_unavailable".to_string())
+        .ok_or_else(|| "llm_unavailable".to_string())?;
+
+    // Extraer el marcador [[animo:...]] (si el modelo lo emitió) y limpiarlo
+    // del texto. Sin marcador: neutral, y el documento queda intacto.
+    let mut mood = "neutral".to_string();
+    let mut lines: Vec<&str> = doc.lines().collect();
+    if let Some(pos) = lines.iter().rposition(|l| {
+        let l = l.trim().to_lowercase();
+        l.starts_with("[[animo:") || l.starts_with("[[ánimo:")
+    }) {
+        let marker = lines[pos].trim().to_lowercase();
+        if marker.contains("positiv") {
+            mood = "positivo".to_string();
+        } else if marker.contains("tens") {
+            mood = "tenso".to_string();
+        }
+        lines.remove(pos);
+    }
+    Ok(SessionDoc {
+        text: lines.join("\n").trim().to_string(),
+        mood,
+    })
 }

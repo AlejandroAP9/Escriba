@@ -9,6 +9,24 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.8.0] — 2026-07-16
+
+La tanda comunidad: dos features nacidas de los comentarios del hackathon,
+con crédito a sus autores.
+
+### Añadido
+
+- **Sugerencias de diccionario** (idea de Benjamín Carreño): Escriba detecta
+  en tu historial las palabras inusuales que repites — nombres propios,
+  marcas, jerga técnica — y las propone con un clic para Palabras
+  personalizadas, donde la corrección con IA las respeta siempre. Heurística
+  100% local, como todo.
+- **Plumín siente la sesión** (idea de Pedro Sánchez): al crear el documento,
+  el motor local ya leyó toda la conversación; ahora también detecta su tono
+  general, y Plumín entrega el acta con la carita acorde. Reunión tensa →
+  empatía; el resto → fiesta. Reacciona al final, invitado — jamás vigila
+  mientras dictas.
+
 ## [1.7.0] — 2026-07-15
 
 Escriba tiene alma nueva: nace **Plumín**, el aprendiz de escriba.

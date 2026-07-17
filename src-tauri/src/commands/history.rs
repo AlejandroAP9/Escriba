@@ -187,3 +187,80 @@ pub async fn get_usage_stats(
     let hm = app.state::<std::sync::Arc<crate::managers::history::HistoryManager>>();
     hm.get_usage_stats().map_err(|e| e.to_string())
 }
+
+/// Sugerencias de diccionario a partir del historial (idea de Benjamín
+/// Carreño, comunidad 16-jul-2026): detecta palabras "inusuales" que el
+/// usuario repite en sus dictados — nombres propios, marcas, jerga técnica —
+/// y las propone para Palabras personalizadas, donde el post-proceso las
+/// respeta siempre. Heurística local, cero red: mayúscula fuera de inicio de
+/// frase, mezcla de mayúsculas o dígitos, repetida al menos 3 veces.
+#[tauri::command]
+#[specta::specta]
+pub async fn suggest_custom_words(
+    app: AppHandle,
+    history_manager: State<'_, Arc<HistoryManager>>,
+) -> Result<Vec<String>, String> {
+    use std::collections::HashMap;
+
+    let existing: Vec<String> = crate::settings::get_settings(&app)
+        .custom_words
+        .iter()
+        .map(|w| w.to_lowercase())
+        .collect();
+
+    let page = history_manager
+        .get_history_entries(None, Some(200))
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // (apariciones totales, apariciones "fuertes": capitalizada fuera de
+    // inicio de frase, o con dígitos/mayúsculas internas)
+    let mut counts: HashMap<String, (u32, u32, String)> = HashMap::new();
+
+    for entry in &page.entries {
+        let text = &entry.transcription_text;
+        let mut sentence_start = true;
+        let mut token = String::new();
+        let mut flush = |tok: &mut String, at_sentence_start: bool| {
+            if tok.chars().count() >= 4 {
+                let first_upper = tok.chars().next().map(char::is_uppercase).unwrap_or(false);
+                let has_digit = tok.chars().any(|c| c.is_ascii_digit());
+                let inner_upper = tok.chars().skip(1).any(char::is_uppercase);
+                let strong = has_digit || inner_upper || (first_upper && !at_sentence_start);
+                let key = tok.to_lowercase();
+                let e = counts.entry(key).or_insert((0, 0, tok.clone()));
+                e.0 += 1;
+                if strong {
+                    e.1 += 1;
+                    // Conservar la grafía "fuerte" (la forma que el usuario quiere)
+                    e.2 = tok.clone();
+                }
+            }
+            tok.clear();
+        };
+        for c in text.chars() {
+            if c.is_alphanumeric() {
+                token.push(c);
+            } else {
+                if !token.is_empty() {
+                    flush(&mut token, sentence_start);
+                    sentence_start = false;
+                }
+                if matches!(c, '.' | '!' | '?' | '¡' | '¿' | '\n') {
+                    sentence_start = true;
+                }
+            }
+        }
+        if !token.is_empty() {
+            flush(&mut token, sentence_start);
+        }
+    }
+
+    let mut candidates: Vec<(String, u32)> = counts
+        .into_iter()
+        .filter(|(key, (total, strong, _))| *total >= 3 && *strong >= 2 && !existing.contains(key))
+        .map(|(_, (total, _, display))| (display, total))
+        .collect();
+    candidates.sort_by(|a, b| b.1.cmp(&a.1));
+    Ok(candidates.into_iter().take(8).map(|(w, _)| w).collect())
+}

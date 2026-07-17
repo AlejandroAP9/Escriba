@@ -86,6 +86,8 @@ export const ConversationSettings: React.FC = () => {
   const [thinking, setThinking] = useState(false);
   const [voiceOn, setVoiceOn] = useState(true);
   const [doc, setDoc] = useState("");
+  // Ánimo de la sesión (idea de Pedro Sánchez): define la carita de Plumín.
+  const [docMood, setDocMood] = useState("neutral");
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -354,7 +356,8 @@ export const ConversationSettings: React.FC = () => {
     try {
       const r = await commands.conversationFinish();
       if (r.status === "ok") {
-        setDoc(r.data);
+        setDoc(r.data.text);
+        setDocMood(r.data.mood);
         setPhase("doc");
       } else {
         toast.error(t("conversation.docError"));
@@ -896,9 +899,13 @@ export const ConversationSettings: React.FC = () => {
 
       {phase === "doc" && (
         <div className="space-y-4">
-          {/* Plumín celebra: el documento se escribió solo. */}
+          {/* Plumín entrega el documento con la carita según el ánimo de la
+              sesión (idea de Pedro Sánchez): tensa → empatía, el resto → fiesta. */}
           <div className="flex justify-center">
-            <Plumin pose="celebra" size={92} />
+            <Plumin
+              pose={docMood === "tenso" ? "disculpa" : "celebra"}
+              size={92}
+            />
           </div>
           <Card className="p-5">
             <div className="mb-3 flex items-center justify-between border-b border-line pb-3">

@@ -460,7 +460,9 @@
         "placeholder": "Добавить слово",
         "add": "Добавить",
         "remove": "Удалить {{word}}",
-        "duplicate": "\"{{word}}\" уже существует"
+        "duplicate": "\"{{word}}\" уже существует",
+        "suggestionsTitle": "Escriba's suggestions, from your history",
+        "suggestionsAdd": "Add to dictionary"
       },
       "voiceActivityDetection": {
         "title": "Voice Activity Detection",
