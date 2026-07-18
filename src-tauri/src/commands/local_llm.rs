@@ -33,9 +33,25 @@ const RUNTIME_ASSET: &str = "llama-b9902-bin-win-cpu-x64.zip";
 #[cfg(target_os = "windows")]
 const RUNTIME_SHA256: &str = "3a095d4c6f997d0d500ae5a973cb16e5c91f1f7405406e0ab588bf3fb3d8d872";
 
-#[cfg(not(any(target_os = "macos", target_os = "windows")))]
+// Linux: variante CPU x64 (misma filosofía que Windows: el fallback seguro).
+// SHA256 del digest oficial del release de GitHub. (QA pionero de Linux,
+// 18-jul-2026: "Plataforma no soportada para el motor local todavía".)
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+const RUNTIME_ASSET: &str = "llama-b9902-bin-ubuntu-x64.tar.gz";
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+const RUNTIME_SHA256: &str = "a331765c7ab782412f9ff718bfec21637b9a4ad8a59c29315f2d1f108c30f645";
+
+#[cfg(not(any(
+    target_os = "macos",
+    target_os = "windows",
+    all(target_os = "linux", target_arch = "x86_64")
+)))]
 const RUNTIME_ASSET: &str = "";
-#[cfg(not(any(target_os = "macos", target_os = "windows")))]
+#[cfg(not(any(
+    target_os = "macos",
+    target_os = "windows",
+    all(target_os = "linux", target_arch = "x86_64")
+)))]
 const RUNTIME_SHA256: &str = "";
 
 /// Modelo por defecto: Qwen3-4B-Instruct-2507 Q4_K_M (Apache-2.0). SHA256
