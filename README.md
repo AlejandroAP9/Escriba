@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-1.9.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-1.9.1-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -110,6 +110,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                      |
 | ------- | ------ | ---------------------------------------------- |
+| 1.9.1   | 18-jul | 🐧 Motor local en **Linux** + fixes del Traductor (QA Flor) |
 | 1.9.0   | 17-jul | **Revisar antes de pegar** + fixes del QA Windows de la dupla |
 | 1.8.0   | 16-jul | 🤝 Tanda comunidad: sugerencias de diccionario + Plumín empático |
 | 1.7.0   | 15-jul | 🪶 Nace **Plumín** (mascota) + onda de voz viva |

@@ -9,6 +9,30 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [1.9.1] — 2026-07-18
+
+Correcciones del QA a tres continentes: Flor en el Traductor, y el primer QA
+de Linux (un Ubuntu Server resucitado como escritorio, GTX 1060 incluida).
+
+### Corregido
+
+- **Traductor, dirección de idioma** (QA de Flor): el modelo local chico
+  decidía mal y "traducía" español→español. Ahora la dirección la resuelve
+  una heurística local (por escritura y palabras funcionales del par) y el
+  prompt tiene un solo trabajo, con reintento reforzado si el modelo
+  parafrasea en el idioma de origen.
+- **Traductor, voz** (QA de Flor): la lectura elegía cualquier voz del
+  sistema y el inglés sonaba "como un español hablando inglés". Ahora elige
+  por calidad (Premium > Enhanced > local), igual que Sesiones.
+- **Traductor, conversación** (QA de Flor): solo se veía el último
+  intercambio. Ahora la sesión completa queda a la vista, con botones de
+  escuchar y copiar por intercambio y autoscroll.
+- **Motor local de IA ahora funciona en Linux** (QA pionero de Linux): antes
+  decía "plataforma no soportada". Se añadió el runtime de llama.cpp para
+  Ubuntu x64 (CPU), verificado con SHA256.
+- **El paquete .deb declara `libopenblas0`**: la app ya no falla al abrir en
+  Linux por una librería faltante; `apt` la instala sola.
+
 ## [1.9.0] — 2026-07-17
 
 La tanda del QA a dos continentes: lo que encontró la dupla probando en
