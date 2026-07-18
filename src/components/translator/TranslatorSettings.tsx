@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import {
@@ -37,28 +37,66 @@ export const TranslatorSettings: React.FC = () => {
   const [langA, setLangA] = useState("es");
   const [langB, setLangB] = useState("en");
   const [listening, setListening] = useState(false);
-  const [last, setLast] = useState<Result | null>(null);
+  // Conversación completa de la sesión (QA de Flor: "si es un traductor, se
+  // supone que es como una sesión"). Se conserva en memoria mientras la
+  // pantalla vive; cada intercambio con sus botones.
+  const [history, setHistory] = useState<Result[]>([]);
+  const last = history.length > 0 ? history[history.length - 1] : null;
   const [voiceOn, setVoiceOn] = useState(true);
-  const [copiedT, setCopiedT] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const convRef = useRef<HTMLDivElement>(null);
 
-  const copyTranslation = () => {
-    if (!last) return;
-    navigator.clipboard.writeText(last.translation).then(() => {
-      setCopiedT(true);
-      window.setTimeout(() => setCopiedT(false), 1500);
+  const copyTranslation = (item: Result, idx: number) => {
+    navigator.clipboard.writeText(item.translation).then(() => {
+      setCopiedIdx(idx);
+      window.setTimeout(() => setCopiedIdx(null), 1500);
     });
   };
 
+  // La mejor voz instalada para el idioma destino: Premium > Enhanced > local.
+  // (QA de Flor: sin esto, el inglés salía leído "como un español intentando
+  // hablar inglés" — la voz por defecto del sistema no siempre es nativa.)
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+  useEffect(() => {
+    if (!("speechSynthesis" in window)) return;
+    const load = () => {
+      voicesRef.current = window.speechSynthesis.getVoices();
+    };
+    load();
+    window.speechSynthesis.addEventListener("voiceschanged", load);
+    return () =>
+      window.speechSynthesis.removeEventListener("voiceschanged", load);
+  }, []);
+  const pickVoice = useCallback((lang: string) => {
+    const base = lang.split("-")[0].toLowerCase();
+    const candidates = voicesRef.current.filter((v: SpeechSynthesisVoice) =>
+      v.lang.toLowerCase().replace("_", "-").startsWith(base),
+    );
+    const score = (v: SpeechSynthesisVoice) => {
+      if (/premium/i.test(v.name)) return 30;
+      if (/enhanced|mejorada|siri/i.test(v.name)) return 20;
+      return v.localService ? 10 : 0;
+    };
+    return candidates.sort(
+      (a: SpeechSynthesisVoice, b: SpeechSynthesisVoice) => score(b) - score(a),
+    )[0];
+  }, []);
+
   // Habla siempre (para el botón de reproducir): ignora el toggle de voz,
   // porque un clic explícito ES el permiso.
-  const speakNow = useCallback((text: string, lang: string) => {
-    if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang;
-    u.rate = 0.98;
-    window.speechSynthesis.speak(u);
-  }, []);
+  const speakNow = useCallback(
+    (text: string, lang: string) => {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      const voice = pickVoice(lang);
+      if (voice) u.voice = voice;
+      u.rate = 0.98;
+      window.speechSynthesis.speak(u);
+    },
+    [pickVoice],
+  );
 
   // Reproducción automática de cada resultado, gobernada por el toggle.
   const speak = useCallback(
@@ -68,19 +106,23 @@ export const TranslatorSettings: React.FC = () => {
     [voiceOn, speakNow],
   );
 
-  const replayTranslation = () => {
-    if (last) speakNow(last.translation, last.target_lang);
-  };
-
   useEffect(() => {
     const unlisten = listen<Result>("translator-result", (e) => {
-      setLast(e.payload);
+      setHistory((prev) => [...prev.slice(-29), e.payload]);
       speak(e.payload.translation, e.payload.target_lang);
     });
     return () => {
       unlisten.then((fn) => fn());
     };
   }, [speak]);
+
+  // Autoscroll al último intercambio.
+  useEffect(() => {
+    convRef.current?.scrollTo({
+      top: convRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [history.length]);
 
   const toggleListening = () => {
     const next = !listening;
@@ -222,57 +264,71 @@ export const TranslatorSettings: React.FC = () => {
             )}
           </div>
 
-          {last ? (
-            <div className="space-y-3">
-              {/* Lo que dijiste. */}
-              <div className="rounded-card rounded-tl-sm bg-background px-4 py-3 shadow-sm">
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-mid-gray">
-                  {t("translator.youSaid")}
-                </p>
-                <p className="text-sm text-text/80">{last.source}</p>
-              </div>
-              {/* La traducción, grande, para mostrarle a la otra persona. */}
-              <div className="ms-6 rounded-card rounded-tr-sm border border-logo-primary/30 bg-logo-primary/5 px-4 py-3 shadow-sm">
-                <div className="mb-1 flex items-center justify-between">
-                  <p className="text-[10px] uppercase tracking-wide text-logo-primary">
-                    {langLabel(last.target_lang)}
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      title={t("translator.replayTitle")}
-                      onClick={replayTranslation}
-                      className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+          {history.length > 0 ? (
+            // La conversación completa, como sesión: cada intercambio queda a
+            // la vista (QA de Flor) y el último llega con autoscroll.
+            <div
+              ref={convRef}
+              className="max-h-[46vh] space-y-3 overflow-y-auto pr-1"
+            >
+              {history.map((item, idx) => (
+                <div key={idx} className="space-y-2">
+                  <div className="rounded-card rounded-tl-sm bg-background px-4 py-3 shadow-sm">
+                    <p className="mb-1 text-[10px] uppercase tracking-wide text-mid-gray">
+                      {t("translator.youSaid")}
+                    </p>
+                    <p className="text-sm text-text/80">{item.source}</p>
+                  </div>
+                  <div className="ms-6 rounded-card rounded-tr-sm border border-logo-primary/30 bg-logo-primary/5 px-4 py-3 shadow-sm">
+                    <div className="mb-1 flex items-center justify-between">
+                      <p className="text-[10px] uppercase tracking-wide text-logo-primary">
+                        {langLabel(item.target_lang)}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          title={t("translator.replayTitle")}
+                          onClick={() =>
+                            speakNow(item.translation, item.target_lang)
+                          }
+                          className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                        >
+                          <Volume2 width={12} height={12} />
+                          {t("translator.replay")}
+                        </button>
+                        <button
+                          type="button"
+                          title={t("a11y.copyToClipboard")}
+                          onClick={() => copyTranslation(item, idx)}
+                          className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                        >
+                          {copiedIdx === idx ? (
+                            <Check
+                              width={12}
+                              height={12}
+                              className="text-green-600"
+                            />
+                          ) : (
+                            <Copy width={12} height={12} />
+                          )}
+                          {copiedIdx === idx
+                            ? t("mcp.copied")
+                            : t("translator.copy")}
+                        </button>
+                      </div>
+                    </div>
+                    <p
+                      className={`leading-snug text-text ${idx === history.length - 1 ? "text-xl" : "text-base"}`}
+                      style={{
+                        fontFamily: "var(--font-serif)",
+                        fontWeight: 600,
+                      }}
                     >
-                      <Volume2 width={12} height={12} />
-                      {t("translator.replay")}
-                    </button>
-                    <button
-                      type="button"
-                      title={t("a11y.copyToClipboard")}
-                      onClick={copyTranslation}
-                      className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
-                    >
-                      {copiedT ? (
-                        <Check
-                          width={12}
-                          height={12}
-                          className="text-green-600"
-                        />
-                      ) : (
-                        <Copy width={12} height={12} />
-                      )}
-                      {copiedT ? t("mcp.copied") : t("translator.copy")}
-                    </button>
+                      {item.translation}
+                    </p>
                   </div>
                 </div>
-                <p
-                  className="text-xl leading-snug text-text"
-                  style={{ fontFamily: "var(--font-serif)", fontWeight: 600 }}
-                >
-                  {last.translation}
-                </p>
-              </div>
+              ))}
             </div>
           ) : (
             // Vista previa estática: el usuario imagina el resultado.

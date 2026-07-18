@@ -1665,6 +1665,107 @@ pub async fn translate_text(app: &AppHandle, text: &str, target_lang: &str) -> O
 /// Modo Traductor: el texto esta en `lang_a` o en `lang_b`; detecta cual y lo
 /// traduce al OTRO. Devuelve (idioma_destino_iso, traduccion) usando el motor
 /// local. El LLM detecta y traduce en una sola pasada.
+/// ¿En cuál de los DOS idiomas del par está el texto? Distinguir entre dos
+/// idiomas conocidos es un problema fácil que no necesita LLM: guiones por
+/// escritura (CJK, cirílico, árabe, hangul) y puntaje de palabras funcionales
+/// para los latinos. Empate → lang_a. (Fix QA de Flor 18-jul: el modelo local
+/// chico decidía mal la dirección y "traducía" español→español.)
+pub(crate) fn detect_pair_language(text: &str, lang_a: &str, lang_b: &str) -> String {
+    fn script_of(text: &str) -> Option<&'static str> {
+        let mut han = 0usize;
+        let mut kana = 0usize;
+        let mut hangul = 0usize;
+        let mut cyr = 0usize;
+        let mut arab = 0usize;
+        for c in text.chars() {
+            let u = c as u32;
+            match u {
+                0x4E00..=0x9FFF => han += 1,
+                0x3040..=0x30FF => kana += 1,
+                0xAC00..=0xD7AF => hangul += 1,
+                0x0400..=0x04FF => cyr += 1,
+                0x0600..=0x06FF => arab += 1,
+                _ => {}
+            }
+        }
+        let total = text.chars().count().max(1);
+        if kana * 10 > total {
+            return Some("ja");
+        }
+        if hangul * 10 > total {
+            return Some("ko");
+        }
+        if han * 10 > total {
+            return Some("zh");
+        }
+        if cyr * 10 > total {
+            return Some("ru");
+        }
+        if arab * 10 > total {
+            return Some("ar");
+        }
+        None
+    }
+    if let Some(script_lang) = script_of(text) {
+        if script_lang == lang_a {
+            return lang_a.to_string();
+        }
+        if script_lang == lang_b {
+            return lang_b.to_string();
+        }
+    }
+    fn stopwords(lang: &str) -> &'static [&'static str] {
+        match lang {
+            "es" => &[
+                "el", "la", "los", "las", "de", "que", "y", "en", "un", "una", "por",
+                "con", "no", "para", "es", "está", "esta", "me", "te", "se", "lo", "mi",
+                "tu", "su", "del", "al", "como", "pero", "más", "este", "deja", "favor",
+            ],
+            "en" => &[
+                "the", "of", "and", "to", "in", "a", "is", "that", "it", "for", "on",
+                "with", "as", "this", "was", "are", "be", "at", "have", "not", "you",
+                "please", "stop", "from", "they", "she", "he", "my", "your",
+            ],
+            "pt" => &[
+                "o", "a", "os", "as", "de", "que", "e", "em", "um", "uma", "por", "com",
+                "não", "para", "é", "está", "me", "se", "do", "da", "no", "na", "mais",
+            ],
+            "fr" => &[
+                "le", "la", "les", "de", "que", "et", "en", "un", "une", "pour", "avec",
+                "ne", "pas", "est", "je", "tu", "il", "du", "au", "ce", "plus", "mais",
+            ],
+            "de" => &[
+                "der", "die", "das", "und", "zu", "in", "ein", "eine", "ist", "nicht",
+                "mit", "für", "auf", "ich", "du", "er", "sie", "es", "den", "dem",
+            ],
+            "it" => &[
+                "il", "la", "le", "di", "che", "e", "in", "un", "una", "per", "con",
+                "non", "è", "io", "tu", "lui", "del", "al", "più", "ma", "si",
+            ],
+            "lt" => &[
+                "ir", "yra", "kad", "su", "iš", "į", "tai", "kaip", "bet", "jis", "ji",
+                "aš", "tu", "mes", "jūs", "ne", "prašau",
+            ],
+            _ => &[],
+        }
+    }
+    let score = |lang: &str| -> usize {
+        let set = stopwords(lang);
+        if set.is_empty() {
+            return 0;
+        }
+        text.split(|c: char| !c.is_alphanumeric() && c != '\u{2019}')
+            .filter(|w| !w.is_empty())
+            .filter(|w| set.contains(&w.to_lowercase().as_str()))
+            .count()
+    };
+    if score(lang_b) > score(lang_a) {
+        lang_b.to_string()
+    } else {
+        lang_a.to_string()
+    }
+}
+
 pub async fn converse_translate(
     app: &AppHandle,
     text: &str,
@@ -1694,17 +1795,20 @@ pub async fn converse_translate(
         _ => return None,
     }
 
+    // La dirección se decide acá, en Rust: pedirle a un modelo chico que
+    // detecte idioma + traduzca + formatee a la vez era mucho (QA de Flor:
+    // salían "traducciones" español→español). Un solo trabajo por prompt.
+    let source = detect_pair_language(text, lang_a, lang_b);
+    let target = if source == lang_a {
+        lang_b.to_string()
+    } else {
+        lang_a.to_string()
+    };
     let prompt = format!(
-        "El siguiente texto esta en el idioma '{a}' o en el idioma '{b}' (codigos ISO). Detecta en cual de los dos esta y TRADUCELO al OTRO. Responde EXACTAMENTE en este formato, sin nada mas:
-<codigo_iso_destino>|<traduccion>
-
-Ejemplo si el destino es ingles: en|Hello there
+        "Traduce el siguiente texto al idioma con codigo ISO '{target}'. Conserva significado y tono; redaccion natural de hablante nativo. Responde UNICAMENTE con la traduccion, sin explicaciones.
 
 Texto:
-{text}",
-        a = lang_a,
-        b = lang_b,
-        text = text
+{text}"
     );
 
     let content = match crate::llm_client::send_chat_completion(
@@ -1722,25 +1826,38 @@ Texto:
         _ => return None,
     };
 
-    // Parsear "codigo|traduccion". Si el modelo no puso el codigo, inferimos
-    // el destino como el idioma distinto al detectado por heuristica simple.
-    let trimmed = content.trim();
-    if let Some((code, translation)) = trimmed.split_once('|') {
-        let code = code.trim().to_lowercase();
-        let translation = translation.trim().to_string();
-        if !translation.is_empty() && (code == lang_a || code == lang_b) {
-            return Some((code, translation));
-        }
-        if !translation.is_empty() {
-            // Codigo raro: asumir el destino como lang_b si no coincide.
-            return Some((lang_b.to_string(), translation));
+    let trimmed = content.trim().to_string();
+    if trimmed.is_empty() {
+        return None;
+    }
+    // Red de seguridad: si la salida sigue en el idioma de origen (el modelo
+    // chico a veces parafrasea en vez de traducir), un reintento con la
+    // instruccion reforzada. Si aun asi insiste, se entrega igual: mejor un
+    // resultado imperfecto visible que un silencio.
+    if detect_pair_language(&trimmed, lang_a, lang_b) == source && source != target {
+        let retry_prompt = format!(
+            "IMPORTANTE: responde SOLO en el idioma con codigo ISO '{target}'. Traduce este texto a '{target}':
+
+{text}"
+        );
+        if let Ok(Some(second)) = crate::llm_client::send_chat_completion(
+            &provider,
+            String::new(),
+            &model,
+            retry_prompt,
+            Some("none".to_string()),
+            None,
+            Some(0.2),
+        )
+        .await
+        {
+            let second = strip_invisible_chars(&second).trim().to_string();
+            if !second.is_empty() && detect_pair_language(&second, lang_a, lang_b) == target {
+                return Some((target, second));
+            }
         }
     }
-    // Sin formato: devolver el texto tal cual hacia lang_b como ultimo recurso.
-    if !trimmed.is_empty() {
-        return Some((lang_b.to_string(), trimmed.to_string()));
-    }
-    None
+    Some((target, trimmed))
 }
 
 /// Modo Conversación: respuesta de la IA a un turno del usuario, con el
