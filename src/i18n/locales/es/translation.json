@@ -1213,7 +1213,12 @@
       "permissionHint": "macOS lo exige para capturar el audio del sistema (la pantalla no se graba). Concédelo en Ajustes del Sistema → Privacidad y seguridad → Grabación de pantalla y audio del sistema, y vuelve a abrir Escriba.",
       "micTip": "Audio del sistema activado. Para que tu voz también entre a la sesión, activa además “Manos libres” (o dicta con tu atajo)."
     },
-    "others": "Otros"
+    "others": "Otros",
+    "systemTranslate": {
+      "label": "Traducir",
+      "hint": "Traduce lo que suena en tu computador a tu idioma (idea de John Walter). Necesita el motor de IA local.",
+      "langHint": "Idioma de la reunión"
+    }
   },
   "engine": {
     "requiredTitle": "Esta función necesita el motor de IA local",

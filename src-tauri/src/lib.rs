@@ -654,6 +654,7 @@ pub fn run(cli_args: CliArgs) {
             commands::conversation::conversation_system_audio,
             commands::conversation::system_audio_supported,
             commands::conversation::system_audio_permission,
+            commands::conversation::conversation_system_translate,
             commands::mcp::mcp_start,
             commands::mcp::mcp_stop,
             commands::mcp::mcp_status,

@@ -150,6 +150,14 @@ async systemAudioSupported() : Promise<boolean> {
 async systemAudioPermission() : Promise<boolean> {
     return await TAURI_INVOKE("system_audio_permission");
 },
+/**
+ * Intérprete de reuniones (idea de John Walter, comunidad): con esto activo,
+ * los turnos de "Otros" que lleguen en `foreign` se traducen al idioma de la
+ * app antes de mostrarse. Requiere el motor local (igual que el Traductor).
+ */
+async conversationSystemTranslate(on: boolean, foreign: string) : Promise<boolean> {
+    return await TAURI_INVOKE("conversation_system_translate", { on, foreign });
+},
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("mcp_start") };

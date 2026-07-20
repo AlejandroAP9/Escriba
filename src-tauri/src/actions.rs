@@ -1717,34 +1717,34 @@ pub(crate) fn detect_pair_language(text: &str, lang_a: &str, lang_b: &str) -> St
     fn stopwords(lang: &str) -> &'static [&'static str] {
         match lang {
             "es" => &[
-                "el", "la", "los", "las", "de", "que", "y", "en", "un", "una", "por",
-                "con", "no", "para", "es", "está", "esta", "me", "te", "se", "lo", "mi",
-                "tu", "su", "del", "al", "como", "pero", "más", "este", "deja", "favor",
+                "el", "la", "los", "las", "de", "que", "y", "en", "un", "una", "por", "con", "no",
+                "para", "es", "está", "esta", "me", "te", "se", "lo", "mi", "tu", "su", "del",
+                "al", "como", "pero", "más", "este", "deja", "favor",
             ],
             "en" => &[
-                "the", "of", "and", "to", "in", "a", "is", "that", "it", "for", "on",
-                "with", "as", "this", "was", "are", "be", "at", "have", "not", "you",
-                "please", "stop", "from", "they", "she", "he", "my", "your",
+                "the", "of", "and", "to", "in", "a", "is", "that", "it", "for", "on", "with", "as",
+                "this", "was", "are", "be", "at", "have", "not", "you", "please", "stop", "from",
+                "they", "she", "he", "my", "your",
             ],
             "pt" => &[
-                "o", "a", "os", "as", "de", "que", "e", "em", "um", "uma", "por", "com",
-                "não", "para", "é", "está", "me", "se", "do", "da", "no", "na", "mais",
+                "o", "a", "os", "as", "de", "que", "e", "em", "um", "uma", "por", "com", "não",
+                "para", "é", "está", "me", "se", "do", "da", "no", "na", "mais",
             ],
             "fr" => &[
-                "le", "la", "les", "de", "que", "et", "en", "un", "une", "pour", "avec",
-                "ne", "pas", "est", "je", "tu", "il", "du", "au", "ce", "plus", "mais",
+                "le", "la", "les", "de", "que", "et", "en", "un", "une", "pour", "avec", "ne",
+                "pas", "est", "je", "tu", "il", "du", "au", "ce", "plus", "mais",
             ],
             "de" => &[
-                "der", "die", "das", "und", "zu", "in", "ein", "eine", "ist", "nicht",
-                "mit", "für", "auf", "ich", "du", "er", "sie", "es", "den", "dem",
+                "der", "die", "das", "und", "zu", "in", "ein", "eine", "ist", "nicht", "mit",
+                "für", "auf", "ich", "du", "er", "sie", "es", "den", "dem",
             ],
             "it" => &[
-                "il", "la", "le", "di", "che", "e", "in", "un", "una", "per", "con",
-                "non", "è", "io", "tu", "lui", "del", "al", "più", "ma", "si",
+                "il", "la", "le", "di", "che", "e", "in", "un", "una", "per", "con", "non", "è",
+                "io", "tu", "lui", "del", "al", "più", "ma", "si",
             ],
             "lt" => &[
-                "ir", "yra", "kad", "su", "iš", "į", "tai", "kaip", "bet", "jis", "ji",
-                "aš", "tu", "mes", "jūs", "ne", "prašau",
+                "ir", "yra", "kad", "su", "iš", "į", "tai", "kaip", "bet", "jis", "ji", "aš", "tu",
+                "mes", "jūs", "ne", "prašau",
             ],
             _ => &[],
         }
@@ -1764,6 +1764,63 @@ pub(crate) fn detect_pair_language(text: &str, lang_a: &str, lang_b: &str) -> St
     } else {
         lang_a.to_string()
     }
+}
+
+/// Intérprete de reuniones (idea de John Walter, comunidad 19-jul-2026):
+/// si `text` está en `foreign` (el idioma de la reunión), lo traduce a
+/// `mine`; si ya está en `mine`, devuelve None (se muestra tal cual).
+/// Reusa la heurística de dirección y el motor local del Traductor.
+pub(crate) async fn translate_if_foreign(
+    app: &AppHandle,
+    text: &str,
+    foreign: &str,
+    mine: &str,
+) -> Option<String> {
+    if text.trim().is_empty() || foreign == mine {
+        return None;
+    }
+    if detect_pair_language(text, foreign, mine) == mine {
+        return None; // ya está en mi idioma: no tocar
+    }
+    let settings = get_settings(app);
+    let mut provider = settings
+        .post_process_providers
+        .iter()
+        .find(|p| p.id == crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()?;
+    let model = settings
+        .post_process_models
+        .get(crate::settings::LOCAL_LLM_PROVIDER_ID)
+        .cloned()
+        .unwrap_or_default();
+    match resolve_local_route(&model).await {
+        LocalRoute::Sidecar(base_url) => provider.base_url = base_url,
+        LocalRoute::Ollama { base_url, .. } => {
+            provider.base_url = base_url;
+            provider.supports_structured_output = false;
+        }
+        _ => return None,
+    }
+    let prompt = format!(
+        "Traduce el siguiente texto al idioma con codigo ISO '{mine}'. Conserva significado y tono; redaccion natural. Responde UNICAMENTE con la traduccion.\n\nTexto:\n{text}"
+    );
+    let content = crate::llm_client::send_chat_completion(
+        &provider,
+        String::new(),
+        &model,
+        prompt,
+        Some("none".to_string()),
+        None,
+        Some(0.2),
+    )
+    .await
+    .ok()
+    .flatten()?;
+    let out = strip_invisible_chars(&content).trim().to_string();
+    if out.is_empty() {
+        return None;
+    }
+    Some(out)
 }
 
 pub async fn converse_translate(

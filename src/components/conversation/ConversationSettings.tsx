@@ -8,6 +8,7 @@ import {
   Copy,
   Ear,
   FileText,
+  Languages,
   Lock,
   MessageCircle,
   Mic,
@@ -258,6 +259,21 @@ export const ConversationSettings: React.FC = () => {
   // Audio del sistema: lo que suena en el computador (la otra parte de una
   // reunión Zoom/Meet, un video) entra a la sesión como turnos de "Otros".
   const [sysAudio, setSysAudio] = useState(false);
+  // Intérprete de reuniones (idea de John Walter): traducir los turnos de
+  // "Otros" al idioma del usuario. Solo tiene sentido con Audio del sistema.
+  const [sysTranslate, setSysTranslate] = useState(false);
+  const [sysTranslateLang, setSysTranslateLang] = useState("en");
+  const toggleSysTranslate = async () => {
+    const next = !sysTranslate;
+    await commands.conversationSystemTranslate(next, sysTranslateLang);
+    setSysTranslate(next);
+  };
+  const changeSysTranslateLang = async (lang: string) => {
+    setSysTranslateLang(lang);
+    if (sysTranslate) {
+      await commands.conversationSystemTranslate(true, lang);
+    }
+  };
   const [sysAudioSupported, setSysAudioSupported] = useState(false);
   useEffect(() => {
     commands.systemAudioSupported().then(setSysAudioSupported);
@@ -289,6 +305,8 @@ export const ConversationSettings: React.FC = () => {
     if (!s.listening) {
       setHandsFree(false); // pausar apaga manos libres
       setSysAudio(false); // y la captura del sistema
+      setSysTranslate(false);
+      commands.conversationSystemTranslate(false, sysTranslateLang);
     }
   };
 
@@ -740,6 +758,48 @@ export const ConversationSettings: React.FC = () => {
                   <MonitorSpeaker width={13} height={13} className="mr-1.5" />
                   {t("conversation.systemAudio.label")}
                 </Button>
+              )}
+              {/* Intérprete de reuniones (idea de John Walter): traducir los
+                  turnos de "Otros" al idioma de la app. */}
+              {mode !== "converse" && listening && sysAudio && (
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant={sysTranslate ? "primary-soft" : "secondary"}
+                    size="sm"
+                    onClick={toggleSysTranslate}
+                    title={t("conversation.systemTranslate.hint")}
+                  >
+                    <Languages width={13} height={13} className="mr-1.5" />
+                    {t("conversation.systemTranslate.label")}
+                  </Button>
+                  {sysTranslate && (
+                    <select
+                      value={sysTranslateLang}
+                      onChange={(e) => changeSysTranslateLang(e.target.value)}
+                      title={t("conversation.systemTranslate.langHint")}
+                      className="rounded-lg border border-line bg-background px-1.5 py-1 text-xs text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                    >
+                      {[
+                        "en",
+                        "pt",
+                        "fr",
+                        "de",
+                        "it",
+                        "zh",
+                        "ja",
+                        "ko",
+                        "ru",
+                        "lt",
+                        "ar",
+                        "es",
+                      ].map((l) => (
+                        <option key={l} value={l}>
+                          {l.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               )}
               <Button variant="secondary" size="sm" onClick={togglePause}>
                 {listening ? (

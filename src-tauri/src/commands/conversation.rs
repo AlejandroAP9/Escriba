@@ -21,6 +21,11 @@ static HANDS_FREE: AtomicBool = AtomicBool::new(false);
 /// video) y lo suma a la sesión como turnos de "Otros".
 static SYSTEM_AUDIO: AtomicBool = AtomicBool::new(false);
 
+/// Intérprete de reuniones (idea de John Walter): traducir los turnos de
+/// "Otros" al idioma del usuario cuando vienen en el idioma de la reunión.
+static SYS_TRANSLATE: AtomicBool = AtomicBool::new(false);
+static SYS_TRANSLATE_FOREIGN: Mutex<String> = Mutex::new(String::new());
+
 static LISTENING: AtomicBool = AtomicBool::new(false);
 /// Modo de la sesión: "converse" (la IA responde) o una variante de escucha
 /// ("listen", "interview", "class", "brainstorm") que solo cambia el documento.
@@ -502,11 +507,33 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
                     })
                     .await;
                     if let Ok(Ok(segs)) = segs {
-                        let text = crate::studio::segments::group_paragraphs(&segs)
+                        let mut text = crate::studio::segments::group_paragraphs(&segs)
                             .join(" ")
                             .trim()
                             .to_string();
                         if !text.is_empty() && is_listening() {
+                            // Intérprete de reuniones (John Walter): si el
+                            // turno viene en el idioma de la reunión, se
+                            // traduce al del usuario antes de mostrarse.
+                            if SYS_TRANSLATE.load(Ordering::Relaxed) {
+                                let foreign = SYS_TRANSLATE_FOREIGN
+                                    .lock()
+                                    .map(|g| g.clone())
+                                    .unwrap_or_default();
+                                let mine = crate::settings::get_settings(&app3)
+                                    .app_language
+                                    .split('-')
+                                    .next()
+                                    .unwrap_or("es")
+                                    .to_string();
+                                if let Some(translated) = crate::actions::translate_if_foreign(
+                                    &app3, &text, &foreign, &mine,
+                                )
+                                .await
+                                {
+                                    text = translated;
+                                }
+                            }
                             let turn = push_turn("system", &text);
                             use tauri::Emitter;
                             let _ = app3.emit("conversation-turn", turn);
@@ -518,6 +545,19 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
     });
 
     Ok(true)
+}
+
+/// Intérprete de reuniones (idea de John Walter, comunidad): con esto activo,
+/// los turnos de "Otros" que lleguen en `foreign` se traducen al idioma de la
+/// app antes de mostrarse. Requiere el motor local (igual que el Traductor).
+#[tauri::command]
+#[specta::specta]
+pub fn conversation_system_translate(on: bool, foreign: String) -> bool {
+    if let Ok(mut g) = SYS_TRANSLATE_FOREIGN.lock() {
+        *g = foreign;
+    }
+    SYS_TRANSLATE.store(on, Ordering::Relaxed);
+    on
 }
 
 /// Apaga la captura del audio del sistema (el worker sale en su próximo tick).

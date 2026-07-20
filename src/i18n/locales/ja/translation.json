@@ -1213,7 +1213,12 @@
       "permissionHint": "macOS requires it to capture system audio (the screen itself is not recorded). Grant it in System Settings → Privacy & Security → Screen & System Audio Recording, then reopen Escriba.",
       "micTip": "System audio on. To add your own voice to the session, also enable “Hands-free” (or dictate with your shortcut)."
     },
-    "others": "Others"
+    "others": "Others",
+    "systemTranslate": {
+      "label": "Translate",
+      "hint": "Translates what plays on your computer into your language (John Walter's idea). Requires the local AI engine.",
+      "langHint": "Meeting language"
+    }
   },
   "engine": {
     "requiredTitle": "This feature needs the local AI engine",
