@@ -668,24 +668,44 @@ pub(crate) async fn process_transcription_output(
                     .next()
                     .unwrap_or("es")
                     .to_string();
-                if let Some(translated) = translate_reply(&app2, &original, &foreign, &mine).await {
-                    // El acta conserva el par original ⇢ traducción.
-                    crate::commands::conversation::append_reply_translation(&translated);
-                    use tauri_plugin_clipboard_manager::ClipboardExt;
-                    let _ = app2.clipboard().write_text(translated.clone());
-                    #[derive(serde::Serialize, Clone)]
-                    struct ReplyTranslated {
-                        text: String,
-                        lang: String,
+                // Hacia la reunión NUNCA sale silencio: si la frase ya está
+                // en el idioma del otro va tal cual; si el motor falla, va el
+                // original. Solo con traducción real se anexa al acta y se
+                // copia al portapapeles.
+                let already_foreign =
+                    foreign != mine && detect_pair_language(&original, &foreign, &mine) == foreign;
+                let mut speak_text = original.clone();
+                let mut speak_lang = if already_foreign {
+                    foreign.clone()
+                } else {
+                    mine.clone()
+                };
+                let mut translated_real = false;
+                if !already_foreign && foreign != mine {
+                    if let Some(translated) = translate_with_local(&app2, &original, &foreign).await
+                    {
+                        crate::commands::conversation::append_reply_translation(&translated);
+                        use tauri_plugin_clipboard_manager::ClipboardExt;
+                        let _ = app2.clipboard().write_text(translated.clone());
+                        speak_text = translated;
+                        speak_lang = foreign.clone();
+                        translated_real = true;
                     }
-                    let _ = app2.emit(
-                        "conversation-reply-translated",
-                        ReplyTranslated {
-                            text: translated,
-                            lang: foreign,
-                        },
-                    );
                 }
+                #[derive(serde::Serialize, Clone)]
+                struct ReplyTranslated {
+                    text: String,
+                    lang: String,
+                    translated: bool,
+                }
+                let _ = app2.emit(
+                    "conversation-reply-translated",
+                    ReplyTranslated {
+                        text: speak_text,
+                        lang: speak_lang,
+                        translated: translated_real,
+                    },
+                );
             });
         }
         if crate::commands::conversation::is_converse_mode() {
@@ -1753,7 +1773,8 @@ pub(crate) fn detect_pair_language(text: &str, lang_a: &str, lang_b: &str) -> St
             "es" => &[
                 "el", "la", "los", "las", "de", "que", "y", "en", "un", "una", "por", "con", "no",
                 "para", "es", "está", "esta", "me", "te", "se", "lo", "mi", "tu", "su", "del",
-                "al", "como", "pero", "más", "este", "deja", "favor",
+                "al", "como", "pero", "más", "este", "deja", "favor", "a", "vamos", "ya", "hay",
+                "muy", "qué", "sí",
             ],
             "en" => &[
                 "the", "of", "and", "to", "in", "a", "is", "that", "it", "for", "on", "with", "as",
@@ -1817,24 +1838,6 @@ pub(crate) async fn translate_if_foreign(
         return None; // ya está en mi idioma: no tocar
     }
     translate_with_local(app, text, mine).await
-}
-
-/// Cable de vuelta del Intérprete de reuniones (idea de John Walter): tu
-/// dictado sale en el idioma del otro lado. None si ya estaba en ese idioma
-/// (hablaste directamente en el suyo) o si no hay motor local disponible.
-pub(crate) async fn translate_reply(
-    app: &AppHandle,
-    text: &str,
-    foreign: &str,
-    mine: &str,
-) -> Option<String> {
-    if text.trim().is_empty() || foreign == mine {
-        return None;
-    }
-    if detect_pair_language(text, foreign, mine) == foreign {
-        return None; // ya está en el idioma del otro: no tocar
-    }
-    translate_with_local(app, text, foreign).await
 }
 
 /// Núcleo compartido del Intérprete: traduce `text` al idioma `target` con el

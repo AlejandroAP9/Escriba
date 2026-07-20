@@ -232,22 +232,26 @@ export const ConversationSettings: React.FC = () => {
   // dictado llega traducido desde el backend; se anexa al turno, se lee en
   // voz alta en el idioma del otro y ya quedó copiado listo para pegar.
   useEffect(() => {
-    const unReply = listen<{ text: string; lang: string }>(
+    const unReply = listen<{ text: string; lang: string; translated: boolean }>(
       "conversation-reply-translated",
       (e) => {
-        setTurns((prev) => {
-          const next = [...prev];
-          for (let i = next.length - 1; i >= 0; i--) {
-            if (next[i].role === "user") {
-              next[i] = {
-                ...next[i],
-                text: `${next[i].text}\n⇢ ${e.payload.text}`,
-              };
-              break;
+        // La flecha ⇢ solo cuando hubo traducción real; la voz suena siempre
+        // (si la frase ya iba en el idioma del otro, sale tal cual al cable).
+        if (e.payload.translated) {
+          setTurns((prev) => {
+            const next = [...prev];
+            for (let i = next.length - 1; i >= 0; i--) {
+              if (next[i].role === "user") {
+                next[i] = {
+                  ...next[i],
+                  text: `${next[i].text}\n⇢ ${e.payload.text}`,
+                };
+                break;
+              }
             }
-          }
-          return next;
-        });
+            return next;
+          });
+        }
         // Con dispositivo elegido, la voz sale por ahí (micrófono virtual =
         // la escucha la otra persona de la llamada); si falla, parlantes.
         const device = voiceOutRef.current;
