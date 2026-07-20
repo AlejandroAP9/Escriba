@@ -658,56 +658,7 @@ pub(crate) async fn process_transcription_output(
         // dictado se traduce al idioma de la reunión, queda copiado listo
         // para pegar en el chat y el frontend lo lee en voz alta en ese
         // idioma. Corre aparte para que el turno aparezca sin espera.
-        if let Some(foreign) = crate::commands::conversation::sys_translate_foreign() {
-            let app2 = app.clone();
-            let original = final_text.clone();
-            tauri::async_runtime::spawn(async move {
-                let mine = get_settings(&app2)
-                    .app_language
-                    .split('-')
-                    .next()
-                    .unwrap_or("es")
-                    .to_string();
-                // Hacia la reunión NUNCA sale silencio: si la frase ya está
-                // en el idioma del otro va tal cual; si el motor falla, va el
-                // original. Solo con traducción real se anexa al acta y se
-                // copia al portapapeles.
-                let already_foreign =
-                    foreign != mine && detect_pair_language(&original, &foreign, &mine) == foreign;
-                let mut speak_text = original.clone();
-                let mut speak_lang = if already_foreign {
-                    foreign.clone()
-                } else {
-                    mine.clone()
-                };
-                let mut translated_real = false;
-                if !already_foreign && foreign != mine {
-                    if let Some(translated) = translate_with_local(&app2, &original, &foreign).await
-                    {
-                        crate::commands::conversation::append_reply_translation(&translated);
-                        use tauri_plugin_clipboard_manager::ClipboardExt;
-                        let _ = app2.clipboard().write_text(translated.clone());
-                        speak_text = translated;
-                        speak_lang = foreign.clone();
-                        translated_real = true;
-                    }
-                }
-                #[derive(serde::Serialize, Clone)]
-                struct ReplyTranslated {
-                    text: String,
-                    lang: String,
-                    translated: bool,
-                }
-                let _ = app2.emit(
-                    "conversation-reply-translated",
-                    ReplyTranslated {
-                        text: speak_text,
-                        lang: speak_lang,
-                        translated: translated_real,
-                    },
-                );
-            });
-        }
+        interpreter_reply_flow(app, final_text.clone());
         if crate::commands::conversation::is_converse_mode() {
             match conversation_reply(app, &history, &final_text).await {
                 Some(reply) => {
@@ -1724,6 +1675,59 @@ pub async fn translate_text(app: &AppHandle, text: &str, target_lang: &str) -> O
 /// escritura (CJK, cirílico, árabe, hangul) y puntaje de palabras funcionales
 /// para los latinos. Empate → lang_a. (Fix QA de Flor 18-jul: el modelo local
 /// chico decidía mal la dirección y "traducía" español→español.)
+/// Cable de vuelta del Intérprete de reuniones (idea de John Walter),
+/// compartido por el dictado con atajo y el modo Manos libres: traduce el
+/// turno del usuario al idioma de la reunión, anexa al acta, copia al
+/// portapapeles y emite el evento que hace sonar la voz (parlantes o
+/// micrófono virtual). Hacia la reunión nunca sale silencio.
+pub(crate) fn interpreter_reply_flow(app: &AppHandle, original: String) {
+    let Some(foreign) = crate::commands::conversation::sys_translate_foreign() else {
+        return;
+    };
+    let app2 = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let mine = get_settings(&app2)
+            .app_language
+            .split('-')
+            .next()
+            .unwrap_or("es")
+            .to_string();
+        let already_foreign =
+            foreign != mine && detect_pair_language(&original, &foreign, &mine) == foreign;
+        let mut speak_text = original.clone();
+        let mut speak_lang = if already_foreign {
+            foreign.clone()
+        } else {
+            mine.clone()
+        };
+        let mut translated_real = false;
+        if !already_foreign && foreign != mine {
+            if let Some(translated) = translate_with_local(&app2, &original, &foreign).await {
+                crate::commands::conversation::append_reply_translation(&translated);
+                use tauri_plugin_clipboard_manager::ClipboardExt;
+                let _ = app2.clipboard().write_text(translated.clone());
+                speak_text = translated;
+                speak_lang = foreign.clone();
+                translated_real = true;
+            }
+        }
+        #[derive(serde::Serialize, Clone)]
+        struct ReplyTranslated {
+            text: String,
+            lang: String,
+            translated: bool,
+        }
+        let _ = app2.emit(
+            "conversation-reply-translated",
+            ReplyTranslated {
+                text: speak_text,
+                lang: speak_lang,
+                translated: translated_real,
+            },
+        );
+    });
+}
+
 pub(crate) fn detect_pair_language(text: &str, lang_a: &str, lang_b: &str) -> String {
     fn script_of(text: &str) -> Option<&'static str> {
         let mut han = 0usize;

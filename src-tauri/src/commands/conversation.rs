@@ -368,6 +368,9 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
                                 let turn = push_turn("user", &text);
                                 use tauri::Emitter;
                                 let _ = app3.emit("conversation-turn", turn);
+                                // Manos libres también pasa por el Intérprete:
+                                // tu voz sale traducida sin tocar una tecla.
+                                crate::actions::interpreter_reply_flow(&app3, text);
                             }
                         }
                     });
