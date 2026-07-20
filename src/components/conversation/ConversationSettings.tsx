@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
 import {
   ArrowRight,
@@ -248,7 +249,18 @@ export const ConversationSettings: React.FC = () => {
           }
           return next;
         });
-        speakIn(e.payload.lang, e.payload.text);
+        // Con dispositivo elegido, la voz sale por ahí (micrófono virtual =
+        // la escucha la otra persona de la llamada); si falla, parlantes.
+        const device = voiceOutRef.current;
+        if (device) {
+          commands
+            .conversationSpeakVia(e.payload.text, e.payload.lang, device)
+            .then((ok) => {
+              if (!ok) speakIn(e.payload.lang, e.payload.text);
+            });
+        } else {
+          speakIn(e.payload.lang, e.payload.text);
+        }
       },
     );
     return () => {
@@ -336,6 +348,26 @@ export const ConversationSettings: React.FC = () => {
       await commands.conversationSystemTranslate(true, lang);
     }
   };
+  // Voz de salida del Intérprete (remate de la idea de John Walter): "" = los
+  // parlantes (speechSynthesis); un dispositivo = voz renderizada vía backend.
+  // Con un micrófono virtual (BlackHole) elegido aquí y como micrófono de la
+  // reunión, la otra persona escucha tu dictado ya traducido en la llamada.
+  const [voiceOut, setVoiceOut] = useState<string>(
+    () => localStorage.getItem("escriba.interpreterVoiceOut") ?? "",
+  );
+  const voiceOutRef = useRef(voiceOut);
+  voiceOutRef.current = voiceOut;
+  const pickVoiceOut = (device: string) => {
+    setVoiceOut(device);
+    localStorage.setItem("escriba.interpreterVoiceOut", device);
+  };
+  const [outputDevices, setOutputDevices] = useState<string[]>([]);
+  useEffect(() => {
+    if (!sysTranslate) return;
+    commands.getAvailableOutputDevices().then((r) => {
+      if (r.status === "ok") setOutputDevices(r.data.map((d) => d.name));
+    });
+  }, [sysTranslate]);
   const [sysAudioSupported, setSysAudioSupported] = useState(false);
   useEffect(() => {
     commands.systemAudioSupported().then(setSysAudioSupported);
@@ -848,6 +880,23 @@ export const ConversationSettings: React.FC = () => {
                       ))}
                     </select>
                   )}
+                  {sysTranslate && outputDevices.length > 0 && (
+                    <select
+                      value={voiceOut}
+                      onChange={(e) => pickVoiceOut(e.target.value)}
+                      title={t("conversation.systemTranslate.voiceOutHint")}
+                      className="max-w-36 rounded-lg border border-line bg-background px-1.5 py-1 text-xs text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                    >
+                      <option value="">
+                        {"🔊 " + t("conversation.systemTranslate.speakers")}
+                      </option>
+                      {outputDevices.map((d) => (
+                        <option key={d} value={d}>
+                          {"🎙️ " + d}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               )}
               <Button variant="secondary" size="sm" onClick={togglePause}>
@@ -954,6 +1003,20 @@ export const ConversationSettings: React.FC = () => {
                     : handsFree
                       ? t("conversation.handsFree.hint")
                       : t("conversation.hint")}
+              </p>
+            )}
+            {sysTranslate && voiceOut && (
+              <p className="mt-1 text-center text-[11px] text-mid-gray">
+                {t("conversation.systemTranslate.virtualMicHint")}{" "}
+                <button
+                  type="button"
+                  onClick={() =>
+                    openUrl("https://existential.audio/blackhole/")
+                  }
+                  className="cursor-pointer text-logo-primary underline-offset-2 hover:underline"
+                >
+                  {t("conversation.systemTranslate.blackhole")}
+                </button>
               </p>
             )}
           </Card>

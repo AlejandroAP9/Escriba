@@ -1218,7 +1218,11 @@
       "label": "Translate",
       "hint": "Translates what plays into your language, and your dictation into the other side's language (John Walter's idea).",
       "langHint": "Meeting language",
-      "active": "Meeting interpreter active (John Walter's idea): what plays arrives in your language, and your dictation is spoken and copied in the other side's language."
+      "active": "Meeting interpreter active (John Walter's idea): what plays arrives in your language, and your dictation is spoken and copied in the other side's language.",
+      "speakers": "Speakers",
+      "voiceOutHint": "Where your translated voice comes out. Pick a virtual microphone (BlackHole) so it is heard inside the video call.",
+      "virtualMicHint": "Your translated voice comes out through that device. For a video call: install BlackHole and select it here and as the meeting microphone; the other person hears only the translation.",
+      "blackhole": "Install BlackHole ↗"
     }
   },
   "engine": {

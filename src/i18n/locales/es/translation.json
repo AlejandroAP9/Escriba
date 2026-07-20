@@ -1218,7 +1218,11 @@
       "label": "Traducir",
       "hint": "Traduce lo que suena a tu idioma, y tu dictado al idioma del otro lado (Idea de John Walter).",
       "langHint": "Idioma de la reunión",
-      "active": "Intérprete de reuniones activo (Idea de John Walter): lo que suena llega en tu idioma y tu dictado se lee y copia en el idioma del otro lado."
+      "active": "Intérprete de reuniones activo (Idea de John Walter): lo que suena llega en tu idioma y tu dictado se lee y copia en el idioma del otro lado.",
+      "speakers": "Parlantes",
+      "voiceOutHint": "Por dónde sale tu voz traducida. Elige un micrófono virtual (BlackHole) para que la escuchen dentro de la videollamada.",
+      "virtualMicHint": "Tu voz traducida sale por ese dispositivo. Para una videollamada: instala BlackHole y elígelo aquí y como micrófono de la reunión; la otra persona escucha solo la traducción.",
+      "blackhole": "Instalar BlackHole ↗"
     }
   },
   "engine": {

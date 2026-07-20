@@ -583,6 +583,104 @@ pub fn append_reply_translation(translated: &str) {
     }
 }
 
+/// Voz del Intérprete por un dispositivo de salida concreto (el remate de la
+/// idea de John Walter): renderiza el texto con la mejor voz instalada del
+/// idioma y lo reproduce en ese dispositivo. Con un micrófono virtual
+/// (BlackHole) elegido aquí y como micrófono de la reunión, la otra persona
+/// escucha tu dictado ya traducido. Solo macOS (como el audio del sistema).
+#[tauri::command]
+#[specta::specta]
+pub async fn conversation_speak_via(text: String, lang: String, device: String) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        tauri::async_runtime::spawn_blocking(move || speak_via_blocking(&text, &lang, &device))
+            .await
+            .unwrap_or(false)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (text, lang, device);
+        false
+    }
+}
+
+/// La mejor voz de `say` instalada para un idioma: Premium > Enhanced > resto.
+/// (`say -v ?` lista "Nombre (Premium)  es_ES  # frase"; los nombres pueden
+/// llevar espacios, así que el locale se busca desde el final.)
+#[cfg(target_os = "macos")]
+fn best_voice_for(lang: &str) -> Option<String> {
+    use std::process::Command;
+    let out = Command::new("/usr/bin/say")
+        .args(["-v", "?"])
+        .output()
+        .ok()?;
+    let listing = String::from_utf8_lossy(&out.stdout).to_string();
+    let base = lang.split(['-', '_']).next().unwrap_or(lang).to_lowercase();
+    let mut best: Option<(i32, String)> = None;
+    for line in listing.lines() {
+        let head = match line.find('#') {
+            Some(h) => line[..h].trim_end(),
+            None => line.trim_end(),
+        };
+        let Some(loc_start) = head.rfind(char::is_whitespace) else {
+            continue;
+        };
+        let locale = head[loc_start..].trim().to_lowercase().replace('_', "-");
+        let name = head[..loc_start].trim_end();
+        if name.is_empty() || !locale.starts_with(&base) {
+            continue;
+        }
+        let score = if name.contains("Premium") {
+            30
+        } else if name.contains("Enhanced") || name.contains("Mejorada") {
+            20
+        } else {
+            10
+        };
+        if best.as_ref().map(|(s, _)| score > *s).unwrap_or(true) {
+            best = Some((score, name.to_string()));
+        }
+    }
+    best.map(|(_, n)| n)
+}
+
+/// Renderiza con `say` a WAV y lo reproduce en el dispositivo elegido
+/// (cadena vacía = salida por defecto). Bloqueante: llamar en spawn_blocking.
+#[cfg(target_os = "macos")]
+fn speak_via_blocking(text: &str, lang: &str, device: &str) -> bool {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+    let wav = std::env::temp_dir().join("escriba-interpreter-voice.wav");
+    let mut cmd = Command::new("/usr/bin/say");
+    if let Some(voice) = best_voice_for(lang) {
+        cmd.args(["-v", &voice]);
+    }
+    // El texto entra por stdin (sin líos de comillas); sale como WAV crudo.
+    cmd.arg("-o")
+        .arg(&wav)
+        .args(["--file-format=WAVE", "--data-format=LEI16@22050"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
+    let Ok(mut child) = cmd.spawn() else {
+        return false;
+    };
+    if let Some(mut stdin) = child.stdin.take() {
+        let _ = stdin.write_all(text.as_bytes());
+    }
+    if !child.wait().map(|s| s.success()).unwrap_or(false) {
+        return false;
+    }
+    let selected = if device.is_empty() {
+        None
+    } else {
+        Some(device.to_string())
+    };
+    let ok = crate::audio_feedback::play_audio_file(&wav, selected, 1.0).is_ok();
+    let _ = std::fs::remove_file(&wav);
+    ok
+}
+
 /// Apaga la captura del audio del sistema (el worker sale en su próximo tick).
 fn system_audio_off() {
     if !SYSTEM_AUDIO.swap(false, Ordering::Relaxed) {

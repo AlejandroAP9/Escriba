@@ -158,6 +158,16 @@ async systemAudioPermission() : Promise<boolean> {
 async conversationSystemTranslate(on: boolean, foreign: string) : Promise<boolean> {
     return await TAURI_INVOKE("conversation_system_translate", { on, foreign });
 },
+/**
+ * Voz del Intérprete por un dispositivo de salida concreto (el remate de la
+ * idea de John Walter): renderiza el texto con la mejor voz instalada del
+ * idioma y lo reproduce en ese dispositivo. Con un micrófono virtual
+ * (BlackHole) elegido aquí y como micrófono de la reunión, la otra persona
+ * escucha tu dictado ya traducido. Solo macOS (como el audio del sistema).
+ */
+async conversationSpeakVia(text: string, lang: string, device: string) : Promise<boolean> {
+    return await TAURI_INVOKE("conversation_speak_via", { text, lang, device });
+},
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("mcp_start") };

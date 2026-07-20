@@ -94,7 +94,9 @@ fn play_sound_at_path(app: &AppHandle, path: &Path) -> Result<(), Box<dyn std::e
     play_audio_file(path, selected_device, volume)
 }
 
-fn play_audio_file(
+/// Público: también lo usa la voz del Intérprete de reuniones para sacar la
+/// traducción por un dispositivo concreto (p. ej. un micrófono virtual).
+pub fn play_audio_file(
     path: &std::path::Path,
     selected_device: Option<String>,
     volume: f32,
