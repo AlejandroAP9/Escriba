@@ -364,14 +364,23 @@ export const ConversationSettings: React.FC = () => {
   // Micrófono virtual integrado (patrón del motor Qwen): si falta, un botón
   // lo descarga verificado y lo instala sin salir de Escriba; macOS pide la
   // contraseña con su diálogo nativo (es un driver del sistema).
-  const [vmInstalled, setVmInstalled] = useState(true);
+  // Ante la duda (comando viejo, error), el botón se muestra: peor es
+  // esconder el instalador a quien lo necesita.
+  const [vmInstalled, setVmInstalled] = useState(false);
   const [vmInstalling, setVmInstalling] = useState(false);
   useEffect(() => {
     if (!sysTranslate) return;
     commands.getAvailableOutputDevices().then((r) => {
-      if (r.status === "ok") setOutputDevices(r.data.map((d) => d.name));
+      // "Default" ya está como opción propia (Parlantes): fuera el duplicado.
+      if (r.status === "ok")
+        setOutputDevices(
+          r.data.map((d) => d.name).filter((n) => n !== "Default"),
+        );
     });
-    commands.virtualMicInstalled().then(setVmInstalled);
+    commands
+      .virtualMicInstalled()
+      .then(setVmInstalled)
+      .catch(() => setVmInstalled(false));
   }, [sysTranslate]);
   const installVirtualMic = async () => {
     setVmInstalling(true);
