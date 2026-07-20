@@ -1216,7 +1216,7 @@
     "others": "Others",
     "systemTranslate": {
       "label": "Translate",
-      "hint": "Translates what plays on your computer into your language (John Walter's idea). Requires the local AI engine.",
+      "hint": "Translates what plays on your computer into your language (John Walter's idea).",
       "langHint": "Meeting language",
       "active": "Meeting interpreter active (John Walter's idea): anything in another language arrives translated into yours."
     }
