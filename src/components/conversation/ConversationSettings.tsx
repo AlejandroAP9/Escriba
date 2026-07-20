@@ -211,6 +211,51 @@ export const ConversationSettings: React.FC = () => {
     });
   }, []);
 
+  // Lee un texto en un idioma arbitrario (el del otro lado de la reunión):
+  // speechSynthesis con la mejor voz instalada para ese idioma, igual que el
+  // Traductor. La cascada nativa no sirve acá (leería con la voz local).
+  const speakIn = useCallback(
+    (lang: string, text: string) => {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      const voice = pickVoice(lang);
+      if (voice) u.voice = voice;
+      u.rate = 1.0;
+      window.speechSynthesis.speak(u);
+    },
+    [pickVoice],
+  );
+
+  // Cable de vuelta del Intérprete de reuniones (idea de John Walter): tu
+  // dictado llega traducido desde el backend; se anexa al turno, se lee en
+  // voz alta en el idioma del otro y ya quedó copiado listo para pegar.
+  useEffect(() => {
+    const unReply = listen<{ text: string; lang: string }>(
+      "conversation-reply-translated",
+      (e) => {
+        setTurns((prev) => {
+          const next = [...prev];
+          for (let i = next.length - 1; i >= 0; i--) {
+            if (next[i].role === "user") {
+              next[i] = {
+                ...next[i],
+                text: `${next[i].text}\n⇢ ${e.payload.text}`,
+              };
+              break;
+            }
+          }
+          return next;
+        });
+        speakIn(e.payload.lang, e.payload.text);
+      },
+    );
+    return () => {
+      unReply.then((fn) => fn());
+    };
+  }, [speakIn]);
+
   // Turnos en vivo desde el backend.
   useEffect(() => {
     const unTurn = listen<Turn>("conversation-turn", (e) => {
@@ -881,7 +926,7 @@ export const ConversationSettings: React.FC = () => {
                             {stamp(turn.at_secs)}
                           </span>
                         </p>
-                        <p className="text-sm leading-relaxed text-text/85">
+                        <p className="whitespace-pre-line text-sm leading-relaxed text-text/85">
                           {turn.text}
                         </p>
                       </div>

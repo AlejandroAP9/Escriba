@@ -560,6 +560,29 @@ pub fn conversation_system_translate(on: bool, foreign: String) -> bool {
     on
 }
 
+/// Si el Intérprete de reuniones está activo, devuelve el idioma del otro
+/// lado. Lo usa el cable de vuelta: tu dictado sale traducido a ese idioma.
+pub fn sys_translate_foreign() -> Option<String> {
+    if !SYS_TRANSLATE.load(Ordering::Relaxed) {
+        return None;
+    }
+    SYS_TRANSLATE_FOREIGN
+        .lock()
+        .ok()
+        .map(|g| g.clone())
+        .filter(|s| !s.is_empty())
+}
+
+/// Anexa la traducción del Intérprete al último turno del usuario, para que
+/// el acta conserve el par original ⇢ traducción (registro bilingüe).
+pub fn append_reply_translation(translated: &str) {
+    if let Ok(mut t) = TURNS.lock() {
+        if let Some(turn) = t.iter_mut().rev().find(|t| t.role == "user") {
+            turn.text = format!("{}\n⇢ {}", turn.text, translated);
+        }
+    }
+}
+
 /// Apaga la captura del audio del sistema (el worker sale en su próximo tick).
 fn system_audio_off() {
     if !SYSTEM_AUDIO.swap(false, Ordering::Relaxed) {

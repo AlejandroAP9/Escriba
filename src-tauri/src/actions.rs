@@ -654,6 +654,40 @@ pub(crate) async fn process_transcription_output(
         let history = crate::commands::conversation::transcript("Usuario", "Asistente", "Otros");
         let user_turn = crate::commands::conversation::push_turn("user", &final_text);
         let _ = app.emit("conversation-turn", user_turn);
+        // Intérprete de reuniones (idea de John Walter), cable de vuelta: tu
+        // dictado se traduce al idioma de la reunión, queda copiado listo
+        // para pegar en el chat y el frontend lo lee en voz alta en ese
+        // idioma. Corre aparte para que el turno aparezca sin espera.
+        if let Some(foreign) = crate::commands::conversation::sys_translate_foreign() {
+            let app2 = app.clone();
+            let original = final_text.clone();
+            tauri::async_runtime::spawn(async move {
+                let mine = get_settings(&app2)
+                    .app_language
+                    .split('-')
+                    .next()
+                    .unwrap_or("es")
+                    .to_string();
+                if let Some(translated) = translate_reply(&app2, &original, &foreign, &mine).await {
+                    // El acta conserva el par original ⇢ traducción.
+                    crate::commands::conversation::append_reply_translation(&translated);
+                    use tauri_plugin_clipboard_manager::ClipboardExt;
+                    let _ = app2.clipboard().write_text(translated.clone());
+                    #[derive(serde::Serialize, Clone)]
+                    struct ReplyTranslated {
+                        text: String,
+                        lang: String,
+                    }
+                    let _ = app2.emit(
+                        "conversation-reply-translated",
+                        ReplyTranslated {
+                            text: translated,
+                            lang: foreign,
+                        },
+                    );
+                }
+            });
+        }
         if crate::commands::conversation::is_converse_mode() {
             match conversation_reply(app, &history, &final_text).await {
                 Some(reply) => {
@@ -1782,6 +1816,30 @@ pub(crate) async fn translate_if_foreign(
     if detect_pair_language(text, foreign, mine) == mine {
         return None; // ya está en mi idioma: no tocar
     }
+    translate_with_local(app, text, mine).await
+}
+
+/// Cable de vuelta del Intérprete de reuniones (idea de John Walter): tu
+/// dictado sale en el idioma del otro lado. None si ya estaba en ese idioma
+/// (hablaste directamente en el suyo) o si no hay motor local disponible.
+pub(crate) async fn translate_reply(
+    app: &AppHandle,
+    text: &str,
+    foreign: &str,
+    mine: &str,
+) -> Option<String> {
+    if text.trim().is_empty() || foreign == mine {
+        return None;
+    }
+    if detect_pair_language(text, foreign, mine) == foreign {
+        return None; // ya está en el idioma del otro: no tocar
+    }
+    translate_with_local(app, text, foreign).await
+}
+
+/// Núcleo compartido del Intérprete: traduce `text` al idioma `target` con el
+/// motor local (sidecar u Ollama). La detección de dirección es del llamador.
+async fn translate_with_local(app: &AppHandle, text: &str, target: &str) -> Option<String> {
     let settings = get_settings(app);
     let mut provider = settings
         .post_process_providers
@@ -1802,7 +1860,7 @@ pub(crate) async fn translate_if_foreign(
         _ => return None,
     }
     let prompt = format!(
-        "Traduce el siguiente texto al idioma con codigo ISO '{mine}'. Conserva significado y tono; redaccion natural. Responde UNICAMENTE con la traduccion.\n\nTexto:\n{text}"
+        "Traduce el siguiente texto al idioma con codigo ISO '{target}'. Conserva significado y tono; redaccion natural. Responde UNICAMENTE con la traduccion.\n\nTexto:\n{text}"
     );
     let content = crate::llm_client::send_chat_completion(
         &provider,
