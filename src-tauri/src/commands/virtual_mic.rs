@@ -35,8 +35,10 @@ pub async fn virtual_mic_install(app: AppHandle) -> Result<bool, String> {
 
         // `installer` con privilegios vía osascript: la contraseña la pide el
         // diálogo nativo del sistema, encima de Escriba. La ruta entra por
-        // argv y `quoted form` (sin interpolar nada en el shell).
-        const SCRIPT: &str = "on run argv\ndo shell script \"/usr/sbin/installer -pkg \" & quoted form of item 1 of argv & \" -target /\" with administrator privileges\nend run";
+        // argv y `quoted form` (sin interpolar nada en el shell). Al final se
+        // reinicia coreaudiod: sin eso el driver queda en disco pero macOS no
+        // lo carga y el dispositivo no aparece (QA de Alejandro, 20-jul).
+        const SCRIPT: &str = "on run argv\ndo shell script \"/usr/sbin/installer -pkg \" & quoted form of item 1 of argv & \" -target / && (/usr/bin/killall coreaudiod || true)\" with administrator privileges\nend run";
         let pkg2 = pkg.clone();
         let out = tauri::async_runtime::spawn_blocking(move || {
             std::process::Command::new("/usr/bin/osascript")
