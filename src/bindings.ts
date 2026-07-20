@@ -168,6 +168,25 @@ async conversationSystemTranslate(on: boolean, foreign: string) : Promise<boolea
 async conversationSpeakVia(text: string, lang: string, device: string) : Promise<boolean> {
     return await TAURI_INVOKE("conversation_speak_via", { text, lang, device });
 },
+/**
+ * ¿Está el micrófono virtual instalado? (aparece como dispositivo de salida).
+ */
+async virtualMicInstalled() : Promise<boolean> {
+    return await TAURI_INVOKE("virtual_mic_installed");
+},
+/**
+ * Descarga el paquete oficial (SHA256 verificado, descartado si no calza) y
+ * lo instala con el diálogo nativo de privilegios de macOS. Devuelve false
+ * si el usuario canceló el diálogo (no es un error, no hay drama).
+ */
+async virtualMicInstall() : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("virtual_mic_install") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("mcp_start") };

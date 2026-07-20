@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
 import {
   ArrowRight,
@@ -362,12 +361,39 @@ export const ConversationSettings: React.FC = () => {
     localStorage.setItem("escriba.interpreterVoiceOut", device);
   };
   const [outputDevices, setOutputDevices] = useState<string[]>([]);
+  // Micrófono virtual integrado (patrón del motor Qwen): si falta, un botón
+  // lo descarga verificado y lo instala sin salir de Escriba; macOS pide la
+  // contraseña con su diálogo nativo (es un driver del sistema).
+  const [vmInstalled, setVmInstalled] = useState(true);
+  const [vmInstalling, setVmInstalling] = useState(false);
   useEffect(() => {
     if (!sysTranslate) return;
     commands.getAvailableOutputDevices().then((r) => {
       if (r.status === "ok") setOutputDevices(r.data.map((d) => d.name));
     });
+    commands.virtualMicInstalled().then(setVmInstalled);
   }, [sysTranslate]);
+  const installVirtualMic = async () => {
+    setVmInstalling(true);
+    try {
+      const r = await commands.virtualMicInstall();
+      if (r.status === "error") {
+        toast.error(r.error);
+        return;
+      }
+      if (!r.data) return; // canceló el diálogo de contraseña: sin drama
+      setVmInstalled(true);
+      const devs = await commands.getAvailableOutputDevices();
+      if (devs.status === "ok") {
+        setOutputDevices(devs.data.map((d) => d.name));
+        const bh = devs.data.find((d) => d.name.includes("BlackHole"));
+        if (bh) pickVoiceOut(bh.name);
+      }
+      toast.success(t("conversation.systemTranslate.vmReady"));
+    } finally {
+      setVmInstalling(false);
+    }
+  };
   const [sysAudioSupported, setSysAudioSupported] = useState(false);
   useEffect(() => {
     commands.systemAudioSupported().then(setSysAudioSupported);
@@ -897,6 +923,20 @@ export const ConversationSettings: React.FC = () => {
                       ))}
                     </select>
                   )}
+                  {sysTranslate && !vmInstalled && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={installVirtualMic}
+                      disabled={vmInstalling}
+                      title={t("conversation.systemTranslate.vmInstallHint")}
+                    >
+                      <Mic width={13} height={13} className="mr-1.5" />
+                      {vmInstalling
+                        ? t("conversation.systemTranslate.vmInstalling")
+                        : t("conversation.systemTranslate.vmInstall")}
+                    </Button>
+                  )}
                 </div>
               )}
               <Button variant="secondary" size="sm" onClick={togglePause}>
@@ -1007,16 +1047,7 @@ export const ConversationSettings: React.FC = () => {
             )}
             {sysTranslate && voiceOut && (
               <p className="mt-1 text-center text-[11px] text-mid-gray">
-                {t("conversation.systemTranslate.virtualMicHint")}{" "}
-                <button
-                  type="button"
-                  onClick={() =>
-                    openUrl("https://existential.audio/blackhole/")
-                  }
-                  className="cursor-pointer text-logo-primary underline-offset-2 hover:underline"
-                >
-                  {t("conversation.systemTranslate.blackhole")}
-                </button>
+                {t("conversation.systemTranslate.virtualMicHint")}
               </p>
             )}
           </Card>

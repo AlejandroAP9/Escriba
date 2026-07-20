@@ -1221,8 +1221,11 @@
       "active": "Intérprete de reuniones activo (Idea de John Walter): lo que suena llega en tu idioma y tu dictado se lee y copia en el idioma del otro lado.",
       "speakers": "Parlantes",
       "voiceOutHint": "Por dónde sale tu voz traducida. Elige un micrófono virtual (BlackHole) para que la escuchen dentro de la videollamada.",
-      "virtualMicHint": "Tu voz traducida sale por ese dispositivo. Para una videollamada: instala BlackHole y elígelo aquí y como micrófono de la reunión; la otra persona escucha solo la traducción.",
-      "blackhole": "Instalar BlackHole ↗"
+      "virtualMicHint": "Tu voz traducida sale por ese dispositivo. En tu reunión (Meet/Zoom) elige 'BlackHole 2ch' como micrófono: la otra persona escucha solo la traducción.",
+      "vmInstall": "Instalar micrófono virtual",
+      "vmInstalling": "Instalando…",
+      "vmInstallHint": "Descarga BlackHole 2ch (micrófono virtual open source de Existential Audio) desde la fuente oficial, verificado por SHA256, y lo instala. macOS pedirá tu contraseña: es un driver de audio del sistema.",
+      "vmReady": "Micrófono virtual listo: tu voz traducida ya sale por ahí. En tu reunión elige 'BlackHole 2ch' como micrófono."
     }
   },
   "engine": {

@@ -1221,8 +1221,11 @@
       "active": "Meeting interpreter active (John Walter's idea): what plays arrives in your language, and your dictation is spoken and copied in the other side's language.",
       "speakers": "Speakers",
       "voiceOutHint": "Where your translated voice comes out. Pick a virtual microphone (BlackHole) so it is heard inside the video call.",
-      "virtualMicHint": "Your translated voice comes out through that device. For a video call: install BlackHole and select it here and as the meeting microphone; the other person hears only the translation.",
-      "blackhole": "Install BlackHole ↗"
+      "virtualMicHint": "Your translated voice comes out through that device. In your meeting (Meet/Zoom) pick 'BlackHole 2ch' as the microphone: the other person hears only the translation.",
+      "vmInstall": "Install virtual microphone",
+      "vmInstalling": "Installing…",
+      "vmInstallHint": "Downloads BlackHole 2ch (Existential Audio's open-source virtual microphone) from the official source, SHA256-verified, and installs it. macOS will ask for your password: it is a system audio driver.",
+      "vmReady": "Virtual microphone ready: your translated voice now comes out through it. In your meeting, pick 'BlackHole 2ch' as the microphone."
     }
   },
   "engine": {

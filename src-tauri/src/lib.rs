@@ -656,6 +656,8 @@ pub fn run(cli_args: CliArgs) {
             commands::conversation::system_audio_permission,
             commands::conversation::conversation_system_translate,
             commands::conversation::conversation_speak_via,
+            commands::virtual_mic::virtual_mic_installed,
+            commands::virtual_mic::virtual_mic_install,
             commands::mcp::mcp_start,
             commands::mcp::mcp_stop,
             commands::mcp::mcp_status,
