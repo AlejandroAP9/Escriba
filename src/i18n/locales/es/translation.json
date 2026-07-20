@@ -1217,7 +1217,8 @@
     "systemTranslate": {
       "label": "Traducir",
       "hint": "Traduce lo que suena en tu computador a tu idioma (idea de John Walter). Necesita el motor de IA local.",
-      "langHint": "Idioma de la reunión"
+      "langHint": "Idioma de la reunión",
+      "active": "Intérprete de reuniones activo (Idea de John Walter): lo que suene en otro idioma llega traducido al tuyo."
     }
   },
   "engine": {

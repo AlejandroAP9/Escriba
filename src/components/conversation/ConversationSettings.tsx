@@ -902,11 +902,13 @@ export const ConversationSettings: React.FC = () => {
             </div>
             {turns.length > 0 && (
               <p className="mt-3 border-t border-line pt-2 text-center text-[11px] text-mid-gray">
-                {sysAudio
-                  ? t("conversation.systemAudio.hint")
-                  : handsFree
-                    ? t("conversation.handsFree.hint")
-                    : t("conversation.hint")}
+                {sysTranslate
+                  ? t("conversation.systemTranslate.active")
+                  : sysAudio
+                    ? t("conversation.systemAudio.hint")
+                    : handsFree
+                      ? t("conversation.handsFree.hint")
+                      : t("conversation.hint")}
               </p>
             )}
           </Card>
