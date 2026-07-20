@@ -26,6 +26,9 @@ const VISITOR_HTML: &str = include_str!("../../interpreter/visitor.html");
 
 /// Rate-limit del acceso a la sala: máx. intentos fallidos por IP antes de 429.
 const MAX_FAILED_ATTEMPTS: u32 = 10;
+/// Tope de oyentes SSE simultáneos: una sala de tour/clase real no pasa de
+/// decenas; el límite evita que alguien en la red agote conexiones del server.
+const MAX_LISTENERS: u32 = 64;
 /// Ventana de bloqueo tras superar el tope.
 const LOCKOUT: Duration = Duration::from_secs(30);
 
@@ -399,6 +402,9 @@ async fn sse_handler(
         return (StatusCode::FORBIDDEN, "sala no encontrada").into_response();
     }
     server.clear_failures(ip);
+    if server.listeners() >= MAX_LISTENERS {
+        return (StatusCode::SERVICE_UNAVAILABLE, "sala llena").into_response();
+    }
     let lang = q.lang.clone();
     let guard = ListenerGuard::new(server, lang.clone());
     let rx = server.tx.subscribe();

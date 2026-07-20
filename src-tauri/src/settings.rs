@@ -560,7 +560,13 @@ fn default_debug_mode() -> bool {
 }
 
 fn default_log_level() -> LogLevel {
-    LogLevel::Debug
+    // Release: Info, para que los logs que un usuario adjunta a un reporte no
+    // arrastren detalle de depuración de más. En dev seguimos con Debug.
+    if cfg!(debug_assertions) {
+        LogLevel::Debug
+    } else {
+        LogLevel::Info
+    }
 }
 
 fn default_word_correction_threshold() -> f64 {
