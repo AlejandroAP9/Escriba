@@ -633,10 +633,18 @@ fn best_voice_for(lang: &str) -> Option<String> {
         if name.is_empty() || !locale.starts_with(&base) {
             continue;
         }
+        // Entre voces sin calidad marcada, las clásicas de dictado le ganan
+        // a las de novedad (Albert, Bells, Boing...): suenan a persona.
+        const KNOWN_GOOD: [&str; 12] = [
+            "Samantha", "Alex", "Ava", "Allison", "Susan", "Zoe", "Evan", "Nathan", "Daniel",
+            "Karen", "Moira", "Tessa",
+        ];
         let score = if name.contains("Premium") {
             30
         } else if name.contains("Enhanced") || name.contains("Mejorada") {
             20
+        } else if KNOWN_GOOD.iter().any(|g| name == *g) {
+            15
         } else {
             10
         };
@@ -666,12 +674,14 @@ fn speak_via_blocking(text: &str, lang: &str, device: &str) -> bool {
         .stdout(Stdio::null())
         .stderr(Stdio::null());
     let Ok(mut child) = cmd.spawn() else {
+        log::warn!("interpreter voice: say no arrancó");
         return false;
     };
     if let Some(mut stdin) = child.stdin.take() {
         let _ = stdin.write_all(text.as_bytes());
     }
     if !child.wait().map(|s| s.success()).unwrap_or(false) {
+        log::warn!("interpreter voice: say falló al renderizar");
         return false;
     }
     let selected = if device.is_empty() {
@@ -679,9 +689,20 @@ fn speak_via_blocking(text: &str, lang: &str, device: &str) -> bool {
     } else {
         Some(device.to_string())
     };
-    let ok = crate::audio_feedback::play_audio_file(&wav, selected, 1.0).is_ok();
+    log::info!(
+        "interpreter voice: {} chars ({}) → dispositivo {:?}",
+        text.chars().count(),
+        lang,
+        selected.as_deref().unwrap_or("default")
+    );
+    let result = crate::audio_feedback::play_audio_file(&wav, selected, 1.0);
+    if let Err(e) = &result {
+        log::warn!("interpreter voice: reproducción falló: {}", e);
+    } else {
+        log::info!("interpreter voice: reproducción completa");
+    }
     let _ = std::fs::remove_file(&wav);
-    ok
+    result.is_ok()
 }
 
 /// Apaga la captura del audio del sistema (el worker sale en su próximo tick).

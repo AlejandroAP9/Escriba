@@ -260,7 +260,8 @@ export const ConversationSettings: React.FC = () => {
             .conversationSpeakVia(e.payload.text, e.payload.lang, device)
             .then((ok) => {
               if (!ok) speakIn(e.payload.lang, e.payload.text);
-            });
+            })
+            .catch(() => speakIn(e.payload.lang, e.payload.text));
         } else {
           speakIn(e.payload.lang, e.payload.text);
         }
