@@ -41,6 +41,23 @@ type Variant = "listen" | "interview" | "class" | "brainstorm";
 const VARIANTS: Variant[] = ["listen", "interview", "class", "brainstorm"];
 type Phase = "idle" | "active" | "doc";
 
+// Idiomas de reunión para el Intérprete de reuniones (idea de John Walter):
+// misma lista y banderas del Traductor e Intérprete, coherencia entre pantallas.
+const MEETING_LANGUAGES: { value: string; label: string; flag: string }[] = [
+  { value: "en", label: "English (Inglés)", flag: "🇬🇧" },
+  { value: "es", label: "Español", flag: "🇪🇸" },
+  { value: "pt", label: "Português (Portugués)", flag: "🇵🇹" },
+  { value: "fr", label: "Français (Francés)", flag: "🇫🇷" },
+  { value: "de", label: "Deutsch (Alemán)", flag: "🇩🇪" },
+  { value: "it", label: "Italiano", flag: "🇮🇹" },
+  { value: "zh", label: "中文 (Chino)", flag: "🇨🇳" },
+  { value: "ja", label: "日本語 (Japonés)", flag: "🇯🇵" },
+  { value: "ko", label: "한국어 (Coreano)", flag: "🇰🇷" },
+  { value: "ru", label: "Русский (Ruso)", flag: "🇷🇺" },
+  { value: "lt", label: "Lietuvių (Lituano)", flag: "🇱🇹" },
+  { value: "ar", label: "العربية (Árabe)", flag: "🇸🇦" },
+];
+
 // ToggleSwitch exige description; aquí el label se explica solo.
 const NO_DESCRIPTION = "";
 
@@ -779,22 +796,9 @@ export const ConversationSettings: React.FC = () => {
                       title={t("conversation.systemTranslate.langHint")}
                       className="rounded-lg border border-line bg-background px-1.5 py-1 text-xs text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
                     >
-                      {[
-                        "en",
-                        "pt",
-                        "fr",
-                        "de",
-                        "it",
-                        "zh",
-                        "ja",
-                        "ko",
-                        "ru",
-                        "lt",
-                        "ar",
-                        "es",
-                      ].map((l) => (
-                        <option key={l} value={l}>
-                          {l.toUpperCase()}
+                      {MEETING_LANGUAGES.map((l) => (
+                        <option key={l.value} value={l.value}>
+                          {l.flag} {l.label}
                         </option>
                       ))}
                     </select>
