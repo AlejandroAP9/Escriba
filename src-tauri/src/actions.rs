@@ -1863,7 +1863,7 @@ async fn translate_with_local(app: &AppHandle, text: &str, target: &str) -> Opti
         _ => return None,
     }
     let prompt = format!(
-        "Traduce el siguiente texto al idioma con codigo ISO '{target}'. Conserva significado y tono; redaccion natural. Responde UNICAMENTE con la traduccion.\n\nTexto:\n{text}"
+        "Traduce el siguiente texto al idioma con codigo ISO '{target}'. Conserva significado y tono; redaccion natural. Los nombres propios y marcas (personas, apps, lugares) se dejan tal cual, sin traducir. Responde UNICAMENTE con la traduccion.\n\nTexto:\n{text}"
     );
     let content = crate::llm_client::send_chat_completion(
         &provider,
