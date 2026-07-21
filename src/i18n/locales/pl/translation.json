@@ -1251,5 +1251,12 @@
     "debugPaths": "Debug paths",
     "cancel": "Cancel",
     "modelStatus": "Model status: {{status}}"
+  },
+  "obsidian": {
+    "send": "Send to Obsidian",
+    "sending": "Sending…",
+    "sent": "Note saved to your Obsidian vault",
+    "failed": "Could not save the note",
+    "pickVault": "Choose your Obsidian vault folder"
   }
 }

@@ -434,6 +434,12 @@ pub struct AppSettings {
     #[serde(default = "default_post_process_prompts")]
     pub post_process_prompts: Vec<LLMPrompt>,
 
+    /// Carpeta del vault de Obsidian (o cualquier carpeta de notas Markdown)
+    /// donde "Enviar a Obsidian" escribe el documento. Vacío = sin configurar;
+    /// se pide con el selector de carpeta la primera vez.
+    #[serde(default)]
+    pub obsidian_vault_path: String,
+
     /// Tonos por app: activa el override de plantilla según la app activa.
     #[serde(default)]
     pub app_context_enabled: bool,
@@ -1001,6 +1007,7 @@ pub fn get_default_settings() -> AppSettings {
         post_process_api_keys: default_post_process_api_keys(),
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
+        obsidian_vault_path: String::new(),
         app_context_enabled: false,
         app_context_rules: Vec::new(),
         post_process_selected_prompt_id: Some("escriba_dictado_natural".to_string()),

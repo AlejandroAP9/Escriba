@@ -9,6 +9,7 @@ import {
 } from "@tauri-apps/plugin-dialog";
 import { Lock, Globe, Cpu, UploadCloud } from "lucide-react";
 import { commands, type StudioJob } from "@/bindings";
+import { sendToObsidian } from "@/lib/obsidian";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
 import { RetranscribeMenu } from "../shared/RetranscribeMenu";
@@ -273,6 +274,19 @@ export const StudioSettings: React.FC = () => {
                     {fmt.toUpperCase()}
                   </Button>
                 ))}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() =>
+                    sendToObsidian(
+                      job.file_name.replace(/\.[^.]+$/, ""),
+                      job.paragraphs.join("\n\n"),
+                      t,
+                    )
+                  }
+                >
+                  {t("obsidian.send")}
+                </Button>
                 <Button
                   variant="primary"
                   size="sm"

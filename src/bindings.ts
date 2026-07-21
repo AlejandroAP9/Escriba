@@ -187,6 +187,30 @@ async virtualMicInstall() : Promise<Result<boolean, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async setObsidianVault(path: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_obsidian_vault", { path }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getObsidianVault() : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_obsidian_vault") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async exportToObsidian(title: string, content: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("export_to_obsidian", { title, content }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("mcp_start") };

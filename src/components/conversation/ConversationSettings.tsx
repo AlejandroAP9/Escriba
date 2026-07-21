@@ -2,11 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { toast } from "sonner";
+import { sendToObsidian } from "@/lib/obsidian";
 import {
   ArrowRight,
   Check,
   Copy,
   Ear,
+  FileDown,
   FileText,
   Languages,
   Lock,
@@ -545,6 +547,24 @@ export const ConversationSettings: React.FC = () => {
       setTimeout(() => setCopied(false), 1500);
     } catch {
       /* portapapeles no disponible */
+    }
+  };
+
+  // Enviar a Obsidian: el título es la primera línea con texto del documento
+  // (o el nombre del modo), y el cuerpo es el documento tal cual.
+  const [sendingObsidian, setSendingObsidian] = useState(false);
+  const sendDocToObsidian = async () => {
+    const firstLine =
+      doc
+        .split("\n")
+        .map((l) => l.trim())
+        .find((l) => l.length > 0) || t(`conversation.variant.${variant}`);
+    const title = firstLine.replace(/^#+\s*/, "").slice(0, 80);
+    setSendingObsidian(true);
+    try {
+      await sendToObsidian(title, doc, t);
+    } finally {
+      setSendingObsidian(false);
     }
   };
 
@@ -1174,23 +1194,38 @@ export const ConversationSettings: React.FC = () => {
                 />
                 {t("conversation.docTitle")}
               </p>
-              <button
-                type="button"
-                onClick={copyDoc}
-                className="flex items-center gap-1.5 rounded-lg border border-mid-gray/20 px-3 py-1.5 text-xs font-medium text-text transition-colors hover:border-mid-gray/40"
-              >
-                {copied ? (
-                  <>
-                    <Check width={13} height={13} className="text-green-600" />
-                    {t("conversation.copied")}
-                  </>
-                ) : (
-                  <>
-                    <Copy width={13} height={13} />
-                    {t("conversation.copy")}
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={sendDocToObsidian}
+                  disabled={sendingObsidian}
+                  className="flex items-center gap-1.5 rounded-lg border border-mid-gray/20 px-3 py-1.5 text-xs font-medium text-text transition-colors hover:border-mid-gray/40 disabled:opacity-60"
+                >
+                  <FileDown width={13} height={13} />
+                  {sendingObsidian ? t("obsidian.sending") : t("obsidian.send")}
+                </button>
+                <button
+                  type="button"
+                  onClick={copyDoc}
+                  className="flex items-center gap-1.5 rounded-lg border border-mid-gray/20 px-3 py-1.5 text-xs font-medium text-text transition-colors hover:border-mid-gray/40"
+                >
+                  {copied ? (
+                    <>
+                      <Check
+                        width={13}
+                        height={13}
+                        className="text-green-600"
+                      />
+                      {t("conversation.copied")}
+                    </>
+                  ) : (
+                    <>
+                      <Copy width={13} height={13} />
+                      {t("conversation.copy")}
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             <p className="whitespace-pre-line text-sm leading-relaxed text-text/90">
               {doc}

@@ -1251,5 +1251,12 @@
     "debugPaths": "Rutas de depuración",
     "cancel": "Cancelar",
     "modelStatus": "Estado del modelo: {{status}}"
+  },
+  "obsidian": {
+    "send": "Enviar a Obsidian",
+    "sending": "Enviando…",
+    "sent": "Nota guardada en tu vault de Obsidian",
+    "failed": "No se pudo guardar la nota",
+    "pickVault": "Elige la carpeta de tu vault de Obsidian"
   }
 }
