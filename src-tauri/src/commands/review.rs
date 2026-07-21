@@ -23,10 +23,17 @@ pub fn set_pending(app: &tauri::AppHandle, text: String) {
     crate::overlay::show_review_overlay(app, &text);
 }
 
-fn clear() {
+/// Limpia el texto pendiente de revisión. Público para que la cancelación
+/// global (atajo de cancelar) lo borre: si no, el próximo dictado se trataría
+/// como una corrección del texto fantasma (auditoría #3).
+pub fn clear_pending() {
     if let Ok(mut g) = PENDING.lock() {
         *g = None;
     }
+}
+
+fn clear() {
+    clear_pending();
 }
 
 /// Pegar el texto pendiente donde está el cursor y cerrar la revisión.
@@ -39,14 +46,20 @@ pub fn review_confirm(app: tauri::AppHandle) {
         return;
     };
     crate::overlay::hide_recording_overlay(&app);
+    // El respiro de 150 ms (para que el overlay se oculte antes de pegar) va en
+    // un hilo aparte: dormirlo en el hilo principal congelaba la app en cada
+    // pegado (auditoría #16). Solo el pegado vuelve al hilo principal.
     let app2 = app.clone();
-    let _ = app.run_on_main_thread(move || {
+    std::thread::spawn(move || {
         std::thread::sleep(std::time::Duration::from_millis(150));
-        if let Err(e) = crate::clipboard::paste(text, app2.clone()) {
-            log::error!("Revisión: fallo al pegar: {}", e);
-            use tauri::Emitter;
-            let _ = app2.emit("paste-error", ());
-        }
+        let app3 = app2.clone();
+        let _ = app2.run_on_main_thread(move || {
+            if let Err(e) = crate::clipboard::paste(text, app3.clone()) {
+                log::error!("Revisión: fallo al pegar: {}", e);
+                use tauri::Emitter;
+                let _ = app3.emit("paste-error", ());
+            }
+        });
     });
 }
 

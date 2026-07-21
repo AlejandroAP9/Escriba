@@ -1202,13 +1202,27 @@ impl ShortcutAction for TranscribeAction {
                             if let Some(prev) = review_prev {
                                 // Corrección aplicada (o fallida → se conserva
                                 // el texto anterior; notify_fallback ya avisó).
-                                let updated = if processed.post_processed_text.is_some()
-                                    && !processed.final_text.is_empty()
-                                {
+                                let corrected = processed.post_processed_text.is_some()
+                                    && !processed.final_text.is_empty();
+                                let updated = if corrected {
                                     processed.final_text.clone()
                                 } else {
                                     prev
                                 };
+                                // Guardar la versión corregida en el historial
+                                // (auditoría #15): si luego descartas, el texto
+                                // corregido no se pierde, se recupera de ahí.
+                                if corrected && wav_saved {
+                                    if let Err(err) = hm.save_entry(
+                                        file_name,
+                                        updated.clone(),
+                                        post_process,
+                                        Some(updated.clone()),
+                                        processed.post_process_prompt.clone(),
+                                    ) {
+                                        error!("Failed to save corrected history entry: {}", err);
+                                    }
+                                }
                                 crate::commands::review::set_pending(&ah, updated);
                                 change_tray_icon(&ah, TrayIconState::Idle);
                                 return;

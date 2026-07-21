@@ -33,6 +33,10 @@ pub fn cancel_current_operation(app: &AppHandle) {
     change_tray_icon(app, crate::tray::TrayIconState::Idle);
     hide_recording_overlay(app);
 
+    // Descartar cualquier revisión pendiente: cancelar debe dejar el estado
+    // limpio, no un texto fantasma que "corrija" el próximo dictado (#3).
+    crate::commands::review::clear_pending();
+
     // Unload model if immediate unload is enabled
     tm.maybe_unload_immediately("cancellation");
 

@@ -67,6 +67,25 @@ const RecordingOverlay: React.FC = () => {
     };
   }, []);
 
+  // Teclado en la revisión (auditoría #11): Enter pega, Esc descarta. El
+  // overlay es un panel sin foco por diseño, así que esto ayuda donde el
+  // webview recibe teclas; el descarte por teclado siempre está disponible
+  // vía el atajo global de cancelar.
+  useEffect(() => {
+    if (state !== "review") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        commands.reviewConfirm();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        commands.reviewDiscard();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [state]);
+
   useEffect(() => {
     const setupEventListeners = async () => {
       const unlistenShow = await listen("show-overlay", async (event) => {
