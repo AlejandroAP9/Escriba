@@ -1211,7 +1211,8 @@
       "error": "No se pudo iniciar la captura del audio del sistema.",
       "permissionTitle": "Falta el permiso de Grabación de pantalla",
       "permissionHint": "macOS lo exige para capturar el audio del sistema (la pantalla no se graba). Concédelo en Ajustes del Sistema → Privacidad y seguridad → Grabación de pantalla y audio del sistema, y vuelve a abrir Escriba.",
-      "micTip": "Audio del sistema activado. Para que tu voz también entre a la sesión, activa además “Manos libres” (o dicta con tu atajo)."
+      "micTip": "Audio del sistema activado. Para que tu voz también entre a la sesión, activa además “Manos libres” (o dicta con tu atajo).",
+      "died": "La captura del audio del sistema se detuvo (¿permiso o audio del sistema?). Actívala de nuevo si sigues en la reunión."
     },
     "others": "Otros",
     "systemTranslate": {

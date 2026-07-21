@@ -20,6 +20,12 @@ static HANDS_FREE: AtomicBool = AtomicBool::new(false);
 /// Audio del sistema: captura lo que suena en el computador (Zoom, Meet, un
 /// video) y lo suma a la sesión como turnos de "Otros".
 static SYSTEM_AUDIO: AtomicBool = AtomicBool::new(false);
+/// El worker del audio del sistema está vivo. Al apagar, el flag SYSTEM_AUDIO
+/// se pone en false pero el worker tarda hasta ~100 ms en salir (duerme por
+/// iteración); re-encender en esa ventana arrancaba un segundo worker con el
+/// primero aún vivo, y los dos se repartían el buffer (auditoría #4). Con esto
+/// el arranque espera a que el anterior termine.
+static SYSTEM_AUDIO_WORKER: AtomicBool = AtomicBool::new(false);
 
 /// Intérprete de reuniones (idea de John Walter): traducir los turnos de
 /// "Otros" al idioma del usuario cuando vienen en el idioma de la reunión.
@@ -449,6 +455,15 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
         return Ok(true); // ya activo
     }
 
+    // Espera a que un worker anterior (recién apagado) termine de salir antes
+    // de arrancar el nuevo, para que no queden dos leyendo el mismo buffer
+    // (auditoría #4). Tope generoso (~1 s) por si el modelo estaba ocupado.
+    let mut waited = 0;
+    while SYSTEM_AUDIO_WORKER.load(Ordering::Relaxed) && waited < 100 {
+        std::thread::sleep(std::time::Duration::from_millis(10));
+        waited += 1;
+    }
+
     if let Err(e) = crate::system_audio::start() {
         SYSTEM_AUDIO.store(false, Ordering::Relaxed);
         return Err(e);
@@ -462,6 +477,18 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
         use std::sync::Arc;
         use tauri::Manager;
 
+        // Marca el worker como vivo mientras corre; el guard lo desmarca al
+        // salir por cualquier vía (auditoría #4), para que el próximo arranque
+        // sepa cuándo el buffer ya está libre.
+        struct AliveGuard;
+        impl Drop for AliveGuard {
+            fn drop(&mut self) {
+                SYSTEM_AUDIO_WORKER.store(false, Ordering::Relaxed);
+            }
+        }
+        SYSTEM_AUDIO_WORKER.store(true, Ordering::Relaxed);
+        let _alive = AliveGuard;
+
         const FRAME: usize = 480; // 30 ms @ 16 kHz, el tamaño que espera el VAD
         const SILENCE_MS: u128 = 300; // + cola del VAD (~450 ms) ≈ 0.75 s de pausa real
         const MIN_SAMPLES: usize = 16_000 / 2; // 0.5 s: descarta pitidos sueltos
@@ -474,11 +501,23 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
         let mut buffer: Vec<f32> = Vec::new(); // solo voz (salida del VAD)
         let mut last_voice = std::time::Instant::now();
 
+        let mut alive_checks: u32 = 0;
         loop {
             if !SYSTEM_AUDIO.load(Ordering::Relaxed) {
                 break;
             }
             std::thread::sleep(std::time::Duration::from_millis(100));
+            // Cada ~1 s comprobamos que la captura siga viva: si el stream se
+            // cayó solo (permiso revocado, coreaudiod reiniciado), avisamos al
+            // frontend para que apague el toggle en vez de fingir que escucha
+            // (auditoría #10). Damos margen inicial para que arranque.
+            alive_checks += 1;
+            if alive_checks >= 10 && !crate::system_audio::alive() {
+                use tauri::Emitter;
+                let _ = app2.emit("system-audio-died", ());
+                SYSTEM_AUDIO.store(false, Ordering::Relaxed);
+                break;
+            }
             let n = crate::system_audio::read(&mut chunk);
             if n > 0 {
                 pending.extend_from_slice(&chunk[..n]);

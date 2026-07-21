@@ -347,6 +347,20 @@ export const ConversationSettings: React.FC = () => {
     };
   }, []);
 
+  // La captura del audio del sistema se cayó sola (permiso revocado, audio
+  // reiniciado): apagamos el toggle y avisamos en vez de fingir que escucha
+  // (auditoría #10).
+  useEffect(() => {
+    const un = listen("system-audio-died", () => {
+      setSysAudio(false);
+      setSysTranslate(false);
+      toast.error(t("conversation.systemAudio.died"));
+    });
+    return () => {
+      un.then((fn) => fn());
+    };
+  }, [t]);
+
   // El modo efectivo que viaja al backend: converse, o la variante de escucha.
   const effectiveMode = mode === "converse" ? "converse" : variant;
 

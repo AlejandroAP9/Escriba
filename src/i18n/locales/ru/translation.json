@@ -1211,7 +1211,8 @@
       "error": "Could not start system audio capture.",
       "permissionTitle": "Screen Recording permission needed",
       "permissionHint": "macOS requires it to capture system audio (the screen itself is not recorded). Grant it in System Settings → Privacy & Security → Screen & System Audio Recording, then reopen Escriba.",
-      "micTip": "System audio on. To add your own voice to the session, also enable “Hands-free” (or dictate with your shortcut)."
+      "micTip": "System audio on. To add your own voice to the session, also enable “Hands-free” (or dictate with your shortcut).",
+      "died": "System audio capture stopped (permission or audio glitch?). Turn it on again if you're still in the meeting."
     },
     "others": "Others",
     "systemTranslate": {

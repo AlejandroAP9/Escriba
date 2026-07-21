@@ -12,6 +12,20 @@ mod ffi {
         pub fn escriba_sysaudio_start() -> i32;
         pub fn escriba_sysaudio_stop();
         pub fn escriba_sysaudio_read(out: *mut f32, max: i32) -> i32;
+        pub fn escriba_sysaudio_alive() -> i32;
+    }
+}
+
+/// ¿La captura sigue viva? `false` si el stream se cayó solo (permiso
+/// revocado, reinicio de coreaudiod) o no está corriendo (auditoría #10).
+pub fn alive() -> bool {
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    {
+        unsafe { ffi::escriba_sysaudio_alive() == 1 }
+    }
+    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+    {
+        false
     }
 }
 

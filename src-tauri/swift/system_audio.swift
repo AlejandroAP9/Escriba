@@ -16,12 +16,34 @@ import ScreenCaptureKit
 private let maxBufferedSamples = 16_000 * 60
 
 @available(macOS 13.0, *)
-private final class SystemAudioCapture: NSObject, SCStreamOutput, @unchecked Sendable {
+private final class SystemAudioCapture: NSObject, SCStreamOutput, SCStreamDelegate,
+    @unchecked Sendable
+{
     static let shared = SystemAudioCapture()
 
     private let lock = NSLock()
     private var samples: [Float] = []
     private var stream: SCStream?
+    /// El stream murió por su cuenta (permiso revocado, coreaudiod reiniciado):
+    /// SCK llama a `didStopWithError`. Sin esto la captura moría en silencio y
+    /// la UI seguía diciendo "Audio del sistema" sin entrar nada (auditoría #10).
+    private var streamDied = false
+
+    /// SCStreamDelegate: el sistema detuvo el stream con error.
+    func stream(_ stream: SCStream, didStopWithError error: Error) {
+        FileHandle.standardError.write(
+            "escriba sysaudio stream stopped: \(error)\n".data(using: .utf8)!)
+        lock.lock()
+        streamDied = true
+        lock.unlock()
+    }
+
+    /// ¿La captura sigue viva? (arrancada y sin morir por su cuenta.)
+    func isAlive() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return stream != nil && !streamDied
+    }
 
     func stream(
         _ stream: SCStream, didOutputSampleBuffer sb: CMSampleBuffer, of type: SCStreamOutputType
@@ -88,7 +110,9 @@ private final class SystemAudioCapture: NSObject, SCStreamOutput, @unchecked Sen
                 config.height = 2
                 config.minimumFrameInterval = CMTime(value: 1, timescale: 1)
 
-                let stream = SCStream(filter: filter, configuration: config, delegate: nil)
+                let stream = SCStream(
+                    filter: filter, configuration: config,
+                    delegate: SystemAudioCapture.shared)
                 try stream.addStreamOutput(
                     SystemAudioCapture.shared, type: .audio,
                     sampleHandlerQueue: DispatchQueue(label: "escriba.sysaudio"))
@@ -109,6 +133,7 @@ private final class SystemAudioCapture: NSObject, SCStreamOutput, @unchecked Sen
         if box.code == 0 {
             lock.lock()
             samples.removeAll()
+            streamDied = false
             lock.unlock()
             stream = box.stream
         }
@@ -164,6 +189,14 @@ public func escribaSysaudioStart() -> Int32 {
 public func escribaSysaudioStop() {
     guard #available(macOS 13.0, *) else { return }
     SystemAudioCapture.shared.stop()
+}
+
+/// ¿La captura sigue viva? 1 = sí · 0 = murió o no está corriendo. Rust lo
+/// consulta para avisar si el stream se cayó solo (auditoría #10).
+@_cdecl("escriba_sysaudio_alive")
+public func escribaSysaudioAlive() -> Int32 {
+    guard #available(macOS 13.0, *) else { return 0 }
+    return SystemAudioCapture.shared.isAlive() ? 1 : 0
 }
 
 /// Drena hasta `max` muestras (Float32, 16 kHz mono) al buffer de Rust.
