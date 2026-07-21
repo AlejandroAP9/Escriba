@@ -16,7 +16,9 @@ pub fn transcribe_samples(
     samples: &[f32],
     mut on_progress: impl FnMut(f32),
 ) -> Result<Vec<Segment>, String> {
-    let chunk_len = CHUNK_SECONDS * SAMPLE_RATE;
+    // La ventana depende del motor: Whisper digiere chunks largos; los ONNX
+    // (Canary, Parakeet...) necesitan frases cortas o devuelven vacío.
+    let chunk_len = tm.max_window_seconds().min(CHUNK_SECONDS) * SAMPLE_RATE;
     let overlap_len = OVERLAP_SECONDS * SAMPLE_RATE;
 
     if samples.len() <= chunk_len + overlap_len {

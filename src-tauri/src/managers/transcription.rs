@@ -380,6 +380,27 @@ impl TranscriptionManager {
         })
     }
 
+    /// Ventana máxima de audio (segundos) que el motor actual digiere de una
+    /// pasada. Whisper (transcribe-cpp) trocea internamente y acepta chunks
+    /// largos; los motores ONNX (Canary, Parakeet, Moonshine, SenseVoice,
+    /// GigaAM) están entrenados para frases cortas: sobre ~40s degradan hasta
+    /// devolver vacío (QA 21-jul: Canary entregó 0 chars con 126s de una
+    /// pasada). Sin motor cargado aún, se decide por el id del modelo.
+    pub fn max_window_seconds(&self) -> usize {
+        match self.lock_engine().as_ref() {
+            Some(LoadedEngine::TranscribeCpp(_)) => 480,
+            Some(_) => 30,
+            None => {
+                let model = get_settings(&self.app_handle).selected_model;
+                if model.contains("whisper") || model.contains("breeze") {
+                    480
+                } else {
+                    30
+                }
+            }
+        }
+    }
+
     pub fn is_model_loaded(&self) -> bool {
         // The engine may be leased out to the streaming worker (taken out of
         // the mutex). It's still loaded, just in use, so report true.
