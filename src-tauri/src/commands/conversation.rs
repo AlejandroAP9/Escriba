@@ -594,6 +594,7 @@ pub fn append_reply_translation(translated: &str) {
 #[tauri::command]
 #[specta::specta]
 pub async fn conversation_speak_via(
+    app: tauri::AppHandle,
     text: String,
     lang: String,
     device: String,
@@ -602,14 +603,14 @@ pub async fn conversation_speak_via(
     #[cfg(target_os = "macos")]
     {
         tauri::async_runtime::spawn_blocking(move || {
-            speak_via_blocking(&text, &lang, &device, &gender)
+            speak_via_blocking(&app, &text, &lang, &device, &gender)
         })
         .await
         .unwrap_or(false)
     }
     #[cfg(not(target_os = "macos"))]
     {
-        let _ = (text, lang, device, gender);
+        let _ = (app, text, lang, device, gender);
         false
     }
 }
@@ -707,13 +708,43 @@ fn best_voice_for(lang: &str, gender: &str) -> Option<String> {
     best.map(|(_, n)| n)
 }
 
-/// Renderiza con `say` a WAV y lo reproduce en el dispositivo elegido
+/// Renderiza la traducción a WAV y la reproduce en el dispositivo elegido
 /// (cadena vacía = salida por defecto). Bloqueante: llamar en spawn_blocking.
+/// Preferencia de motor: voz neural incluida (sherpa-onnx, si está instalada
+/// para el idioma y se pidió voz femenina —la neural es femenina—); si no,
+/// la voz del sistema (`say`), que honra el selector de género.
 #[cfg(target_os = "macos")]
-fn speak_via_blocking(text: &str, lang: &str, device: &str, gender: &str) -> bool {
-    use std::io::Write;
+fn speak_via_blocking(
+    app: &tauri::AppHandle,
+    text: &str,
+    lang: &str,
+    device: &str,
+    gender: &str,
+) -> bool {
     use std::process::{Command, Stdio};
     let wav = std::env::temp_dir().join("escriba-interpreter-voice.wav");
+    let selected = if device.is_empty() {
+        None
+    } else {
+        Some(device.to_string())
+    };
+
+    // Motor #1: voz neural incluida (natural, "todo incorporado"). Solo para
+    // voz femenina, porque la voz Piper incluida es femenina.
+    if gender != "m" && crate::managers::tts::installed_lang(app, lang) {
+        let _ = std::fs::remove_file(&wav);
+        if crate::managers::tts::synth_to_wav(app, text, lang, &wav).is_ok() {
+            log::info!("interpreter voice: neural incluida ({})", lang);
+            let ok = crate::audio_feedback::play_audio_file(&wav, selected.clone(), 1.0).is_ok();
+            let _ = std::fs::remove_file(&wav);
+            if ok {
+                return true;
+            }
+        }
+    }
+
+    // Motor #2: la voz del sistema (`say`), con el selector de género.
+    use std::io::Write;
     let mut cmd = Command::new("/usr/bin/say");
     if let Some(voice) = best_voice_for(lang, gender) {
         log::info!("interpreter voice: usando '{}'", voice);
@@ -737,11 +768,6 @@ fn speak_via_blocking(text: &str, lang: &str, device: &str, gender: &str) -> boo
         log::warn!("interpreter voice: say falló al renderizar");
         return false;
     }
-    let selected = if device.is_empty() {
-        None
-    } else {
-        Some(device.to_string())
-    };
     log::info!(
         "interpreter voice: {} chars ({}) → dispositivo {:?}",
         text.chars().count(),
@@ -792,6 +818,22 @@ pub fn tts_status(app: tauri::AppHandle) -> bool {
 #[specta::specta]
 pub async fn tts_setup(app: tauri::AppHandle) -> Result<(), String> {
     crate::managers::tts::setup(&app).await
+}
+
+/// ¿Está lista la voz neural incluida para este idioma? (Intérprete de
+/// reuniones: inglés y español tienen voz; otros idiomas usan la del sistema.)
+#[tauri::command]
+#[specta::specta]
+pub fn interpreter_voice_status(app: tauri::AppHandle, lang: String) -> bool {
+    crate::managers::tts::installed_lang(&app, &lang)
+}
+
+/// Descarga la voz neural incluida para el idioma del Intérprete (runtime
+/// compartido + voz, SHA256 pinneado). Emite `tts-setup-progress`.
+#[tauri::command]
+#[specta::specta]
+pub async fn interpreter_voice_setup(app: tauri::AppHandle, lang: String) -> Result<(), String> {
+    crate::managers::tts::setup_lang(&app, &lang).await
 }
 
 /// Cierra la sesión y la convierte en documento con el motor local.

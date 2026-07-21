@@ -109,6 +109,17 @@ async ttsSetup() : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async interpreterVoiceStatus(lang: string) : Promise<boolean> {
+    return await TAURI_INVOKE("interpreter_voice_status", { lang });
+},
+async interpreterVoiceSetup(lang: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("interpreter_voice_setup", { lang }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 /**
  * Manos libres para los modos de escucha: abre el micrófono y deja que el
  * VAD corte cada intervención en los silencios; cada segmento se transcribe

@@ -650,6 +650,8 @@ pub fn run(cli_args: CliArgs) {
             commands::conversation::conversation_speak_stop,
             commands::conversation::tts_status,
             commands::conversation::tts_setup,
+            commands::conversation::interpreter_voice_status,
+            commands::conversation::interpreter_voice_setup,
             commands::conversation::conversation_hands_free,
             commands::conversation::conversation_system_audio,
             commands::conversation::system_audio_supported,

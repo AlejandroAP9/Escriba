@@ -1228,7 +1228,10 @@
       "vmReady": "Micrófono virtual listo: tu voz traducida ya sale por ahí. En tu reunión elige 'BlackHole 2ch' como micrófono.",
       "voiceFemale": "Mujer",
       "voiceMale": "Hombre",
-      "voiceGenderHint": "Género de la voz que habla tu traducción en la reunión."
+      "voiceGenderHint": "Género de la voz que habla tu traducción en la reunión.",
+      "neuralInstall": "Voz neural",
+      "neuralHint": "Descarga una voz neural incluida (más natural) para este idioma. Se usa al pedir voz mujer; no dependes de las voces del sistema.",
+      "neuralReady": "Voz neural lista: tu traducción sonará más natural."
     }
   },
   "engine": {

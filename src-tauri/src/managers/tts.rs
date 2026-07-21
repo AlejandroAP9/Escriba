@@ -23,12 +23,40 @@ const RUNTIME_SHA256: &str = "809ab5d0c77bd8f358364a244e6ab17f2afecf9779eb9fd436
 const RUNTIME_DIR: &str = "sherpa-onnx-v1.13.4-osx-arm64-shared";
 const RUNTIME_SIZE: u64 = 27_044_587;
 
-/// Voz Piper es_MX-claude-high (calidad "high", español latino), empaquetada
-/// por el propio proyecto sherpa-onnx con sus tokens y datos de espeak.
-const VOICE_URL: &str = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-es_MX-claude-high.tar.bz2";
-const VOICE_SHA256: &str = "ec33fb689c248fe64810aab564cba97babf0f506672cfd404928d46e751a4721";
-const VOICE_DIR: &str = "vits-piper-es_MX-claude-high";
-const VOICE_SIZE: u64 = 67_207_890;
+/// Una voz Piper (empaquetada por sherpa-onnx con sus tokens y espeak-data),
+/// descargable bajo demanda con SHA256 pinneado.
+struct Voice {
+    /// Carpeta que crea el tarball dentro de `tts/`.
+    dir: &'static str,
+    /// Nombre del modelo `.onnx` dentro de esa carpeta.
+    onnx: &'static str,
+    url: &'static str,
+    sha256: &'static str,
+    size: u64,
+}
+
+/// Voz neural por idioma ISO. Español (Sesiones, Traductor) e inglés (el
+/// idioma dominante de reuniones para el Intérprete). Otros idiomas caen a la
+/// voz del sistema. Ambas son Piper, del mismo repo de sherpa-onnx.
+fn voice_for(lang: &str) -> Option<Voice> {
+    match lang.split(['-', '_']).next().unwrap_or(lang) {
+        "es" => Some(Voice {
+            dir: "vits-piper-es_MX-claude-high",
+            onnx: "es_MX-claude-high.onnx",
+            url: "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-es_MX-claude-high.tar.bz2",
+            sha256: "ec33fb689c248fe64810aab564cba97babf0f506672cfd404928d46e751a4721",
+            size: 67_207_890,
+        }),
+        "en" => Some(Voice {
+            dir: "vits-piper-en_US-hfc_female-medium",
+            onnx: "en_US-hfc_female-medium.onnx",
+            url: "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-hfc_female-medium.tar.bz2",
+            sha256: "3fffdceb0c65bd9415a085d09c3cb88cc82f9d74a6ca453f8ce7fc5eaee81ff8",
+            size: 67_228_166,
+        }),
+        _ => None,
+    }
+}
 
 /// Reproducción en curso (afplay): se corta antes de hablar de nuevo.
 static PLAYING: Mutex<Option<Child>> = Mutex::new(None);
@@ -46,16 +74,25 @@ fn tts_bin(app: &AppHandle) -> Result<PathBuf, String> {
         .join("sherpa-onnx-offline-tts"))
 }
 
-fn voice_dir(app: &AppHandle) -> Result<PathBuf, String> {
-    Ok(base_dir(app)?.join(VOICE_DIR))
+fn voice_dir_named(app: &AppHandle, dir: &str) -> Result<PathBuf, String> {
+    Ok(base_dir(app)?.join(dir))
 }
 
-/// ¿Runtime + voz listos para hablar?
-pub fn installed(app: &AppHandle) -> bool {
-    match (tts_bin(app), voice_dir(app)) {
-        (Ok(bin), Ok(voice)) => bin.is_file() && voice.join("es_MX-claude-high.onnx").is_file(),
+/// ¿Runtime + voz de este idioma listos para hablar? `None` si el idioma no
+/// tiene voz neural (cae a la voz del sistema).
+pub fn installed_lang(app: &AppHandle, lang: &str) -> bool {
+    let Some(voice) = voice_for(lang) else {
+        return false;
+    };
+    match (tts_bin(app), voice_dir_named(app, voice.dir)) {
+        (Ok(bin), Ok(dir)) => bin.is_file() && dir.join(voice.onnx).is_file(),
         _ => false,
     }
+}
+
+/// ¿Está lista la voz española incluida? (compatibilidad: Sesiones y Traductor.)
+pub fn installed(app: &AppHandle) -> bool {
+    installed_lang(app, "es")
 }
 
 fn emit_progress(app: &AppHandle, stage: &str, downloaded: u64, total: u64, message: &str) {
@@ -174,15 +211,23 @@ fn resign_runtime(runtime_dir: &Path) -> Result<(), String> {
     Ok(())
 }
 
-/// Descarga runtime + voz, verifica, extrae y re-firma. Idempotente.
+/// Descarga runtime + voz española, verifica, extrae y re-firma. Idempotente.
+/// (Compatibilidad: es el disparador de la voz incluida de Sesiones.)
 pub async fn setup(app: &AppHandle) -> Result<(), String> {
+    setup_lang(app, "es").await
+}
+
+/// Igual que `setup`, pero para el idioma dado (voz del Intérprete). El
+/// runtime es compartido; solo cambia la voz que se baja.
+pub async fn setup_lang(app: &AppHandle, lang: &str) -> Result<(), String> {
     #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
     {
-        let _ = app;
+        let _ = (app, lang);
         return Err("La voz neural v1 es solo para macOS Apple Silicon".to_string());
     }
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     {
+        let voice = voice_for(lang).ok_or_else(|| "Idioma sin voz neural".to_string())?;
         let dir = base_dir(app)?;
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
 
@@ -203,51 +248,62 @@ pub async fn setup(app: &AppHandle) -> Result<(), String> {
             let _ = std::fs::remove_file(&archive);
         }
 
-        if !voice_dir(app)?.join("es_MX-claude-high.onnx").is_file() {
+        if !voice_dir_named(app, voice.dir)?.join(voice.onnx).is_file() {
             let archive = dir.join("voice.tar.bz2");
-            download_verified(app, "voice", VOICE_URL, &archive, VOICE_SHA256, VOICE_SIZE).await?;
+            download_verified(app, "voice", voice.url, &archive, voice.sha256, voice.size).await?;
             emit_progress(app, "extract", 0, 0, "Extrayendo voz");
             extract_tar_bz2(&archive, &dir)?;
             let _ = std::fs::remove_file(&archive);
         }
 
-        info!("Voz neural lista (sherpa-onnx + es_MX-claude-high)");
+        info!("Voz neural lista (sherpa-onnx + {})", voice.dir);
         emit_progress(app, "done", 0, 0, "Voz neural lista");
         Ok(())
     }
 }
 
-/// Sintetiza y reproduce (bloqueante en la síntesis, ~1-2.5 s). Llamar desde
-/// spawn_blocking. Corta cualquier reproducción anterior.
-pub fn speak_blocking(app: &AppHandle, text: &str) -> Result<(), String> {
+/// Sintetiza `text` en el idioma dado a un WAV en `out_path` con la voz
+/// neural (bloqueante). Sin reproducir: el llamador la reproduce donde quiera
+/// (p. ej. el Intérprete la enruta al micrófono virtual). `Err` si el idioma
+/// no tiene voz neural o no está instalada.
+pub fn synth_to_wav(
+    app: &AppHandle,
+    text: &str,
+    lang: &str,
+    out_path: &Path,
+) -> Result<(), String> {
+    let voice = voice_for(lang).ok_or_else(|| "Idioma sin voz neural".to_string())?;
     let bin = tts_bin(app)?;
-    let voice = voice_dir(app)?;
-    let wav = base_dir(app)?.join("speak.wav");
-
-    stop();
-
+    let dir = voice_dir_named(app, voice.dir)?;
     let status = Command::new(&bin)
-        .arg(format!(
-            "--vits-model={}",
-            voice.join("es_MX-claude-high.onnx").display()
-        ))
+        .arg(format!("--vits-model={}", dir.join(voice.onnx).display()))
         .arg(format!(
             "--vits-tokens={}",
-            voice.join("tokens.txt").display()
+            dir.join("tokens.txt").display()
         ))
         .arg(format!(
             "--vits-data-dir={}",
-            voice.join("espeak-ng-data").display()
+            dir.join("espeak-ng-data").display()
         ))
-        .arg(format!("--output-filename={}", wav.display()))
+        .arg(format!("--output-filename={}", out_path.display()))
         .arg(text)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status()
         .map_err(|e| format!("La síntesis falló: {}", e))?;
-    if !status.success() || !wav.is_file() {
+    if !status.success() || !out_path.is_file() {
         return Err("La síntesis falló".to_string());
     }
+    Ok(())
+}
+
+/// Sintetiza y reproduce (bloqueante en la síntesis, ~1-2.5 s). Llamar desde
+/// spawn_blocking. Corta cualquier reproducción anterior.
+pub fn speak_blocking(app: &AppHandle, text: &str) -> Result<(), String> {
+    let wav = base_dir(app)?.join("speak.wav");
+
+    stop();
+    synth_to_wav(app, text, "es", &wav)?;
 
     let child = Command::new("/usr/bin/afplay")
         .arg(&wav)

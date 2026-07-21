@@ -62,6 +62,10 @@ const MEETING_LANGUAGES: { value: string; label: string; flag: string }[] = [
   { value: "ar", label: "العربية", flag: "🇸🇦" },
 ];
 
+// Idiomas con voz neural incluida (Piper vía sherpa-onnx); el resto usa la
+// voz del sistema. Coincide con el registro del backend (managers/tts.rs).
+const NEURAL_VOICE_LANGS = ["en", "es"];
+
 // ToggleSwitch exige description; aquí el label se explica solo.
 const NO_DESCRIPTION = "";
 
@@ -499,6 +503,35 @@ export const ConversationSettings: React.FC = () => {
       un.then((fn) => fn());
     };
   }, []);
+
+  // Voz neural del Intérprete para el idioma de la reunión (en/es la tienen;
+  // otros idiomas usan la voz del sistema). Estado + descarga con el mismo
+  // progreso (ttsPct). La voz neural es femenina: mejora la calidad cuando se
+  // pide ♀; con ♂ el Intérprete sigue usando la voz del sistema.
+  const [neuralReady, setNeuralReady] = useState(false);
+  const [neuralBusy, setNeuralBusy] = useState(false);
+  useEffect(() => {
+    if (!NEURAL_VOICE_LANGS.includes(sysTranslateLang)) {
+      setNeuralReady(false);
+      return;
+    }
+    commands.interpreterVoiceStatus(sysTranslateLang).then(setNeuralReady);
+  }, [sysTranslateLang]);
+  const installNeuralVoice = async () => {
+    setNeuralBusy(true);
+    setTtsPct(0);
+    try {
+      const r = await commands.interpreterVoiceSetup(sysTranslateLang);
+      if (r.status === "ok") {
+        setNeuralReady(true);
+        toast.success(t("conversation.systemTranslate.neuralReady"));
+      } else {
+        toast.error(r.error);
+      }
+    } finally {
+      setNeuralBusy(false);
+    }
+  };
 
   const installTts = async () => {
     setTtsBusy(true);
@@ -995,6 +1028,22 @@ export const ConversationSettings: React.FC = () => {
                       </select>
                     </div>
                   )}
+                  {sysTranslate &&
+                    NEURAL_VOICE_LANGS.includes(sysTranslateLang) &&
+                    !neuralReady && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={installNeuralVoice}
+                        disabled={neuralBusy}
+                        title={t("conversation.systemTranslate.neuralHint")}
+                      >
+                        <Sparkles width={13} height={13} className="mr-1.5" />
+                        {neuralBusy
+                          ? `${ttsPct}%`
+                          : t("conversation.systemTranslate.neuralInstall")}
+                      </Button>
+                    )}
                   {sysTranslate && !vmInstalled && (
                     <Button
                       variant="secondary"
