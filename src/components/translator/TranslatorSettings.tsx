@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { scrollBehavior } from "@/lib/motion";
 import { listen } from "@tauri-apps/api/event";
 import {
   ArrowLeftRight,
@@ -120,7 +121,7 @@ export const TranslatorSettings: React.FC = () => {
   useEffect(() => {
     convRef.current?.scrollTo({
       top: convRef.current.scrollHeight,
-      behavior: "smooth",
+      behavior: scrollBehavior(),
     });
   }, [history.length]);
 

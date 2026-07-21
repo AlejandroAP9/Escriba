@@ -29,6 +29,9 @@ const MAX_FAILED_ATTEMPTS: u32 = 10;
 /// Tope de oyentes SSE simultáneos: una sala de tour/clase real no pasa de
 /// decenas; el límite evita que alguien en la red agote conexiones del server.
 const MAX_LISTENERS: u32 = 64;
+/// Tope por IP (auditoría #19): sin esto una sola IP podía abrir 64 conexiones
+/// y llenar la sala. Un asistente real abre una pestaña, quizá dos.
+const MAX_LISTENERS_PER_IP: u32 = 8;
 /// Ventana de bloqueo tras superar el tope.
 const LOCKOUT: Duration = Duration::from_secs(30);
 
@@ -83,6 +86,11 @@ pub struct InterpreterServer {
     failed: Mutex<HashMap<IpAddr, (u32, Instant)>>,
     port: AtomicU16,
     listeners: AtomicU32,
+    /// Oyentes por IP, para el cap por IP (auditoría #19). Guardado junto a la
+    /// reserva del contador global bajo este mismo Mutex, así el "chequear y
+    /// aumentar" es atómico (antes había una carrera: dos conexiones pasaban el
+    /// chequeo y ambas incrementaban).
+    per_ip: Mutex<HashMap<IpAddr, u32>>,
     seq: std::sync::atomic::AtomicU64,
     /// Idiomas que los oyentes están pidiendo (para traducir solo esos).
     active_langs: Mutex<std::collections::HashMap<String, u32>>,
@@ -103,6 +111,7 @@ pub fn global() -> &'static InterpreterServer {
             failed: Mutex::new(HashMap::new()),
             port: AtomicU16::new(0),
             listeners: AtomicU32::new(0),
+            per_ip: Mutex::new(HashMap::new()),
             seq: std::sync::atomic::AtomicU64::new(0),
             active_langs: Mutex::new(std::collections::HashMap::new()),
             shutdown: Mutex::new(None),
@@ -207,6 +216,7 @@ impl InterpreterServer {
         self.failed.lock().unwrap().clear();
         self.port.store(port, Ordering::Relaxed);
         self.listeners.store(0, Ordering::Relaxed);
+        self.per_ip.lock().unwrap().clear();
         self.active_langs.lock().unwrap().clear();
         *self.shutdown.lock().unwrap() = Some(stop_tx);
 
@@ -242,6 +252,7 @@ impl InterpreterServer {
         *self.room_token.lock().unwrap() = None;
         self.failed.lock().unwrap().clear();
         self.listeners.store(0, Ordering::Relaxed);
+        self.per_ip.lock().unwrap().clear();
         self.active_langs.lock().unwrap().clear();
     }
 
@@ -346,17 +357,54 @@ async fn join_handler(
     (StatusCode::OK, "ok").into_response()
 }
 
-/// Guard: incrementa oyente + idioma al conectar el SSE y los descuenta al
-/// soltar el stream (el navegador cierra la conexion al cambiar de idioma o
-/// cerrar la pestaña). Sin esto los contadores solo crecerian.
+impl InterpreterServer {
+    /// Reserva un cupo de oyente para `ip` de forma atómica: bajo el Mutex de
+    /// `per_ip` chequea el tope global y el tope por IP, y solo si ambos pasan
+    /// incrementa los dos contadores. `false` = sala llena o esa IP ya tiene
+    /// demasiadas conexiones (auditoría #19). El `ListenerGuard` los descuenta.
+    fn try_reserve_listener(&self, ip: IpAddr) -> bool {
+        let Ok(mut per_ip) = self.per_ip.lock() else {
+            return false;
+        };
+        if self.listeners.load(Ordering::Relaxed) >= MAX_LISTENERS {
+            return false;
+        }
+        let count = per_ip.entry(ip).or_insert(0);
+        if *count >= MAX_LISTENERS_PER_IP {
+            return false;
+        }
+        *count += 1;
+        self.listeners.fetch_add(1, Ordering::Relaxed);
+        true
+    }
+
+    fn release_listener(&self, ip: IpAddr) {
+        if let Ok(mut per_ip) = self.per_ip.lock() {
+            if let Some(c) = per_ip.get_mut(&ip) {
+                *c = c.saturating_sub(1);
+                if *c == 0 {
+                    per_ip.remove(&ip);
+                }
+            }
+        }
+        let prev = self.listeners.load(Ordering::Relaxed);
+        if prev > 0 {
+            self.listeners.fetch_sub(1, Ordering::Relaxed);
+        }
+    }
+}
+
+/// Guard: al conectar el SSE ya se reservó el cupo (global + por IP); este
+/// guard cuenta el idioma y, al soltar el stream (cambio de idioma o cierre de
+/// pestaña), descuenta todo. Sin esto los contadores solo crecerian.
 struct ListenerGuard {
     server: &'static InterpreterServer,
+    ip: IpAddr,
     lang: String,
 }
 
 impl ListenerGuard {
-    fn new(server: &'static InterpreterServer, lang: String) -> Self {
-        server.listeners.fetch_add(1, Ordering::Relaxed);
+    fn new(server: &'static InterpreterServer, ip: IpAddr, lang: String) -> Self {
         if !lang.is_empty() {
             *server
                 .active_langs
@@ -365,16 +413,13 @@ impl ListenerGuard {
                 .entry(lang.clone())
                 .or_insert(0) += 1;
         }
-        ListenerGuard { server, lang }
+        ListenerGuard { server, ip, lang }
     }
 }
 
 impl Drop for ListenerGuard {
     fn drop(&mut self) {
-        let prev = self.server.listeners.load(Ordering::Relaxed);
-        if prev > 0 {
-            self.server.listeners.store(prev - 1, Ordering::Relaxed);
-        }
+        self.server.release_listener(self.ip);
         if !self.lang.is_empty() {
             if let Ok(mut m) = self.server.active_langs.lock() {
                 if let Some(c) = m.get_mut(&self.lang) {
@@ -402,11 +447,13 @@ async fn sse_handler(
         return (StatusCode::FORBIDDEN, "sala no encontrada").into_response();
     }
     server.clear_failures(ip);
-    if server.listeners() >= MAX_LISTENERS {
+    // Reserva atómica del cupo (global + por IP): sin carrera, y una sola IP
+    // no puede llenar la sala (auditoría #19).
+    if !server.try_reserve_listener(ip) {
         return (StatusCode::SERVICE_UNAVAILABLE, "sala llena").into_response();
     }
     let lang = q.lang.clone();
-    let guard = ListenerGuard::new(server, lang.clone());
+    let guard = ListenerGuard::new(server, ip, lang.clone());
     let rx = server.tx.subscribe();
     let stream = tokio_stream::wrappers::BroadcastStream::new(rx).filter_map(
         move |result| -> Option<Result<Event, Infallible>> {

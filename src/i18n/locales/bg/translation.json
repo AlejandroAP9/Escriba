@@ -965,7 +965,8 @@
       "s3": "You speak normally",
       "s4": "They get the translation"
     },
-    "startError": "Could not start the room. The port may be busy; try again in a few seconds."
+    "startError": "Could not start the room. The port may be busy; try again in a few seconds.",
+    "networkNote": "Heads up: the room travels over your local WiFi unencrypted. On a public network (café, event), use a private hotspot so no one else can read the translations."
   },
   "translator": {
     "title": "Face-to-face translator",

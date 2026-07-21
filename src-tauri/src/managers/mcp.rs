@@ -83,6 +83,15 @@ fn random_token() -> String {
 /// Token MCP persistente: se reutiliza entre reinicios para que la config del
 /// agente (`claude mcp add ...`) se haga una sola vez. Se guarda en el store la
 /// primera vez. Sigue siendo un secreto de alta entropía, solo local.
+///
+/// Modelo de amenaza (auditoría #20): el token queda en texto plano en el
+/// store del usuario, así que otro proceso corriendo con TUS permisos puede
+/// leerlo. Es un riesgo aceptado y consciente: el keychain del sistema no lo
+/// evitaría (ese mismo proceso, con tu sesión, también accede a los items de
+/// la app), y la defensa real del MCP no es el secreto del token sino que el
+/// servidor solo escucha en 127.0.0.1 y valida Host/Origin contra loopback
+/// (anti DNS-rebinding). El token es una segunda capa, no la única. Si algún
+/// día el MCP se abriera fuera de loopback, esto habría que reconsiderarlo.
 fn persistent_token(app: &AppHandle) -> String {
     if let Ok(store) = app.store(crate::portable::store_path(
         crate::settings::SETTINGS_STORE_PATH,

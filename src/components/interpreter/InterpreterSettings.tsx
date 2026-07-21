@@ -175,6 +175,12 @@ export const InterpreterSettings: React.FC = () => {
         </span>
       </div>
 
+      {/* Aviso honesto (auditoría #8): la sala viaja por la WiFi local sin
+          cifrar; en una red pública conviene un hotspot privado. */}
+      <div className="rounded-card border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs text-text/80">
+        {t("interpreter.networkNote")}
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-[1fr_1fr] lg:items-start">
         {/* QR protagonista */}
         <div className="flex flex-col items-center rounded-card border border-line bg-vitela/30 p-5 text-center shadow-card">

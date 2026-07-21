@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { scrollBehavior } from "@/lib/motion";
 import { listen } from "@tauri-apps/api/event";
 import { confirm as confirmDialog } from "@tauri-apps/plugin-dialog";
 import { toast } from "sonner";
@@ -335,7 +336,7 @@ export const ConversationSettings: React.FC = () => {
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
+      behavior: scrollBehavior(),
     });
   }, [turns.length, thinking]);
 

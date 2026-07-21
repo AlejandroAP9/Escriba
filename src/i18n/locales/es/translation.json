@@ -965,7 +965,8 @@
       "s3": "Tú hablas normalmente",
       "s4": "Ellos reciben la traducción"
     },
-    "startError": "No se pudo crear la sala. Puede que el puerto esté ocupado; prueba de nuevo en unos segundos."
+    "startError": "No se pudo crear la sala. Puede que el puerto esté ocupado; prueba de nuevo en unos segundos.",
+    "networkNote": "Aviso: la sala viaja por tu WiFi local sin cifrar. En una red pública (café, evento), usa un hotspot privado para que nadie más pueda leer las traducciones."
   },
   "translator": {
     "title": "Traductor cara a cara",
