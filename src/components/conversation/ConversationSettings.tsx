@@ -43,19 +43,21 @@ type Phase = "idle" | "active" | "doc";
 
 // Idiomas de reunión para el Intérprete de reuniones (idea de John Walter):
 // misma lista y banderas del Traductor e Intérprete, coherencia entre pantallas.
+// Etiquetas cortas a propósito: el select sin chevron toma el ancho de su
+// opción más larga, y la bandera ya identifica el idioma de un vistazo.
 const MEETING_LANGUAGES: { value: string; label: string; flag: string }[] = [
-  { value: "en", label: "English (Inglés)", flag: "🇬🇧" },
+  { value: "en", label: "English", flag: "🇬🇧" },
   { value: "es", label: "Español", flag: "🇪🇸" },
-  { value: "pt", label: "Português (Portugués)", flag: "🇵🇹" },
-  { value: "fr", label: "Français (Francés)", flag: "🇫🇷" },
-  { value: "de", label: "Deutsch (Alemán)", flag: "🇩🇪" },
+  { value: "pt", label: "Português", flag: "🇵🇹" },
+  { value: "fr", label: "Français", flag: "🇫🇷" },
+  { value: "de", label: "Deutsch", flag: "🇩🇪" },
   { value: "it", label: "Italiano", flag: "🇮🇹" },
-  { value: "zh", label: "中文 (Chino)", flag: "🇨🇳" },
-  { value: "ja", label: "日本語 (Japonés)", flag: "🇯🇵" },
-  { value: "ko", label: "한국어 (Coreano)", flag: "🇰🇷" },
-  { value: "ru", label: "Русский (Ruso)", flag: "🇷🇺" },
-  { value: "lt", label: "Lietuvių (Lituano)", flag: "🇱🇹" },
-  { value: "ar", label: "العربية (Árabe)", flag: "🇸🇦" },
+  { value: "zh", label: "中文", flag: "🇨🇳" },
+  { value: "ja", label: "日本語", flag: "🇯🇵" },
+  { value: "ko", label: "한국어", flag: "🇰🇷" },
+  { value: "ru", label: "Русский", flag: "🇷🇺" },
+  { value: "lt", label: "Lietuvių", flag: "🇱🇹" },
+  { value: "ar", label: "العربية", flag: "🇸🇦" },
 ];
 
 // ToggleSwitch exige description; aquí el label se explica solo.
