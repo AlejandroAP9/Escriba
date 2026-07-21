@@ -1196,9 +1196,20 @@ impl TranscriptionManager {
             None
         };
 
-        let language = session_lang.or_else(|| match settings.selected_language.as_str() {
-            "" | "auto" => None,
-            lang => Some(lang.to_string()),
+        // Misma corrección de idioma que el dictado: los modelos sin
+        // autodetección (Canary) reciben "auto" y devuelven texto VACÍO en
+        // silencio — el QA del Estudio lo pilló con un mp4 de 2 min. La
+        // intención persistida se corrige al idioma que el modelo digiere.
+        let language = session_lang.or_else(|| {
+            let model_id = self
+                .get_current_model()
+                .unwrap_or_else(|| settings.selected_model.clone());
+            let effective =
+                effective_language_for_model(&settings, self.model_manager.as_ref(), &model_id);
+            match effective.as_str() {
+                "" | "auto" => None,
+                lang => Some(normalize_cjk_language(lang).to_string()),
+            }
         });
 
         let is_transcribe_cpp = {
