@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
+import { confirm as confirmDialog } from "@tauri-apps/plugin-dialog";
 import { toast } from "sonner";
 import { sendToObsidian } from "@/lib/obsidian";
 import {
@@ -447,12 +448,35 @@ export const ConversationSettings: React.FC = () => {
       .then(setVmInstalled)
       .catch(() => setVmInstalled(false));
   }, [sysTranslate]);
+  // Traduce las claves de error del micrófono virtual (auditoría #14).
+  const vmError = (key: string): string => {
+    const map: Record<string, string> = {
+      "vm.install_failed": t("conversation.systemTranslate.vmInstallFailed"),
+      "vm.uninstall_failed": t(
+        "conversation.systemTranslate.vmUninstallFailed",
+      ),
+      "vm.download_failed": t("conversation.systemTranslate.vmDownloadFailed"),
+      "vm.sha_failed": t("conversation.systemTranslate.vmShaFailed"),
+      "vm.only_macos": t("conversation.systemTranslate.vmOnlyMacos"),
+    };
+    return map[key] ?? key;
+  };
   const installVirtualMic = async () => {
+    // Instalar reinicia coreaudiod, lo que corta un instante el audio de la
+    // Mac y puede tumbar la captura del sistema en plena llamada (auditoría
+    // #6). Si hay sesión con audio activo, avisamos antes.
+    if (listening && sysAudio) {
+      const proceed = await confirmDialog(
+        t("conversation.systemTranslate.vmRestartWarn"),
+        { title: "Escriba", kind: "warning" },
+      );
+      if (!proceed) return;
+    }
     setVmInstalling(true);
     try {
       const r = await commands.virtualMicInstall();
       if (r.status === "error") {
-        toast.error(r.error);
+        toast.error(vmError(r.error));
         return;
       }
       if (!r.data) return; // canceló el diálogo de contraseña: sin drama
@@ -467,6 +491,22 @@ export const ConversationSettings: React.FC = () => {
     } finally {
       setVmInstalling(false);
     }
+  };
+  const uninstallVirtualMic = async () => {
+    const proceed = await confirmDialog(
+      t("conversation.systemTranslate.vmUninstallConfirm"),
+      { title: "Escriba", kind: "warning" },
+    );
+    if (!proceed) return;
+    const r = await commands.virtualMicUninstall();
+    if (r.status === "error") {
+      toast.error(vmError(r.error));
+      return;
+    }
+    if (!r.data) return; // canceló el diálogo
+    setVmInstalled(false);
+    if (voiceOut.includes("BlackHole")) pickVoiceOut("");
+    toast.success(t("conversation.systemTranslate.vmUninstalled"));
   };
   const [sysAudioSupported, setSysAudioSupported] = useState(false);
   useEffect(() => {
@@ -1206,6 +1246,17 @@ export const ConversationSettings: React.FC = () => {
             {sysTranslate && voiceOut && (
               <p className="mt-1 text-center text-[11px] text-mid-gray">
                 {t("conversation.systemTranslate.virtualMicHint")}
+              </p>
+            )}
+            {sysTranslate && vmInstalled && (
+              <p className="mt-1 text-center text-[11px] text-mid-gray">
+                <button
+                  type="button"
+                  onClick={uninstallVirtualMic}
+                  className="cursor-pointer underline-offset-2 hover:underline"
+                >
+                  {t("conversation.systemTranslate.vmUninstall")}
+                </button>
               </p>
             )}
           </Card>

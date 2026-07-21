@@ -660,6 +660,7 @@ pub fn run(cli_args: CliArgs) {
             commands::conversation::conversation_speak_via,
             commands::virtual_mic::virtual_mic_installed,
             commands::virtual_mic::virtual_mic_install,
+            commands::virtual_mic::virtual_mic_uninstall,
             commands::obsidian::set_obsidian_vault,
             commands::obsidian::get_obsidian_vault,
             commands::obsidian::export_to_obsidian,

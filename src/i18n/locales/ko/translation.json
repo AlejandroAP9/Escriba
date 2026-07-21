@@ -1234,7 +1234,16 @@
       "neuralHint": "Downloads a bundled neural voice (more natural) for this language. Used with female voice; no need for system voices.",
       "neuralReady": "Neural voice ready: your translation will sound more natural.",
       "replyFailed": "Couldn't translate: say it again (nothing went to the meeting).",
-      "notSent": "couldn't translate, not sent to the meeting"
+      "notSent": "couldn't translate, not sent to the meeting",
+      "vmRestartWarn": "Installing the virtual microphone restarts your Mac's audio for a moment and may cut the call. Better to install it before joining. Continue anyway?",
+      "vmUninstall": "Remove virtual microphone",
+      "vmUninstallConfirm": "Remove BlackHole? The driver is uninstalled and your Mac's audio restarts.",
+      "vmUninstalled": "Virtual microphone uninstalled.",
+      "vmInstallFailed": "The installation didn't finish. Try again.",
+      "vmUninstallFailed": "Couldn't uninstall. Try again.",
+      "vmDownloadFailed": "Couldn't download the virtual microphone.",
+      "vmShaFailed": "The download failed the integrity check. Discarded.",
+      "vmOnlyMacos": "Available on macOS only."
     }
   },
   "engine": {

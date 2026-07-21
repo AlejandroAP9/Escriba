@@ -23,7 +23,8 @@ pub fn virtual_mic_installed() -> bool {
 
 /// Descarga el paquete oficial (SHA256 verificado, descartado si no calza) y
 /// lo instala con el diálogo nativo de privilegios de macOS. Devuelve false
-/// si el usuario canceló el diálogo (no es un error, no hay drama).
+/// si el usuario canceló el diálogo (no es un error, no hay drama). Los
+/// errores son claves estables para que el frontend traduzca (auditoría #14).
 #[tauri::command]
 #[specta::specta]
 pub async fn virtual_mic_install(app: AppHandle) -> Result<bool, String> {
@@ -33,16 +34,31 @@ pub async fn virtual_mic_install(app: AppHandle) -> Result<bool, String> {
         let pkg = dir.join("BlackHole2ch-0.7.1.pkg");
         download_pkg(&pkg).await?;
 
-        // `installer` con privilegios vía osascript: la contraseña la pide el
-        // diálogo nativo del sistema, encima de Escriba. La ruta entra por
-        // argv y `quoted form` (sin interpolar nada en el shell). Al final se
-        // reinicia coreaudiod: sin eso el driver queda en disco pero macOS no
-        // lo carga y el dispositivo no aparece (QA de Alejandro, 20-jul).
-        const SCRIPT: &str = "on run argv\ndo shell script \"/usr/sbin/installer -pkg \" & quoted form of item 1 of argv & \" -target / && (/usr/bin/killall coreaudiod || true)\" with administrator privileges\nend run";
+        // TOCTOU (auditoría #5): verificar el SHA como usuario y luego instalar
+        // como root deja una ventana en que otro proceso del usuario cambie el
+        // .pkg por uno malicioso que se instalaría con privilegios. El paso
+        // root COPIA el paquete a una carpeta propia (mktemp, root 700), lo
+        // RE-VERIFICA ahí, y solo entonces instala: ya no se puede intercambiar
+        // entre la verificación y la instalación. Al final reinicia coreaudiod
+        // (sin eso el driver queda en disco sin cargar). El hash es constante
+        // (hex), la ruta entra por `quoted form of item 1 of argv`.
+        let script = format!(
+            "on run argv\n\
+             do shell script \"set -e; \
+             tmp=$(/usr/bin/mktemp -d); \
+             /bin/cp \" & quoted form of item 1 of argv & \" \\\"$tmp/bh.pkg\\\"; \
+             actual=$(/usr/bin/shasum -a 256 \\\"$tmp/bh.pkg\\\" | /usr/bin/cut -d' ' -f1); \
+             if [ \\\"$actual\\\" != \\\"{sha}\\\" ]; then /bin/rm -rf \\\"$tmp\\\"; exit 3; fi; \
+             /usr/sbin/installer -pkg \\\"$tmp/bh.pkg\\\" -target /; \
+             /bin/rm -rf \\\"$tmp\\\"; \
+             (/usr/bin/killall coreaudiod || true)\" with administrator privileges\n\
+             end run",
+            sha = PKG_SHA256
+        );
         let pkg2 = pkg.clone();
         let out = tauri::async_runtime::spawn_blocking(move || {
             std::process::Command::new("/usr/bin/osascript")
-                .args(["-e", SCRIPT])
+                .args(["-e", &script])
                 .arg(&pkg2)
                 .output()
         })
@@ -57,7 +73,7 @@ pub async fn virtual_mic_install(app: AppHandle) -> Result<bool, String> {
                 return Ok(false);
             }
             log::warn!("virtual_mic_install failed: {}", err.trim());
-            return Err("La instalación no terminó. Intenta de nuevo.".to_string());
+            return Err("vm.install_failed".to_string());
         }
         let _ = std::fs::remove_file(&pkg);
         Ok(true)
@@ -65,7 +81,42 @@ pub async fn virtual_mic_install(app: AppHandle) -> Result<bool, String> {
     #[cfg(not(target_os = "macos"))]
     {
         let _ = app;
-        Err("Disponible solo en macOS".to_string())
+        Err("vm.only_macos".to_string())
+    }
+}
+
+/// Desinstala el micrófono virtual (auditoría #13: antes salir exigía `sudo rm`
+/// a mano). Borra el driver de BlackHole y reinicia coreaudiod, con el diálogo
+/// de privilegios de macOS. false = el usuario canceló el diálogo.
+#[tauri::command]
+#[specta::specta]
+pub async fn virtual_mic_uninstall() -> Result<bool, String> {
+    #[cfg(target_os = "macos")]
+    {
+        // Ruta fija del driver (la que instala el .pkg oficial). Sin argv del
+        // usuario: la ruta es literal y conocida, no hay interpolación externa.
+        const SCRIPT: &str = "do shell script \"/bin/rm -rf '/Library/Audio/Plug-Ins/HAL/BlackHole2ch.driver' && (/usr/bin/killall coreaudiod || true)\" with administrator privileges";
+        let out = tauri::async_runtime::spawn_blocking(move || {
+            std::process::Command::new("/usr/bin/osascript")
+                .args(["-e", SCRIPT])
+                .output()
+        })
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())?;
+        if !out.status.success() {
+            let err = String::from_utf8_lossy(&out.stderr);
+            if err.contains("-128") {
+                return Ok(false);
+            }
+            log::warn!("virtual_mic_uninstall failed: {}", err.trim());
+            return Err("vm.uninstall_failed".to_string());
+        }
+        Ok(true)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        Err("vm.only_macos".to_string())
     }
 }
 
@@ -87,16 +138,16 @@ async fn download_pkg(dest: &std::path::Path) -> Result<(), String> {
         .get(PKG_URL)
         .send()
         .await
-        .map_err(|e| format!("Descarga falló: {}", e))?;
+        .map_err(|_| "vm.download_failed".to_string())?;
     if !resp.status().is_success() {
-        return Err(format!("Descarga falló con HTTP {}", resp.status()));
+        return Err("vm.download_failed".to_string());
     }
     let bytes = resp
         .bytes()
         .await
-        .map_err(|e| format!("Descarga interrumpida: {}", e))?;
+        .map_err(|_| "vm.download_failed".to_string())?;
     if format!("{:x}", Sha256::digest(&bytes)) != PKG_SHA256 {
-        return Err("Verificación SHA256 falló. Descarga descartada.".to_string());
+        return Err("vm.sha_failed".to_string());
     }
     std::fs::write(dest, &bytes).map_err(|e| e.to_string())?;
     Ok(())

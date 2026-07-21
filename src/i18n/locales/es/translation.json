@@ -1234,7 +1234,16 @@
       "neuralHint": "Descarga una voz neural incluida (más natural) para este idioma. Se usa al pedir voz mujer; no dependes de las voces del sistema.",
       "neuralReady": "Voz neural lista: tu traducción sonará más natural.",
       "replyFailed": "No se pudo traducir: repite la frase (no salió nada a la reunión).",
-      "notSent": "no se pudo traducir, no salió a la reunión"
+      "notSent": "no se pudo traducir, no salió a la reunión",
+      "vmRestartWarn": "Instalar el micrófono virtual reinicia el audio de tu Mac un instante y puede cortar la llamada. Mejor hacerlo antes de entrar a la reunión. ¿Seguir igual?",
+      "vmUninstall": "Quitar micrófono virtual",
+      "vmUninstallConfirm": "¿Quitar BlackHole? Se desinstala el driver y se reinicia el audio de tu Mac.",
+      "vmUninstalled": "Micrófono virtual desinstalado.",
+      "vmInstallFailed": "La instalación no terminó. Intenta de nuevo.",
+      "vmUninstallFailed": "No se pudo desinstalar. Intenta de nuevo.",
+      "vmDownloadFailed": "No se pudo descargar el micrófono virtual.",
+      "vmShaFailed": "La descarga no pasó la verificación de integridad. Se descartó.",
+      "vmOnlyMacos": "Disponible solo en macOS."
     }
   },
   "engine": {
