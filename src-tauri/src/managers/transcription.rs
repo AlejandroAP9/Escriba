@@ -387,17 +387,17 @@ impl TranscriptionManager {
     /// devolver vacío (QA 21-jul: Canary entregó 0 chars con 126s de una
     /// pasada). Sin motor cargado aún, se decide por el id del modelo.
     pub fn max_window_seconds(&self) -> usize {
-        match self.lock_engine().as_ref() {
-            Some(LoadedEngine::TranscribeCpp(_)) => 480,
-            Some(_) => 30,
-            None => {
-                let model = get_settings(&self.app_handle).selected_model;
-                if model.contains("whisper") || model.contains("breeze") {
-                    480
-                } else {
-                    30
-                }
-            }
+        // La regla va por MODELO, no por motor: Canary también corre en GGUF
+        // dentro de transcribe-cpp y aun así necesita ventanas cortas (con
+        // 126s de una pasada devolvió vacío). Solo la familia Whisper trocea
+        // internamente y digiere chunks largos.
+        let model = self
+            .get_current_model()
+            .unwrap_or_else(|| get_settings(&self.app_handle).selected_model);
+        if model.contains("whisper") || model.contains("breeze") {
+            480
+        } else {
+            30
         }
     }
 
