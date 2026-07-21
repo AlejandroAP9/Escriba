@@ -6,6 +6,7 @@ use rodio::OutputStreamBuilder;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use tauri::{AppHandle, Manager};
 
@@ -92,6 +93,75 @@ fn play_sound_at_path(app: &AppHandle, path: &Path) -> Result<(), Box<dyn std::e
     let volume = settings.audio_feedback_volume;
     let selected_device = settings.selected_output_device.clone();
     play_audio_file(path, selected_device, volume)
+}
+
+/// Sink de la voz del Intérprete en curso, para poder cortarla (auditoría
+/// #18: Pausar/Descartar deben frenar lo que ya está sonando hacia la llamada).
+static INTERPRETER_SINK: Mutex<Option<Arc<rodio::Sink>>> = Mutex::new(None);
+
+/// Corta la reproducción de la voz del Intérprete si hay una en curso.
+pub fn stop_interpreter_playback() {
+    if let Ok(mut guard) = INTERPRETER_SINK.lock() {
+        if let Some(sink) = guard.take() {
+            sink.stop();
+        }
+    }
+}
+
+/// Reproduce un WAV en el dispositivo elegido registrando el sink, para que
+/// `stop_interpreter_playback()` pueda cortarlo a mitad. Bloqueante hasta que
+/// termina o lo cortan. Lo usa la voz del Intérprete de reuniones.
+pub fn play_interpreter_voice(
+    path: &std::path::Path,
+    selected_device: Option<String>,
+    volume: f32,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let stream_builder = open_stream_builder(selected_device)?;
+    let stream_handle = stream_builder.open_stream()?;
+    let mixer = stream_handle.mixer();
+    let file = File::open(path)?;
+    let buf_reader = BufReader::new(file);
+    let sink = Arc::new(rodio::play(mixer, buf_reader)?);
+    sink.set_volume(volume);
+    // Corta cualquier locución anterior y registra esta (una a la vez).
+    stop_interpreter_playback();
+    if let Ok(mut guard) = INTERPRETER_SINK.lock() {
+        *guard = Some(Arc::clone(&sink));
+    }
+    sink.sleep_until_end();
+    if let Ok(mut guard) = INTERPRETER_SINK.lock() {
+        // Solo lo limpiamos si sigue siendo el nuestro (no pisar una locución
+        // más nueva que ya lo reemplazó).
+        if guard
+            .as_ref()
+            .map(|s| Arc::ptr_eq(s, &sink))
+            .unwrap_or(false)
+        {
+            *guard = None;
+        }
+    }
+    Ok(())
+}
+
+/// Construye el `OutputStreamBuilder` para el dispositivo pedido (por nombre;
+/// "Default"/None = salida por defecto). Compartido por los reproductores.
+fn open_stream_builder(
+    selected_device: Option<String>,
+) -> Result<rodio::OutputStreamBuilder, Box<dyn std::error::Error>> {
+    match selected_device {
+        Some(device_name) if device_name != "Default" => {
+            let host = crate::audio_toolkit::get_cpal_host();
+            let devices = host.output_devices()?;
+            for device in devices {
+                if device.name()? == device_name {
+                    return Ok(OutputStreamBuilder::from_device(device)?);
+                }
+            }
+            warn!("Device '{}' not found, using default device", device_name);
+            Ok(OutputStreamBuilder::from_default_device()?)
+        }
+        _ => Ok(OutputStreamBuilder::from_default_device()?),
+    }
 }
 
 /// Público: también lo usa la voz del Intérprete de reuniones para sacar la

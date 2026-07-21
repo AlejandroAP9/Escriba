@@ -1231,7 +1231,9 @@
       "voiceGenderHint": "Género de la voz que habla tu traducción en la reunión.",
       "neuralInstall": "Voz neural",
       "neuralHint": "Descarga una voz neural incluida (más natural) para este idioma. Se usa al pedir voz mujer; no dependes de las voces del sistema.",
-      "neuralReady": "Voz neural lista: tu traducción sonará más natural."
+      "neuralReady": "Voz neural lista: tu traducción sonará más natural.",
+      "replyFailed": "No se pudo traducir: repite la frase (no salió nada a la reunión).",
+      "notSent": "no se pudo traducir, no salió a la reunión"
     }
   },
   "engine": {

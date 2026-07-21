@@ -1742,39 +1742,67 @@ pub(crate) fn interpreter_reply_flow(app: &AppHandle, original: String) {
             .next()
             .unwrap_or("es")
             .to_string();
+        // Desempate a favor de MI idioma: en un empate 0-0 (frase corta en
+        // español sin palabras funcionales de la lista) preferimos traducir
+        // antes que mandar el español crudo a la reunión. Solo se considera
+        // "ya en el idioma del otro" si de verdad puntúa más alto.
         let already_foreign =
-            foreign != mine && detect_pair_language(&original, &foreign, &mine) == foreign;
-        let mut speak_text = original.clone();
-        let mut speak_lang = if already_foreign {
-            foreign.clone()
-        } else {
-            mine.clone()
-        };
-        let mut translated_real = false;
-        if !already_foreign && foreign != mine {
-            if let Some(translated) = translate_with_local(&app2, &original, &foreign).await {
-                crate::commands::conversation::append_reply_translation(&translated);
-                use tauri_plugin_clipboard_manager::ClipboardExt;
-                let _ = app2.clipboard().write_text(translated.clone());
-                speak_text = translated;
-                speak_lang = foreign.clone();
-                translated_real = true;
-            }
-        }
+            foreign != mine && detect_pair_language(&original, &mine, &foreign) == foreign;
+
         #[derive(serde::Serialize, Clone)]
         struct ReplyTranslated {
             text: String,
             lang: String,
             translated: bool,
+            /// La traducción local falló: el front avisa y NO lee nada a la
+            /// reunión (mejor silencio honesto que español con voz inglesa).
+            failed: bool,
         }
-        let _ = app2.emit(
-            "conversation-reply-translated",
-            ReplyTranslated {
-                text: speak_text,
-                lang: speak_lang,
-                translated: translated_real,
-            },
-        );
+
+        // Caso 1: ya hablaste en el idioma del otro. Va tal cual.
+        if already_foreign {
+            let _ = app2.emit(
+                "conversation-reply-translated",
+                ReplyTranslated {
+                    text: original.clone(),
+                    lang: foreign.clone(),
+                    translated: false,
+                    failed: false,
+                },
+            );
+            return;
+        }
+
+        // Caso 2: traducir al idioma de la reunión.
+        match translate_with_local(&app2, &original, &foreign).await {
+            Some(translated) => {
+                crate::commands::conversation::append_reply_translation(&original, &translated);
+                use tauri_plugin_clipboard_manager::ClipboardExt;
+                let _ = app2.clipboard().write_text(translated.clone());
+                let _ = app2.emit(
+                    "conversation-reply-translated",
+                    ReplyTranslated {
+                        text: translated,
+                        lang: foreign.clone(),
+                        translated: true,
+                        failed: false,
+                    },
+                );
+            }
+            // Caso 3: el motor falló. No mandamos español crudo a la reunión;
+            // avisamos para que repitas la frase.
+            None => {
+                let _ = app2.emit(
+                    "conversation-reply-translated",
+                    ReplyTranslated {
+                        text: original.clone(),
+                        lang: mine.clone(),
+                        translated: false,
+                        failed: true,
+                    },
+                );
+            }
+        }
     });
 }
 

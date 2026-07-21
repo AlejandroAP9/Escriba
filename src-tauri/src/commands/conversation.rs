@@ -284,6 +284,9 @@ pub fn stop_speaking_native() {
 #[specta::specta]
 pub fn conversation_speak_stop() {
     stop_speaking_native();
+    // Corta también la voz del Intérprete que esté sonando hacia la llamada
+    // (auditoría #18): Pausar/Descartar la frenan de inmediato.
+    crate::audio_feedback::stop_interpreter_playback();
 }
 
 pub fn is_hands_free() -> bool {
@@ -578,9 +581,21 @@ pub fn sys_translate_foreign() -> Option<String> {
 
 /// Anexa la traducción del Intérprete al último turno del usuario, para que
 /// el acta conserve el par original ⇢ traducción (registro bilingüe).
-pub fn append_reply_translation(translated: &str) {
+pub fn append_reply_translation(original: &str, translated: &str) {
     if let Ok(mut t) = TURNS.lock() {
-        if let Some(turn) = t.iter_mut().rev().find(|t| t.role == "user") {
+        // Engancha al turno cuyo texto coincide con el original y aún no tiene
+        // traducción: en manos libres, dos frases pueden traducirse fuera de
+        // orden, así que no basta con "el último turno". Del más reciente al
+        // más viejo para acertar la instancia correcta si el texto se repite.
+        let target = original.trim();
+        if let Some(turn) = t
+            .iter_mut()
+            .rev()
+            .find(|t| t.role == "user" && t.text.trim() == target)
+        {
+            turn.text = format!("{}\n⇢ {}", turn.text, translated);
+        } else if let Some(turn) = t.iter_mut().rev().find(|t| t.role == "user") {
+            // Respaldo: si no calza (post-proceso cambió el texto), al último.
             turn.text = format!("{}\n⇢ {}", turn.text, translated);
         }
     }
@@ -722,7 +737,15 @@ fn speak_via_blocking(
     gender: &str,
 ) -> bool {
     use std::process::{Command, Stdio};
-    let wav = std::env::temp_dir().join("escriba-interpreter-voice.wav");
+    // Archivo temporal ÚNICO por locución (auditoría #7): en manos libres dos
+    // frases seguidas ya no se pisan el WAV mientras una se reproduce.
+    static UTTERANCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let n = UTTERANCE.fetch_add(1, Ordering::Relaxed);
+    let wav = std::env::temp_dir().join(format!(
+        "escriba-interpreter-{}-{}.wav",
+        std::process::id(),
+        n
+    ));
     let selected = if device.is_empty() {
         None
     } else {
@@ -735,7 +758,8 @@ fn speak_via_blocking(
         let _ = std::fs::remove_file(&wav);
         if crate::managers::tts::synth_to_wav(app, text, lang, &wav).is_ok() {
             log::info!("interpreter voice: neural incluida ({})", lang);
-            let ok = crate::audio_feedback::play_audio_file(&wav, selected.clone(), 1.0).is_ok();
+            let ok =
+                crate::audio_feedback::play_interpreter_voice(&wav, selected.clone(), 1.0).is_ok();
             let _ = std::fs::remove_file(&wav);
             if ok {
                 return true;
@@ -774,7 +798,7 @@ fn speak_via_blocking(
         lang,
         selected.as_deref().unwrap_or("default")
     );
-    let result = crate::audio_feedback::play_audio_file(&wav, selected, 1.0);
+    let result = crate::audio_feedback::play_interpreter_voice(&wav, selected, 1.0);
     if let Err(e) = &result {
         log::warn!("interpreter voice: reproducción falló: {}", e);
     } else {
@@ -785,7 +809,16 @@ fn speak_via_blocking(
 }
 
 /// Apaga la captura del audio del sistema (el worker sale en su próximo tick).
+/// Apaga TAMBIÉN el Intérprete de reuniones: traducir solo tiene sentido con
+/// el audio del sistema activo, y dejarlo armado entre sesiones hacía que un
+/// dictado posterior se tradujera y se leyera solo (auditoría #1).
 fn system_audio_off() {
+    // El Intérprete se desarma siempre, aunque el audio del sistema ya
+    // estuviera apagado (p. ej. al descartar o crear el documento).
+    SYS_TRANSLATE.store(false, Ordering::Relaxed);
+    if let Ok(mut g) = SYS_TRANSLATE_FOREIGN.lock() {
+        g.clear();
+    }
     if !SYSTEM_AUDIO.swap(false, Ordering::Relaxed) {
         return;
     }
