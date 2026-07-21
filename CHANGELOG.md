@@ -9,6 +9,59 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [2.0.0] — 2026-07-21
+
+**El Intérprete de Reuniones.** Escriba deja de ser solo dictado: ahora
+interpreta videollamadas en vivo, de ida y vuelta, 100% local y sin API
+keys. Nació de un comentario de **John Walter** en la comunidad hace tres
+días; hoy es una categoría de producto que ningún fork de Handy tiene.
+
+### Añadido
+
+- **Intérprete de reuniones (idea de John Walter)** — con una sesión de
+  Reunión activa y el Audio del sistema encendido, Escriba traduce en vivo
+  entre tu idioma y el de la llamada, en los dos sentidos:
+  - **Lo que suena** (la otra parte del Meet/Zoom, un video) llega ya
+    traducido a tu idioma en el acta.
+  - **Lo que dictas** en español se traduce al idioma de la reunión, se
+    anexa al acta como par bilingüe (`original ⇢ traducción`), se copia al
+    portapapeles listo para el chat, y **se dice en voz alta** con la mejor
+    voz instalada de ese idioma.
+  - Funciona con el atajo de dictado **y con Manos libres** (cero teclas:
+    hablas, pausas, suena la traducción — interpretación consecutiva real).
+- **Micrófono virtual integrado** — para que la otra persona escuche tu voz
+  ya traducida _dentro_ de la llamada. Instalación en **un clic sin salir de
+  Escriba** (patrón del motor local): descarga BlackHole 2ch desde la fuente
+  oficial verificada por SHA256, lo instala con el diálogo nativo de macOS y
+  reinicia el servicio de audio. Al terminar, se autoselecciona como salida.
+- **Selector de voz ♀/♂** para el Intérprete, con voces de calidad
+  (Premium > Enhanced) según el idioma, en un grupo de controles integrado a
+  la estética de la barra (idioma · salida · voz).
+- **Crédito visible a John Walter** en la línea de estado del Intérprete,
+  igual que Pedro en Apariencia.
+
+### Corregido
+
+- **Estudio con modelos rápidos (Canary y familia ONNX)** — transcribir un
+  audio o video largo devolvía texto vacío en silencio. Dos causas apiladas:
+  la ventana de troceo era un supuesto de Whisper (8 min) y el idioma se
+  pasaba como "auto" a modelos que no autodetectan. Ahora el troceo y el
+  idioma se deciden por el modelo cargado. Aplica también al tool
+  `transcribe` de Agentes (MCP).
+- **Detector de idioma del Intérprete** — frases con palabras sueltas del
+  otro idioma ("Vamos **a** probar…", saludos cortos) empataban y no se
+  traducían. Lista de palabras funcionales del español completada.
+- **El Intérprete nunca queda mudo hacia la reunión**: si la frase ya está en
+  el idioma del otro sale tal cual; si el motor local falla, sale el
+  original. Los nombres propios y marcas ya no se traducen ("Escriba" dejó de
+  volverse "Type").
+
+### Seguridad
+
+- Cierre del plan de _hardening_: nivel de log **Info** por defecto en
+  release (los reportes de usuario no arrastran detalle de depuración) y tope
+  de 64 oyentes simultáneos por sala del Intérprete en vivo.
+
 ## [1.9.1] — 2026-07-18
 
 Correcciones del QA a tres continentes: Flor en el Traductor, y el primer QA

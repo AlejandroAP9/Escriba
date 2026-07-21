@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-1.9.1-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.0.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -51,6 +51,7 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | 👁️ **Revisar antes de pegar** | Opcional: el dictado se muestra en pantalla antes de escribirse — pégalo, descártalo o dicta una corrección con tu atajo. Para correos delicados.                                                                  |
 | 💬 **Sesiones**                | Habla una hora y llévate un documento listo: conversa con la IA local (te responde con voz) o deja que solo escuche tu reunión, entrevista o clase. Al terminar: acta, apuntes o nota, redactados por el motor local. |
 | 🖥️ **Audio del sistema**       | Sesiones también escucha lo que suena en tu computador: la otra parte del Zoom/Meet entra al acta como "Otros", con marca de tiempo. Actas de reunión a dos voces, sin nube. (macOS 13+)                            |
+| 🎙️ **Intérprete de reuniones** | Interpretación en vivo de tus videollamadas, ida y vuelta: lo que suena llega en tu idioma; lo que dictas sale traducido y hablado _dentro_ de la llamada por un micrófono virtual integrado (1 clic). Hablas español, el otro escucha inglés. 100% local. (idea de John Walter, macOS 13+) |
 | 🔊 **Tu tinta en voz**         | Selecciona texto en cualquier app y ⌥⇧R: Escriba lo lee en voz alta con la mejor voz de tu equipo. Revisa tus borradores con los oídos.                                                                            |
 | 👓 **Para todos los ojos**     | Tema Día/Noche/Sistema y tamaño de texto ajustable (90-130%): toda la interfaz crece de una vez. Nacida de la comunidad.                                                                                           |
 | ✨ **Corrección con IA**       | Limpia muletillas y repeticiones, ordena listas y ajusta el tono según la app (WhatsApp casual, Mail formal, prompts para Cursor…).                                                                                |
@@ -110,6 +111,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                      |
 | ------- | ------ | ---------------------------------------------- |
+| 2.0.0   | 21-jul | 🎙️ **Intérprete de reuniones** en vivo, ida y vuelta (idea de John Walter) + micrófono virtual integrado |
 | 1.9.1   | 18-jul | 🐧 Motor local en **Linux** + fixes del Traductor (QA Flor) |
 | 1.9.0   | 17-jul | **Revisar antes de pegar** + fixes del QA Windows de la dupla |
 | 1.8.0   | 16-jul | 🤝 Tanda comunidad: sugerencias de diccionario + Plumín empático |
