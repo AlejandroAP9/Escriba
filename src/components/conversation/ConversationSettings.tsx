@@ -923,50 +923,55 @@ export const ConversationSettings: React.FC = () => {
                     {t("conversation.systemTranslate.label")}
                   </Button>
                   {sysTranslate && (
-                    <select
-                      value={sysTranslateLang}
-                      onChange={(e) => changeSysTranslateLang(e.target.value)}
-                      title={t("conversation.systemTranslate.langHint")}
-                      className="rounded-lg border border-line bg-background px-1.5 py-1 text-xs text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
-                    >
-                      {MEETING_LANGUAGES.map((l) => (
-                        <option key={l.value} value={l.value}>
-                          {l.flag} {l.label}
+                    /* Un solo grupo sellado (idioma · salida · voz): se lee
+                       como extensión del botón Traducir, no como formulario. */
+                    <div className="flex items-stretch divide-x divide-logo-primary/15 overflow-hidden rounded-lg border border-logo-primary/25 bg-logo-primary/5">
+                      <select
+                        value={sysTranslateLang}
+                        onChange={(e) => changeSysTranslateLang(e.target.value)}
+                        title={t("conversation.systemTranslate.langHint")}
+                        className="cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none"
+                      >
+                        {MEETING_LANGUAGES.map((l) => (
+                          <option key={l.value} value={l.value}>
+                            {l.flag} {l.label}
+                          </option>
+                        ))}
+                      </select>
+                      {outputDevices.length > 0 && (
+                        <select
+                          value={voiceOut}
+                          onChange={(e) => pickVoiceOut(e.target.value)}
+                          title={t("conversation.systemTranslate.voiceOutHint")}
+                          className="max-w-36 cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none"
+                        >
+                          <option value="">
+                            {"🔊 " + t("conversation.systemTranslate.speakers")}
+                          </option>
+                          {outputDevices.map((d) => (
+                            <option key={d} value={d}>
+                              {"🎙️ " + d}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <select
+                        value={voiceGender}
+                        onChange={(e) => pickVoiceGender(e.target.value)}
+                        title={t(
+                          "conversation.systemTranslate.voiceGenderHint",
+                        )}
+                        className="cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none"
+                      >
+                        <option value="f">
+                          {"♀ " +
+                            t("conversation.systemTranslate.voiceFemale")}
                         </option>
-                      ))}
-                    </select>
-                  )}
-                  {sysTranslate && outputDevices.length > 0 && (
-                    <select
-                      value={voiceOut}
-                      onChange={(e) => pickVoiceOut(e.target.value)}
-                      title={t("conversation.systemTranslate.voiceOutHint")}
-                      className="max-w-36 rounded-lg border border-line bg-background px-1.5 py-1 text-xs text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
-                    >
-                      <option value="">
-                        {"🔊 " + t("conversation.systemTranslate.speakers")}
-                      </option>
-                      {outputDevices.map((d) => (
-                        <option key={d} value={d}>
-                          {"🎙️ " + d}
+                        <option value="m">
+                          {"♂ " + t("conversation.systemTranslate.voiceMale")}
                         </option>
-                      ))}
-                    </select>
-                  )}
-                  {sysTranslate && (
-                    <select
-                      value={voiceGender}
-                      onChange={(e) => pickVoiceGender(e.target.value)}
-                      title={t("conversation.systemTranslate.voiceGenderHint")}
-                      className="rounded-lg border border-line bg-background px-1.5 py-1 text-xs text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
-                    >
-                      <option value="f">
-                        {"♀ " + t("conversation.systemTranslate.voiceFemale")}
-                      </option>
-                      <option value="m">
-                        {"♂ " + t("conversation.systemTranslate.voiceMale")}
-                      </option>
-                    </select>
+                      </select>
+                    </div>
                   )}
                   {sysTranslate && !vmInstalled && (
                     <Button
