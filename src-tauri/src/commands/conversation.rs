@@ -593,16 +593,23 @@ pub fn append_reply_translation(translated: &str) {
 /// escucha tu dictado ya traducido. Solo macOS (como el audio del sistema).
 #[tauri::command]
 #[specta::specta]
-pub async fn conversation_speak_via(text: String, lang: String, device: String) -> bool {
+pub async fn conversation_speak_via(
+    text: String,
+    lang: String,
+    device: String,
+    gender: String,
+) -> bool {
     #[cfg(target_os = "macos")]
     {
-        tauri::async_runtime::spawn_blocking(move || speak_via_blocking(&text, &lang, &device))
-            .await
-            .unwrap_or(false)
+        tauri::async_runtime::spawn_blocking(move || {
+            speak_via_blocking(&text, &lang, &device, &gender)
+        })
+        .await
+        .unwrap_or(false)
     }
     #[cfg(not(target_os = "macos"))]
     {
-        let _ = (text, lang, device);
+        let _ = (text, lang, device, gender);
         false
     }
 }
@@ -610,8 +617,41 @@ pub async fn conversation_speak_via(text: String, lang: String, device: String) 
 /// La mejor voz de `say` instalada para un idioma: Premium > Enhanced > resto.
 /// (`say -v ?` lista "Nombre (Premium)  es_ES  # frase"; los nombres pueden
 /// llevar espacios, así que el locale se busca desde el final.)
+/// Nombres de voces de `say` por género (es/en y comunes). Un nombre fuera
+/// de las listas no suma ni resta: la calidad sigue mandando.
 #[cfg(target_os = "macos")]
-fn best_voice_for(lang: &str) -> Option<String> {
+const FEMALE_VOICES: [&str; 22] = [
+    "Samantha",
+    "Ava",
+    "Allison",
+    "Susan",
+    "Zoe",
+    "Karen",
+    "Moira",
+    "Tessa",
+    "Fiona",
+    "Kate",
+    "Serena",
+    "Nicky",
+    "Vicki",
+    "Victoria",
+    "Anna",
+    "Mónica",
+    "Monica",
+    "Francisca",
+    "Paulina",
+    "Angélica",
+    "Luciana",
+    "Amélie",
+];
+#[cfg(target_os = "macos")]
+const MALE_VOICES: [&str; 20] = [
+    "Alex", "Daniel", "Fred", "Tom", "Oliver", "Aaron", "Arthur", "Evan", "Nathan", "Reed", "Lee",
+    "Gordon", "Rishi", "Jorge", "Diego", "Juan", "Carlos", "Eddy", "Thomas", "Xander",
+];
+
+#[cfg(target_os = "macos")]
+fn best_voice_for(lang: &str, gender: &str) -> Option<String> {
     use std::process::Command;
     let out = Command::new("/usr/bin/say")
         .args(["-v", "?"])
@@ -639,7 +679,7 @@ fn best_voice_for(lang: &str) -> Option<String> {
             "Samantha", "Alex", "Ava", "Allison", "Susan", "Zoe", "Evan", "Nathan", "Daniel",
             "Karen", "Moira", "Tessa",
         ];
-        let score = if name.contains("Premium") {
+        let mut score: i32 = if name.contains("Premium") {
             30
         } else if name.contains("Enhanced") || name.contains("Mejorada") {
             20
@@ -648,6 +688,18 @@ fn best_voice_for(lang: &str) -> Option<String> {
         } else {
             10
         };
+        // La preferencia de género pesa más que la calidad; la voz del
+        // género opuesto queda al final pero disponible como último recurso.
+        let base_name = name.split(" (").next().unwrap_or(name);
+        let is_female = FEMALE_VOICES.iter().any(|f| base_name == *f);
+        let is_male = MALE_VOICES.iter().any(|m| base_name == *m);
+        match gender {
+            "f" if is_female => score += 100,
+            "f" if is_male => score -= 100,
+            "m" if is_male => score += 100,
+            "m" if is_female => score -= 100,
+            _ => {}
+        }
         if best.as_ref().map(|(s, _)| score > *s).unwrap_or(true) {
             best = Some((score, name.to_string()));
         }
@@ -658,12 +710,13 @@ fn best_voice_for(lang: &str) -> Option<String> {
 /// Renderiza con `say` a WAV y lo reproduce en el dispositivo elegido
 /// (cadena vacía = salida por defecto). Bloqueante: llamar en spawn_blocking.
 #[cfg(target_os = "macos")]
-fn speak_via_blocking(text: &str, lang: &str, device: &str) -> bool {
+fn speak_via_blocking(text: &str, lang: &str, device: &str, gender: &str) -> bool {
     use std::io::Write;
     use std::process::{Command, Stdio};
     let wav = std::env::temp_dir().join("escriba-interpreter-voice.wav");
     let mut cmd = Command::new("/usr/bin/say");
-    if let Some(voice) = best_voice_for(lang) {
+    if let Some(voice) = best_voice_for(lang, gender) {
+        log::info!("interpreter voice: usando '{}'", voice);
         cmd.args(["-v", &voice]);
     }
     // El texto entra por stdin (sin líos de comillas); sale como WAV crudo.

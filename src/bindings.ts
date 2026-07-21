@@ -165,8 +165,8 @@ async conversationSystemTranslate(on: boolean, foreign: string) : Promise<boolea
  * (BlackHole) elegido aquí y como micrófono de la reunión, la otra persona
  * escucha tu dictado ya traducido. Solo macOS (como el audio del sistema).
  */
-async conversationSpeakVia(text: string, lang: string, device: string) : Promise<boolean> {
-    return await TAURI_INVOKE("conversation_speak_via", { text, lang, device });
+async conversationSpeakVia(text: string, lang: string, device: string, gender: string) : Promise<boolean> {
+    return await TAURI_INVOKE("conversation_speak_via", { text, lang, device, gender });
 },
 /**
  * ¿Está el micrófono virtual instalado? (aparece como dispositivo de salida).

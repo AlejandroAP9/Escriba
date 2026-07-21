@@ -1225,7 +1225,10 @@
       "vmInstall": "Instalar micrófono virtual",
       "vmInstalling": "Instalando…",
       "vmInstallHint": "Descarga BlackHole 2ch (micrófono virtual open source de Existential Audio) desde la fuente oficial, verificado por SHA256, y lo instala. macOS pedirá tu contraseña: es un driver de audio del sistema.",
-      "vmReady": "Micrófono virtual listo: tu voz traducida ya sale por ahí. En tu reunión elige 'BlackHole 2ch' como micrófono."
+      "vmReady": "Micrófono virtual listo: tu voz traducida ya sale por ahí. En tu reunión elige 'BlackHole 2ch' como micrófono.",
+      "voiceFemale": "Voz mujer",
+      "voiceMale": "Voz hombre",
+      "voiceGenderHint": "Género de la voz que habla tu traducción en la reunión."
     }
   },
   "engine": {

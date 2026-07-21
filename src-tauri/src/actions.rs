@@ -1778,7 +1778,7 @@ pub(crate) fn detect_pair_language(text: &str, lang_a: &str, lang_b: &str) -> St
                 "el", "la", "los", "las", "de", "que", "y", "en", "un", "una", "por", "con", "no",
                 "para", "es", "está", "esta", "me", "te", "se", "lo", "mi", "tu", "su", "del",
                 "al", "como", "pero", "más", "este", "deja", "favor", "a", "vamos", "ya", "hay",
-                "muy", "qué", "sí",
+                "muy", "qué", "sí", "hola", "cómo", "estás", "gracias", "buenos", "días",
             ],
             "en" => &[
                 "the", "of", "and", "to", "in", "a", "is", "that", "it", "for", "on", "with", "as",

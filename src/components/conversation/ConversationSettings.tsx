@@ -257,7 +257,12 @@ export const ConversationSettings: React.FC = () => {
         const device = voiceOutRef.current;
         if (device) {
           commands
-            .conversationSpeakVia(e.payload.text, e.payload.lang, device)
+            .conversationSpeakVia(
+              e.payload.text,
+              e.payload.lang,
+              device,
+              voiceGenderRef.current,
+            )
             .then((ok) => {
               if (!ok) speakIn(e.payload.lang, e.payload.text);
             })
@@ -364,6 +369,17 @@ export const ConversationSettings: React.FC = () => {
   const pickVoiceOut = (device: string) => {
     setVoiceOut(device);
     localStorage.setItem("escriba.interpreterVoiceOut", device);
+  };
+  // Género de la voz del Intérprete (pedido de Alejandro en QA): mujer u
+  // hombre, persistente. El backend elige la mejor voz de ese género.
+  const [voiceGender, setVoiceGender] = useState<string>(
+    () => localStorage.getItem("escriba.interpreterVoiceGender") ?? "f",
+  );
+  const voiceGenderRef = useRef(voiceGender);
+  voiceGenderRef.current = voiceGender;
+  const pickVoiceGender = (g: string) => {
+    setVoiceGender(g);
+    localStorage.setItem("escriba.interpreterVoiceGender", g);
   };
   const [outputDevices, setOutputDevices] = useState<string[]>([]);
   // Micrófono virtual integrado (patrón del motor Qwen): si falta, un botón
@@ -935,6 +951,21 @@ export const ConversationSettings: React.FC = () => {
                           {"🎙️ " + d}
                         </option>
                       ))}
+                    </select>
+                  )}
+                  {sysTranslate && (
+                    <select
+                      value={voiceGender}
+                      onChange={(e) => pickVoiceGender(e.target.value)}
+                      title={t("conversation.systemTranslate.voiceGenderHint")}
+                      className="rounded-lg border border-line bg-background px-1.5 py-1 text-xs text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                    >
+                      <option value="f">
+                        {"♀ " + t("conversation.systemTranslate.voiceFemale")}
+                      </option>
+                      <option value="m">
+                        {"♂ " + t("conversation.systemTranslate.voiceMale")}
+                      </option>
                     </select>
                   )}
                   {sysTranslate && !vmInstalled && (
