@@ -105,7 +105,7 @@ Todo el procesamiento es local: el silencio se filtra con **Silero VAD**, la tra
 
 ## 🌍 Idiomas
 
-Interfaz en **21 idiomas** (español primero) y transcripción multilingüe según el modelo elegido.
+Interfaz **completa en español e inglés**. Otros 19 idiomas están **en progreso** (la estructura está, pero muchas cadenas todavía muestran el texto en inglés). La transcripción es multilingüe según el modelo elegido.
 
 ## 📜 Historial
 
