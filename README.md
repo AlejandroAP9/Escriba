@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <b>Dictado por voz con IA, 100% local y gratis.</b><br/>
+  <b>Dictado por voz con IA local, gratis.</b><br/>
   Aprietas un atajo, hablas, y tu voz aparece como texto en cualquier app.<br/>
-  Sin nube. Sin claves de API. Tu voz nunca sale de tu computador.
+  Local por defecto. Sin claves de API. Tu voz nunca sale de tu computador.
 </p>
 
 <p align="center">
@@ -67,12 +67,14 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | 🔁 **Buscar y reemplazar**     | Reglas propias (texto literal o expresión regular) que se aplican al texto dictado.                                                                                                                                |
 | ⏯️ **Pausar la música**        | Pausa Música/Spotify mientras dictas y las reanuda al terminar; solo lo que estaba sonando.                                                                                                                        |
 
-## 🔒 100% local, 100% gratis
+## 🔒 Local por defecto, 100% gratis
 
-- **Tu voz nunca sale de tu computador.** Toda la transcripción y la IA corren en tu máquina.
+- **Local por defecto.** La transcripción, la corrección, la traducción y el Intérprete corren en tu computador. El contenido solo sale de tu equipo si tú configuras y seleccionas explícitamente un proveedor remoto (BYOK: OpenAI, Anthropic, etc.), que es opcional y viene apagado.
 - **Sin claves de API en el camino feliz.** El motor local viene incluido; no necesitas cuenta ni tarjeta.
 - **Ilimitado.** Sin cupos de palabras por semana ni límites de minutos.
 - **Open source.** Puedes leer, auditar y extender cada línea.
+
+> Qué usa internet y qué no: el dictado, la transcripción y toda la IA local funcionan sin conexión. Requieren descargar los modelos una vez. El actualizador consulta si hay una versión nueva. Un proveedor remoto (si lo activas tú) envía el texto a ese servicio.
 
 ## 🎯 Filosofía
 

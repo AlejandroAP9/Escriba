@@ -1070,7 +1070,7 @@
     "prefsTitle": "Preferences",
     "copyError": "Couldn't copy",
     "copy": "Copy",
-    "localNote": "100% local: audio and text never leave your computer.",
+    "localNote": "Local by default: your content only leaves if you set up a remote provider.",
     "connectHint": "Connect Escriba to your agent with:",
     "autostart": {
       "label": "Start with the app",

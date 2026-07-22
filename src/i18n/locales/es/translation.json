@@ -1070,7 +1070,7 @@
     "prefsTitle": "Preferencias",
     "copyError": "No se pudo copiar",
     "copy": "Copiar",
-    "localNote": "100% local: el audio y el texto nunca salen de tu computador.",
+    "localNote": "Local por defecto: tu contenido solo sale si configuras un proveedor remoto.",
     "connectHint": "Conecta Escriba a tu agente con:",
     "autostart": {
       "label": "Iniciar con la app",
