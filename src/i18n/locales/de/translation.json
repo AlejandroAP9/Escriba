@@ -844,7 +844,9 @@
     "open": "Öffnen",
     "copy": "Kopieren",
     "clear": "Leeren",
-    "noOptionsFound": "Keine Optionen gefunden"
+    "noOptionsFound": "Keine Optionen gefunden",
+    "downloading": "Downloading…",
+    "downloadingCount": "{{count}} downloading…"
   },
   "accessibility": {
     "permissionsDescription": "Escriba benötigt Bedienungshilfen-Berechtigungen, um transkribierten Text einzugeben.",

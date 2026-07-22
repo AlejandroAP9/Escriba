@@ -844,7 +844,9 @@
     "open": "Отваряне",
     "copy": "Копиране",
     "clear": "Изчистване",
-    "noOptionsFound": "Няма намерени опции"
+    "noOptionsFound": "Няма намерени опции",
+    "downloading": "Downloading…",
+    "downloadingCount": "{{count}} downloading…"
   },
   "accessibility": {
     "permissionsDescription": "Escriba се нуждае от разрешения за достъпност, за да въвежда транскрибирания текст.",

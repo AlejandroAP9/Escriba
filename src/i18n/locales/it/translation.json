@@ -844,7 +844,9 @@
     "open": "Apri",
     "copy": "Copia",
     "clear": "Svuota",
-    "noOptionsFound": "Nessuna opzione trovata"
+    "noOptionsFound": "Nessuna opzione trovata",
+    "downloading": "Downloading…",
+    "downloadingCount": "{{count}} downloading…"
   },
   "accessibility": {
     "permissionsDescription": "Escriba ha bisogno dei permessi di accessibilità per digitare il testo trascritto.",

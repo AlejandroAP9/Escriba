@@ -844,7 +844,9 @@
     "open": "開啟",
     "copy": "複製",
     "clear": "清除",
-    "noOptionsFound": "未找到選項"
+    "noOptionsFound": "未找到選項",
+    "downloading": "Downloading…",
+    "downloadingCount": "{{count}} downloading…"
   },
   "accessibility": {
     "permissionsDescription": "Escriba 需要輔助使用權限才能輸入轉錄的文字",

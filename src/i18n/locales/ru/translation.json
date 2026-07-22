@@ -844,7 +844,9 @@
     "open": "Открыть",
     "copy": "Копировать",
     "clear": "Очистить",
-    "noOptionsFound": "Вариантов не найдено"
+    "noOptionsFound": "Вариантов не найдено",
+    "downloading": "Downloading…",
+    "downloadingCount": "{{count}} downloading…"
   },
   "accessibility": {
     "permissionsDescription": "Escriba необходимы разрешения на доступ для ввода расшифрованного текста.",

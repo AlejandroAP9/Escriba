@@ -844,7 +844,9 @@
     "open": "Abrir",
     "copy": "Copiar",
     "clear": "Limpiar",
-    "noOptionsFound": "No se encontraron opciones"
+    "noOptionsFound": "No se encontraron opciones",
+    "downloading": "Descargando…",
+    "downloadingCount": "{{count}} descargando…"
   },
   "accessibility": {
     "permissionsDescription": "Escriba necesita permisos de accesibilidad para escribir texto transcrito.",
