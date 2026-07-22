@@ -23,7 +23,7 @@
 
 ## ✒️ Qué es Escriba
 
-Escriba es una app de escritorio que convierte tu voz en texto con inteligencia artificial, **corriendo por completo en tu propia máquina**. No es solo dictado: es un motor de IA local del que cuelgan varias herramientas —corrección, traducción, transcripción de archivos, interpretación en vivo— sin que nada se envíe a internet y sin pagar una suscripción.
+Escriba es una app de escritorio que convierte tu voz en texto con inteligencia artificial, **corriendo en tu propia máquina**. No es solo dictado: es un motor de IA local del que cuelgan varias herramientas —corrección, traducción, transcripción de archivos, interpretación en vivo— que funcionan por defecto sin conexión y sin pagar una suscripción. (Puedes conectar un proveedor remoto opcional si quieres; viene apagado.)
 
 La idea es simple: **lo que otras apps cobran por mes y procesan en su nube, aquí es gratis, ilimitado y privado.**
 
@@ -44,28 +44,28 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 
 ## 🚀 Qué puede hacer
 
-|                                |                                                                                                                                                                                                                    |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 🎙️ **Dictado con IA**          | Atajo global, hablas, y el texto aparece donde estés. Filtrado de silencios (VAD) + Whisper/Parakeet locales con aceleración por GPU.                                                                              |
-| 🗽 **Dictado libre**           | Cero atajos: actívalo y habla. Cada frase se escribe sola donde esté tu cursor, cortada por el detector de voz. Con indicador siempre visible.                                                                     |
-| 👁️ **Revisar antes de pegar** | Opcional: el dictado se muestra en pantalla antes de escribirse — pégalo, descártalo o dicta una corrección con tu atajo. Para correos delicados.                                                                  |
-| 💬 **Sesiones**                | Habla una hora y llévate un documento listo: conversa con la IA local (te responde con voz) o deja que solo escuche tu reunión, entrevista o clase. Al terminar: acta, apuntes o nota, redactados por el motor local. |
-| 🖥️ **Audio del sistema**       | Sesiones también escucha lo que suena en tu computador: la otra parte del Zoom/Meet entra al acta como "Otros", con marca de tiempo. Actas de reunión a dos voces, sin nube. (macOS 13+)                            |
+|                                |                                                                                                                                                                                                                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎙️ **Dictado con IA**          | Atajo global, hablas, y el texto aparece donde estés. Filtrado de silencios (VAD) + Whisper/Parakeet locales con aceleración por GPU.                                                                                                                                                       |
+| 🗽 **Dictado libre**           | Cero atajos: actívalo y habla. Cada frase se escribe sola donde esté tu cursor, cortada por el detector de voz. Con indicador siempre visible.                                                                                                                                              |
+| 👁️ **Revisar antes de pegar**  | Opcional: el dictado se muestra en pantalla antes de escribirse — pégalo, descártalo o dicta una corrección con tu atajo. Para correos delicados.                                                                                                                                           |
+| 💬 **Sesiones**                | Habla una hora y llévate un documento listo: conversa con la IA local (te responde con voz) o deja que solo escuche tu reunión, entrevista o clase. Al terminar: acta, apuntes o nota, redactados por el motor local.                                                                       |
+| 🖥️ **Audio del sistema**       | Sesiones también escucha lo que suena en tu computador: la otra parte del Zoom/Meet entra al acta como "Otros", con marca de tiempo. Actas de reunión a dos voces, sin nube. (macOS 13+)                                                                                                    |
 | 🎙️ **Intérprete de reuniones** | Interpretación en vivo de tus videollamadas, ida y vuelta: lo que suena llega en tu idioma; lo que dictas sale traducido y hablado _dentro_ de la llamada por un micrófono virtual integrado (1 clic). Hablas español, el otro escucha inglés. 100% local. (idea de John Walter, macOS 13+) |
-| 🔊 **Tu tinta en voz**         | Selecciona texto en cualquier app y ⌥⇧R: Escriba lo lee en voz alta con la mejor voz de tu equipo. Revisa tus borradores con los oídos.                                                                            |
-| 👓 **Para todos los ojos**     | Tema Día/Noche/Sistema y tamaño de texto ajustable (90-130%): toda la interfaz crece de una vez. Nacida de la comunidad.                                                                                           |
-| ✨ **Corrección con IA**       | Limpia muletillas y repeticiones, ordena listas y ajusta el tono según la app (WhatsApp casual, Mail formal, prompts para Cursor…).                                                                                |
-| 🗣️ **Edición por voz**         | Selecciona texto en cualquier app, mantén el atajo y dile qué hacer: _"hazlo más formal"_, _"resúmelo en 3 líneas"_, _"tradúcelo al portugués"_.                                                                   |
-| 🌐 **Traducción al dictar**    | Hablas en un idioma y el texto se pega en otro.                                                                                                                                                                    |
-| 🎬 **Estudio**                 | Arrastra un audio o video (incluso notas de voz `.opus` de WhatsApp) → transcripción con marcas de tiempo → exporta **SRT / VTT / TXT / JSON** + **resumen con IA**. Subtítulos para tus Reels, gratis y sin nube. |
-| 📡 **Intérprete en vivo**      | Tu Mac levanta una sala y muestra un **QR**; cada asistente lo abre en su teléfono y lee los subtítulos **en su propio idioma**. Para guías turísticos, clases y charlas con extranjeros.                          |
-| 🔄 **Traductor cara a cara**   | Conversación 1-a-1 bidireccional con **detección automática de idioma**, pantalla grande y voz.                                                                                                                    |
-| 🤖 **Agentes (MCP)**           | Un servidor local (puerto fijo) para que **Claude Code, Cursor o Cline** usen a Escriba como herramientas: transcribir, traducir, resumir, pulir texto y **leer tu historial de dictados**. 100% local.            |
-| 🎚️ **Re-transcribir**          | Mismo audio, otro modelo: compara precisión sin volver a subir nada.                                                                                                                                               |
-| 🎤 **Micrófono en los campos** | Dicta directo dentro de la propia app, en cualquier campo de texto.                                                                                                                                                |
-| 🔇 **Supresión de ruido**      | Limpia ventilador, teclado y tráfico del micrófono antes de transcribir. 100% local (RNNoise).                                                                                                                     |
-| 🔁 **Buscar y reemplazar**     | Reglas propias (texto literal o expresión regular) que se aplican al texto dictado.                                                                                                                                |
-| ⏯️ **Pausar la música**        | Pausa Música/Spotify mientras dictas y las reanuda al terminar; solo lo que estaba sonando.                                                                                                                        |
+| 🔊 **Tu tinta en voz**         | Selecciona texto en cualquier app y ⌥⇧R: Escriba lo lee en voz alta con la mejor voz de tu equipo. Revisa tus borradores con los oídos.                                                                                                                                                     |
+| 👓 **Para todos los ojos**     | Tema Día/Noche/Sistema y tamaño de texto ajustable (90-130%): toda la interfaz crece de una vez. Nacida de la comunidad.                                                                                                                                                                    |
+| ✨ **Corrección con IA**       | Limpia muletillas y repeticiones, ordena listas y ajusta el tono según la app (WhatsApp casual, Mail formal, prompts para Cursor…).                                                                                                                                                         |
+| 🗣️ **Edición por voz**         | Selecciona texto en cualquier app, mantén el atajo y dile qué hacer: _"hazlo más formal"_, _"resúmelo en 3 líneas"_, _"tradúcelo al portugués"_.                                                                                                                                            |
+| 🌐 **Traducción al dictar**    | Hablas en un idioma y el texto se pega en otro.                                                                                                                                                                                                                                             |
+| 🎬 **Estudio**                 | Arrastra un audio o video (incluso notas de voz `.opus` de WhatsApp) → transcripción con marcas de tiempo → exporta **SRT / VTT / TXT / JSON** + **resumen con IA**. Subtítulos para tus Reels, gratis y sin nube.                                                                          |
+| 📡 **Intérprete en vivo**      | Tu Mac levanta una sala y muestra un **QR**; cada asistente lo abre en su teléfono y lee los subtítulos **en su propio idioma**. Para guías turísticos, clases y charlas con extranjeros.                                                                                                   |
+| 🔄 **Traductor cara a cara**   | Conversación 1-a-1 bidireccional con **detección automática de idioma**, pantalla grande y voz.                                                                                                                                                                                             |
+| 🤖 **Agentes (MCP)**           | Un servidor local (puerto fijo) para que **Claude Code, Cursor o Cline** usen a Escriba como herramientas: transcribir, traducir, resumir, pulir texto y **leer tu historial de dictados**. 100% local.                                                                                     |
+| 🎚️ **Re-transcribir**          | Mismo audio, otro modelo: compara precisión sin volver a subir nada.                                                                                                                                                                                                                        |
+| 🎤 **Micrófono en los campos** | Dicta directo dentro de la propia app, en cualquier campo de texto.                                                                                                                                                                                                                         |
+| 🔇 **Supresión de ruido**      | Limpia ventilador, teclado y tráfico del micrófono antes de transcribir. 100% local (RNNoise).                                                                                                                                                                                              |
+| 🔁 **Buscar y reemplazar**     | Reglas propias (texto literal o expresión regular) que se aplican al texto dictado.                                                                                                                                                                                                         |
+| ⏯️ **Pausar la música**        | Pausa Música/Spotify mientras dictas y las reanuda al terminar; solo lo que estaba sonando.                                                                                                                                                                                                 |
 
 ## 🔒 Local por defecto, 100% gratis
 
@@ -111,31 +111,31 @@ Interfaz en **21 idiomas** (español primero) y transcripción multilingüe seg�
 
 Toda la evolución de Escriba, versión por versión (fechas reales de la dupla en los Juegos Imperiales):
 
-| Versión | Fecha  | Novedades                                      |
-| ------- | ------ | ---------------------------------------------- |
+| Versión | Fecha  | Novedades                                                                                                |
+| ------- | ------ | -------------------------------------------------------------------------------------------------------- |
 | 2.0.0   | 21-jul | 🎙️ **Intérprete de reuniones** en vivo, ida y vuelta (idea de John Walter) + micrófono virtual integrado |
-| 1.9.1   | 18-jul | 🐧 Motor local en **Linux** + fixes del Traductor (QA Flor) |
-| 1.9.0   | 17-jul | **Revisar antes de pegar** + fixes del QA Windows de la dupla |
-| 1.8.0   | 16-jul | 🤝 Tanda comunidad: sugerencias de diccionario + Plumín empático |
-| 1.7.0   | 15-jul | 🪶 Nace **Plumín** (mascota) + onda de voz viva |
-| 1.6.0   | 15-jul | **Dictado libre** (cero teclas) + bandeja con acciones |
-| 1.5.0   | 15-jul | Panel de **Permisos** + estado real + ventana con memoria |
-| 1.4.0   | 15-jul | 👓 Tema Día/Noche + tamaño de texto (idea de la comunidad) |
-| 1.3.2   | 15-jul | La pluma llega a la barra de menú              |
-| 1.3.1   | 15-jul | QA de la dupla: aviso de motor faltante + indicador de modo activo |
-| 1.3.0   | 15-jul | 🖥️ **Audio del sistema** + **Tu tinta en voz** + **Tonos por app** |
-| 1.2.0   | 12-jul | 🎨 Rework de las 11 pantallas + Design System  |
-| 1.1.0   | 11-jul | 🔒 Auditoría de seguridad (MCP + privacidad)   |
-| 1.0.0   | 11-jul | Rebrand visual + español total                 |
-| 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono |
-| 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar   |
-| 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                    |
-| 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar     |
-| 0.5.0   | 09-jul | Onboarding es-first + estadísticas             |
-| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`)           |
-| 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)    |
-| 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar      |
-| 0.2.0   | 07-jul | Rebrand + **motor de IA local**                |
+| 1.9.1   | 18-jul | 🐧 Motor local en **Linux** + fixes del Traductor (QA Flor)                                              |
+| 1.9.0   | 17-jul | **Revisar antes de pegar** + fixes del QA Windows de la dupla                                            |
+| 1.8.0   | 16-jul | 🤝 Tanda comunidad: sugerencias de diccionario + Plumín empático                                         |
+| 1.7.0   | 15-jul | 🪶 Nace **Plumín** (mascota) + onda de voz viva                                                          |
+| 1.6.0   | 15-jul | **Dictado libre** (cero teclas) + bandeja con acciones                                                   |
+| 1.5.0   | 15-jul | Panel de **Permisos** + estado real + ventana con memoria                                                |
+| 1.4.0   | 15-jul | 👓 Tema Día/Noche + tamaño de texto (idea de la comunidad)                                               |
+| 1.3.2   | 15-jul | La pluma llega a la barra de menú                                                                        |
+| 1.3.1   | 15-jul | QA de la dupla: aviso de motor faltante + indicador de modo activo                                       |
+| 1.3.0   | 15-jul | 🖥️ **Audio del sistema** + **Tu tinta en voz** + **Tonos por app**                                       |
+| 1.2.0   | 12-jul | 🎨 Rework de las 11 pantallas + Design System                                                            |
+| 1.1.0   | 11-jul | 🔒 Auditoría de seguridad (MCP + privacidad)                                                             |
+| 1.0.0   | 11-jul | Rebrand visual + español total                                                                           |
+| 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono                                                           |
+| 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                                             |
+| 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                                                                              |
+| 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar                                                               |
+| 0.5.0   | 09-jul | Onboarding es-first + estadísticas                                                                       |
+| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`)                                                                     |
+| 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)                                                              |
+| 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar                                                                |
+| 0.2.0   | 07-jul | Rebrand + **motor de IA local**                                                                          |
 
 ## 🙏 Construido sobre Handy
 

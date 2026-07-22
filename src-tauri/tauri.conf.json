@@ -17,10 +17,7 @@
       "assetProtocol": {
         "enable": true,
         "scope": {
-          "allow": [
-            "$APPDATA/**",
-            "$APPLOCALDATA/**"
-          ],
+          "allow": ["$APPDATA/**", "$APPLOCALDATA/**"],
           "requireLiteralLeadingDot": false
         }
       }
@@ -30,9 +27,7 @@
     "active": true,
     "createUpdaterArtifacts": true,
     "targets": "all",
-    "resources": [
-      "resources/**/*"
-    ],
+    "resources": ["resources/**/*"],
     "license": "MIT",
     "icon": [
       "icons/32x32.png",
@@ -50,10 +45,7 @@
     },
     "linux": {
       "deb": {
-        "depends": [
-          "libgtk-layer-shell0",
-          "libopenblas0"
-        ],
+        "depends": ["libgtk-layer-shell0", "libopenblas0"],
         "files": {
           "/usr/lib": "transcribe-libs"
         }
