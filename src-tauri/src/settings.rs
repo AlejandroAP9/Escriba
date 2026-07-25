@@ -341,6 +341,39 @@ impl std::ops::DerefMut for SecretMap {
     }
 }
 
+/// Valor que sustituye a una API key real cuando los ajustes cruzan hacia la
+/// webview. El frontend nunca necesita la clave en claro: la muestra en un campo
+/// `type="password"`, comprueba si cambió y comprueba si está vacía. Las tres
+/// cosas funcionan igual con este centinela, y a cambio la clave deja de existir
+/// en el proceso del webview, donde cualquier XSS o extensión podría leerla.
+///
+/// Que sea no vacío es parte del contrato: `hasApiKey` en
+/// `usePostProcessProviderState.ts` distingue "configurada" de "sin configurar"
+/// por longitud.
+pub const REDACTED_SECRET: &str = "__ESCRIBA_CLAVE_GUARDADA__";
+
+impl SecretMap {
+    /// Copia con cada valor no vacío sustituido por [`REDACTED_SECRET`].
+    ///
+    /// Las claves vacías se conservan tal cual para que el frontend siga
+    /// distinguiendo "proveedor sin clave" de "proveedor con clave".
+    pub fn redacted(&self) -> Self {
+        SecretMap(
+            self.0
+                .iter()
+                .map(|(k, v)| {
+                    let masked = if v.is_empty() {
+                        String::new()
+                    } else {
+                        REDACTED_SECRET.to_string()
+                    };
+                    (k.clone(), masked)
+                })
+                .collect(),
+        )
+    }
+}
+
 /* still handy for composing the initial JSON in the store ------------- */
 #[derive(Serialize, Deserialize, Debug, Clone, Type)]
 pub struct AppSettings {
@@ -1265,12 +1298,16 @@ pub fn get_bindings(app: &AppHandle) -> HashMap<String, ShortcutBinding> {
     settings.bindings
 }
 
-pub fn get_stored_binding(app: &AppHandle, id: &str) -> ShortcutBinding {
-    let bindings = get_bindings(app);
-
-    let binding = bindings.get(id).unwrap().clone();
-
-    binding
+/// Devuelve el binding guardado con ese id, o `None` si no existe.
+///
+/// Antes hacía `.unwrap()` sobre el id, que llega desde el frontend a través
+/// del comando `reset_binding`. Como `get_settings` no rellena los bindings por
+/// defecto (solo lo hace `load_or_create_app_settings`), y `repair_settings`
+/// puede dejar el mapa vacío tras un fichero corrupto, ese unwrap era un panic
+/// alcanzable. Y un panic dentro de un comando envenena los mutex que sostenía,
+/// lo que deja la app entera en estado inservible hasta reiniciar.
+pub fn get_stored_binding(app: &AppHandle, id: &str) -> Option<ShortcutBinding> {
+    get_bindings(app).get(id).cloned()
 }
 
 pub fn get_history_limit(app: &AppHandle) -> usize {

@@ -2,7 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+  <!--
+    Estos textos salen en los diálogos de permisos de macOS: son lo primero que
+    lee un usuario nuevo, antes incluso de ver la app. Van en español porque la
+    app es español primero, y explican para qué sirve el permiso, no solo que se
+    está pidiendo.
+  -->
   <key>NSMicrophoneUsageDescription</key>
-  <string>Request microphone access to transcribe audio locally</string>
+  <string>Escriba usa el micrófono para transcribir lo que dictas. El audio se procesa en tu computador.</string>
+  <!--
+    Requerido para los AppleScript de src/media.rs, src/managers/audio.rs y
+    src/commands/virtual_mic.rs. Sin esta cadena, macOS deniega el permiso en
+    lugar de preguntar.
+  -->
+  <key>NSAppleEventsUsageDescription</key>
+  <string>Escriba pausa la música y ajusta el volumen del sistema para que no se cuelen en tu dictado.</string>
 </dict>
 </plist>

@@ -13,6 +13,7 @@ mod llm_client;
 mod managers;
 mod media;
 mod overlay;
+mod path_guard;
 pub mod portable;
 mod settings;
 mod shortcut;

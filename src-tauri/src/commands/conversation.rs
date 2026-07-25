@@ -778,13 +778,22 @@ fn speak_via_blocking(
     use std::process::{Command, Stdio};
     // Archivo temporal ÚNICO por locución (auditoría #7): en manos libres dos
     // frases seguidas ya no se pisan el WAV mientras una se reproduce.
+    //
+    // Va dentro de un directorio temporal propio en vez de directamente en
+    // /tmp: el nombre anterior (`escriba-interpreter-<pid>-<n>.wav`) era
+    // adivinable, así que otro proceso podía dejar un symlink ahí y desviar la
+    // escritura de `say`. El directorio se crea con nombre aleatorio y permisos
+    // 0700, y se borra entero al salir de la función.
+    let Ok(tmp_dir) = tempfile::Builder::new()
+        .prefix("escriba-interpreter-")
+        .tempdir()
+    else {
+        log::warn!("interpreter voice: no se pudo crear el directorio temporal");
+        return false;
+    };
     static UTTERANCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let n = UTTERANCE.fetch_add(1, Ordering::Relaxed);
-    let wav = std::env::temp_dir().join(format!(
-        "escriba-interpreter-{}-{}.wav",
-        std::process::id(),
-        n
-    ));
+    let wav = tmp_dir.path().join(format!("{}.wav", n));
     let selected = if device.is_empty() {
         None
     } else {

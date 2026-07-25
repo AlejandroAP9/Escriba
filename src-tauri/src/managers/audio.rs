@@ -174,6 +174,18 @@ fn create_audio_recorder(
 /* ──────────────────────────────────────────────────────────────── */
 
 #[derive(Clone)]
+/// **Orden de bloqueo.** Cuando haga falta tomar más de un mutex a la vez, hay
+/// que hacerlo siempre en este orden:
+///
+/// ```text
+/// state -> is_open -> did_mute
+/// ```
+///
+/// No es una convención cosmética: `apply_mute` tomaba `did_mute` antes que
+/// `is_open` mientras `start_microphone_stream` y `stop_microphone_stream` los
+/// tomaban al revés. Bastaba con empezar a dictar justo cuando el panel de
+/// ajustes cambiaba de micrófono para que los dos hilos se quedaran esperando el
+/// mutex del otro, colgando la app con el micrófono silenciado.
 pub struct AudioRecordingManager {
     state: Arc<Mutex<RecordingState>>,
     mode: Arc<Mutex<MicrophoneMode>>,
@@ -324,12 +336,23 @@ impl AudioRecordingManager {
 
     /* ---------- microphone life-cycle -------------------------------------- */
 
-    /// Applies mute if mute_while_recording is enabled and stream is open
+    /// Applies mute if mute_while_recording is enabled and stream is open.
+    ///
+    /// Toma `is_open` antes que `did_mute` para respetar el orden de bloqueo
+    /// documentado en `AudioRecordingManager`. El orden inverso (el que había
+    /// antes) producía un deadlock contra `start_microphone_stream` y
+    /// `stop_microphone_stream`, que se llaman desde los comandos de ajustes
+    /// mientras el hilo de dictado está silenciando el micrófono.
     pub fn apply_mute(&self) {
         let settings = get_settings(&self.app_handle);
+        if !settings.mute_while_recording {
+            return;
+        }
+
+        let open_flag = self.is_open.lock().unwrap();
         let mut did_mute_guard = self.did_mute.lock().unwrap();
 
-        if settings.mute_while_recording && *self.is_open.lock().unwrap() {
+        if *open_flag {
             set_mute(true);
             *did_mute_guard = true;
             debug!("Mute applied");

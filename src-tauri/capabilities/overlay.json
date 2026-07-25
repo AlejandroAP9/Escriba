@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "overlay",
+  "description": "La ventana de grabación es un panel siempre encima que solo escucha eventos e invoca comandos del backend (ver src/overlay/RecordingOverlay.tsx). No necesita fs, dialog, opener, updater ni process, así que no los recibe.",
+  "windows": ["recording_overlay"],
+  "permissions": ["core:default"]
+}

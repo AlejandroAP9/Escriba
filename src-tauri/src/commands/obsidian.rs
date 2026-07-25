@@ -9,11 +9,30 @@ use std::path::{Path, PathBuf};
 use tauri::AppHandle;
 
 /// Guarda (o borra) la carpeta del vault de Obsidian en los ajustes.
+///
+/// La carpeta se contiene al home del usuario. El comentario de cabecera decía
+/// que "la ruta la consiente el usuario con el selector de carpeta", pero el
+/// backend no puede comprobar que la cadena venga de verdad del selector: sin
+/// esta validación, cualquiera que pudiera escribir en los ajustes convertía
+/// este comando en una escritura de archivos `.md` en cualquier parte del disco.
 #[tauri::command]
 #[specta::specta]
 pub fn set_obsidian_vault(app: AppHandle, path: String) -> Result<(), String> {
+    let validated = if path.trim().is_empty() {
+        // Cadena vacía es el "olvidar el vault" del frontend, no una ruta.
+        String::new()
+    } else {
+        crate::path_guard::contain_existing_path(
+            &app,
+            Path::new(&path),
+            "Esa carpeta no está dentro de tu carpeta personal.",
+        )?
+        .to_string_lossy()
+        .to_string()
+    };
+
     let mut settings = get_settings(&app);
-    settings.obsidian_vault_path = path;
+    settings.obsidian_vault_path = validated;
     write_settings(&app, settings);
     Ok(())
 }
@@ -39,7 +58,11 @@ pub fn export_to_obsidian(
     if vault.trim().is_empty() {
         return Err("SIN_VAULT".to_string());
     }
-    let vault_dir = PathBuf::from(&vault);
+    // Se revalida en la escritura, no solo al guardar el ajuste: un vault
+    // configurado antes de que existiera la validación sigue en el store, y
+    // `settings_store.json` es un archivo de texto que el usuario puede editar.
+    let vault_dir =
+        crate::path_guard::contain_existing_path(&app, Path::new(&vault), "VAULT_NO_EXISTE")?;
     if !vault_dir.is_dir() {
         return Err("VAULT_NO_EXISTE".to_string());
     }

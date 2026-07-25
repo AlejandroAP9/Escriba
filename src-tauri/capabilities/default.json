@@ -1,12 +1,11 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capabilities for the app",
-  "windows": ["main", "recording_overlay"],
+  "description": "Permisos de la ventana principal. Deliberadamente sin `store:default`: ese permiso le daba a la webview lectura y escritura completas de settings_store.json, donde viven las API keys en texto plano, el token del servidor MCP y `external_script_path` (que se ejecuta en cada pegado). El frontend nunca importa @tauri-apps/plugin-store; toda la persistencia pasa por los comandos `change_*` del backend, que sí validan.",
+  "windows": ["main"],
   "permissions": [
     "core:default",
     "opener:default",
-    "store:default",
     "updater:default",
     "process:default",
     "dialog:default",

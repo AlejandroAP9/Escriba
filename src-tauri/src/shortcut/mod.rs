@@ -204,7 +204,8 @@ pub fn change_binding(
 #[tauri::command]
 #[specta::specta]
 pub fn reset_binding(app: AppHandle, id: String) -> Result<BindingResponse, String> {
-    let binding = settings::get_stored_binding(&app, &id);
+    let binding = settings::get_stored_binding(&app, &id)
+        .ok_or_else(|| format!("No existe ningún atajo con el id '{}'", id))?;
     change_binding(app, id, binding.default_binding)
 }
 
@@ -895,8 +896,22 @@ pub fn change_external_script_path_setting(
     app: AppHandle,
     path: Option<String>,
 ) -> Result<(), String> {
+    // Este script se ejecuta en cada pegado (clipboard::paste_via_external_script),
+    // así que la ruta se valida al guardarla: debe existir, ser un archivo
+    // ejecutable y vivir dentro de la carpeta personal del usuario. Sin esto,
+    // cualquiera que pudiera escribir en los ajustes lograba ejecución de código
+    // en la siguiente pulsación del atajo.
+    let validated = match path.as_deref().map(str::trim).filter(|p| !p.is_empty()) {
+        Some(p) => Some(
+            crate::path_guard::validate_external_script(&app, p)?
+                .to_string_lossy()
+                .to_string(),
+        ),
+        None => None,
+    };
+
     let mut settings = settings::get_settings(&app);
-    settings.external_script_path = path;
+    settings.external_script_path = validated;
     settings::write_settings(&app, settings);
     Ok(())
 }
@@ -1052,6 +1067,15 @@ pub fn change_post_process_api_key_setting(
     provider_id: String,
     api_key: String,
 ) -> Result<(), String> {
+    // `get_app_settings` enmascara las claves, así que el frontend tiene el
+    // centinela en la mano. Si nos lo devuelve (un blur sin editar, un re-render
+    // que dispare el guardado), guardarlo destruiría la clave real y el phraser
+    // empezaría a fallar con un 401 sin explicación. Se ignora en silencio: no
+    // es un error del usuario, es un no-cambio.
+    if api_key == settings::REDACTED_SECRET {
+        return Ok(());
+    }
+
     let mut settings = settings::get_settings(&app);
     validate_provider_exists(&settings, &provider_id)?;
     settings.post_process_api_keys.insert(provider_id, api_key);

@@ -80,6 +80,10 @@ rusqlite = { version = "0.37", features = ["bundled"] }
 tar = "0.4.44"
 flate2 = "1.0"
 sha2 = "0.10"
+# Archivos temporales con nombre aleatorio y O_EXCL. Antes se componían a mano
+# como `escriba-<pid>.wav` en /tmp, que es predecible: otro proceso del sistema
+# podía dejar un symlink en esa ruta y desviar la escritura.
+tempfile = "3"
 getrandom = "0.2"
 # Whisper-family models run through transcribe-cpp (GGUF/ggml, native backends);
 # transcribe-rs is now ONNX-only (Parakeet, Moonshine, SenseVoice, GigaAM,

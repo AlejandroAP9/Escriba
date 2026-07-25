@@ -6,5 +6,18 @@
     <true/>
     <key>com.apple.security.device.audio-input</key>
     <true/>
+    <!--
+      Escriba controla otras apps por AppleScript en tres sitios: pausar Spotify
+      y Música al dictar (src/media.rs), silenciar la salida mientras grabas
+      (src/managers/audio.rs) y instalar o desinstalar BlackHole
+      (src/commands/virtual_mic.rs).
+
+      Con hardened runtime activo (tauri.conf.json) y sin este entitlement, TCC
+      deniega esos eventos sin mostrar diálogo. El efecto era desconcertante:
+      las tres funciones andaban en desarrollo y fallaban en silencio en el
+      build firmado, que es justamente el que se distribuye.
+    -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
   </dict>
 </plist>

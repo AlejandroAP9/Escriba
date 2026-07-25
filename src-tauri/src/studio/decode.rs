@@ -82,7 +82,17 @@ pub fn decode_to_16k_mono(path: &Path) -> Result<Vec<f32>, String> {
 fn decode_via_afconvert(path: &Path) -> Result<Vec<f32>, String> {
     use std::process::Command;
 
-    let tmp = std::env::temp_dir().join(format!("escriba-afconvert-{}.wav", std::process::id()));
+    // Nombre aleatorio en vez de `escriba-afconvert-<pid>.wav`: ese patrón era
+    // adivinable, así que otro proceso podía pre-crear la ruta como symlink y
+    // hacer que afconvert escribiera encima de un archivo ajeno. `NamedTempFile`
+    // crea con O_EXCL y borra solo al salir de alcance, incluso si esto retorna
+    // por error.
+    let tmp = tempfile::Builder::new()
+        .prefix("escriba-afconvert-")
+        .suffix(".wav")
+        .tempfile()
+        .map_err(|e| format!("No se pudo crear el archivo temporal: {}", e))?;
+
     let status = Command::new("/usr/bin/afconvert")
         .arg("-f")
         .arg("WAVE")
@@ -91,16 +101,13 @@ fn decode_via_afconvert(path: &Path) -> Result<Vec<f32>, String> {
         .arg("-c")
         .arg("1")
         .arg(path)
-        .arg(&tmp)
+        .arg(tmp.path())
         .status()
         .map_err(|e| format!("No se pudo ejecutar afconvert: {}", e))?;
     if !status.success() {
-        let _ = std::fs::remove_file(&tmp);
         return Err(format!("afconvert terminó con estado {}", status));
     }
-    let result = decode_symphonia(&tmp);
-    let _ = std::fs::remove_file(&tmp);
-    result
+    decode_symphonia(tmp.path())
 }
 
 fn decode_symphonia(path: &Path) -> Result<Vec<f32>, String> {

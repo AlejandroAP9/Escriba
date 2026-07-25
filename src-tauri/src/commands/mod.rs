@@ -40,10 +40,19 @@ pub fn get_app_dir_path(app: AppHandle) -> Result<String, String> {
     Ok(app_data_dir.to_string_lossy().to_string())
 }
 
+/// Ajustes para la UI, con las API keys enmascaradas.
+///
+/// Este comando se llama en cada lectura de ajustes, así que antes mandaba
+/// todas las claves de los proveedores LLM en texto plano al webview una y otra
+/// vez. El backend ya tiene las claves de verdad cuando las necesita (las lee de
+/// `get_settings` en `actions.rs`), y la escritura pasa por `change_*`, así que
+/// el frontend nunca necesitó el valor real.
 #[tauri::command]
 #[specta::specta]
 pub fn get_app_settings(app: AppHandle) -> Result<AppSettings, String> {
-    Ok(get_settings(&app))
+    let mut settings = get_settings(&app);
+    settings.post_process_api_keys = settings.post_process_api_keys.redacted();
+    Ok(settings)
 }
 
 #[tauri::command]
