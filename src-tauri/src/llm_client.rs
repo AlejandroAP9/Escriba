@@ -1,8 +1,56 @@
 use crate::settings::PostProcessProvider;
-use log::debug;
+use log::{debug, warn};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, REFERER, USER_AGENT};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::time::Duration;
+
+/// Tiempo máximo para establecer la conexión con el proveedor.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// Tiempo máximo para la petición COMPLETA.
+///
+/// Antes no había ninguno: un proveedor que aceptaba la conexión y no respondía
+/// dejaba la tarea colgada indefinidamente, y con ella el dictado del usuario,
+/// que está mirando la pantalla esperando su texto. 30 s da margen de sobra a un
+/// modelo con razonamiento sin dejar la app en un limbo permanente.
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+
+/// Error del cliente, con la causa distinguida para que quien llama pueda
+/// reaccionar distinto ante un límite de tasa que ante un fallo cualquiera.
+#[derive(Debug)]
+pub enum LlmError {
+    /// El proveedor devolvió 429. `retry_after` viene de la cabecera homónima
+    /// cuando el proveedor la manda.
+    RateLimited { retry_after: Option<Duration> },
+    /// Se agotó el tiempo de espera.
+    Timeout,
+    /// Cualquier otro fallo (HTTP, red, parseo).
+    Other(String),
+}
+
+impl std::fmt::Display for LlmError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LlmError::RateLimited { retry_after } => match retry_after {
+                Some(d) => write!(
+                    f,
+                    "límite de peticiones alcanzado (reintentar en {}s)",
+                    d.as_secs()
+                ),
+                None => write!(f, "límite de peticiones alcanzado"),
+            },
+            LlmError::Timeout => write!(f, "el proveedor no respondió a tiempo"),
+            LlmError::Other(msg) => write!(f, "{}", msg),
+        }
+    }
+}
+
+impl From<LlmError> for String {
+    fn from(e: LlmError) -> String {
+        e.to_string()
+    }
+}
 
 #[derive(Debug, Serialize)]
 struct ChatMessage {
@@ -103,8 +151,23 @@ fn create_client(provider: &PostProcessProvider, api_key: &str) -> Result<reqwes
     let headers = build_headers(provider, api_key)?;
     reqwest::Client::builder()
         .default_headers(headers)
+        .connect_timeout(CONNECT_TIMEOUT)
+        .timeout(REQUEST_TIMEOUT)
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))
+}
+
+/// Lee `Retry-After`, que puede venir en segundos o como fecha HTTP. Solo se
+/// interpreta la forma en segundos, que es la que usan los proveedores LLM.
+fn parse_retry_after(headers: &reqwest::header::HeaderMap) -> Option<Duration> {
+    headers
+        .get(reqwest::header::RETRY_AFTER)?
+        .to_str()
+        .ok()?
+        .trim()
+        .parse::<u64>()
+        .ok()
+        .map(Duration::from_secs)
 }
 
 /// Send a chat completion request to an OpenAI-compatible API
@@ -198,18 +261,40 @@ pub async fn send_chat_completion_with_schema(
         .json(&request_body)
         .send()
         .await
-        .map_err(|e| format!("HTTP request failed: {}", e))?;
+        .map_err(|e| {
+            if e.is_timeout() {
+                LlmError::Timeout.to_string()
+            } else {
+                LlmError::Other(format!("HTTP request failed: {}", e)).to_string()
+            }
+        })?;
 
     let status = response.status();
+
+    // 429 se distingue del resto: no es un fallo del que reintentar de
+    // inmediato tenga sentido, y quien llama abre el cortacircuitos con él.
+    if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
+        let retry_after = parse_retry_after(response.headers());
+        warn!(
+            "Proveedor '{}' devolvió 429 (Retry-After: {:?})",
+            provider.id, retry_after
+        );
+        return Err(LlmError::RateLimited { retry_after }.to_string());
+    }
+
     if !status.is_success() {
         let error_text = response
             .text()
             .await
             .unwrap_or_else(|_| "Failed to read error response".to_string());
-        return Err(format!(
+        // El cuerpo del proveedor puede traer eco de la petición (y con ella la
+        // clave en algunos gateways), así que se acota antes de propagarlo.
+        let error_text: String = error_text.chars().take(300).collect();
+        return Err(LlmError::Other(format!(
             "API request failed with status {}: {}",
             status, error_text
-        ));
+        ))
+        .to_string());
     }
 
     let completion: ChatCompletionResponse = response

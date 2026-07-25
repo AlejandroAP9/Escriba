@@ -902,7 +902,15 @@
     "fallbackRawDescription": "El motor local no está disponible. Instálalo en Ajustes > Post-procesado.",
     "noSelectionTitle": "No había nada seleccionado",
     "noSelectionDescription": "Selecciona texto primero, luego mantén el atajo de edición por voz y dicta tu instrucción.",
-    "selectionTooLongTitle": "La selección es muy larga para editar por voz (máx ~8.000 caracteres)"
+    "selectionTooLongTitle": "La selección es muy larga para editar por voz (máx ~8.000 caracteres)",
+    "inputTooLongTitle": "El dictado es demasiado largo para corregirlo",
+    "inputTooLongDescription": "El texto se pegó tal cual. Prueba a dictar en tandas más cortas.",
+    "rateLimitedTitle": "El proveedor alcanzó su límite de peticiones",
+    "rateLimitedDescription": "{{provider}} está limitando las peticiones. Tu texto se pegó sin corregir; la corrección se reanuda sola.",
+    "providerTimeoutTitle": "El proveedor no respondió a tiempo",
+    "providerTimeoutDescription": "{{provider}} tardó demasiado. Tu texto se pegó sin corregir.",
+    "providerUnavailableTitle": "Corrección en pausa",
+    "providerUnavailableDescription": "{{provider}} sigue fallando, así que Escriba deja de intentarlo unos minutos en vez de hacerte esperar cada vez."
   },
   "studio": {
     "audioVideo": "Audio / Video",

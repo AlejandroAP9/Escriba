@@ -146,6 +146,30 @@ function App() {
         });
       } else if (route === "selection_too_long") {
         toast.warning(t("localLlm.selectionTooLongTitle"));
+      } else if (route === "input_too_long") {
+        toast.warning(t("localLlm.inputTooLongTitle"), {
+          description: t("localLlm.inputTooLongDescription"),
+        });
+      } else if (route === "rate_limited") {
+        // El proveedor limitó por cuota. Se dice cuál, porque el usuario puede
+        // tener varios configurados y necesita saber a cuál cambiar.
+        toast.warning(t("localLlm.rateLimitedTitle"), {
+          description: t("localLlm.rateLimitedDescription", {
+            provider: detail,
+          }),
+        });
+      } else if (route === "provider_timeout") {
+        toast.warning(t("localLlm.providerTimeoutTitle"), {
+          description: t("localLlm.providerTimeoutDescription", {
+            provider: detail,
+          }),
+        });
+      } else if (route === "provider_unavailable") {
+        toast.warning(t("localLlm.providerUnavailableTitle"), {
+          description: t("localLlm.providerUnavailableDescription", {
+            provider: detail,
+          }),
+        });
       } else if (route === "apple_intelligence") {
         toast.info(t("localLlm.fallbackAppleTitle"));
       } else {

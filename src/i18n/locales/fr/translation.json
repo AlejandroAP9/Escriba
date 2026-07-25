@@ -902,7 +902,15 @@
     "fallbackRawDescription": "The local engine is not available. Install it in Settings > Post-Processing.",
     "noSelectionTitle": "Nothing selected",
     "noSelectionDescription": "Select text first, then hold the voice-edit shortcut and speak your instruction.",
-    "selectionTooLongTitle": "Selection too long for voice editing (max ~8,000 characters)"
+    "selectionTooLongTitle": "Selection too long for voice editing (max ~8,000 characters)",
+    "inputTooLongTitle": "Dictation too long to correct",
+    "inputTooLongDescription": "The text was pasted as-is. Try dictating in shorter passes.",
+    "rateLimitedTitle": "Provider rate limit reached",
+    "rateLimitedDescription": "{{provider}} is throttling requests. Your text was pasted uncorrected; correction will resume on its own.",
+    "providerTimeoutTitle": "The provider did not respond in time",
+    "providerTimeoutDescription": "{{provider}} took too long. Your text was pasted uncorrected.",
+    "providerUnavailableTitle": "Correction paused",
+    "providerUnavailableDescription": "{{provider}} keeps failing, so Escriba will stop trying for a couple of minutes instead of making you wait every time."
   },
   "studio": {
     "audioVideo": "Audio / Video",
