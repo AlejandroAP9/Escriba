@@ -181,14 +181,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
         tagline
         liveWave
       />
-      <div className="flex w-full flex-col gap-4 border-t border-white/10 pb-6 pt-4">
+      {/*
+        Navegación principal. Las secciones eran `<div onClick>` sin role, sin
+        tabIndex y sin onKeyDown: no había ninguna forma de cambiar de sección
+        con el teclado, ni de que un lector de pantalla supiera que esto es la
+        navegación. Son `<button>` dentro de un `<nav>`, y la activa lleva
+        `aria-current` para que se anuncie como tal.
+      */}
+      <nav
+        aria-label={t("sidebar.navLabel")}
+        className="flex w-full flex-col gap-4 border-t border-white/10 pb-6 pt-4"
+      >
         {NAV_GROUPS.map((group, gi) => {
           const ids = group.ids.filter(isEnabled);
           if (ids.length === 0) return null;
+          const groupLabelId = group.labelKey ? `nav-group-${gi}` : undefined;
           return (
-            <div key={gi} className="flex w-full flex-col gap-1">
+            <div
+              key={gi}
+              className="flex w-full flex-col gap-1"
+              role="group"
+              aria-labelledby={groupLabelId}
+            >
               {group.labelKey && (
-                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-fg/35">
+                <p
+                  id={groupLabelId}
+                  className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-fg/55"
+                >
                   {t(group.labelKey)}
                 </p>
               )}
@@ -197,29 +216,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 const Icon = config.icon;
                 const isActive = activeSection === id;
                 return (
-                  <div
+                  <button
                     key={id}
-                    className={`flex gap-2.5 items-center px-3 py-2 w-full rounded-lg cursor-pointer transition-colors ${
+                    type="button"
+                    aria-current={isActive ? "page" : undefined}
+                    className={`flex gap-2.5 items-center px-3 py-2 w-full rounded-lg cursor-pointer text-start transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary focus-visible:ring-offset-2 focus-visible:ring-offset-ink ${
                       isActive
                         ? "bg-logo-primary text-ink font-semibold shadow-sm"
                         : "text-ink-fg/80 hover:bg-white/10 hover:text-ink-fg"
                     }`}
                     onClick={() => onSectionChange(id)}
                   >
-                    <Icon width={20} height={20} className="shrink-0" />
-                    <p
+                    <Icon
+                      width={20}
+                      height={20}
+                      className="shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span
                       className="text-sm font-medium truncate"
                       title={t(config.labelKey)}
                     >
                       {t(config.labelKey)}
-                    </p>
-                  </div>
+                    </span>
+                  </button>
                 );
               })}
             </div>
           );
         })}
-      </div>
+      </nav>
     </div>
   );
 };

@@ -40,7 +40,7 @@ const ModelDropdown: React.FC<ModelDropdownProps> = ({
               }}
               tabIndex={0}
               role="button"
-              className={`w-full px-3 py-2 text-start hover:bg-mid-gray/10 transition-colors cursor-pointer focus:outline-none ${
+              className={`w-full px-3 py-2 text-start hover:bg-mid-gray/10 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-logo-primary ${
                 currentModelId === model.id
                   ? "bg-logo-primary/10 text-logo-primary"
                   : ""

@@ -31,7 +31,8 @@
     "groupTools": "Herramientas",
     "groupDevelopers": "Desarrolladores",
     "groupConfig": "Configuración",
-    "conversation": "Sesiones"
+    "conversation": "Sesiones",
+    "navLabel": "Navegación principal"
   },
   "onboarding": {
     "subtitle": "Para comenzar, elige un modelo de transcripción",
@@ -1268,7 +1269,9 @@
     "previewSound": "Escuchar los sonidos del tema (inicio y fin)",
     "debugPaths": "Rutas de depuración",
     "cancel": "Cancelar",
-    "modelStatus": "Estado del modelo: {{status}}"
+    "modelStatus": "Estado del modelo: {{status}}",
+    "resetSetting": "Restablecer al valor por omisión",
+    "recordShortcut": "Cambiar el atajo, ahora {{shortcut}}"
   },
   "obsidian": {
     "send": "Enviar a Obsidian",

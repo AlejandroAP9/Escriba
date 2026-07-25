@@ -1062,7 +1062,7 @@ export const ConversationSettings: React.FC = () => {
                         value={sysTranslateLang}
                         onChange={(e) => changeSysTranslateLang(e.target.value)}
                         title={t("conversation.systemTranslate.langHint")}
-                        className="cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none"
+                        className="cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
                       >
                         {MEETING_LANGUAGES.map((l) => (
                           <option key={l.value} value={l.value}>
@@ -1075,7 +1075,7 @@ export const ConversationSettings: React.FC = () => {
                           value={voiceOut}
                           onChange={(e) => pickVoiceOut(e.target.value)}
                           title={t("conversation.systemTranslate.voiceOutHint")}
-                          className="max-w-36 cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none"
+                          className="max-w-36 cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
                         >
                           <option value="">
                             {"🔊 " + t("conversation.systemTranslate.speakers")}
@@ -1093,7 +1093,7 @@ export const ConversationSettings: React.FC = () => {
                         title={t(
                           "conversation.systemTranslate.voiceGenderHint",
                         )}
-                        className="cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none"
+                        className="cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
                       >
                         <option value="f">
                           {"♀ " + t("conversation.systemTranslate.voiceFemale")}

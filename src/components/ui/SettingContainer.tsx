@@ -70,28 +70,40 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
               onMouseLeave={() => setShowTooltip(false)}
               onClick={toggleTooltip}
             >
-              <svg
-                className="w-4 h-4 text-mid-gray cursor-help hover:text-logo-primary transition-colors duration-200 select-none"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              {/*
+                Era un `<svg role="button" tabIndex={0} aria-label>`. Poner
+                `aria-label` sobre un elemento SVG no se expone de forma fiable
+                en todos los lectores de pantalla, y este patrón se repite una
+                vez por cada fila de ajuste. Con un `<button>` de verdad el
+                nombre accesible, Enter y Espacio salen gratis.
+                `stopPropagation` evita que el onClick del contenedor lo alterne
+                una segunda vez.
+              */}
+              <button
+                type="button"
                 aria-label={t("a11y.moreInfo")}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    toggleTooltip();
-                  }
+                aria-expanded={showTooltip}
+                className="flex items-center rounded-full text-mid-gray transition-colors duration-200 hover:text-logo-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTooltip();
                 }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+                <svg
+                  className="w-4 h-4 cursor-help select-none"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
               {showTooltip && (
                 <Tooltip targetRef={tooltipRef} position="top">
                   <p className="text-sm text-center leading-relaxed">
@@ -143,28 +155,40 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
               onMouseLeave={() => setShowTooltip(false)}
               onClick={toggleTooltip}
             >
-              <svg
-                className="w-4 h-4 text-mid-gray cursor-help hover:text-logo-primary transition-colors duration-200 select-none"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              {/*
+                Era un `<svg role="button" tabIndex={0} aria-label>`. Poner
+                `aria-label` sobre un elemento SVG no se expone de forma fiable
+                en todos los lectores de pantalla, y este patrón se repite una
+                vez por cada fila de ajuste. Con un `<button>` de verdad el
+                nombre accesible, Enter y Espacio salen gratis.
+                `stopPropagation` evita que el onClick del contenedor lo alterne
+                una segunda vez.
+              */}
+              <button
+                type="button"
                 aria-label={t("a11y.moreInfo")}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    toggleTooltip();
-                  }
+                aria-expanded={showTooltip}
+                className="flex items-center rounded-full text-mid-gray transition-colors duration-200 hover:text-logo-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTooltip();
                 }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+                <svg
+                  className="w-4 h-4 cursor-help select-none"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
               {showTooltip && (
                 <Tooltip targetRef={tooltipRef} position={tooltipPosition}>
                   <p className="text-sm text-center leading-relaxed">

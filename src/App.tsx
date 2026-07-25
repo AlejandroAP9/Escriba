@@ -355,12 +355,18 @@ function App() {
         />
         {/* Scrollable content area */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto">
+          {/*
+            `<main>` en vez de un `<div>`: la app no tenía ningún landmark, así
+            que un lector de pantalla no ofrecía forma de saltarse la navegación
+            y llegar al contenido. La clave depende de la sección para que el
+            contenido se vuelva a anunciar al cambiar de pantalla.
+          */}
+          <main className="flex-1 overflow-y-auto" key={currentSection}>
             <div className="flex flex-col items-center p-4 gap-4">
               <AccessibilityPermissions />
               {renderSettingsContent(currentSection)}
             </div>
-          </div>
+          </main>
         </div>
       </div>
       {/* Sala/sesión activa visible desde cualquier pantalla */}

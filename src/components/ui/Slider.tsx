@@ -45,6 +45,12 @@ export const Slider: React.FC<SliderProps> = ({
     >
       <div className="w-full">
         <div className="flex items-center space-x-1 h-6">
+          {/*
+            Igual que en ToggleSwitch: el título visible está en un `<h3>` de
+            SettingContainer, sin `id`, así que sin `aria-label` este control se
+            anunciaba solo como "control deslizante". `aria-valuetext` da el
+            valor ya formateado (por ejemplo "70%") en vez del número crudo.
+          */}
           <input
             type="range"
             min={min}
@@ -53,6 +59,8 @@ export const Slider: React.FC<SliderProps> = ({
             value={value}
             onChange={handleChange}
             disabled={disabled}
+            aria-label={label}
+            aria-valuetext={formatValue(value)}
             className="flex-grow h-2 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-logo-primary disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               background: `linear-gradient(to right, var(--color-background-ui) ${

@@ -20,8 +20,12 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   // Motion: transición corta (150 ms) que cubre color, brillo y transform, para
   // que hover y "pressed" (active) se sientan táctiles (Design Guide, cap. 09/11).
+  // `focus:outline-none` va acompañado SIEMPRE de un anillo visible. Antes
+  // estaba solo, y como esta clase vive en las clases base, anulaba el anillo
+  // dorado global de App.css en todos los botones de la app: la variante
+  // `ghost` se quedaba sin ninguna señal de foco.
   const baseClasses =
-    "font-medium rounded-lg border focus:outline-none transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
+    "font-medium rounded-lg border focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
   const variantClasses = {
     primary:

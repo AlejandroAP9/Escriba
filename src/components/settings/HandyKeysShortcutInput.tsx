@@ -272,12 +272,18 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
             {formatCurrentKeys()}
           </div>
         ) : (
-          <div
-            className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 hover:bg-logo-primary/10 rounded-md cursor-pointer hover:border-logo-primary"
+          // Era un `<div onClick>`, igual que en GlobalShortcutInput: sin
+          // acceso por teclado al control que configura el teclado.
+          <button
+            type="button"
+            aria-label={t("a11y.recordShortcut", {
+              shortcut: formatKeyCombination(binding.current_binding, osType),
+            })}
+            className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 hover:bg-logo-primary/10 rounded-md cursor-pointer hover:border-logo-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
             onClick={startRecording}
           >
             {formatKeyCombination(binding.current_binding, osType)}
-          </div>
+          </button>
         )}
         <ResetButton
           onClick={() => resetBinding(shortcutId)}

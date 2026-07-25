@@ -36,9 +36,16 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
       <label
         className={`flex items-center ${disabled || isUpdating ? "cursor-not-allowed" : "cursor-pointer"}`}
       >
+        {/*
+          El `<label>` que envuelve este input no tiene texto (solo el track del
+          switch), y el título visible vive en un `<h3>` hermano dentro de
+          SettingContainer. Sin `aria-label`, los 23 interruptores de la app se
+          anunciaban como "casilla, sin marcar", sin decir de qué ajuste.
+        */}
         <input
           type="checkbox"
           value=""
+          aria-label={label}
           className="sr-only peer"
           checked={checked}
           disabled={disabled || isUpdating}

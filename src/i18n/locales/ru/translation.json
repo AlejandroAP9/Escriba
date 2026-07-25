@@ -31,7 +31,8 @@
     "groupTools": "Tools",
     "groupDevelopers": "Developers",
     "groupConfig": "Settings",
-    "conversation": "Sessions"
+    "conversation": "Sessions",
+    "navLabel": "Main navigation"
   },
   "onboarding": {
     "subtitle": "Для начала выберите модель транскрипции",
@@ -1268,7 +1269,9 @@
     "previewSound": "Preview sound theme (plays start then stop)",
     "debugPaths": "Debug paths",
     "cancel": "Cancel",
-    "modelStatus": "Model status: {{status}}"
+    "modelStatus": "Model status: {{status}}",
+    "resetSetting": "Reset to default",
+    "recordShortcut": "Change shortcut, currently {{shortcut}}"
   },
   "obsidian": {
     "send": "Send to Obsidian",

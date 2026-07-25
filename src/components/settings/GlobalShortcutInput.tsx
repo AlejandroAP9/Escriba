@@ -280,12 +280,18 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
             {formatCurrentKeys()}
           </div>
         ) : (
-          <div
-            className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 hover:bg-logo-primary/10 rounded-md cursor-pointer hover:border-logo-primary"
+          // Era un `<div onClick>`: el único control de la app que existe para
+          // configurar el teclado no se podía activar con el teclado.
+          <button
+            type="button"
+            aria-label={t("a11y.recordShortcut", {
+              shortcut: formatKeyCombination(binding.current_binding, osType),
+            })}
+            className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 hover:bg-logo-primary/10 rounded-md cursor-pointer hover:border-logo-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
             onClick={() => startRecording(shortcutId)}
           >
             {formatKeyCombination(binding.current_binding, osType)}
-          </div>
+          </button>
         )}
         <ResetButton
           onClick={() => resetBinding(shortcutId)}
