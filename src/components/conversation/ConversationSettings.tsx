@@ -686,8 +686,7 @@ export const ConversationSettings: React.FC = () => {
 
   // Atajo de dictado real, para enseñarlo desde el primer día.
   const bindings = getSetting("bindings") as
-    | Record<string, { current_binding?: string }>
-    | undefined;
+    Record<string, { current_binding?: string }> | undefined;
   const shortcutKeys = formatKeys(bindings?.transcribe?.current_binding);
 
   const FLOW: { key: string; icon: typeof Mic | null }[] = [
@@ -1097,8 +1096,7 @@ export const ConversationSettings: React.FC = () => {
                         className="cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none"
                       >
                         <option value="f">
-                          {"♀ " +
-                            t("conversation.systemTranslate.voiceFemale")}
+                          {"♀ " + t("conversation.systemTranslate.voiceFemale")}
                         </option>
                         <option value="m">
                           {"♂ " + t("conversation.systemTranslate.voiceMale")}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Languages, MessageCircle, Mic, Radio, Square } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -27,6 +27,11 @@ export const ActiveModeBanner: React.FC<{
 }> = ({ currentSection, onGo }) => {
   const { t } = useTranslation();
   const [mode, setMode] = useState<ActiveMode | null>(null);
+  // El planificador del sondeo necesita saber si hay un modo activo sin que eso
+  // vuelva a crear el efecto (recrearlo reiniciaría el temporizador en cada
+  // cambio de estado).
+  const activeRef = useRef(false);
+  activeRef.current = mode !== null;
 
   useEffect(() => {
     let alive = true;
@@ -72,11 +77,39 @@ export const ActiveModeBanner: React.FC<{
         /* backend aún no listo: sin banner */
       }
     };
-    poll();
-    const id = window.setInterval(poll, 2500);
+    // Este banner está montado en toda la app, así que su sondeo es el costo
+    // de fondo permanente: a 2,5 s fijos eran 4 llamadas IPC cada tick, ~96 por
+    // minuto, incluso con la app minimizada a la bandeja (que es donde vive la
+    // mayor parte del tiempo). Ahora el ritmo se adapta:
+    //
+    //   - ventana oculta: no se sondea, y se hace un sondeo al volver;
+    //   - sin modo activo: cada 10 s, que es de sobra para un aviso pasivo;
+    //   - con modo activo: 2,5 s, para que "Detener" refleje la realidad.
+    let timer: number | undefined;
+
+    const schedule = () => {
+      if (!alive) return;
+      const delay = activeRef.current ? 2500 : 10000;
+      timer = window.setTimeout(tick, delay);
+    };
+
+    const tick = async () => {
+      if (!document.hidden) await poll();
+      schedule();
+    };
+
+    const onVisibility = () => {
+      if (!document.hidden) void poll();
+    };
+
+    void poll();
+    schedule();
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       alive = false;
-      window.clearInterval(id);
+      if (timer !== undefined) window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 

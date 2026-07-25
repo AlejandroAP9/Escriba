@@ -314,9 +314,17 @@ export const useSettingsStore = create<SettingsStore>()(
         }
       } catch (error) {
         console.error(`Failed to update setting ${String(key)}:`, error);
-        if (settings) {
-          set({ settings: { ...settings, [key]: originalValue } });
-        }
+        // Solo se revierte ESTA clave, leyendo el estado del momento.
+        // Antes se hacía `set({ settings: { ...settings, [key]: originalValue } })`
+        // con el `settings` capturado al entrar, así que si el usuario cambiaba
+        // otro ajuste mientras este iba en vuelo y este fallaba, el rollback
+        // devolvía el objeto entero a como estaba antes: el otro ajuste
+        // desaparecía de la interfaz aunque el backend sí lo había guardado.
+        set((state) =>
+          state.settings
+            ? { settings: { ...state.settings, [key]: originalValue } }
+            : {},
+        );
       } finally {
         setUpdating(updateKey, false);
       }

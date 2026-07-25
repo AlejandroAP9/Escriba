@@ -15,12 +15,7 @@ import guia from "@/assets/plumin/plumin-guia.png";
  */
 
 export type PluminPose =
-  | "neutral"
-  | "escucha"
-  | "escribe"
-  | "celebra"
-  | "disculpa"
-  | "guia";
+  "neutral" | "escucha" | "escribe" | "celebra" | "disculpa" | "guia";
 
 const POSES: Record<PluminPose, string> = {
   neutral,

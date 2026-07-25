@@ -6,6 +6,8 @@ import { listen } from "@tauri-apps/api/event";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
 import { ProgressBar } from "../shared";
+import { Button } from "../ui/Button";
+import { Dialog } from "../ui/Dialog";
 import { useSettings } from "../../hooks/useSettings";
 import { commands } from "../../bindings";
 
@@ -190,37 +192,41 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
 
   return (
     <>
-      {showPortableUpdateDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-bg border border-border rounded-lg p-6 max-w-md w-full mx-4 space-y-4">
-            <h2 className="text-base font-semibold">
-              {t("footer.portableUpdateTitle")}
-            </h2>
-            <p className="text-sm text-text/70">
-              {t("footer.portableUpdateMessage")}
-            </p>
-            <div className="flex gap-2 justify-end">
-              <button
-                className="px-3 py-1.5 text-sm rounded border border-border hover:bg-border/50 transition-colors"
-                onClick={() => setShowPortableUpdateDialog(false)}
-              >
-                {t("common.close")}
-              </button>
-              <button
-                className="px-3 py-1.5 text-sm rounded bg-logo-primary text-white hover:bg-logo-primary/80 transition-colors"
-                onClick={() => {
-                  openUrl(
-                    "https://github.com/AlejandroAP9/Escriba/releases/latest",
-                  );
-                  setShowPortableUpdateDialog(false);
-                }}
-              >
-                {t("footer.portableUpdateButton")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/*
+        Este diálogo estaba escrito a mano con `bg-bg border-border`, clases que
+        no corresponden a ningún token del tema: se renderizaba sin fondo ni
+        borde, como texto suelto sobre el backdrop. Además no atrapaba el foco ni
+        cerraba con Escape. `Dialog` ya resuelve las tres cosas.
+      */}
+      <Dialog
+        open={showPortableUpdateDialog}
+        onOpenChange={setShowPortableUpdateDialog}
+        title={t("footer.portableUpdateTitle")}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setShowPortableUpdateDialog(false)}
+            >
+              {t("common.close")}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                openUrl(
+                  "https://github.com/AlejandroAP9/Escriba/releases/latest",
+                );
+                setShowPortableUpdateDialog(false);
+              }}
+            >
+              {t("footer.portableUpdateButton")}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-text">{t("footer.portableUpdateMessage")}</p>
+      </Dialog>
       <div className={`flex items-center gap-3 ${className}`}>
         {isUpdateClickable ? (
           <button

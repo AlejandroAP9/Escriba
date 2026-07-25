@@ -24,8 +24,25 @@ for (const [path, module] of Object.entries(localeModules)) {
   }
 }
 
+/**
+ * Idiomas que se ofrecen en la interfaz.
+ *
+ * Los 21 locales tienen las 874 claves presentes, así que
+ * `scripts/check-translations.ts` los da por buenos: ese script compara rutas de
+ * claves, no valores. Comparando los valores contra el inglés, los 19 idiomas
+ * que no son `es` ni `en` tienen entre el 58% y el 61% de las cadenas todavía en
+ * inglés (`fr` y `ja` rondan las 320 frases largas sin traducir). Elegir
+ * "Français" y encontrarse media interfaz en inglés se lee como una app rota,
+ * no como una traducción en progreso.
+ *
+ * Los archivos siguen en el repo y `resources` los sigue cargando: cuando un
+ * idioma se complete, basta con añadirlo aquí.
+ */
+const COMPLETE_LOCALES = new Set(["es", "en"]);
+
 // Build supported languages list from discovered locales + metadata
 export const SUPPORTED_LANGUAGES = Object.keys(resources)
+  .filter((code) => COMPLETE_LOCALES.has(code))
   .map((code) => {
     const meta = LANGUAGE_METADATA[code];
     if (!meta) {

@@ -84,8 +84,7 @@ export const HomeScreen: React.FC = () => {
   }, []);
 
   const bindings = getSetting("bindings") as
-    | Record<string, { current_binding?: string }>
-    | undefined;
+    Record<string, { current_binding?: string }> | undefined;
   const keys = useMemo(
     () => formatKeys(bindings?.transcribe?.current_binding),
     [bindings],

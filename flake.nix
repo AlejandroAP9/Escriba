@@ -1,5 +1,5 @@
 {
-  description = "Handy - A free, open source, and extensible speech-to-text application that works completely offline";
+  description = "Escriba - Tu voz en tinta: dictado y transcripcion 100% local, gratis y sin nube";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -86,8 +86,8 @@
           };
         in
         {
-          handy = pkgs.rustPlatform.buildRustPackage {
-            pname = "handy";
+          escriba = pkgs.rustPlatform.buildRustPackage {
+            pname = "escriba";
             inherit version;
             src = self;
 
@@ -173,15 +173,15 @@
             '';
 
             meta = {
-              description = "A free, open source, and extensible speech-to-text application that works completely offline";
-              homepage = "https://github.com/cjpais/Handy";
+              description = "Dictado y transcripcion de voz 100% local, sin nube y sin claves de API";
+              homepage = "https://github.com/AlejandroAP9/Escriba";
               license = lib.licenses.mit;
-              mainProgram = "handy";
+              mainProgram = "escriba";
               platforms = supportedSystems;
             };
           };
 
-          default = self.packages.${system}.handy;
+          default = self.packages.${system}.escriba;
         }
       );
 
@@ -222,7 +222,7 @@
             XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:${pkgs.hicolor-icon-theme}/share";
 
             shellHook = ''
-              echo "Handy development environment"
+              echo "Entorno de desarrollo de Escriba"
               bun install
               echo "Run 'bun run tauri dev' to start"
             '';
