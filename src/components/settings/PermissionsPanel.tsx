@@ -78,11 +78,11 @@ export const PermissionsPanel: React.FC = () => {
           >
             <div className="flex items-center gap-2.5">
               <span
-                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-2xs font-medium ${
                   ok === false
                     ? "bg-lacre/10 text-lacre"
                     : ok
-                      ? "bg-green-600/10 text-green-600"
+                      ? "bg-success/10 text-success"
                       : "bg-mid-gray/10 text-mid-gray"
                 }`}
               >
@@ -91,7 +91,7 @@ export const PermissionsPanel: React.FC = () => {
                     ok === false
                       ? "bg-lacre"
                       : ok
-                        ? "bg-green-600"
+                        ? "bg-success"
                         : "bg-mid-gray/50"
                   }`}
                 />

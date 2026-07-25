@@ -114,7 +114,7 @@ export const InterpreterSettings: React.FC = () => {
               key={n}
               className="rounded-card border border-line bg-background p-3 shadow-card"
             >
-              <div className="font-mono text-xs font-semibold text-logo-primary">
+              <div className="font-mono text-xs font-semibold text-gold-text">
                 {n}
               </div>
               <p className="mt-1 text-xs leading-snug text-mid-gray">
@@ -163,8 +163,8 @@ export const InterpreterSettings: React.FC = () => {
       {/* Estado de la sala */}
       <div className="flex items-center gap-3 rounded-card border border-line bg-background px-4 py-3 shadow-card">
         <span className="relative flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-600/60" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-600" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
         </span>
         <span className="text-sm font-semibold text-text">
           {t("interpreter.roomActive")}
@@ -177,7 +177,7 @@ export const InterpreterSettings: React.FC = () => {
 
       {/* Aviso honesto (auditoría #8): la sala viaja por la WiFi local sin
           cifrar; en una red pública conviene un hotspot privado. */}
-      <div className="rounded-card border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs text-text/80">
+      <div className="rounded-card border border-warning/30 bg-warning/10 px-4 py-2.5 text-xs text-text/80">
         {t("interpreter.networkNote")}
       </div>
 
@@ -193,11 +193,11 @@ export const InterpreterSettings: React.FC = () => {
             {t("interpreter.scanHint")}
           </p>
           <div className="mt-4 w-full rounded-card border border-line bg-background px-4 py-3">
-            <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-mid-gray">
+            <div className="font-mono text-3xs uppercase tracking-[0.14em] text-mid-gray">
               {t("interpreter.roomCode")}
             </div>
             <div
-              className="text-4xl tracking-[0.2em] text-logo-primary"
+              className="text-4xl tracking-[0.2em] text-gold-text"
               style={{ fontFamily: "var(--font-serif)", fontWeight: 600 }}
             >
               {room.code}
@@ -207,7 +207,7 @@ export const InterpreterSettings: React.FC = () => {
             <button
               type="button"
               onClick={() => copy(room.code, "code")}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-mid-gray/20 py-2 text-xs font-medium text-text transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-mid-gray/20 py-2 text-xs font-medium text-text transition-colors hover:border-logo-primary/50 hover:text-gold-text"
             >
               <Copy width={13} height={13} />
               {copied === "code"
@@ -217,7 +217,7 @@ export const InterpreterSettings: React.FC = () => {
             <button
               type="button"
               onClick={() => copy(room.url, "link")}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-mid-gray/20 py-2 text-xs font-medium text-text transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-mid-gray/20 py-2 text-xs font-medium text-text transition-colors hover:border-logo-primary/50 hover:text-gold-text"
             >
               <Link2 width={13} height={13} />
               {copied === "link"
@@ -241,7 +241,7 @@ export const InterpreterSettings: React.FC = () => {
               className={`mx-auto flex h-14 w-14 items-center justify-center rounded-card ${
                 listening
                   ? "bg-lacre/15 text-lacre"
-                  : "bg-logo-primary/10 text-logo-primary"
+                  : "bg-logo-primary/10 text-gold-text"
               }`}
             >
               <Mic width={26} height={26} />
@@ -273,7 +273,7 @@ export const InterpreterSettings: React.FC = () => {
 
           {/* Participantes (por idioma elegido) */}
           <div className="rounded-card border border-line bg-background p-4 shadow-card">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+            <p className="font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
               {t("interpreter.participants")}
             </p>
             {langs.length === 0 ? (
@@ -291,8 +291,8 @@ export const InterpreterSettings: React.FC = () => {
                     >
                       <span className="text-base">{info?.flag ?? "🌐"}</span>
                       <span>{info?.label ?? code}</span>
-                      <span className="ms-auto flex items-center gap-1.5 text-xs text-green-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-600" />
+                      <span className="ms-auto flex items-center gap-1.5 text-xs text-success">
+                        <span className="h-1.5 w-1.5 rounded-full bg-success" />
                         {t("interpreter.connected")}
                       </span>
                     </li>
@@ -307,7 +307,7 @@ export const InterpreterSettings: React.FC = () => {
       {/* Última frase enviada */}
       {lastSent && (
         <div className="rounded-card border border-logo-primary/25 bg-logo-primary/5 px-4 py-3">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-logo-primary">
+          <p className="font-mono text-3xs uppercase tracking-[0.14em] text-gold-text">
             {t("interpreter.lastPhrase")}
           </p>
           <p className="mt-1 text-sm text-text">“{lastSent}”</p>

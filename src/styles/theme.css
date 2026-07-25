@@ -13,6 +13,14 @@
      sliders, botones, checkboxes, acentos), con texto tinta encima (pasa AA). */
   --color-background-ui: #a8792a;
   --color-logo-primary: #a8792a;
+  /* Oro de TEXTO. El oro de marca (#a8792a) da 3,58:1 sobre pergamino y 3,04:1
+     sobre vitela: sirve para superficies y acentos gráficos, pero no llega a AA
+     como texto, y se usaba en 68 sitios de texto pequeño. No se puede oscurecer
+     el oro de marca sin romper el otro lado del trato (la tinta ENCIMA del oro
+     cae de 4,63:1 a 3,11:1), así que son dos tokens: este es el que va en
+     `text-*`, y da 5,33:1 sobre pergamino y 4,51:1 sobre vitela. En oscuro no
+     hace falta distinguirlos: el oro claro ya da 10,92:1. */
+  --color-gold-text: #855f21;
   /* Oro vivo: gradiente para superficies doradas (botones), no plano. */
   --gold-grad: linear-gradient(180deg, #c58a2a 0%, #a8792a 55%, #8c6522 100%);
   --color-logo-stroke: #1b1426;
@@ -23,6 +31,14 @@
   /* Línea: EL borde de toda superficie (tarjetas, paneles, filas). Un solo
      grosor/opacidad en vez de las cinco que había. Deriva del sepia. */
   --color-line: rgba(95, 85, 74, 0.15);
+  /* Estados semánticos. Alert y Badge usaban la paleta cruda de Tailwind
+     (text-yellow-600, text-blue-500, text-green-400), calibrada para fondo
+     blanco: sobre pergamino el verde daba 1,62:1. Estos pasan AA sobre
+     pergamino Y vitela en claro, y sobre tinta Y vitela oscura en oscuro. */
+  --color-warning: #8e5b06;
+  --color-info: #0a5ce3;
+  --color-success: #147538;
+
   /* Lacre: sello de "grabando" (y acentos cálidos puntuales). */
   --color-lacre: #9e4230;
 
@@ -56,6 +72,14 @@
     --color-line: rgba(162, 147, 123, 0.18);
     /* Oro brillante en oscuro, también para la acción principal (un solo oro). */
     --color-background-ui: #e4c878;
+    --color-gold-text: #e4c878;
+    /* El lacre de tema claro (#9e4230) da 2,79:1 sobre tinta: invisible justo
+       donde más importa, porque es el color de los errores y de los avisos de
+       permisos. Esta variante da 4,91:1 sobre el fondo y 4,52:1 sobre vitela. */
+    --color-lacre: #cc6a56;
+    --color-warning: #f59e0b;
+    --color-info: #3c83f6;
+    --color-success: #22c55e;
     --gold-grad: linear-gradient(180deg, #f0d99a 0%, #e4c878 55%, #cba954 100%);
     /* En oscuro, la barra se levanta sobre el fondo tinta para distinguirse. */
     --color-ink: #241b31;
@@ -75,6 +99,11 @@
   --color-mid-gray: #a2937b;
   --color-line: rgba(162, 147, 123, 0.18);
   --color-background-ui: #e4c878;
+  --color-gold-text: #e4c878;
+  --color-lacre: #cc6a56;
+  --color-warning: #f59e0b;
+  --color-info: #3c83f6;
+  --color-success: #22c55e;
   --gold-grad: linear-gradient(180deg, #f0d99a 0%, #e4c878 55%, #cba954 100%);
   --color-ink: #241b31;
 }
@@ -88,6 +117,11 @@
   --color-mid-gray: #5f554a;
   --color-line: rgba(95, 85, 74, 0.15);
   --color-background-ui: #a8792a;
+  --color-gold-text: #855f21;
+  --color-lacre: #9e4230;
+  --color-warning: #8e5b06;
+  --color-info: #0a5ce3;
+  --color-success: #147538;
   --gold-grad: linear-gradient(180deg, #c58a2a 0%, #a8792a 55%, #8c6522 100%);
   --color-ink: #1b1426;
 }

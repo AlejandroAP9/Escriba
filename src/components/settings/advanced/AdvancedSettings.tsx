@@ -105,7 +105,7 @@ const SystemStatusPanel: React.FC = () => {
 
   return (
     <Card>
-      <p className="border-b border-line px-4 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+      <p className="border-b border-line px-4 py-2.5 font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
         {t("settings.advanced.status.title")}
       </p>
       <dl className="grid grid-cols-1 sm:grid-cols-2">
@@ -118,7 +118,7 @@ const SystemStatusPanel: React.FC = () => {
           >
             <span
               className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                r.ok ? "bg-green-600" : "bg-mid-gray/40"
+                r.ok ? "bg-success" : "bg-mid-gray/40"
               }`}
             />
             <dt className="text-xs text-mid-gray">{r.label}</dt>
@@ -149,7 +149,7 @@ const AdvancedTools: React.FC = () => {
 
   return (
     <Card className="p-4">
-      <p className="mb-3 flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+      <p className="mb-3 flex items-center gap-2 font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
         <Terminal width={12} height={12} />
         {t("settings.advanced.tools.title")}
       </p>
@@ -198,7 +198,7 @@ export const AdvancedSettings: React.FC = () => {
     <div className="mx-auto w-full max-w-3xl space-y-3 py-2">
       {/* Encabezado: marca claramente que entraste a una zona técnica. */}
       <div className="pb-1">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-logo-primary">
+        <span className="font-mono text-3xs font-semibold uppercase tracking-[0.2em] text-gold-text">
           {t("settings.advanced.hero.badge")}
         </span>
         <h1

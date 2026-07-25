@@ -44,7 +44,7 @@ export const AppearanceSettings: React.FC<{ grouped?: boolean }> = ({
               onClick={() => updateSetting("ui_theme", id)}
               className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-logo-primary ${
                 theme === id
-                  ? "bg-logo-primary/15 text-logo-primary"
+                  ? "bg-logo-primary/15 text-gold-text"
                   : "text-mid-gray hover:text-text"
               }`}
             >
@@ -72,7 +72,7 @@ export const AppearanceSettings: React.FC<{ grouped?: boolean }> = ({
               })}
               className={`rounded-md px-2.5 py-1 font-serif transition-colors focus:outline-none focus:ring-1 focus:ring-logo-primary ${
                 scale === pct
-                  ? "bg-logo-primary/15 text-logo-primary"
+                  ? "bg-logo-primary/15 text-gold-text"
                   : "text-mid-gray hover:text-text"
               }`}
               // El propio botón muestra el tamaño: la A crece con la escala.

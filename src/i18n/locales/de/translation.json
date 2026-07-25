@@ -744,7 +744,9 @@
       "paths": {
         "appData": "App-Daten:",
         "models": "Modelle:",
-        "settings": "Einstellungen:"
+        "settings": "Einstellungen:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Einfügeverzögerung",

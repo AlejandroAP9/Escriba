@@ -183,7 +183,7 @@ export const HomeScreen: React.FC = () => {
       <div className="relative grid w-full gap-8 lg:grid-cols-[1.45fr_1fr] lg:items-center">
         {/* Portada editorial */}
         <div>
-          <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-logo-primary">
+          <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-gold-text">
             <span className="h-2 w-2 animate-pulse rounded-full bg-logo-primary" />
             {t("settings.general.hero.ready")}
           </span>
@@ -202,9 +202,9 @@ export const HomeScreen: React.FC = () => {
           </h1>
 
           {/* La onda de la marca, viva: reemplaza al divisor estático. */}
-          <LiveWave width={110} className="mt-5 text-logo-primary" />
+          <LiveWave width={110} className="mt-5 text-gold-text" />
 
-          <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px] uppercase tracking-[0.08em] text-mid-gray">
+          <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 font-mono text-2xs uppercase tracking-[0.08em] text-mid-gray">
             {promises.map((p) => (
               <span key={p} className="inline-flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-logo-primary/80" />
@@ -240,7 +240,7 @@ export const HomeScreen: React.FC = () => {
         {/* Panel de estado + actividad (equilibra la composición). */}
         <aside className="space-y-3">
           <div className="rounded-card border border-line bg-background p-5 shadow-lift">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+            <p className="font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
               {t("home.systemStatus")}
             </p>
             <ul className="mt-3 space-y-2.5">
@@ -259,7 +259,7 @@ export const HomeScreen: React.FC = () => {
                     <Check
                       width={15}
                       height={15}
-                      className="shrink-0 text-logo-primary"
+                      className="shrink-0 text-gold-text"
                     />
                   )}
                   {item.goTo ? (
@@ -301,7 +301,7 @@ export const HomeScreen: React.FC = () => {
                     <span className="text-xs text-mid-gray">{s.unit}</span>
                   )}
                 </div>
-                <div className="mt-1 text-[11px] leading-tight text-mid-gray">
+                <div className="mt-1 text-2xs leading-tight text-mid-gray">
                   {s.label}
                 </div>
               </Card>

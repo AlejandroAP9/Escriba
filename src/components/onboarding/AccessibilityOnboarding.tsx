@@ -297,8 +297,8 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
   if (allGranted) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center gap-4">
-        <div className="p-4 rounded-full bg-green-600/10">
-          <Check className="w-12 h-12 text-green-600" />
+        <div className="p-4 rounded-full bg-success/10">
+          <Check className="w-12 h-12 text-success" />
         </div>
         <p className="text-lg font-medium text-text">
           {t("onboarding.permissions.allGranted")}
@@ -331,7 +331,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
           <Card className="w-full p-4">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
-                <Mic className="w-6 h-6 text-logo-primary" />
+                <Mic className="w-6 h-6 text-gold-text" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-text">
@@ -341,7 +341,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
                   {t("onboarding.permissions.microphone.description")}
                 </p>
                 {permissions.microphone === "granted" ? (
-                  <div className="inline-flex items-center gap-2 px-2 py-1 rounded-lg bg-green-600/10 text-green-600 text-sm">
+                  <div className="inline-flex items-center gap-2 px-2 py-1 rounded-lg bg-success/10 text-success text-sm">
                     <Check className="w-4 h-4" />
                     {t("onboarding.permissions.granted")}
                   </div>
@@ -367,7 +367,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
           <Card className="w-full p-4">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
-                <Keyboard className="w-6 h-6 text-logo-primary" />
+                <Keyboard className="w-6 h-6 text-gold-text" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-text">
@@ -377,7 +377,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
                   {t("onboarding.permissions.accessibility.description")}
                 </p>
                 {permissions.accessibility === "granted" ? (
-                  <div className="inline-flex items-center gap-2 px-2 py-1 rounded-lg bg-green-600/10 text-green-600 text-sm">
+                  <div className="inline-flex items-center gap-2 px-2 py-1 rounded-lg bg-success/10 text-success text-sm">
                     <Check className="w-4 h-4" />
                     {t("onboarding.permissions.granted")}
                   </div>

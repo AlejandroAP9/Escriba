@@ -83,7 +83,7 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
                 type="button"
                 aria-label={t("a11y.moreInfo")}
                 aria-expanded={showTooltip}
-                className="flex items-center rounded-full text-mid-gray transition-colors duration-200 hover:text-logo-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
+                className="flex items-center rounded-full text-mid-gray transition-colors duration-200 hover:text-gold-text focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleTooltip();
@@ -168,7 +168,7 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
                 type="button"
                 aria-label={t("a11y.moreInfo")}
                 aria-expanded={showTooltip}
-                className="flex items-center rounded-full text-mid-gray transition-colors duration-200 hover:text-logo-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
+                className="flex items-center rounded-full text-mid-gray transition-colors duration-200 hover:text-gold-text focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleTooltip();

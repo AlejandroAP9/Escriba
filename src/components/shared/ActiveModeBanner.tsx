@@ -136,8 +136,8 @@ export const ActiveModeBanner: React.FC<{
       className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/15 bg-ink py-2 pe-2 ps-4 text-ink-fg shadow-lift"
     >
       <span className="relative flex h-2 w-2" aria-hidden="true">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/60" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
       </span>
       <Icon width={14} height={14} aria-hidden="true" />
       <span className="text-xs font-medium">{t(mode.labelKey)}</span>

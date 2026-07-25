@@ -14,7 +14,9 @@ const Badge: React.FC<BadgeProps> = ({
   const variantClasses = {
     // Oro con texto tinta: reservado para el estado que importa (Activo).
     primary: "bg-logo-primary text-ink font-semibold",
-    success: "bg-green-500/20 text-green-400",
+    // Era `text-green-400`, que sobre pergamino da 1,62:1: prácticamente
+    // ilegible en tema claro.
+    success: "bg-success/15 text-success",
     secondary: "bg-mid-gray/15 text-text/75",
   };
 

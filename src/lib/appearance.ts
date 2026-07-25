@@ -18,8 +18,21 @@ export const applyUiTheme = (theme?: string) => {
 export const UI_SCALE_MIN = 90;
 export const UI_SCALE_MAX = 130;
 
+/**
+ * Tamaño base de la interfaz al 100%, en px. Tiene que coincidir con el
+ * `font-size` de `:root` en App.css.
+ */
+const UI_BASE_FONT_PX = 15;
+
 export const applyUiScale = (scale?: number) => {
   const pct = Math.min(UI_SCALE_MAX, Math.max(UI_SCALE_MIN, scale ?? 100));
-  // A 100% se limpia el estilo inline para no pisar el default del navegador.
-  document.documentElement.style.fontSize = pct === 100 ? "" : `${pct}%`;
+  // Se escala en px sobre la base real de la app, no en %.
+  //
+  // Antes se ponía `${pct}%`, y un porcentaje sobre el root se resuelve contra
+  // el tamaño por omisión del navegador (16px), no contra los 15px que fija
+  // App.css. Además al 100% se limpiaba el estilo inline. El resultado eran
+  // pasos desiguales: 90% daba 14,4px (un 4% menos que 15) mientras que 115%
+  // saltaba a 18,4px (un 23% más). El paso pequeño casi no se notaba y el
+  // primero hacia arriba era brusco.
+  document.documentElement.style.fontSize = `${(UI_BASE_FONT_PX * pct) / 100}px`;
 };

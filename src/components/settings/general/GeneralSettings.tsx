@@ -58,7 +58,7 @@ export const GeneralSettings: React.FC = () => {
               <span
                 className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium ${
                   key === "whisper"
-                    ? "border-logo-primary/30 bg-logo-primary/10 text-logo-primary"
+                    ? "border-logo-primary/30 bg-logo-primary/10 text-gold-text"
                     : "border-line bg-background text-mid-gray"
                 }`}
               >
@@ -75,7 +75,7 @@ export const GeneralSettings: React.FC = () => {
             </React.Fragment>
           ))}
           {activeModelName && (
-            <span className="ml-auto font-mono text-[11px] text-mid-gray">
+            <span className="ml-auto font-mono text-2xs text-mid-gray">
               {t("settings.general.activeModel")}: {activeModelName}
             </span>
           )}
@@ -84,7 +84,7 @@ export const GeneralSettings: React.FC = () => {
 
       {/* Atajo principal: el ajuste más importante, como protagonista. */}
       <div className="rounded-card border border-logo-primary/25 bg-logo-primary/5 p-1.5 shadow-card">
-        <div className="flex items-center gap-2 px-3 pt-2.5 text-logo-primary">
+        <div className="flex items-center gap-2 px-3 pt-2.5 text-gold-text">
           <Keyboard width={15} height={15} />
           <span className="text-xs font-semibold uppercase tracking-[0.08em]">
             {t("settings.general.title")}

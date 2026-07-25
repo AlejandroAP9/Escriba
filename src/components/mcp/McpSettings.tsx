@@ -187,11 +187,11 @@ export const McpSettings: React.FC = () => {
               className={`relative flex h-2.5 w-2.5 ${running ? "" : "opacity-40"}`}
             >
               {running && (
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/60" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60" />
               )}
               <span
                 className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
-                  running ? "bg-green-600" : "bg-mid-gray"
+                  running ? "bg-success" : "bg-mid-gray"
                 }`}
               />
             </span>
@@ -263,7 +263,7 @@ export const McpSettings: React.FC = () => {
                 >
                   {s.value}
                 </p>
-                <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-mid-gray">
+                <p className="mt-0.5 font-mono text-3xs uppercase tracking-[0.14em] text-mid-gray">
                   {s.label}
                 </p>
               </div>
@@ -305,7 +305,7 @@ export const McpSettings: React.FC = () => {
 
           <div className="rounded-card border border-line bg-ink shadow-card">
             <div className="flex items-center justify-between border-b border-white/5 px-4 py-2">
-              <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-muted">
+              <span className="flex items-center gap-2 font-mono text-3xs uppercase tracking-[0.14em] text-ink-muted">
                 <Terminal width={12} height={12} />
                 {t(`mcp.fileHint.${client}`)}
               </span>
@@ -316,7 +316,7 @@ export const McpSettings: React.FC = () => {
               >
                 {copied ? (
                   <>
-                    <Check width={13} height={13} className="text-green-600" />
+                    <Check width={13} height={13} className="text-success" />
                     {t("mcp.copied")}
                   </>
                 ) : (
@@ -333,7 +333,7 @@ export const McpSettings: React.FC = () => {
               </code>
             </pre>
           </div>
-          <p className="font-mono text-[10px] text-mid-gray">
+          <p className="font-mono text-3xs text-mid-gray">
             {t("mcp.tokenNote")}
           </p>
           {/* Migración desde versiones sin token: la URL vieja muere y el
@@ -354,14 +354,14 @@ export const McpSettings: React.FC = () => {
               className="rounded-card border border-line bg-background p-4 shadow-card transition-transform hover:-translate-y-0.5"
             >
               <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-logo-primary/10 text-logo-primary">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-logo-primary/10 text-gold-text">
                   <Icon width={16} height={16} />
                 </span>
                 <div>
                   <p className="font-mono text-sm font-semibold text-text">
                     {id}
                   </p>
-                  <p className="font-mono text-[10px] text-mid-gray">
+                  <p className="font-mono text-3xs text-mid-gray">
                     {t(`mcp.toolIo.${id}`)}
                   </p>
                 </div>
@@ -419,14 +419,14 @@ export const McpSettings: React.FC = () => {
               <ul className="space-y-2.5">
                 {status!.clients.map((c, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-sm">
-                    <span className="h-2 w-2 shrink-0 rounded-full bg-green-600" />
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-success" />
                     <span className="font-medium text-text">{c.name}</span>
                     {c.version && (
-                      <span className="font-mono text-[10px] text-mid-gray">
+                      <span className="font-mono text-3xs text-mid-gray">
                         {`v${c.version}`}
                       </span>
                     )}
-                    <span className="ml-auto font-mono text-[10px] text-mid-gray/70">
+                    <span className="ml-auto font-mono text-3xs text-mid-gray/70">
                       {formatAgo(c.seconds_ago)}
                     </span>
                   </li>
@@ -440,7 +440,7 @@ export const McpSettings: React.FC = () => {
       {/* Privacidad: la garantía que vende. */}
       <section className="rounded-card border border-logo-primary/20 bg-logo-primary/5 p-5">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text">
-          <Lock width={15} height={15} className="text-logo-primary" />
+          <Lock width={15} height={15} className="text-gold-text" />
           {t("mcp.privacyTitle")}
         </h2>
         <ul className="grid gap-2 sm:grid-cols-2">
@@ -449,7 +449,7 @@ export const McpSettings: React.FC = () => {
               <Check
                 width={14}
                 height={14}
-                className="mt-0.5 shrink-0 text-logo-primary"
+                className="mt-0.5 shrink-0 text-gold-text"
               />
               {t(`mcp.privacy.${k}`)}
             </li>

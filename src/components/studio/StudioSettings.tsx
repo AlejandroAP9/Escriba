@@ -168,7 +168,7 @@ export const StudioSettings: React.FC = () => {
             : "border-mid-gray/25 bg-vitela/40 hover:border-logo-primary/50 hover:bg-logo-primary/4"
         }`}
       >
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-card bg-logo-primary/10 text-logo-primary">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-card bg-logo-primary/10 text-gold-text">
           <UploadCloud width={32} height={32} strokeWidth={1.5} />
         </div>
         <p className="mt-4 text-base font-semibold text-text">
@@ -181,7 +181,7 @@ export const StudioSettings: React.FC = () => {
           {SUPPORTED_FORMATS.map((fmt) => (
             <span
               key={fmt}
-              className="rounded-md border border-mid-gray/20 bg-background px-2 py-0.5 font-mono text-[10px] tracking-wide text-mid-gray"
+              className="rounded-md border border-mid-gray/20 bg-background px-2 py-0.5 font-mono text-3xs tracking-wide text-mid-gray"
             >
               {fmt}
             </span>
@@ -196,11 +196,7 @@ export const StudioSettings: React.FC = () => {
             key={label}
             className="flex items-center gap-2.5 rounded-card border border-line bg-background px-3.5 py-3 shadow-card"
           >
-            <Icon
-              width={17}
-              height={17}
-              className="shrink-0 text-logo-primary"
-            />
+            <Icon width={17} height={17} className="shrink-0 text-gold-text" />
             <span className="text-sm text-text">{label}</span>
           </div>
         ))}
@@ -213,7 +209,7 @@ export const StudioSettings: React.FC = () => {
       )}
 
       {jobs.length > 0 && (
-        <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+        <p className="px-1 font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
           {t("studio.recent")}
         </p>
       )}

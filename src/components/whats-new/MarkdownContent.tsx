@@ -195,7 +195,7 @@ const components: Components = {
           event.preventDefault();
           void openSafeUrl(href);
         }}
-        className="text-logo-primary underline decoration-logo-primary/40 underline-offset-2 hover:decoration-logo-primary"
+        className="text-gold-text underline decoration-logo-primary/40 underline-offset-2 hover:decoration-logo-primary"
       >
         {children}
       </a>

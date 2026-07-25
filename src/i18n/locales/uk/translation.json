@@ -744,7 +744,9 @@
       "paths": {
         "appData": "Дані програми:",
         "models": "Моделі:",
-        "settings": "Налаштування:"
+        "settings": "Налаштування:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Затримка вставки",

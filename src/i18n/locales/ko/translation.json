@@ -752,7 +752,9 @@
       "paths": {
         "appData": "앱 데이터:",
         "models": "모델:",
-        "settings": "설정:"
+        "settings": "설정:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "whatsNewPreview": {
         "title": "새 소식 미리보기",

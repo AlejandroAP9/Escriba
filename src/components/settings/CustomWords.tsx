@@ -115,8 +115,8 @@ export const CustomWords: React.FC<CustomWordsProps> = React.memo(
           <div
             className={`px-4 py-2.5 ${grouped ? "" : "rounded-lg border border-mid-gray/20"}`}
           >
-            <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-mid-gray">
-              <Sparkles width={11} height={11} className="text-logo-primary" />
+            <p className="mb-1.5 flex items-center gap-1.5 text-2xs font-medium uppercase tracking-wide text-mid-gray">
+              <Sparkles width={11} height={11} className="text-gold-text" />
               {t("settings.advanced.customWords.suggestionsTitle")}
             </p>
             <div className="flex flex-wrap gap-1">
@@ -128,7 +128,7 @@ export const CustomWords: React.FC<CustomWordsProps> = React.memo(
                   title={t("settings.advanced.customWords.suggestionsAdd")}
                   className="flex items-center gap-1 rounded-full border border-logo-primary/30 bg-logo-primary/5 px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/15 focus:outline-none focus:ring-1 focus:ring-logo-primary"
                 >
-                  <Plus width={11} height={11} className="text-logo-primary" />
+                  <Plus width={11} height={11} className="text-gold-text" />
                   {word}
                 </button>
               ))}

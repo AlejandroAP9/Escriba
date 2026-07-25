@@ -734,7 +734,7 @@ export const ConversationSettings: React.FC = () => {
                     <span
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
                         active
-                          ? "bg-logo-primary/20 text-logo-primary"
+                          ? "bg-logo-primary/20 text-gold-text"
                           : "bg-mid-gray/10 text-mid-gray"
                       }`}
                     >
@@ -750,7 +750,7 @@ export const ConversationSettings: React.FC = () => {
                       >
                         {t(`conversation.mode.${id}.label`)}
                       </span>
-                      <span className="block text-[11px] leading-snug text-mid-gray">
+                      <span className="block text-2xs leading-snug text-mid-gray">
                         {t(`conversation.mode.${id}.desc`)}
                       </span>
                     </div>
@@ -758,14 +758,14 @@ export const ConversationSettings: React.FC = () => {
                       <Check
                         width={16}
                         height={16}
-                        className="ml-auto shrink-0 text-logo-primary"
+                        className="ml-auto shrink-0 text-gold-text"
                       />
                     )}
                   </div>
                   {/* Variantes de escucha: mismo núcleo, documento distinto. */}
                   {id === "listen" && active && (
                     <div className="mt-3 border-t border-line pt-2.5">
-                      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-mid-gray">
+                      <p className="mb-1.5 text-3xs font-semibold uppercase tracking-wide text-mid-gray">
                         {t("conversation.variantTitle")}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
@@ -785,7 +785,7 @@ export const ConversationSettings: React.FC = () => {
                               }
                             }}
                             title={t(`conversation.variantDoc.${v}`)}
-                            className={`cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                            className={`cursor-pointer rounded-full border px-2.5 py-1 text-2xs font-medium transition-colors ${
                               variant === v
                                 ? "border-logo-primary bg-logo-primary/15 text-text"
                                 : "border-line text-mid-gray hover:border-mid-gray/40"
@@ -819,7 +819,7 @@ export const ConversationSettings: React.FC = () => {
                 {shortcutKeys.map((k) => (
                   <kbd
                     key={k}
-                    className="rounded-md border border-mid-gray/25 bg-background px-1.5 py-0.5 font-mono text-[11px] text-text"
+                    className="rounded-md border border-mid-gray/25 bg-background px-1.5 py-0.5 font-mono text-2xs text-text"
                   >
                     {k}
                   </kbd>
@@ -831,7 +831,7 @@ export const ConversationSettings: React.FC = () => {
           {/* Voz neural incluida: instalación de una sola vez. */}
           {ttsReady === false && (
             <Card className="flex flex-wrap items-center gap-3 px-4 py-3.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-logo-primary/10 text-logo-primary">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-logo-primary/10 text-gold-text">
                 <Sparkles width={17} height={17} />
               </span>
               <div className="min-w-0 flex-1">
@@ -871,13 +871,13 @@ export const ConversationSettings: React.FC = () => {
                   <span
                     className={`flex h-8 w-8 items-center justify-center rounded-full border ${
                       key === "organize"
-                        ? "border-logo-primary/40 bg-logo-primary/10 text-logo-primary"
+                        ? "border-logo-primary/40 bg-logo-primary/10 text-gold-text"
                         : "border-line bg-background text-mid-gray"
                     }`}
                   >
                     {Icon && <Icon width={14} height={14} />}
                   </span>
-                  <span className="text-center text-[11px] leading-tight text-mid-gray">
+                  <span className="text-center text-2xs leading-tight text-mid-gray">
                     {t(`conversation.flow.${key}`)}
                   </span>
                 </div>
@@ -887,7 +887,7 @@ export const ConversationSettings: React.FC = () => {
 
           {/* Casos de uso: entrada → resultado, con el principal destacado. */}
           <div>
-            <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+            <p className="mb-2 font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
               {t("conversation.examplesTitle")}
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -906,7 +906,7 @@ export const ConversationSettings: React.FC = () => {
                       <Star
                         width={14}
                         height={14}
-                        className="shrink-0 fill-logo-primary/30 text-logo-primary"
+                        className="shrink-0 fill-logo-primary/30 text-gold-text"
                       />
                     ) : (
                       <Mic
@@ -935,7 +935,7 @@ export const ConversationSettings: React.FC = () => {
           {/* Vista previa: la forma del resultado (las secciones son las reales
               del acta; las barras son abstractas, no texto inventado). */}
           <div>
-            <p className="mb-2 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+            <p className="mb-2 text-center font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
               {t("conversation.preview.title")}
             </p>
             <div className="mx-auto max-w-xs rounded-card border border-line bg-background p-5 shadow-lift">
@@ -948,7 +948,7 @@ export const ConversationSettings: React.FC = () => {
               <div className="mt-3 space-y-3">
                 {(["s1", "s2", "s3"] as const).map((s, i) => (
                   <div key={s}>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-logo-primary">
+                    <p className="text-3xs font-semibold uppercase tracking-wide text-gold-text">
                       {t(`conversation.preview.${s}`)}
                     </p>
                     <div className="mt-1.5 space-y-1.5">
@@ -968,7 +968,7 @@ export const ConversationSettings: React.FC = () => {
           {/* Privacidad: el diferenciador, como bloque. */}
           <div className="rounded-card border border-logo-primary/20 bg-logo-primary/5 p-4">
             <p className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-text">
-              <Lock width={14} height={14} className="text-logo-primary" />
+              <Lock width={14} height={14} className="text-gold-text" />
               {t("conversation.privacyTitle")}
             </p>
             <ul className="grid gap-1.5 sm:grid-cols-2">
@@ -980,7 +980,7 @@ export const ConversationSettings: React.FC = () => {
                   <Check
                     width={13}
                     height={13}
-                    className="mt-0.5 shrink-0 text-logo-primary"
+                    className="mt-0.5 shrink-0 text-gold-text"
                   />
                   {t(`conversation.privacy.${k}`)}
                 </li>
@@ -997,11 +997,11 @@ export const ConversationSettings: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <span className="relative flex h-2.5 w-2.5">
                 {listening && (
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/60" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60" />
                 )}
                 <span
                   className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
-                    listening ? "bg-green-600" : "bg-mid-gray/50"
+                    listening ? "bg-success" : "bg-mid-gray/50"
                   }`}
                 />
               </span>
@@ -1010,7 +1010,7 @@ export const ConversationSettings: React.FC = () => {
                   ? t("conversation.active")
                   : t("conversation.paused")}
               </span>
-              <span className="rounded-full border border-line px-2 py-0.5 text-[11px] text-mid-gray">
+              <span className="rounded-full border border-line px-2 py-0.5 text-2xs text-mid-gray">
                 {mode === "converse"
                   ? t("conversation.mode.converse.label")
                   : t(`conversation.variant.${variant}`)}
@@ -1172,7 +1172,7 @@ export const ConversationSettings: React.FC = () => {
                         key={i}
                         className="me-8 rounded-2xl rounded-tl-sm border border-logo-primary/25 bg-logo-primary/5 px-4 py-3"
                       >
-                        <p className="mb-1 text-[10px] uppercase tracking-wide text-logo-primary">
+                        <p className="mb-1 text-3xs uppercase tracking-wide text-gold-text">
                           {t("conversation.assistant")}
                         </p>
                         <p
@@ -1188,7 +1188,7 @@ export const ConversationSettings: React.FC = () => {
                         key={i}
                         className="me-8 rounded-2xl rounded-tl-sm border border-line bg-mid-gray/5 px-4 py-3"
                       >
-                        <p className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-mid-gray">
+                        <p className="mb-1 flex items-center justify-between text-3xs uppercase tracking-wide text-mid-gray">
                           <span className="flex items-center gap-1.5">
                             <MonitorSpeaker width={11} height={11} />
                             {t("conversation.others")}
@@ -1206,7 +1206,7 @@ export const ConversationSettings: React.FC = () => {
                         key={i}
                         className="ms-8 rounded-2xl rounded-tr-sm bg-mid-gray/5 px-4 py-3"
                       >
-                        <p className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-mid-gray">
+                        <p className="mb-1 flex items-center justify-between text-3xs uppercase tracking-wide text-mid-gray">
                           <span>{t("conversation.you")}</span>
                           <span className="font-mono normal-case">
                             {stamp(turn.at_secs)}
@@ -1223,7 +1223,7 @@ export const ConversationSettings: React.FC = () => {
                       <Sparkles
                         width={13}
                         height={13}
-                        className="animate-pulse text-logo-primary"
+                        className="animate-pulse text-gold-text"
                       />
                       {t("conversation.thinking")}
                     </p>
@@ -1232,7 +1232,7 @@ export const ConversationSettings: React.FC = () => {
               )}
             </div>
             {turns.length > 0 && (
-              <p className="mt-3 border-t border-line pt-2 text-center text-[11px] text-mid-gray">
+              <p className="mt-3 border-t border-line pt-2 text-center text-2xs text-mid-gray">
                 {sysTranslate
                   ? t("conversation.systemTranslate.active")
                   : sysAudio
@@ -1243,12 +1243,12 @@ export const ConversationSettings: React.FC = () => {
               </p>
             )}
             {sysTranslate && voiceOut && (
-              <p className="mt-1 text-center text-[11px] text-mid-gray">
+              <p className="mt-1 text-center text-2xs text-mid-gray">
                 {t("conversation.systemTranslate.virtualMicHint")}
               </p>
             )}
             {sysTranslate && vmInstalled && (
-              <p className="mt-1 text-center text-[11px] text-mid-gray">
+              <p className="mt-1 text-center text-2xs text-mid-gray">
                 <button
                   type="button"
                   onClick={uninstallVirtualMic}
@@ -1283,7 +1283,7 @@ export const ConversationSettings: React.FC = () => {
                       key={e}
                       type="button"
                       onClick={() => pickEngine(e)}
-                      className={`rounded-full border px-3 py-1 text-[11px] font-medium transition-colors ${
+                      className={`rounded-full border px-3 py-1 text-2xs font-medium transition-colors ${
                         voiceEngine === e
                           ? "border-logo-primary bg-logo-primary/15 text-text"
                           : "border-line text-mid-gray hover:border-mid-gray/40"
@@ -1323,11 +1323,7 @@ export const ConversationSettings: React.FC = () => {
           <Card className="p-5">
             <div className="mb-3 flex items-center justify-between border-b border-line pb-3">
               <p className="flex items-center gap-2 text-sm font-semibold text-text">
-                <FileText
-                  width={15}
-                  height={15}
-                  className="text-logo-primary"
-                />
+                <FileText width={15} height={15} className="text-gold-text" />
                 {t("conversation.docTitle")}
               </p>
               <div className="flex items-center gap-2">
@@ -1347,11 +1343,7 @@ export const ConversationSettings: React.FC = () => {
                 >
                   {copied ? (
                     <>
-                      <Check
-                        width={13}
-                        height={13}
-                        className="text-green-600"
-                      />
+                      <Check width={13} height={13} className="text-success" />
                       {t("conversation.copied")}
                     </>
                   ) : (

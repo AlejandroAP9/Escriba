@@ -744,7 +744,9 @@
       "paths": {
         "appData": "Uygulama Verileri:",
         "models": "Modeller:",
-        "settings": "Ayarlar:"
+        "settings": "Ayarlar:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Yapıştırma gecikmesi",

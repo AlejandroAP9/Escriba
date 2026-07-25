@@ -751,7 +751,9 @@
       "paths": {
         "appData": "App Data:",
         "models": "Models:",
-        "settings": "Settings:"
+        "settings": "Settings:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Paste Delay",

@@ -723,7 +723,9 @@
       "paths": {
         "appData": "بيانات التطبيق:",
         "models": "النماذج:",
-        "settings": "الإعدادات:"
+        "settings": "الإعدادات:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "تأخير اللصق",

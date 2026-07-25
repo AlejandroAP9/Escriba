@@ -206,7 +206,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {group.labelKey && (
                 <p
                   id={groupLabelId}
-                  className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-fg/55"
+                  className="px-3 pb-1 text-3xs font-semibold uppercase tracking-[0.14em] text-ink-fg/55"
                 >
                   {t(group.labelKey)}
                 </p>

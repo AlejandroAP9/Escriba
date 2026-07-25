@@ -744,7 +744,9 @@
       "paths": {
         "appData": "Appdata:",
         "models": "Modeller:",
-        "settings": "Inställningar:"
+        "settings": "Inställningar:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Fördröjning vid klistra in",

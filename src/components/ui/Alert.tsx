@@ -20,20 +20,23 @@ const variantStyles: Record<
     icon: "text-lacre",
     text: "text-lacre",
   },
+  // Estas tres variantes usaban la paleta cruda de Tailwind, que está calibrada
+  // para fondo blanco: sobre pergamino, text-yellow-600 daba 2,72:1 y
+  // text-blue-500 3,41:1. Los tokens semánticos pasan AA en los dos temas.
   warning: {
-    container: "bg-yellow-500/10",
-    icon: "text-yellow-500",
-    text: "text-yellow-600",
+    container: "bg-warning/10",
+    icon: "text-warning",
+    text: "text-warning",
   },
   info: {
-    container: "bg-blue-500/10",
-    icon: "text-blue-500",
-    text: "text-blue-500",
+    container: "bg-info/10",
+    icon: "text-info",
+    text: "text-info",
   },
   success: {
-    container: "bg-green-500/10",
-    icon: "text-green-500",
-    text: "text-green-600",
+    container: "bg-success/10",
+    icon: "text-success",
+    text: "text-success",
   },
 };
 

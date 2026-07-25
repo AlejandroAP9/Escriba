@@ -744,7 +744,9 @@
       "paths": {
         "appData": "Dane aplikacji:",
         "models": "Modele:",
-        "settings": "Ustawienia:"
+        "settings": "Ustawienia:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Opóźnienie wklejania",

@@ -196,7 +196,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
         <div className="flex flex-col items-start flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
             <h3
-              className={`text-base font-semibold text-text ${isClickable ? "group-hover:text-logo-primary" : ""} transition-colors`}
+              className={`text-base font-semibold text-text ${isClickable ? "group-hover:text-gold-text" : ""} transition-colors`}
             >
               {displayName}
             </h3>
@@ -234,7 +234,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
           // más anchas y gruesas.
           <div className="hidden sm:flex flex-col gap-2 ms-4 w-28 shrink-0">
             <div>
-              <p className="mb-1 text-[11px] leading-none text-mid-gray">
+              <p className="mb-1 text-2xs leading-none text-mid-gray">
                 {t("onboarding.modelCard.accuracy")}
               </p>
               <div className="h-2 w-full overflow-hidden rounded-full bg-mid-gray/15">
@@ -245,7 +245,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
               </div>
             </div>
             <div>
-              <p className="mb-1 text-[11px] leading-none text-mid-gray">
+              <p className="mb-1 text-2xs leading-none text-mid-gray">
                 {t("onboarding.modelCard.speed")}
               </p>
               <div className="h-2 w-full overflow-hidden rounded-full bg-mid-gray/15">
@@ -314,7 +314,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
             size="sm"
             onClick={handleDelete}
             title={t("modelSelector.deleteModel", { modelName: displayName })}
-            className="flex items-center gap-1.5 text-mid-gray hover:text-red-600 hover:bg-red-500/10"
+            className="flex items-center gap-1.5 text-mid-gray hover:text-lacre hover:bg-lacre/10"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>{t("common.delete")}</span>

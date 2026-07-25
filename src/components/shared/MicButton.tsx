@@ -100,7 +100,7 @@ export const MicButton: React.FC<MicButtonProps> = ({
       aria-label={label}
       className={`shrink-0 p-1.5 rounded-md flex items-center justify-center transition-colors disabled:opacity-40 ${
         state === "recording"
-          ? "text-red-500 bg-red-500/10 animate-pulse"
+          ? "text-lacre bg-lacre/10 animate-pulse"
           : "text-mid-gray hover:text-text hover:bg-mid-gray/20"
       }`}
     >

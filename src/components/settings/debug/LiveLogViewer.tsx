@@ -25,8 +25,8 @@ interface LogLine {
   message: string;
 }
 
-// Level accents carry a light-theme color plus a brighter `dark:` variant, so
-// they read on both the light code-block surface and the dark console surface.
+// Los acentos por nivel salen de los tokens semánticos del tema, así que
+// siguen al tema efectivo de la app (data-theme), no al del sistema.
 const LEVEL_META: Record<
   number,
   { tag: string; tagClass: string; msgClass: string }
@@ -36,25 +36,31 @@ const LEVEL_META: Record<
     tagClass: "text-mid-gray",
     msgClass: "text-mid-gray",
   },
+  // Este era el único sitio de la app que usaba variantes `dark:`. Esas
+  // variantes se guían por `prefers-color-scheme`, es decir por el tema del
+  // sistema operativo, mientras que el resto de la interfaz obedece al atributo
+  // `data-theme` que fija Ajustes → Apariencia. Resultado: con macOS en oscuro
+  // y Escriba forzado a claro (o al revés), estos colores salían justo al
+  // contrario que todo lo demás. Los tokens ya cambian con el tema efectivo.
   2: {
     tag: "DEBUG",
-    tagClass: "text-sky-600 dark:text-sky-400",
+    tagClass: "text-info",
     msgClass: "text-text/80",
   },
   3: {
     tag: "INFO",
-    tagClass: "text-emerald-600 dark:text-emerald-400",
+    tagClass: "text-success",
     msgClass: "text-text",
   },
   4: {
     tag: "WARN",
-    tagClass: "text-amber-600 dark:text-amber-400",
-    msgClass: "text-amber-700 dark:text-amber-300",
+    tagClass: "text-warning",
+    msgClass: "text-warning",
   },
   5: {
     tag: "ERROR",
-    tagClass: "text-red-600 dark:text-red-400",
-    msgClass: "text-red-700 dark:text-red-300",
+    tagClass: "text-lacre",
+    msgClass: "text-lacre",
   },
 };
 
@@ -181,7 +187,7 @@ export const LiveLogViewer: React.FC<LiveLogViewerProps> = ({
         <div className="flex items-center gap-2 text-xs text-mid-gray min-w-0">
           <span
             className={`inline-block w-2 h-2 rounded-full shrink-0 ${
-              paused ? "bg-mid-gray" : "bg-green-600 animate-pulse"
+              paused ? "bg-mid-gray" : "bg-success animate-pulse"
             }`}
           />
           <span className="shrink-0">

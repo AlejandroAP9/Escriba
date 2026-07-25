@@ -196,7 +196,7 @@ export const TranslatorSettings: React.FC = () => {
               type="button"
               onClick={swapLangs}
               title={t("translator.swap")}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card border border-mid-gray/25 bg-background text-mid-gray shadow-card transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card border border-mid-gray/25 bg-background text-mid-gray shadow-card transition-colors hover:border-logo-primary/50 hover:text-gold-text"
             >
               <ArrowLeftRight width={18} height={18} />
             </button>
@@ -245,8 +245,8 @@ export const TranslatorSettings: React.FC = () => {
                 key={label}
                 className="flex flex-col items-center gap-1.5 rounded-card border border-line bg-background px-2 py-3 text-center shadow-card"
               >
-                <Icon width={17} height={17} className="text-logo-primary" />
-                <span className="text-[11px] leading-tight text-mid-gray">
+                <Icon width={17} height={17} className="text-gold-text" />
+                <span className="text-2xs leading-tight text-mid-gray">
                   {label}
                 </span>
               </div>
@@ -257,11 +257,11 @@ export const TranslatorSettings: React.FC = () => {
         {/* Derecha: vista previa / conversación en vivo (estilo Messages). */}
         <div className="rounded-card border border-line bg-vitela/30 p-5 shadow-card">
           <div className="mb-3 flex items-center justify-between">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+            <p className="font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
               {last ? t("translator.conversation") : t("translator.preview")}
             </p>
             {voiceOn && (
-              <Volume2 width={14} height={14} className="text-logo-primary" />
+              <Volume2 width={14} height={14} className="text-gold-text" />
             )}
           </div>
 
@@ -275,14 +275,14 @@ export const TranslatorSettings: React.FC = () => {
               {history.map((item, idx) => (
                 <div key={idx} className="space-y-2">
                   <div className="rounded-card rounded-tl-sm bg-background px-4 py-3 shadow-sm">
-                    <p className="mb-1 text-[10px] uppercase tracking-wide text-mid-gray">
+                    <p className="mb-1 text-3xs uppercase tracking-wide text-mid-gray">
                       {t("translator.youSaid")}
                     </p>
                     <p className="text-sm text-text/80">{item.source}</p>
                   </div>
                   <div className="ms-6 rounded-card rounded-tr-sm border border-logo-primary/30 bg-logo-primary/5 px-4 py-3 shadow-sm">
                     <div className="mb-1 flex items-center justify-between">
-                      <p className="text-[10px] uppercase tracking-wide text-logo-primary">
+                      <p className="text-3xs uppercase tracking-wide text-gold-text">
                         {langLabel(item.target_lang)}
                       </p>
                       <div className="flex items-center gap-1">
@@ -292,7 +292,7 @@ export const TranslatorSettings: React.FC = () => {
                           onClick={() =>
                             speakNow(item.translation, item.target_lang)
                           }
-                          className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                          className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-2xs text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
                         >
                           <Volume2 width={12} height={12} />
                           {t("translator.replay")}
@@ -301,13 +301,13 @@ export const TranslatorSettings: React.FC = () => {
                           type="button"
                           title={t("a11y.copyToClipboard")}
                           onClick={() => copyTranslation(item, idx)}
-                          className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+                          className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-2xs text-mid-gray transition-colors hover:text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
                         >
                           {copiedIdx === idx ? (
                             <Check
                               width={12}
                               height={12}
-                              className="text-green-600"
+                              className="text-success"
                             />
                           ) : (
                             <Copy width={12} height={12} />
@@ -335,7 +335,7 @@ export const TranslatorSettings: React.FC = () => {
             // Vista previa estática: el usuario imagina el resultado.
             <div className="space-y-3 opacity-90">
               <div className="rounded-card rounded-tl-sm bg-background/70 px-4 py-3">
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-mid-gray">
+                <p className="mb-1 text-3xs uppercase tracking-wide text-mid-gray">
                   {t("translator.youSaid")}
                 </p>
                 <p className="text-sm text-text/70">
@@ -343,7 +343,7 @@ export const TranslatorSettings: React.FC = () => {
                 </p>
               </div>
               <div className="ms-6 rounded-card rounded-tr-sm border border-logo-primary/20 bg-logo-primary/5 px-4 py-3">
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-logo-primary">
+                <p className="mb-1 text-3xs uppercase tracking-wide text-gold-text">
                   {langLabel(langB)}
                 </p>
                 <p

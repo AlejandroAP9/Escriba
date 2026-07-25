@@ -744,7 +744,9 @@
       "paths": {
         "appData": "Dati App:",
         "models": "Modelli:",
-        "settings": "Impostazioni:"
+        "settings": "Impostazioni:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Ritardo incolla",

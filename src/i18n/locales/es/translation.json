@@ -744,7 +744,9 @@
       "paths": {
         "appData": "Datos de la aplicación:",
         "models": "Modelos:",
-        "settings": "Configuración:"
+        "settings": "Configuración:",
+        "logs": "Registros:",
+        "description": "Rutas internas que Escriba usa en este computador."
       },
       "pasteDelay": {
         "title": "Retraso de pegado",

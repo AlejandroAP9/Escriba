@@ -751,7 +751,9 @@
       "paths": {
         "appData": "App-data:",
         "models": "Modellen:",
-        "settings": "Instellingen:"
+        "settings": "Instellingen:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Plakvertraging",

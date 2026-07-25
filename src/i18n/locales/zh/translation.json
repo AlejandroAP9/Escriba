@@ -744,7 +744,9 @@
       "paths": {
         "appData": "应用数据:",
         "models": "模型:",
-        "settings": "设置:"
+        "settings": "设置:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "粘贴延迟",

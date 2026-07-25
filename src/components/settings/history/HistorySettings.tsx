@@ -42,8 +42,8 @@ const IconButton: React.FC<{
     disabled={disabled}
     className={`p-1.5 rounded-md flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed disabled:text-text/20 ${
       active
-        ? "text-logo-primary hover:text-logo-primary/80"
-        : "text-mid-gray hover:text-logo-primary"
+        ? "text-gold-text hover:text-gold-text/80"
+        : "text-mid-gray hover:text-gold-text"
     }`}
     title={title}
   >
@@ -308,7 +308,7 @@ export const HistorySettings: React.FC = () => {
         <div className="space-y-5">
           {groups.map((group) => (
             <div key={group.key} className="space-y-2.5">
-              <p className="px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+              <p className="px-1 font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
                 {group.label}
               </p>
               {group.items.map((entry) => (
@@ -506,7 +506,7 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
             ? ""
             : hasTranscription
               ? "text-text select-text cursor-text whitespace-pre-wrap wrap-break-word"
-              : "text-text/40"
+              : "text-text/60"
         } ${!expanded && isLong ? "line-clamp-3" : ""}`}
         style={
           retrying
@@ -531,7 +531,7 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
       {isLong && !retrying && (
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="mt-1 text-xs font-medium text-logo-primary hover:underline"
+          className="mt-1 text-xs font-medium text-gold-text hover:underline"
         >
           {expanded
             ? t("settings.history.showLess")
@@ -545,7 +545,7 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
           <Star
             width={12}
             height={12}
-            className="shrink-0 text-logo-primary"
+            className="shrink-0 text-gold-text"
             fill="currentColor"
           />
         )}

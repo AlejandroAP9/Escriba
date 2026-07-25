@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Create a report to help us improve Handy
+about: Cuéntanos qué falló para poder arreglarlo
 title: "[BUG] "
 labels: ["bug"]
 assignees: ""
@@ -8,7 +8,7 @@ assignees: ""
 
 ## Before You Submit
 
-**Please search [existing issues](https://github.com/cjpais/Handy/issues) to avoid duplicates.** Your bug may already be reported! Right now it's just me maintaining this project so many issues can be overwhelming! Help me out by checking first.
+**Busca primero en los [issues abiertos](https://github.com/AlejandroAP9/Escriba/issues) para no duplicar.** Puede que ya esté reportado.
 
 ## Bug Description
 

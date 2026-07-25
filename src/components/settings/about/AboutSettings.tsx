@@ -84,7 +84,7 @@ export const AboutSettings: React.FC = () => {
         }}
       >
         <Feather
-          className="pointer-events-none absolute -right-6 -top-6 text-logo-primary/10"
+          className="pointer-events-none absolute -right-6 -top-6 text-gold-text/10"
           width={140}
           height={140}
           strokeWidth={1}
@@ -96,7 +96,7 @@ export const AboutSettings: React.FC = () => {
           {BRAND}
         </div>
         <div
-          className="mt-1 text-lg italic text-logo-primary"
+          className="mt-1 text-lg italic text-gold-text"
           style={{ fontFamily: "var(--font-serif)" }}
         >
           {t("settings.about.identity.tagline")}
@@ -108,7 +108,7 @@ export const AboutSettings: React.FC = () => {
           {badges.map(({ icon: Icon, label }) => (
             <span
               key={label}
-              className="flex items-center gap-1.5 rounded-full border border-logo-primary/30 bg-logo-primary/5 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-logo-primary"
+              className="flex items-center gap-1.5 rounded-full border border-logo-primary/30 bg-logo-primary/5 px-3 py-1 text-2xs font-medium uppercase tracking-wider text-gold-text"
             >
               <Icon width={12} height={12} />
               {label}
@@ -121,7 +121,7 @@ export const AboutSettings: React.FC = () => {
 
       {/* Escriba en números: resumen del producto, con datos reales. */}
       <div>
-        <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-mid-gray">
+        <p className="mb-2 font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
           {t("settings.about.numbers.title")}
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -133,7 +133,7 @@ export const AboutSettings: React.FC = () => {
               >
                 {n.value}
               </p>
-              <p className="mt-0.5 text-[11px] leading-tight text-mid-gray">
+              <p className="mt-0.5 text-2xs leading-tight text-mid-gray">
                 {n.label}
               </p>
             </Card>
@@ -211,7 +211,7 @@ export const AboutSettings: React.FC = () => {
             {TECH.map((name) => (
               <span
                 key={name}
-                className="rounded-md border border-mid-gray/20 bg-mid-gray/5 px-2 py-0.5 font-mono text-[11px] text-mid-gray"
+                className="rounded-md border border-mid-gray/20 bg-mid-gray/5 px-2 py-0.5 font-mono text-2xs text-mid-gray"
               >
                 {name}
               </span>

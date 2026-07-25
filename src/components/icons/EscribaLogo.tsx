@@ -78,18 +78,18 @@ const EscribaLogo = ({
         {BRAND}
       </span>
       {liveWave && (
-        <LiveWave
-          width={Math.round(width * 0.42)}
-          className="text-logo-primary"
-        />
+        <LiveWave width={Math.round(width * 0.42)} className="text-gold-text" />
       )}
       {tagline && (
         <span
-          className="text-logo-primary"
+          className="text-gold-text"
           style={{
             fontFamily: SERIF,
             fontStyle: "italic",
-            fontWeight: 500,
+            // EB Garamond se empaqueta en 400 y 600. Pedir 500 hacía que el
+            // motor cayera a 400 en silencio, así que la firma salía más ligera
+            // de lo previsto. Se declara el peso que existe de verdad.
+            fontWeight: 600,
             fontSize: Math.round(width * 0.085),
             letterSpacing: "0.01em",
             lineHeight: 1,

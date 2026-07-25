@@ -82,16 +82,31 @@
   --color-vitela: var(--color-vitela);
   --color-background-ui: var(--color-background-ui);
   --color-logo-primary: var(--color-logo-primary);
+  /* Oro legible: úsalo en `text-*`. `logo-primary` es el oro de superficie y no
+     llega a AA como texto en tema claro (ver theme.css). */
+  --color-gold-text: var(--color-gold-text);
   --color-logo-stroke: var(--color-logo-stroke);
   --color-text-stroke: var(--color-text-stroke);
   --color-mid-gray: var(--color-mid-gray);
   --color-lacre: var(--color-lacre);
+  --color-warning: var(--color-warning);
+  --color-info: var(--color-info);
+  --color-success: var(--color-success);
   --color-ink: var(--color-ink);
   --color-ink-fg: var(--color-ink-fg);
   --color-ink-muted: var(--color-ink-muted);
   --color-line: var(--color-line);
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
+
+  /* Dos escalones por debajo de `text-xs`, en rem. Existían como valores
+     arbitrarios `text-[10px]` y `text-[11px]` en 56 sitios, que son justo los
+     textos más pequeños de la interfaz: al estar en px se quedaban clavados
+     aunque el usuario subiera la escala de texto a 130% en Ajustes →
+     Apariencia. Con el root a 15px, 0.6667rem = 10px y 0.7333rem = 11px, así
+     que a escala 100% se ven exactamente igual que antes. */
+  --text-3xs: 0.6667rem;
+  --text-2xs: 0.7333rem;
 
   /* Forma: un solo radio de tarjeta y dos sombras (reposo / elevado). Origen
      único para todas las superficies; ver Escriba Design Guide, cap. 05. */
@@ -111,8 +126,14 @@
   font-weight: 400;
   letter-spacing: -0.006em;
 
-  /* Typography settings */
-  font-synthesis: none;
+  /* Tipografía: `font-synthesis: none` prohibía TODA síntesis, y como no se
+     empaqueta ninguna itálica de Inter ni de EB Garamond, las cinco cursivas de
+     la interfaz (incluida la firma de marca "Tu voz en tinta.") se renderizaban
+     rectas sin avisar. `style` habilita la itálica sintética, que es lo que la
+     ventana de grabación ya hacía, así que las dos ventanas vuelven a coincidir.
+     La síntesis de PESO sigue prohibida: los pesos que se usan (400/500/600)
+     existen en Inter, y una negrita falsa sí se nota. */
+  font-synthesis: style;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

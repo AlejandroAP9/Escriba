@@ -321,7 +321,7 @@ const TemplateLibraryComponent: React.FC = () => {
                 {describe(p.id, p.prompt)}
               </p>
               {!KNOWN_TEMPLATE_IDS.has(p.id) && (
-                <span className="mt-2 inline-block rounded-full border border-mid-gray/25 px-2 py-0.5 text-[10px] font-medium text-mid-gray">
+                <span className="mt-2 inline-block rounded-full border border-mid-gray/25 px-2 py-0.5 text-3xs font-medium text-mid-gray">
                   {t("settings.postProcessing.customBadge")}
                 </span>
               )}
@@ -335,8 +335,8 @@ const TemplateLibraryComponent: React.FC = () => {
           onClick={handleStartCreate}
           className={`flex items-center justify-center gap-2 rounded-card border border-dashed p-3.5 text-sm font-medium transition-colors ${
             isCreating
-              ? "border-logo-primary bg-logo-primary/5 text-logo-primary"
-              : "border-mid-gray/30 text-mid-gray hover:border-logo-primary/50 hover:text-logo-primary"
+              ? "border-logo-primary bg-logo-primary/5 text-gold-text"
+              : "border-mid-gray/30 text-mid-gray hover:border-logo-primary/50 hover:text-gold-text"
           }`}
         >
           <Plus width={16} height={16} />
@@ -471,7 +471,7 @@ const ExampleCard: React.FC<{ id: string }> = ({ id }) => {
   const { t } = useTranslation();
   return (
     <div className="rounded-card border border-line bg-background p-4 shadow-card">
-      <p className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-logo-primary">
+      <p className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-gold-text">
         <Sparkles width={13} height={13} />
         {t(`settings.postProcessing.example.${id}.label`)}
       </p>
@@ -550,7 +550,7 @@ export const PostProcessingSettings: React.FC = () => {
               <span
                 className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium ${
                   key === "ai"
-                    ? "border-logo-primary/30 bg-logo-primary/10 text-logo-primary"
+                    ? "border-logo-primary/30 bg-logo-primary/10 text-gold-text"
                     : "border-line bg-background text-mid-gray"
                 }`}
               >

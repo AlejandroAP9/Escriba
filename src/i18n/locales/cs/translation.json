@@ -744,7 +744,9 @@
       "paths": {
         "appData": "Data aplikace:",
         "models": "Modely:",
-        "settings": "Nastavení:"
+        "settings": "Nastavení:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Zpoždění vložení",

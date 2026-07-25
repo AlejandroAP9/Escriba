@@ -97,13 +97,13 @@ export const AppContextRules: React.FC = React.memo(() => {
           <button
             type="button"
             onClick={addRule}
-            className="flex items-center gap-1.5 rounded-card border border-dashed border-mid-gray/30 px-3 py-2 text-sm font-medium text-mid-gray transition-colors hover:border-logo-primary/50 hover:text-logo-primary"
+            className="flex items-center gap-1.5 rounded-card border border-dashed border-mid-gray/30 px-3 py-2 text-sm font-medium text-mid-gray transition-colors hover:border-logo-primary/50 hover:text-gold-text"
           >
             <Plus width={15} height={15} />
             {t("settings.postProcessing.appContext.add")}
           </button>
 
-          <p className="px-1 text-[11px] leading-relaxed text-mid-gray/80">
+          <p className="px-1 text-2xs leading-relaxed text-mid-gray/80">
             {t("settings.postProcessing.appContext.hint")}
           </p>
         </div>

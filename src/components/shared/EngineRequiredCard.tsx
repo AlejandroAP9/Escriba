@@ -48,7 +48,7 @@ export const EngineRequiredCard: React.FC<{ className?: string }> = ({
         <Download
           width={18}
           height={18}
-          className="mt-0.5 shrink-0 text-logo-primary"
+          className="mt-0.5 shrink-0 text-gold-text"
         />
         <div className="min-w-[200px] flex-1">
           <p className="text-sm font-semibold text-text">

@@ -1,6 +1,6 @@
-# Contributing Translations to Handy
+# Cómo contribuir traducciones a Escriba
 
-Thank you for helping translate Handy! This guide explains how to add or improve translations.
+¡Gracias por ayudar a traducir Escriba! This guide explains how to add or improve translations.
 
 ## Quick Start
 
@@ -171,4 +171,4 @@ We'd love help with:
 
 ---
 
-Thank you for making Handy accessible to more people around the world!
+Thank you for hacer que Escriba llegue to more people around the world!

@@ -744,7 +744,9 @@
       "paths": {
         "appData": "Dữ liệu ứng dụng:",
         "models": "Mô hình:",
-        "settings": "Cài đặt:"
+        "settings": "Cài đặt:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Độ trễ dán",

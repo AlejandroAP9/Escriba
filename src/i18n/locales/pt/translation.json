@@ -744,7 +744,9 @@
       "paths": {
         "appData": "Dados do App:",
         "models": "Modelos:",
-        "settings": "Configurações:"
+        "settings": "Configurações:",
+        "logs": "Logs:",
+        "description": "Internal paths Escriba uses on this computer."
       },
       "pasteDelay": {
         "title": "Atraso de colagem",
