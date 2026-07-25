@@ -817,7 +817,9 @@
       "tech": {
         "title": "Built with",
         "basedOn": "Based on Handy, by cjpais — under the MIT license.",
-        "basedOnButton": "View Handy"
+        "basedOnButton": "View Handy",
+        "licenses": "Third-party licenses",
+        "licensesButton": "View notices"
       },
       "closing": "Your voice never leaves your computer."
     },
@@ -1066,8 +1068,8 @@
     "privacyTitle": "Privacy",
     "privacy": {
       "localhost": "Listens only on 127.0.0.1 (localhost).",
-      "noInternet": "No internet connection required.",
-      "audioLocal": "Audio and text never leave your machine.",
+      "noInternet": "Runs without an internet connection.",
+      "audioLocal": "Audio is always transcribed on your machine.",
       "noTelemetry": "No telemetry, no analytics."
     },
     "prefsTitle": "Preferences",
@@ -1140,7 +1142,7 @@
     "replyFailed": "We couldn’t reply. Check the local engine in Post Process.",
     "docError": "We couldn’t create the document. Check the local engine and try again.",
     "emptyFinish": "The session is empty: nothing to convert.",
-    "localNote": "Fully local: your voice and the conversation never leave your computer.",
+    "localNote": "Local by default: your voice is always transcribed on your machine. Text only leaves if you turn on a remote provider.",
     "afterStart": "Then every phrase joins the session by holding",
     "flow": {
       "speak": "You speak",
@@ -1172,7 +1174,7 @@
       "p1": "Your voice never leaves your machine.",
       "p2": "No servers.",
       "p3": "No accounts.",
-      "p4": "No internet."
+      "p4": "Works offline once set up."
     },
     "preview": {
       "title": "How the session ends",

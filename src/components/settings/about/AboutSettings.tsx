@@ -232,6 +232,30 @@ export const AboutSettings: React.FC = () => {
             {t("settings.about.tech.basedOnButton")}
           </Button>
         </SettingContainer>
+
+        {/*
+          Los modelos del catálogo no comparten licencia: 21 son MIT, 23
+          Apache-2.0, 14 exigen atribución (CC-BY-4.0, sobre todo los de NVIDIA)
+          y uno es CC-BY-NC-4.0, es decir no comercial. La app los ofrecía todos
+          sin decirlo en ninguna parte.
+        */}
+        <SettingContainer
+          title={t("settings.about.tech.licenses")}
+          description={EMPTY}
+          grouped={true}
+        >
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() =>
+              openUrl(
+                "https://github.com/AlejandroAP9/Escriba/blob/main/THIRD_PARTY_NOTICES.md",
+              )
+            }
+          >
+            {t("settings.about.tech.licensesButton")}
+          </Button>
+        </SettingContainer>
       </SettingsGroup>
 
       {/* Cierre emocional. */}

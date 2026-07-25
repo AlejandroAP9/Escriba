@@ -817,7 +817,9 @@
       "tech": {
         "title": "Construido con",
         "basedOn": "Basado en Handy, de cjpais — bajo licencia MIT.",
-        "basedOnButton": "Ver Handy"
+        "basedOnButton": "Ver Handy",
+        "licenses": "Licencias de terceros",
+        "licensesButton": "Ver avisos"
       },
       "closing": "Tu voz nunca abandona tu computador."
     },
@@ -1066,8 +1068,8 @@
     "privacyTitle": "Privacidad",
     "privacy": {
       "localhost": "Solo escucha en 127.0.0.1 (localhost).",
-      "noInternet": "No requiere conexión a internet.",
-      "audioLocal": "El audio y el texto nunca salen del equipo.",
+      "noInternet": "Funciona sin conexión a internet.",
+      "audioLocal": "El audio siempre se transcribe en tu equipo.",
       "noTelemetry": "Sin telemetría ni analíticas."
     },
     "prefsTitle": "Preferencias",
@@ -1140,7 +1142,7 @@
     "replyFailed": "No pudimos responder. Revisa el motor local en Post Proceso.",
     "docError": "No pudimos crear el documento. Revisa el motor local e inténtalo de nuevo.",
     "emptyFinish": "La sesión está vacía: no hay nada que convertir.",
-    "localNote": "Todo local: tu voz y la conversación nunca salen de tu computador.",
+    "localNote": "Local por defecto: tu voz siempre se transcribe en tu equipo. El texto solo sale si activas un proveedor remoto.",
     "afterStart": "Después, cada frase entra manteniendo",
     "flow": {
       "speak": "Hablas",
@@ -1172,7 +1174,7 @@
       "p1": "Tu voz nunca sale del equipo.",
       "p2": "Sin servidores.",
       "p3": "Sin cuentas.",
-      "p4": "Sin internet."
+      "p4": "Funciona sin conexión una vez instalado."
     },
     "preview": {
       "title": "Así termina la sesión",

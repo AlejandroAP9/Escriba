@@ -13,8 +13,9 @@ a esta app de dictado por voz open source, **100% local y gratis**.
 Escriba cree que las herramientas de accesibilidad pertenecen a todos.
 Priorizamos:
 
-- **Local y privado:** todo corre en tu máquina; tu voz nunca sale de tu
-  computador.
+- **Local por defecto:** tu voz siempre se transcribe en tu máquina y nunca sale
+  de ella. El texto solo sale si tú configuras y eliges un proveedor remoto
+  (viene apagado).
 - **Gratis e ilimitado:** sin cuentas, sin claves de API, sin cupos.
 - **Open source:** código legible y extensible.
 - **Simplicidad:** código claro y mantenible por encima de soluciones ingeniosas.

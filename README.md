@@ -145,6 +145,8 @@ Escriba es un _rework_ de **[Handy](https://github.com/cjpais/handy)**, la excel
 
 MIT. Ver [LICENSE](./LICENSE). El código original de Handy es © CJ Pais; las modificaciones de Escriba mantienen la misma licencia.
 
+Los modelos y el software de terceros que Escriba empaqueta, descarga o instala tienen sus propias licencias: están todas en **[THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)**. Dos avisos que conviene leer si vas a usar Escriba en un contexto comercial: el catálogo incluye **un modelo CC-BY-NC-4.0** (`canary-1b`, uso no comercial) y **14 modelos CC-BY-4.0** que exigen atribución.
+
 ---
 
 <p align="center">
