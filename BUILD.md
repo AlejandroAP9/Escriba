@@ -196,3 +196,46 @@ git config --global core.longpaths true
 
 Restart your shell (or reboot) afterward so the change takes effect. If a build
 still trips on the limit, fall back to option 1.
+
+---
+
+# Checklist de lanzamiento
+
+Pasos que hay que dar a mano en cada corte de versión. El ritual está en el
+CHANGELOG y en la memoria del proyecto; esto es la parte que se ha olvidado más
+de una vez.
+
+## Antes de publicar
+
+- [ ] Subir la versión en los **tres** sitios: `package.json`,
+      `src-tauri/Cargo.toml` y `src-tauri/tauri.conf.json`. Tienen que coincidir.
+- [ ] Entrada nueva en `CHANGELOG.md`.
+- [ ] `README.md`: insignia de versión, tabla de historial y lista de features.
+- [ ] Nota de novedades en `src/content/release-notes/<version>.md`. **Sin este
+      archivo el modal "Novedades" muestra la nota de una versión anterior**, que
+      es exactamente lo que pasó entre la 1.4.0 y la 2.0.0.
+- [ ] `bun run lint`, `bunx tsc --noEmit`, `cargo clippy` y `cargo test` limpios.
+- [ ] `bun run check:translations` en verde. Ojo: solo comprueba que las claves
+      existan, no que estén traducidas.
+
+## Al publicar
+
+- [ ] **`latest.json` tiene que cubrir las cuatro plataformas.** En la v2.0.0
+      solo traía `darwin-aarch64`, así que las instalaciones de Windows y de
+      Linux nunca vieron la actualización. Cada plataforma necesita su artefacto
+      del updater **con su firma `.sig`**: si el build de esa plataforma no
+      produjo el `.sig`, esa entrada no se puede rellenar y hay que rehacer el
+      build, no inventarla.
+- [ ] Comprobar que los nombres de archivo del release coinciden con la tabla de
+      descargas del README.
+- [ ] Si el repositorio sigue en privado: **el botón de descarga del README, el
+      endpoint del updater y el enlace de la landing devuelven 404 para
+      cualquiera que no seas tú.** Hacerlo público es el paso que lo activa todo:
+      `gh repo edit AlejandroAP9/Escriba --visibility public`.
+
+## Después de publicar
+
+- [ ] Abrir el release en una ventana de incógnito y descargar un artefacto de
+      verdad, sin sesión iniciada.
+- [ ] Avisar que en macOS hay que volver a conceder Accesibilidad tras
+      actualizar (la firma propia cambia la identidad de código en cada build).

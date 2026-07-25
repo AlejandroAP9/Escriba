@@ -31,16 +31,27 @@ La idea es simple: **lo que otras apps cobran por mes y procesan en su nube, aqu
 
 Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest)** y elige el instalador de tu sistema:
 
-| Sistema                                    | Archivo a descargar           |
-| ------------------------------------------ | ----------------------------- |
-| 🍎 **macOS** (Apple Silicon · M1/M2/M3/M4) | el `.dmg` que dice `aarch64`  |
-| 🍎 **macOS** (Intel)                       | el `.dmg` que dice `x64`      |
-| 🪟 **Windows** 10/11                       | el instalador `x64-setup.exe` |
+| Sistema                                    | Archivo a descargar            |
+| ------------------------------------------ | ------------------------------ |
+| 🍎 **macOS** (Apple Silicon · M1/M2/M3/M4) | `Escriba_x.y.z_aarch64.dmg`    |
+| 🪟 **Windows** 10/11                       | `Escriba_x.y.z_x64-setup.exe`  |
+| 🐧 **Linux** (Debian/Ubuntu)               | `Escriba_x.y.z_amd64.deb`      |
+| 🐧 **Linux** (cualquier distro)            | `Escriba_x.y.z_amd64.AppImage` |
+
+> **macOS Intel todavía no tiene build.** Escriba se compila para Apple Silicon.
+> Si tienes un Mac Intel, por ahora toca compilarla tú siguiendo [BUILD.md](./BUILD.md).
 
 > **Primera vez que abres la app:**
 >
 > - **macOS:** clic derecho sobre Escriba → **Abrir** → **Abrir** (Escriba aún no está firmada por Apple; esto solo se hace una vez).
 > - **Windows:** si aparece SmartScreen, haz clic en **Más información** → **Ejecutar de todas formas**.
+
+> **macOS: después de cada actualización hay que volver a dar permiso de Accesibilidad.**
+> No es un error de la app. Escriba se firma con un certificado propio, y macOS
+> considera cada build una identidad distinta, así que revoca el permiso que le
+> habías dado a la anterior. Si tras actualizar el atajo deja de responder:
+> **Ajustes del Sistema → Privacidad y seguridad → Accesibilidad**, quita Escriba
+> de la lista con el botón `−` y vuelve a añadirla con `+`.
 
 ## 🚀 Qué puede hacer
 
@@ -92,7 +103,7 @@ Escriba no compite por atención, compite por desaparecer. Cuando el usuario rec
 - **Profesional** — la herramienta de un periodista o un escritor, no un experimento.
 - **Atemporal** — sin modas; que en cinco años se siga viendo moderna.
 
-> El sistema de diseño completo de Escriba —color, tipografía, motion, componentes y patrones— se documenta en la **Escriba Design Guide**.
+> El sistema de diseño vive en el código, en un solo sitio: los tokens de color y tipografía están en [`src/styles/theme.css`](./src/styles/theme.css) y la escala, formas y sombras en [`src/App.css`](./src/App.css). Cambiar la marca es cambiar esos dos archivos.
 
 ## ⚙️ Cómo funciona
 
@@ -131,8 +142,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 | 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                                             |
 | 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                                                                              |
 | 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar                                                               |
-| 0.5.0   | 09-jul | Onboarding es-first + estadísticas                                                                       |
-| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`)                                                                     |
+| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`) + onboarding es-first + estadísticas                                |
 | 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)                                                              |
 | 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar                                                                |
 | 0.2.0   | 07-jul | Rebrand + **motor de IA local**                                                                          |
