@@ -286,6 +286,13 @@ pub fn is_speaking_native() -> bool {
     if crate::managers::tts::is_playing() {
         return true;
     }
+    // La voz del Intérprete es un sink de rodio, no un proceso hijo, así que
+    // hay que preguntarle aparte. Faltaba, y era precisamente el camino donde
+    // el barge-in y la guarda de eco tenían que funcionar: el Intérprete habla
+    // por los altavoces con el micrófono abierto en manos libres.
+    if crate::audio_feedback::is_interpreter_playing() {
+        return true;
+    }
     if let Ok(mut guard) = SPEAKING.lock() {
         if let Some(child) = guard.as_mut() {
             match child.try_wait() {
@@ -302,6 +309,8 @@ pub fn is_speaking_native() -> bool {
 /// Detiene toda lectura nativa en curso.
 pub fn stop_speaking_native() {
     crate::managers::tts::stop();
+    // Los TRES motores, o el barge-in corta unos y deja sonando el otro.
+    crate::audio_feedback::stop_interpreter_playback();
     if let Ok(mut guard) = SPEAKING.lock() {
         if let Some(mut child) = guard.take() {
             let _ = child.kill();

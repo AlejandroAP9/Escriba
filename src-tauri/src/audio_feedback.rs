@@ -99,6 +99,27 @@ fn play_sound_at_path(app: &AppHandle, path: &Path) -> Result<(), Box<dyn std::e
 /// #18: Pausar/Descartar deben frenar lo que ya está sonando hacia la llamada).
 static INTERPRETER_SINK: Mutex<Option<Arc<rodio::Sink>>> = Mutex::new(None);
 
+/// ¿Hay una locución del Intérprete sonando ahora mismo?
+///
+/// La voz del Intérprete es el TERCER mecanismo de reproducción de la app, y no
+/// se parece a los otros dos: `say` y la voz neural son procesos hijos que se
+/// consultan con `try_wait()`, mientras que esta es un sink de rodio dentro del
+/// propio proceso.
+///
+/// Que faltara esta consulta rompía el barge-in justo donde más importa: el
+/// Intérprete habla por los altavoces mientras el micrófono sigue abierto en
+/// manos libres, así que es el único camino donde el eco puede realmente
+/// producirse. `is_speaking_native()` devolvía `false` y ni se cortaba la voz al
+/// hablar encima, ni se descartaba el audio capturado durante la locución.
+pub fn is_interpreter_playing() -> bool {
+    if let Ok(guard) = INTERPRETER_SINK.lock() {
+        if let Some(sink) = guard.as_ref() {
+            return !sink.empty();
+        }
+    }
+    false
+}
+
 /// Corta la reproducción de la voz del Intérprete si hay una en curso.
 pub fn stop_interpreter_playback() {
     if let Ok(mut guard) = INTERPRETER_SINK.lock() {
