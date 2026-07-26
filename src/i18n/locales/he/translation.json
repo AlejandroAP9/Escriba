@@ -842,10 +842,11 @@
     "typedText": {
       "groupTitle": "Write instead of speaking",
       "title": "Type your text",
-      "description": "Runs the same local AI correction as dictation, without using your voice. The result appears here so you can copy it.",
+      "description": "Runs the same local AI as dictation, without using your voice: apply your tone or translate. The result appears here so you can copy it.",
       "placeholder": "Write or paste your text here",
       "inputLabel": "Text to process",
       "run": "Correct with AI",
+      "translate": "Translate",
       "working": "Working…",
       "copy": "Copy result",
       "copied": "Copied",

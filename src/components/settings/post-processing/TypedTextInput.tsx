@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { Button } from "../../ui/Button";
 import { Textarea } from "../../ui/Textarea";
-import { commands } from "@/bindings";
+import { commands, type TypedTextAction } from "@/bindings";
 
 /**
  * Alternativa por teclado al dictado.
@@ -22,14 +22,17 @@ export const TypedTextInput: React.FC = () => {
   const { t } = useTranslation();
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
-  const [busy, setBusy] = useState(false);
+  // Guarda cuál de las dos acciones está corriendo, no solo que algo corre:
+  // así el botón pulsado muestra "Procesando…" y el otro queda deshabilitado,
+  // en vez de que ambos digan lo mismo y no se sepa cuál se pidió.
+  const [busy, setBusy] = useState<TypedTextAction | null>(null);
 
-  const run = async () => {
+  const run = async (action: TypedTextAction) => {
     if (!input.trim() || busy) return;
-    setBusy(true);
+    setBusy(action);
     setOutput("");
     try {
-      const result = await commands.processTypedText(input);
+      const result = await commands.processTypedText(input, action);
       if (result.status === "ok") {
         setOutput(result.data);
       } else if (result.error === "POST_PROCESS_DISABLED") {
@@ -40,7 +43,7 @@ export const TypedTextInput: React.FC = () => {
     } catch {
       toast.error(t("settings.typedText.failed"));
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
@@ -66,14 +69,26 @@ export const TypedTextInput: React.FC = () => {
         aria-label={t("settings.typedText.inputLabel")}
       />
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="primary"
           size="sm"
-          onClick={run}
-          disabled={busy || !input.trim()}
+          onClick={() => run("correct")}
+          disabled={busy !== null || !input.trim()}
         >
-          {busy ? t("settings.typedText.working") : t("settings.typedText.run")}
+          {busy === "correct"
+            ? t("settings.typedText.working")
+            : t("settings.typedText.run")}
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => run("translate")}
+          disabled={busy !== null || !input.trim()}
+        >
+          {busy === "translate"
+            ? t("settings.typedText.working")
+            : t("settings.typedText.translate")}
         </Button>
       </div>
 

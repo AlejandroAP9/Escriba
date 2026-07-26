@@ -95,6 +95,21 @@ pub fn review_copy(app: tauri::AppHandle) {
     crate::overlay::hide_recording_overlay(&app);
 }
 
+/// Qué hacer con un texto escrito a teclado.
+///
+/// Solo dos de los cuatro [`crate::actions::TranscribeMode`] tienen sentido por
+/// aquí. `Edit` queda fuera a propósito: depende de la selección que captura el
+/// Cmd/Ctrl+C sintético al empezar una edición por voz, así que desde un panel
+/// de texto siempre encontraría el buffer vacío y caería en "no_selection".
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, specta::Type)]
+#[serde(rename_all = "snake_case")]
+pub enum TypedTextAction {
+    /// Aplica el tono/plantilla configurada, igual que un dictado normal.
+    Correct,
+    /// Traduce al idioma de `translation_target_language`.
+    Translate,
+}
+
 /// Alternativa por TECLADO al dictado: procesa un texto escrito con el mismo
 /// motor de IA y devuelve el resultado.
 ///
@@ -108,7 +123,11 @@ pub fn review_copy(app: tauri::AppHandle) {
 /// sitio equivocado. El usuario copia el resultado y lo lleva a donde quiera.
 #[tauri::command]
 #[specta::specta]
-pub async fn process_typed_text(app: tauri::AppHandle, text: String) -> Result<String, String> {
+pub async fn process_typed_text(
+    app: tauri::AppHandle,
+    text: String,
+    action: TypedTextAction,
+) -> Result<String, String> {
     if text.trim().is_empty() {
         return Err("EMPTY".to_string());
     }
@@ -116,13 +135,15 @@ pub async fn process_typed_text(app: tauri::AppHandle, text: String) -> Result<S
     if !settings.post_process_enabled {
         return Err("POST_PROCESS_DISABLED".to_string());
     }
-    let processed = crate::actions::post_process_public(
-        &app,
-        &settings,
-        &text,
-        crate::actions::TranscribeMode::Standard,
-    )
-    .await;
+    // `Correct` mapea a `Standard` y no a `PostProcess` porque es el modo que
+    // ya tenía este camino: los dos recorren la misma rama en
+    // `post_process_transcription`, y cambiarlo sería mover comportamiento sin
+    // motivo.
+    let mode = match action {
+        TypedTextAction::Correct => crate::actions::TranscribeMode::Standard,
+        TypedTextAction::Translate => crate::actions::TranscribeMode::Translate,
+    };
+    let processed = crate::actions::post_process_public(&app, &settings, &text, mode).await;
     // Sin post-proceso disponible (motor no instalado, proveedor caído) se
     // devuelve el original: el usuario nunca se queda sin su texto, igual que
     // en el camino de voz.

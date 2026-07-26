@@ -842,10 +842,11 @@
     "typedText": {
       "groupTitle": "Escribir en vez de dictar",
       "title": "Escribe tu texto",
-      "description": "Aplica la misma corrección con IA local que el dictado, sin usar la voz. El resultado aparece aquí para que lo copies.",
+      "description": "Aplica la misma IA local que el dictado, sin usar la voz: puedes darle tu tono o traducirlo. El resultado aparece aquí para que lo copies.",
       "placeholder": "Escribe o pega tu texto aquí",
       "inputLabel": "Texto a procesar",
       "run": "Corregir con IA",
+      "translate": "Traducir",
       "working": "Procesando…",
       "copy": "Copiar resultado",
       "copied": "Copiado",

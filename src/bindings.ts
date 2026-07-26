@@ -1234,9 +1234,9 @@ async reviewDiscard() : Promise<void> {
 async reviewCopy() : Promise<void> {
     await TAURI_INVOKE("review_copy");
 },
-async processTypedText(text: string) : Promise<Result<string, string>> {
+async processTypedText(text: string, action: TypedTextAction) : Promise<Result<string, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("process_typed_text", { text }) };
+    return { status: "ok", data: await TAURI_INVOKE("process_typed_text", { text, action }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -1570,6 +1570,7 @@ role: string; text: string;
  * Segundos desde el inicio de la sesión (para mostrar mm:ss).
  */
 at_secs: number }
+export type TypedTextAction = "correct" | "translate"
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"
 export type UsageStats = { total_transcriptions: number; total_words: number; words_last_30_days: number; active_days_last_30: number; current_streak_days: number; 
 /**
