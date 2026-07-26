@@ -146,7 +146,36 @@ impl AudioRecorder {
         self
     }
 
+    /// ¿El hilo worker sigue vivo?
+    ///
+    /// `worker_handle` solo se vacía en `close()`, así que un worker que murió
+    /// por un panic deja el `Option` en `Some` apuntando a un hilo terminado.
+    /// Sin esta comprobación, "hay handle" se confunde con "esto funciona".
+    pub fn is_worker_alive(&self) -> bool {
+        self.worker_handle
+            .as_ref()
+            .is_some_and(|h| !h.is_finished())
+    }
+
     pub fn open(&mut self, device: Option<Device>) -> Result<(), Box<dyn std::error::Error>> {
+        // Un worker muerto NO cuenta como abierto.
+        //
+        // Antes la guarda era `worker_handle.is_some()`, y como ese campo solo
+        // se limpia en `close()`, un worker que hubiera entrado en panic dejaba
+        // esta función devolviendo Ok sin hacer nada, para siempre. El grabador
+        // quedaba inservible sin ninguna vía de vuelta: cada dictado devolvía
+        // texto vacío hasta reiniciar la app, y la interfaz no se enteraba.
+        //
+        // Ahora un handle terminado se recoge y se sigue adelante, lo que
+        // reconstruye los canales y vuelve a lanzar el worker. Cierra la familia
+        // entera de causas, incluidas las que no se hayan identificado.
+        if let Some(handle) = self.worker_handle.take_if(|h| h.is_finished()) {
+            log::warn!("El worker de audio había muerto; se reconstruye el grabador");
+            // join() de un hilo ya terminado no bloquea; recoge su resultado y
+            // evita dejar el hilo sin recolectar.
+            let _ = handle.join();
+        }
+
         if self.worker_handle.is_some() {
             return Ok(()); // already open
         }
