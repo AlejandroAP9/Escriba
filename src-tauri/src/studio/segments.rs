@@ -14,11 +14,35 @@ const PARAGRAPH_MAX_SPAN_S: f64 = 45.0;
 /// Bajo este ritmo (chars/min) la transcripción se marca sospechosa.
 const MIN_CHARS_PER_MINUTE: f64 = 100.0;
 
+/// Por debajo de esta confianza media un segmento se considera dudoso.
+///
+/// `Token.p` de transcribe-cpp es una probabilidad por token; 0,45 de media
+/// deja pasar el habla normal (que ronda 0,7-0,9 incluso con ruido) y marca los
+/// tramos donde el modelo estaba adivinando, que es de donde salen las
+/// alucinaciones sobre silencio o audio muy corto.
+pub const LOW_CONFIDENCE_THRESHOLD: f32 = 0.45;
+
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
 pub struct Segment {
     pub start_s: f64,
     pub end_s: f64,
     pub text: String,
+    /// Confianza media de los tokens del segmento, 0..1.
+    ///
+    /// `None` cuando el motor no la reporta: los motores ONNX (Parakeet,
+    /// Canary) no devuelven probabilidad por token, y transcribe-cpp la deja en
+    /// NaN para las familias que tampoco la producen. Distinguir "no hay dato"
+    /// de "confianza baja" importa: lo primero no debe marcar nada.
+    #[serde(default)]
+    pub confidence: Option<f32>,
+}
+
+impl Segment {
+    /// `true` solo si hay dato de confianza Y está por debajo del umbral.
+    pub fn is_low_confidence(&self) -> bool {
+        self.confidence
+            .is_some_and(|c| c < LOW_CONFIDENCE_THRESHOLD)
+    }
 }
 
 /// Desplaza los timestamps de un chunk a la línea de tiempo global.
@@ -98,6 +122,7 @@ mod tests {
             start_s: start,
             end_s: end,
             text: text.to_string(),
+            confidence: None,
         }
     }
 
@@ -147,6 +172,25 @@ mod tests {
             .collect(); // 60s continuos sin gaps
         let paras = group_paragraphs(&segs);
         assert!(paras.len() >= 2, "60s continuos deben partirse en párrafos");
+    }
+
+    #[test]
+    fn missing_confidence_is_not_low_confidence() {
+        // Los motores ONNX no reportan probabilidad. Sin dato NO se marca nada:
+        // confundir "no sé" con "el modelo dudaba" llenaría de avisos falsos
+        // toda transcripción hecha con Parakeet o Canary.
+        assert!(!seg(0.0, 1.0, "hola").is_low_confidence());
+    }
+
+    #[test]
+    fn low_confidence_is_flagged_only_below_threshold() {
+        let mut s = seg(0.0, 1.0, "hola");
+        s.confidence = Some(LOW_CONFIDENCE_THRESHOLD - 0.01);
+        assert!(s.is_low_confidence());
+        s.confidence = Some(LOW_CONFIDENCE_THRESHOLD);
+        assert!(!s.is_low_confidence(), "el umbral exacto no se marca");
+        s.confidence = Some(0.92);
+        assert!(!s.is_low_confidence());
     }
 
     #[test]

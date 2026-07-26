@@ -11,6 +11,31 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use std::time::Instant;
 
+/// Cada cuánto despierta el worker a comprobar si el turno ya cerró.
+///
+/// Antes eran 250 ms, que se sumaban enteros al retardo del fin de turno en el
+/// peor caso. 50 ms es imperceptible en costo (el worker solo mira un canal) y
+/// recorta hasta 200 ms de la espera.
+pub(crate) const POLL_INTERVAL: std::time::Duration = std::time::Duration::from_millis(50);
+
+/// Silencio que cierra un turno en los modos conversacionales.
+pub(crate) const SILENCE_MS: u128 = 900;
+
+/// Mínimo de audio para considerar que hubo una intervención (0,5 s a 16 kHz).
+/// Por debajo de esto son chasquidos, y los modelos tipo Whisper alucinan
+/// frases enteras sobre fragmentos así.
+pub(crate) const MIN_SAMPLES: usize = 16_000 / 2;
+
+/// Avisa a la interfaz de en qué fase va el turno conversacional.
+///
+/// Durante la cuenta de silencio la interfaz seguía diciendo "escuchando", así
+/// que el usuario no distinguía entre "te sigo oyendo" y "ya terminé, estoy
+/// esperando", y tendía a repetirse o a hablar encima.
+pub(crate) fn emit_turn_phase(app: &tauri::AppHandle, phase: &str) {
+    use tauri::Emitter;
+    let _ = app.emit("conversation-turn-phase", phase.to_string());
+}
+
 /// Proceso `say` en curso (macOS): se mata antes de hablar de nuevo o al parar.
 static SPEAKING: Mutex<Option<std::process::Child>> = Mutex::new(None);
 
@@ -328,8 +353,10 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
     }
 
     // Micrófono abierto en modo streaming (VAD con cola post-voz).
-    if let Err(e) = rm.try_start_recording("hands_free", crate::audio_toolkit::VadPolicy::Streaming)
-    {
+    if let Err(e) = rm.try_start_recording(
+        "hands_free",
+        crate::audio_toolkit::VadPolicy::Conversational,
+    ) {
         HANDS_FREE.store(false, Ordering::Relaxed);
         return Err(e);
     }
@@ -339,27 +366,56 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
     // silencio) = fin de la intervención → transcribir → turno.
     let app2 = app.clone();
     std::thread::spawn(move || {
-        const SILENCE_MS: u128 = 900;
-        const MIN_SAMPLES: usize = 16_000 / 2; // 0.5 s: descarta chasquidos
         let mut buffer: Vec<f32> = Vec::new();
         let mut last_voice = std::time::Instant::now();
+        // Para no repetir el aviso de "cerrando turno" en cada vuelta del bucle.
+        let mut closing_announced = false;
         loop {
             if !HANDS_FREE.load(Ordering::Relaxed) {
                 break;
             }
-            match rx.recv_timeout(std::time::Duration::from_millis(250)) {
+            match rx.recv_timeout(POLL_INTERVAL) {
                 Ok(frame) => {
+                    // BARGE-IN: si la app está hablando y el usuario arranca,
+                    // se corta la voz. Antes no había ninguna ruta que hiciera
+                    // esto, así que hablar encima no servía de nada: había que
+                    // esperar a que la locución terminara sola.
+                    if is_speaking_native() {
+                        log::debug!("barge-in: el usuario habló, se corta la voz");
+                        stop_speaking_native();
+                        // Lo capturado mientras hablaba la app puede ser eco de
+                        // la propia locución, así que se descarta y el turno
+                        // arranca limpio desde esta trama.
+                        buffer.clear();
+                    }
                     buffer.extend_from_slice(&frame);
                     last_voice = std::time::Instant::now();
+                    if closing_announced {
+                        closing_announced = false;
+                        emit_turn_phase(&app2, "listening");
+                    }
                 }
                 Err(RecvTimeoutError::Timeout) => {
-                    if buffer.is_empty() || last_voice.elapsed().as_millis() < SILENCE_MS {
+                    if buffer.is_empty() {
                         continue;
                     }
+                    // Avisar en cuanto empieza la cuenta de silencio: durante la
+                    // espera la interfaz decía "escuchando", así que el usuario
+                    // no distinguía "te sigo oyendo" de "ya terminé, espero".
+                    if !closing_announced {
+                        closing_announced = true;
+                        emit_turn_phase(&app2, "closing");
+                    }
+                    if last_voice.elapsed().as_millis() < SILENCE_MS {
+                        continue;
+                    }
+                    closing_announced = false;
                     if buffer.len() < MIN_SAMPLES {
                         buffer.clear();
+                        emit_turn_phase(&app2, "listening");
                         continue;
                     }
+                    emit_turn_phase(&app2, "transcribing");
                     let samples = std::mem::take(&mut buffer);
                     let app3 = app2.clone();
                     let tm3 = Arc::clone(&app2.state::<Arc<TranscriptionManager>>());
@@ -382,6 +438,7 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
                                 crate::actions::interpreter_reply_flow(&app3, text);
                             }
                         }
+                        emit_turn_phase(&app3, "listening");
                     });
                 }
                 Err(RecvTimeoutError::Disconnected) => break,

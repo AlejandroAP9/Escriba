@@ -936,7 +936,8 @@
       "languages": "100+ idiomas",
       "engine": "Whisper"
     },
-    "summaryError": "No se pudo generar el resumen. Revisa que el motor de IA local esté instalado en Escritura Inteligente."
+    "summaryError": "No se pudo generar el resumen. Revisa que el motor de IA local esté instalado en Escritura Inteligente.",
+    "lowConfidence": "El motor dudó en algunos tramos. Conviene releerlo antes de exportar."
   },
   "historyStats": {
     "words": "Palabras dictadas",

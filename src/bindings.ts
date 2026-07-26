@@ -1512,7 +1512,14 @@ export type StudioJob = { id: number; file_name: string; path: string; status: J
  * Modelo con el que se produjo esta transcripción (para mostrar el recibo
  * "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
  */
-model_id: string | null }
+model_id: string | null;
+/**
+ * Hubo tramos donde el modelo estaba adivinando (confianza media por debajo
+ * del umbral). Sirve para avisar al usuario de que conviene repasar antes
+ * de exportar, en vez de que descubra la alucinación en el subtítulo ya
+ * publicado. `false` también cuando el motor no reporta confianza.
+ */
+low_confidence: boolean }
 /**
  * Regla determinista de buscar/reemplazar que se aplica al texto final tras
  * transcribir (antes de pegar). `is_regex` interpreta `find` como expresión

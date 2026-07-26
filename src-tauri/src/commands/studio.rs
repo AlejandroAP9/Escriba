@@ -40,6 +40,11 @@ pub struct StudioJob {
     /// Modelo con el que se produjo esta transcripción (para mostrar el recibo
     /// "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
     pub model_id: Option<String>,
+    /// Hubo tramos donde el modelo estaba adivinando (confianza media por debajo
+    /// del umbral). Sirve para avisar al usuario de que conviene repasar antes
+    /// de exportar, en vez de que descubra la alucinación en el subtítulo ya
+    /// publicado. `false` también cuando el motor no reporta confianza.
+    pub low_confidence: bool,
 }
 
 #[derive(Default)]
@@ -96,6 +101,7 @@ pub fn studio_enqueue(app: AppHandle, paths: Vec<String>) -> Result<Vec<u64>, St
             paragraphs: Vec::new(),
             summary: None,
             model_id: None,
+            low_confidence: false,
         });
         ids.push(id);
         spawn_job(app.clone(), id, path, None);
@@ -134,6 +140,9 @@ fn spawn_job(app: AppHandle, id: u64, path: PathBuf, model_id: Option<String>) {
         match result {
             Ok((segments, duration_s)) => {
                 let paragraphs = crate::studio::segments::group_paragraphs(&segments);
+                // Basta con que un solo tramo venga dudoso para avisar: el
+                // usuario tiene que releer antes de exportar un subtítulo.
+                let low_confidence = segments.iter().any(|s| s.is_low_confidence());
                 if let Some(job) = state.jobs.lock().unwrap().iter_mut().find(|j| j.id == id) {
                     job.status = JobStatus::Done;
                     job.progress = 1.0;
@@ -141,6 +150,7 @@ fn spawn_job(app: AppHandle, id: u64, path: PathBuf, model_id: Option<String>) {
                     job.segments = segments;
                     job.paragraphs = paragraphs;
                     job.model_id = model_id.clone();
+                    job.low_confidence = low_confidence;
                 }
                 info!("Studio job {} done", id);
                 emit(&app, id, JobStatus::Done, 1.0, None);
@@ -199,6 +209,7 @@ pub fn studio_retranscribe(
         job.segments = Vec::new();
         job.paragraphs = Vec::new();
         job.summary = None;
+        job.low_confidence = false;
     }
     spawn_job(app.clone(), id, path_buf, model_id);
     Ok(())

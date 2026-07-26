@@ -62,6 +62,7 @@ mod tests {
             start_s: start,
             end_s: end,
             text: text.to_string(),
+            confidence: None,
         }
     }
 

@@ -1230,21 +1230,55 @@ impl TranscriptionManager {
             let transcript = session
                 .run(&audio, &run_options)
                 .map_err(|e| anyhow::anyhow!("transcribe-cpp transcription failed: {}", e))?;
+            // Confianza media por segmento a partir de `Token.p`, que
+            // transcribe-cpp expone por token con el índice de su segmento.
+            // Las familias que no producen probabilidad la dejan en NaN, así
+            // que esos tokens se descartan y el segmento queda sin dato en vez
+            // de con un 0 que se leería como "el modelo estaba adivinando".
+            let confidence_by_segment = |index: usize| -> Option<f32> {
+                let mut sum = 0.0f32;
+                let mut count = 0u32;
+                for token in transcript
+                    .tokens
+                    .iter()
+                    .filter(|t| t.seg_index == index as i32)
+                {
+                    if token.p.is_finite() {
+                        sum += token.p;
+                        count += 1;
+                    }
+                }
+                (count > 0).then(|| sum / count as f32)
+            };
+
             let mut segments: Vec<StudioSegment> = transcript
                 .segments
                 .iter()
-                .map(|seg| StudioSegment {
+                .enumerate()
+                .map(|(index, seg)| StudioSegment {
                     start_s: seg.t0_ms as f64 / 1000.0,
                     end_s: seg.t1_ms as f64 / 1000.0,
                     text: seg.text.trim().to_string(),
+                    confidence: confidence_by_segment(index),
                 })
                 .filter(|seg| !seg.text.is_empty())
                 .collect();
             if segments.is_empty() && !transcript.text.trim().is_empty() {
+                // Sin segmentos no hay a qué atribuir los tokens, así que la
+                // confianza se promedia sobre todos.
+                let all: Vec<f32> = transcript
+                    .tokens
+                    .iter()
+                    .map(|t| t.p)
+                    .filter(|p| p.is_finite())
+                    .collect();
+                let confidence =
+                    (!all.is_empty()).then(|| all.iter().sum::<f32>() / all.len() as f32);
                 segments.push(StudioSegment {
                     start_s: 0.0,
                     end_s: duration_s,
                     text: transcript.text.trim().to_string(),
+                    confidence,
                 });
             }
             return Ok(segments);
@@ -1259,6 +1293,9 @@ impl TranscriptionManager {
             start_s: 0.0,
             end_s: duration_s,
             text: text.trim().to_string(),
+            // Los motores ONNX (Parakeet, Canary, SenseVoice) no devuelven
+            // probabilidad por token: sin dato, no se marca nada.
+            confidence: None,
         }])
     }
 

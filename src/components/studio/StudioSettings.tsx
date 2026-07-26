@@ -249,6 +249,17 @@ export const StudioSettings: React.FC = () => {
 
           {job.status === "done" && (
             <>
+              {/*
+                El motor reporta confianza por token; si hubo tramos donde
+                estaba adivinando conviene releer ANTES de exportar, que es
+                cuando todavía se puede corregir. Sin este aviso, la
+                alucinación se descubre en el subtítulo ya publicado.
+              */}
+              {job.low_confidence && (
+                <Alert variant="warning" contained>
+                  {t("studio.lowConfidence")}
+                </Alert>
+              )}
               <div className="max-h-40 overflow-y-auto text-sm text-text/90 whitespace-pre-wrap bg-mid-gray/10 rounded p-2">
                 {job.paragraphs.join("\n\n")}
               </div>

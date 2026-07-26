@@ -936,7 +936,8 @@
       "languages": "100+ languages",
       "engine": "Whisper"
     },
-    "summaryError": "Could not generate the summary. Check that the local AI engine is installed in Smart Writing."
+    "summaryError": "Could not generate the summary. Check that the local AI engine is installed in Smart Writing.",
+    "lowConfidence": "The engine was unsure in places. Read it over before exporting."
   },
   "historyStats": {
     "words": "Words dictated",

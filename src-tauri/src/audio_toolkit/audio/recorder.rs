@@ -42,6 +42,12 @@ pub enum VadPolicy {
     Offline,
     /// VAD profile with a longer post-speech tail for streaming-capable models.
     Streaming,
+    /// Modos conversacionales (manos libres, dictado libre): cola corta.
+    ///
+    /// Estos modos cierran el turno con su propio temporizador de silencio, así
+    /// que encadenarles la cola larga de `Streaming` medía el mismo silencio dos
+    /// veces y el turno tardaba ~2,5 s en cerrarse.
+    Conversational,
 }
 
 /// A single VAD engine plus the two hangover-tail lengths its smoothing wrapper
@@ -53,6 +59,7 @@ struct VadConfig {
     detector: Arc<Mutex<Box<dyn vad::VoiceActivityDetector>>>,
     offline_hangover_frames: usize,
     streaming_hangover_frames: usize,
+    conversational_hangover_frames: usize,
 }
 
 impl VadConfig {
@@ -61,6 +68,7 @@ impl VadConfig {
     fn hangover_for(&self, policy: VadPolicy) -> usize {
         match policy {
             VadPolicy::Streaming => self.streaming_hangover_frames,
+            VadPolicy::Conversational => self.conversational_hangover_frames,
             VadPolicy::Offline | VadPolicy::Disabled => self.offline_hangover_frames,
         }
     }
@@ -107,11 +115,13 @@ impl AudioRecorder {
         detector: Box<dyn VoiceActivityDetector>,
         offline_hangover_frames: usize,
         streaming_hangover_frames: usize,
+        conversational_hangover_frames: usize,
     ) -> Self {
         self.vad = Some(VadConfig {
             detector: Arc::new(Mutex::new(detector)),
             offline_hangover_frames,
             streaming_hangover_frames,
+            conversational_hangover_frames,
         });
         self
     }

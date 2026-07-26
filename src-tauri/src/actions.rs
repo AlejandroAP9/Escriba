@@ -1294,8 +1294,23 @@ impl ShortcutAction for TranscribeAction {
                     return;
                 }
 
-                if samples.is_empty() {
-                    debug!("Recording produced no audio samples; skipping persistence");
+                // Un roce del atajo produce unas décimas de audio. Los modelos
+                // tipo Whisper alucinan frases completas sobre fragmentos así
+                // ("gracias por ver el video", "subtítulos por…"), y como no hay
+                // señal de confianza que las filtre acaban pegadas en el
+                // documento del usuario. Dictado libre y manos libres ya
+                // descartaban por debajo de 0,5 s; el atajo no.
+                let too_short = !samples.is_empty()
+                    && samples.len() < crate::commands::conversation::MIN_SAMPLES;
+                if too_short {
+                    debug!(
+                        "Grabación de {} muestras descartada por demasiado corta",
+                        samples.len()
+                    );
+                }
+
+                if samples.is_empty() || too_short {
+                    debug!("Recording produced no usable audio samples; skipping persistence");
                     // Sin audio no se llega a procesar texto: limpia la marca de
                     // dictado-a-campo para no desviar el próximo dictado.
                     crate::commands::field_dictation::clear_capturing();

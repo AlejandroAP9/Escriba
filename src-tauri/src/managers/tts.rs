@@ -35,27 +35,53 @@ struct Voice {
     size: u64,
 }
 
-/// Voz neural por idioma ISO. Español (Sesiones, Traductor) e inglés (el
-/// idioma dominante de reuniones para el Intérprete). Otros idiomas caen a la
-/// voz del sistema. Ambas son Piper, del mismo repo de sherpa-onnx.
-fn voice_for(lang: &str) -> Option<Voice> {
-    match lang.split(['-', '_']).next().unwrap_or(lang) {
-        "es" => Some(Voice {
+/// Catálogo de voces neurales, indexado por código ISO de idioma.
+///
+/// Era un `match` con los datos incrustados en cada brazo. Como tabla, añadir
+/// un idioma es una fila y no tocar la lógica.
+///
+/// **Para añadir una voz**, en este orden:
+///  1. Elegir el tarball en el repo de modelos de sherpa-onnx (mismo release
+///     `tts-models` que los de abajo).
+///  2. Descargarlo y calcular su SHA256 y su tamaño exacto en bytes.
+///  3. Añadir la fila con esos valores reales.
+///
+/// El hash NO es opcional ni se puede aproximar: `download_verified` aborta si
+/// no cuadra, así que una fila con un hash inventado deja la voz permanentemente
+/// rota para ese idioma. Por eso aquí solo están las dos voces verificadas
+/// (13-jul-2026) y el resto de idiomas cae a la voz del sistema, que siempre
+/// funciona aunque suene peor.
+const VOICES: &[(&str, Voice)] = &[
+    (
+        "es",
+        Voice {
             dir: "vits-piper-es_MX-claude-high",
             onnx: "es_MX-claude-high.onnx",
             url: "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-es_MX-claude-high.tar.bz2",
             sha256: "ec33fb689c248fe64810aab564cba97babf0f506672cfd404928d46e751a4721",
             size: 67_207_890,
-        }),
-        "en" => Some(Voice {
+        },
+    ),
+    (
+        "en",
+        Voice {
             dir: "vits-piper-en_US-hfc_female-medium",
             onnx: "en_US-hfc_female-medium.onnx",
             url: "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-hfc_female-medium.tar.bz2",
             sha256: "3fffdceb0c65bd9415a085d09c3cb88cc82f9d74a6ca453f8ce7fc5eaee81ff8",
             size: 67_228_166,
-        }),
-        _ => None,
-    }
+        },
+    ),
+];
+
+/// Voz neural para un idioma, o `None` si no hay (cae a la voz del sistema).
+/// Acepta tanto `es` como `es-CL` o `en_US`: se compara por el código base.
+fn voice_for(lang: &str) -> Option<Voice> {
+    let base = lang.split(['-', '_']).next().unwrap_or(lang);
+    VOICES
+        .iter()
+        .find(|(code, _)| *code == base)
+        .map(|(_, voice)| Voice { ..*voice })
 }
 
 /// Reproducción en curso (afplay): se corta antes de hablar de nuevo.

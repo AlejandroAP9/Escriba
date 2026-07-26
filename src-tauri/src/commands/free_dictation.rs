@@ -39,9 +39,10 @@ pub fn set_active(app: &tauri::AppHandle, on: bool) -> Result<bool, String> {
     if ACTIVE.swap(true, Ordering::Relaxed) {
         return Ok(true); // ya activo
     }
-    if let Err(e) =
-        rm.try_start_recording("free_dictation", crate::audio_toolkit::VadPolicy::Streaming)
-    {
+    if let Err(e) = rm.try_start_recording(
+        "free_dictation",
+        crate::audio_toolkit::VadPolicy::Conversational,
+    ) {
         ACTIVE.store(false, Ordering::Relaxed);
         return Err(e);
     }
@@ -52,27 +53,52 @@ pub fn set_active(app: &tauri::AppHandle, on: bool) -> Result<bool, String> {
 
     let app2 = app.clone();
     std::thread::spawn(move || {
-        const SILENCE_MS: u128 = 900;
-        const MIN_SAMPLES: usize = 16_000 / 2; // 0.5 s: descarta chasquidos
+        use crate::commands::conversation::{
+            emit_turn_phase, is_speaking_native, stop_speaking_native, MIN_SAMPLES, POLL_INTERVAL,
+            SILENCE_MS,
+        };
         let mut buffer: Vec<f32> = Vec::new();
         let mut last_voice = std::time::Instant::now();
+        let mut closing_announced = false;
         loop {
             if !ACTIVE.load(Ordering::Relaxed) {
                 break;
             }
-            match rx.recv_timeout(std::time::Duration::from_millis(250)) {
+            match rx.recv_timeout(POLL_INTERVAL) {
                 Ok(frame) => {
+                    // Barge-in: hablar corta la lectura en curso, igual que en
+                    // manos libres. Y lo capturado mientras la app hablaba se
+                    // descarta, porque puede ser eco de la propia locución.
+                    if is_speaking_native() {
+                        log::debug!("barge-in (dictado libre): se corta la voz");
+                        stop_speaking_native();
+                        buffer.clear();
+                    }
                     buffer.extend_from_slice(&frame);
                     last_voice = std::time::Instant::now();
+                    if closing_announced {
+                        closing_announced = false;
+                        emit_turn_phase(&app2, "listening");
+                    }
                 }
                 Err(RecvTimeoutError::Timeout) => {
-                    if buffer.is_empty() || last_voice.elapsed().as_millis() < SILENCE_MS {
+                    if buffer.is_empty() {
                         continue;
                     }
+                    if !closing_announced {
+                        closing_announced = true;
+                        emit_turn_phase(&app2, "closing");
+                    }
+                    if last_voice.elapsed().as_millis() < SILENCE_MS {
+                        continue;
+                    }
+                    closing_announced = false;
                     if buffer.len() < MIN_SAMPLES {
                         buffer.clear();
+                        emit_turn_phase(&app2, "listening");
                         continue;
                     }
+                    emit_turn_phase(&app2, "transcribing");
                     let samples = std::mem::take(&mut buffer);
                     let app3 = app2.clone();
                     let tm3 = Arc::clone(&app2.state::<Arc<TranscriptionManager>>());
@@ -81,6 +107,9 @@ pub fn set_active(app: &tauri::AppHandle, on: bool) -> Result<bool, String> {
                             crate::studio::pipeline::transcribe_samples(&tm3, &samples, |_| {})
                         })
                         .await;
+                        // Vuelve a "escuchando" pase lo que pase, para que un
+                        // fallo no deje el indicador clavado en "transcribiendo".
+                        emit_turn_phase(&app3, "listening");
                         if let Ok(Ok(segs)) = segs {
                             let text = crate::studio::segments::group_paragraphs(&segs)
                                 .join(" ")

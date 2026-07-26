@@ -1,8 +1,8 @@
 use crate::audio_toolkit::{
     list_input_devices,
     vad::{
-        SmoothedVad, VAD_OFFLINE_HANGOVER_FRAMES, VAD_ONSET_FRAMES, VAD_PREFILL_FRAMES,
-        VAD_STREAMING_HANGOVER_FRAMES,
+        SmoothedVad, VAD_CONVERSATIONAL_HANGOVER_FRAMES, VAD_OFFLINE_HANGOVER_FRAMES,
+        VAD_ONSET_FRAMES, VAD_PREFILL_FRAMES, VAD_STREAMING_HANGOVER_FRAMES,
     },
     AudioRecorder, SileroVad, VadPolicy,
 };
@@ -154,6 +154,7 @@ fn create_audio_recorder(
             Box::new(smoothed_vad),
             VAD_OFFLINE_HANGOVER_FRAMES,
             VAD_STREAMING_HANGOVER_FRAMES,
+            VAD_CONVERSATIONAL_HANGOVER_FRAMES,
         )
         .with_level_callback({
             let app_handle = app_handle.clone();
