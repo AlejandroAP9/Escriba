@@ -21,7 +21,7 @@ interface AccessibilityOnboardingProps {
 }
 
 type PermissionStatus = "checking" | "needed" | "waiting" | "granted";
-type PermissionPlatform = "macos" | "windows" | "other";
+type PermissionPlatform = "macos" | "windows" | "linux-wayland" | "other";
 
 interface PermissionsState {
   accessibility: PermissionStatus;
@@ -80,6 +80,31 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
   // Check platform and permission status on mount
   useEffect(() => {
     const currentPlatform = platform();
+
+    // Linux no tiene ningún permiso que conceder para los atajos globales, pero
+    // sí una limitación real que antes nadie contaba: en Wayland no existe un
+    // mecanismo estándar de captura global de teclado, así que el atajo puede
+    // no responder. Se consulta al backend, que ya sabía detectarlo para elegir
+    // cómo escribir en el portapapeles, y solo se avisa si de verdad es Wayland:
+    // avisar en X11, donde el atajo suele funcionar, sería ruido.
+    if (currentPlatform === "linux") {
+      commands
+        .linuxDisplayServer()
+        .then((server) => {
+          if (server === "wayland") {
+            setPermissionPlatform("linux-wayland");
+          } else {
+            setPermissionPlatform("other");
+            onComplete();
+          }
+        })
+        .catch(() => {
+          setPermissionPlatform("other");
+          onComplete();
+        });
+      return;
+    }
+
     const nextPlatform: PermissionPlatform =
       currentPlatform === "macos"
         ? "macos"
@@ -276,6 +301,35 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
       toast.error(t("onboarding.permissions.errors.requestFailed"));
     }
   };
+
+  // Wayland: pantalla informativa, no de permisos. Va ANTES del estado de
+  // "comprobando" porque aquí no hay nada que comprobar, y antes de
+  // `allGranted` porque no hay permisos que conceder: si cayera en cualquiera
+  // de los dos, el usuario vería un spinner eterno o un tick verde falso.
+  if (permissionPlatform === "linux-wayland") {
+    return (
+      <div className="h-screen w-screen flex flex-col p-6 gap-6 items-center justify-center">
+        <EscribaLogo width={200} className="text-text" />
+        <div className="max-w-md w-full flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center text-center">
+            <Plumin pose="guia" size={96} className="mb-2" />
+            <h1 className="text-xl font-semibold text-text">
+              {t("onboarding.permissions.wayland.title")}
+            </h1>
+            <p className="mt-2 text-sm text-mid-gray">
+              {t("onboarding.permissions.wayland.body")}
+            </p>
+            <p className="mt-3 text-sm text-mid-gray">
+              {t("onboarding.permissions.wayland.alternative")}
+            </p>
+          </div>
+          <Button variant="primary" onClick={onComplete} className="w-full">
+            {t("onboarding.permissions.wayland.continue")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const isChecking =
     permissionPlatform === null ||

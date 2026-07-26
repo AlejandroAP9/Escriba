@@ -133,6 +133,12 @@
       "errors": {
         "checkFailed": "فشل التحقق من الأذونات. يرجير المحاولة مرة أخرى.",
         "requestFailed": "فشل طلب الإذن. يرجى المحاولة مرة أخرى."
+      },
+      "wayland": {
+        "title": "A heads-up about Wayland",
+        "body": "You're on Wayland, which has no standard way for an app to capture a global keyboard shortcut. Escriba's shortcut may not respond, and that isn't something you can grant permission for.",
+        "alternative": "Everything else works. You can start dictation from the tray icon with Free dictation, and correct written text from Settings without using the microphone at all.",
+        "continue": "Got it, continue"
       }
     }
   },

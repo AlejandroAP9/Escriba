@@ -31,6 +31,31 @@ pub fn is_portable() -> bool {
     crate::portable::is_portable()
 }
 
+/// Servidor gráfico en uso, para que el onboarding pueda avisar en Linux.
+///
+/// Devuelve `"wayland"`, `"other"` o `"not_linux"`. La app ya detectaba Wayland
+/// para elegir cómo escribir en el portapapeles (`utils::is_wayland`), pero esa
+/// información nunca llegaba a la interfaz: el onboarding trataba Linux como
+/// "plataforma no soportada" y se saltaba entero, así que quien usa Wayland se
+/// quedaba sin saber por qué su atajo global podía no responder.
+///
+/// `"other"` en vez de `"x11"` a propósito: si no hay `WAYLAND_DISPLAY` ni
+/// `XDG_SESSION_TYPE=wayland`, lo único que se puede afirmar es que no es
+/// Wayland, no que sea X11.
+#[tauri::command]
+#[specta::specta]
+pub fn linux_display_server() -> String {
+    #[cfg(target_os = "linux")]
+    {
+        if crate::utils::is_wayland() {
+            return "wayland".to_string();
+        }
+        "other".to_string()
+    }
+    #[cfg(not(target_os = "linux"))]
+    "not_linux".to_string()
+}
+
 #[tauri::command]
 #[specta::specta]
 pub fn get_app_dir_path(app: AppHandle) -> Result<String, String> {

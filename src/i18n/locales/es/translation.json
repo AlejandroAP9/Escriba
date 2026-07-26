@@ -133,6 +133,12 @@
       "errors": {
         "checkFailed": "Error al verificar permisos. Por favor, inténtalo de nuevo.",
         "requestFailed": "Error al solicitar permiso. Por favor, inténtalo de nuevo."
+      },
+      "wayland": {
+        "title": "Un aviso sobre Wayland",
+        "body": "Estás en Wayland, que no tiene una forma estándar de que una app capture un atajo de teclado global. El atajo de Escriba puede no responder, y no es algo que puedas conceder con un permiso.",
+        "alternative": "El resto funciona igual. Puedes iniciar el dictado desde el icono de la bandeja con Dictado libre, y corregir texto escrito desde Ajustes sin usar el micrófono.",
+        "continue": "Entendido, continuar"
       }
     }
   },
