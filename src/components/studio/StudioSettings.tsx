@@ -38,10 +38,17 @@ export const StudioSettings: React.FC = () => {
   useEffect(() => {
     refresh();
     const unlisten = listen<Progress>("studio-progress", () => refresh());
+    // Algún archivo quedó fuera por su ubicación. Se dice cuántos y no cuáles:
+    // detallarlo convertiría el aviso en la vía para averiguar qué hay en el
+    // disco, que es justo lo que se cerró en el backend.
+    const unRejected = listen<number>("studio-paths-rejected", (e) => {
+      toast.warning(t("studio.pathsRejected", { count: e.payload }));
+    });
     return () => {
       unlisten.then((fn) => fn());
+      unRejected.then((fn) => fn());
     };
-  }, [refresh]);
+  }, [refresh, t]);
 
   const enqueue = useCallback(
     async (paths: string[]) => {

@@ -73,17 +73,37 @@ fn emit(app: &AppHandle, id: u64, status: JobStatus, progress: f32, error: Optio
 }
 
 /// Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
+///
+/// La ruta se valida además de la extensión. Antes el único filtro era el sufijo
+/// del archivo, así que este comando transcribía CUALQUIER audio o video del
+/// disco y devolvía el texto en `studio_jobs`: un oráculo de lectura para un
+/// frontend comprometido. Se guarda la ruta ya canonicalizada, para que
+/// `studio_retranscribe` reabra la que se validó y no la cadena original.
 #[tauri::command]
 #[specta::specta]
 pub fn studio_enqueue(app: AppHandle, paths: Vec<String>) -> Result<Vec<u64>, String> {
     let state = app.state::<Arc<StudioState>>();
     let mut ids = Vec::new();
+    let mut rejected = 0usize;
 
     for path_str in paths {
-        let path = PathBuf::from(&path_str);
-        if !decode::supported_extension(&path) {
+        let raw = PathBuf::from(&path_str);
+        if !decode::supported_extension(&raw) {
             continue;
         }
+        // Mensaje único para "no existe" y "fuera de límites": quien llama no
+        // puede usar el error para averiguar qué archivos hay en el disco.
+        let path =
+            match crate::path_guard::contain_media_path(&app, &raw, "No se pudo abrir el archivo.")
+            {
+                Ok(p) => p,
+                Err(_) => {
+                    info!("Estudio: ruta rechazada, fuera de las carpetas permitidas");
+                    rejected += 1;
+                    continue;
+                }
+            };
+
         let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
         let file_name = path
             .file_name()
@@ -92,7 +112,7 @@ pub fn studio_enqueue(app: AppHandle, paths: Vec<String>) -> Result<Vec<u64>, St
         state.jobs.lock().unwrap().push(StudioJob {
             id,
             file_name,
-            path: path_str.clone(),
+            path: path.to_string_lossy().to_string(),
             status: JobStatus::Pending,
             progress: 0.0,
             error: None,
@@ -105,6 +125,13 @@ pub fn studio_enqueue(app: AppHandle, paths: Vec<String>) -> Result<Vec<u64>, St
         });
         ids.push(id);
         spawn_job(app.clone(), id, path, None);
+    }
+
+    // Descartar archivos en silencio es desconcertante: el usuario arrastra
+    // tres y aparecen dos. Se avisa sin decir cuál ni por qué, que es lo que
+    // convertiría el aviso en el oráculo que acabamos de cerrar.
+    if rejected > 0 {
+        let _ = app.emit("studio-paths-rejected", rejected);
     }
     Ok(ids)
 }
@@ -197,10 +224,15 @@ pub fn studio_retranscribe(
             .ok_or("Job no encontrado")?;
         job.path.clone()
     };
-    let path_buf = PathBuf::from(&path);
-    if !path_buf.exists() {
-        return Err("El archivo original ya no está disponible en su ubicación".to_string());
-    }
+    // La ruta guardada ya venía validada del encolado, pero se revalida: entre
+    // una transcripción y otra el archivo pudo moverse, o su carpeta pudo pasar
+    // a ser un enlace a otro sitio. La comprobación es barata y evita que la
+    // validación dependa de un dato guardado hace rato.
+    let path_buf = crate::path_guard::contain_media_path(
+        &app,
+        &PathBuf::from(&path),
+        "El archivo original ya no está disponible en su ubicación",
+    )?;
     // Resetea el job antes de re-encolar.
     if let Some(job) = state.jobs.lock().unwrap().iter_mut().find(|j| j.id == id) {
         job.status = JobStatus::Pending;

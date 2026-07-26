@@ -960,7 +960,8 @@
       "engine": "Whisper"
     },
     "summaryError": "No se pudo generar el resumen. Revisa que el motor de IA local esté instalado en Escritura Inteligente.",
-    "lowConfidence": "El motor dudó en algunos tramos. Conviene releerlo antes de exportar."
+    "lowConfidence": "El motor dudó en algunos tramos. Conviene releerlo antes de exportar.",
+    "pathsRejected": "{{count}} archivo(s) no se pudieron abrir desde esa ubicación."
   },
   "historyStats": {
     "words": "Palabras dictadas",

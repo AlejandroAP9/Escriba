@@ -37,6 +37,86 @@ pub fn consented_roots(app: &AppHandle) -> Vec<PathBuf> {
     roots
 }
 
+/// Puntos de montaje donde vive un medio externo en cada plataforma.
+///
+/// En Windows los medios extraíbles son letras de unidad, no rutas bajo una
+/// raíz común, así que se resuelven aparte en [`is_external_media`].
+#[cfg(target_os = "macos")]
+const EXTERNAL_MEDIA_ROOTS: &[&str] = &["/Volumes"];
+#[cfg(target_os = "linux")]
+const EXTERNAL_MEDIA_ROOTS: &[&str] = &["/media", "/mnt", "/run/media"];
+#[cfg(target_os = "windows")]
+const EXTERNAL_MEDIA_ROOTS: &[&str] = &[];
+
+/// En Windows: `true` si la ruta está en una unidad distinta de la del home.
+///
+/// Una tarjeta SD o un disco USB se montan como `D:\`, `E:\`… Comparar el
+/// prefijo con el del home distingue "medio externo" de "el disco del sistema"
+/// sin tener que enumerar unidades.
+#[cfg(target_os = "windows")]
+fn is_external_media(app: &AppHandle, path: &Path) -> bool {
+    let Ok(home) = app.path().home_dir() else {
+        return false;
+    };
+    let drive = |p: &Path| {
+        p.components()
+            .next()
+            .map(|c| c.as_os_str().to_ascii_uppercase())
+    };
+    match (drive(path), drive(&home)) {
+        (Some(a), Some(b)) => a != b,
+        _ => false,
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn is_external_media(_app: &AppHandle, _path: &Path) -> bool {
+    false
+}
+
+/// Raíces desde las que el Estudio acepta abrir un archivo de medios.
+///
+/// Es [`consented_roots`] más los puntos de montaje de medios externos, y la
+/// diferencia con el MCP es deliberada:
+///
+/// - En el MCP, quien pide transcribir es un agente externo, no la persona. Que
+///   no pueda salir del home es exactamente lo que se quiere.
+/// - En el Estudio, el archivo lo elige el usuario con el diálogo nativo o
+///   arrastrándolo a la ventana. Contener al home ahí rompería un caso real:
+///   transcribir una grabación directamente desde una grabadora, una tarjeta SD
+///   o un disco externo.
+///
+/// Lo que sí cierra: leer el home de OTRO usuario del equipo, y rutas de
+/// sistema. Lo que **no** cierra, y conviene no venderlo como que sí: un
+/// frontend comprometido puede seguir pidiendo transcribir los archivos del
+/// propio usuario. Para eso haría falta que el diálogo lo abriera el backend y
+/// llevara un registro de las rutas consentidas, que es un cambio mayor.
+pub fn media_roots(app: &AppHandle) -> Vec<PathBuf> {
+    let mut roots = consented_roots(app);
+    for candidate in EXTERNAL_MEDIA_ROOTS {
+        if let Ok(p) = std::fs::canonicalize(candidate) {
+            roots.push(p);
+        }
+    }
+    roots
+}
+
+/// Comprueba que un archivo de medios elegido por el usuario sea aceptable.
+///
+/// Canonicaliza primero (lo que ya elimina `..` y los symlinks que apunten
+/// fuera) y después exige que caiga en [`media_roots`] o en un medio externo.
+pub fn contain_media_path(app: &AppHandle, path: &Path, err: &str) -> Result<PathBuf, String> {
+    let canonical = std::fs::canonicalize(path).map_err(|_| err.to_string())?;
+    if is_external_media(app, &canonical) {
+        return Ok(canonical);
+    }
+    let roots = media_roots(app);
+    if roots.is_empty() || !roots.iter().any(|r| canonical.starts_with(r)) {
+        return Err(err.to_string());
+    }
+    Ok(canonical)
+}
+
 /// Canonicaliza una ruta **que ya existe** y comprueba que caiga dentro de las
 /// raíces consentidas. Para archivos por crear, usa [`contain_new_path`].
 pub fn contain_existing_path(app: &AppHandle, path: &Path, err: &str) -> Result<PathBuf, String> {
@@ -124,6 +204,44 @@ pub fn validate_external_script(app: &AppHandle, path: &str) -> Result<PathBuf, 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Réplica de la comprobación de raíces de `contain_media_path`, sin
+    /// `AppHandle` (que no se puede construir en un test unitario). Lo que se
+    /// fija aquí es la propiedad que un refactor rompería sin darse cuenta.
+    fn within_roots(canonical: &Path, roots: &[PathBuf]) -> bool {
+        !roots.is_empty() && roots.iter().any(|r| canonical.starts_with(r))
+    }
+
+    #[test]
+    fn media_roots_admiten_medios_externos_y_rechazan_otros_usuarios() {
+        // El Estudio NO puede contenerse solo al home como hace el MCP: el
+        // usuario elige el archivo con el diálogo nativo, y transcribir desde
+        // una tarjeta SD o un disco externo es un caso real.
+        let roots = vec![PathBuf::from("/Users/yo"), PathBuf::from("/Volumes")];
+
+        assert!(within_roots(Path::new("/Users/yo/Downloads/a.mp3"), &roots));
+        assert!(
+            within_roots(Path::new("/Volumes/SD/entrevista.wav"), &roots),
+            "un medio externo montado debe entrar"
+        );
+
+        // Y lo que sí cierra: el home de otra persona del mismo equipo y las
+        // rutas de sistema.
+        assert!(!within_roots(
+            Path::new("/Users/otro/Documents/privado.m4a"),
+            &roots
+        ));
+        assert!(!within_roots(Path::new("/etc/algo.wav"), &roots));
+    }
+
+    #[test]
+    fn prefijo_parecido_no_cuenta_como_dentro() {
+        // `starts_with` de Path compara COMPONENTES, no texto: "/Users/yotro"
+        // no está dentro de "/Users/yo" aunque la cadena empiece igual. Si
+        // alguien lo cambiara por comparación de strings, esto lo caza.
+        let roots = vec![PathBuf::from("/Users/yo")];
+        assert!(!within_roots(Path::new("/Users/yotro/x.mp3"), &roots));
+    }
 
     #[test]
     fn rejects_traversal_in_file_name() {
