@@ -190,16 +190,7 @@ Antes de cerrar cualquier hallazgo de severidad Alta, intenta refutarlo: relee l
 
 ### Antes de aplicar cualquier parche
 
-Busca comentarios existentes cerca del código que vas a cambiar. Si hay uno, es probable que documente un invariante que alguien ya descubrió de la forma difícil — leerlo antes de tocar el código de al lado es más barato que redescubrirlo por un bug.
-
-Ejemplo real de este repo, en `src-tauri/src/managers/audio.rs:397-398`:
-
-```rust
-// stop_microphone_stream does not acquire the state lock,
-// so holding it here is safe (no deadlock).
-```
-
-Ese comentario documenta por qué `schedule_lazy_close` puede sostener el lock de estado mientras llama a esa función. Un parche propuesto en julio de 2026 quería añadir `*self.state.lock().unwrap() = Idle` dentro de `stop_microphone_stream`: como `std::sync::Mutex` no es reentrante, habría colgado ese hilo contra sí mismo. Leer el comentario antes de tocar el código de al lado lo evitó.
+Busca comentarios existentes cerca del código que vas a cambiar. Si hay uno, es probable que documente un invariante que alguien ya descubrió de la forma difícil — leerlo antes de tocar el código de al lado es más barato que redescubrirlo por un bug. (Ejemplo real de este repo: el comentario en `schedule_lazy_close` explicando por qué esa función no toma el lock de estado evitó — cuando se leyó — un self-deadlock que un parche anterior habría introducido si se hubiera aplicado sin leerlo.)
 
 ### Formato de evidencia para hallazgos con disparador afirmado
 
