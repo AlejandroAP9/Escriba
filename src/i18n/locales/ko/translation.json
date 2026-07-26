@@ -825,6 +825,13 @@
     },
     "transcription": {
       "title": "Transcription"
+    },
+    "privacy": {
+      "saveAudio": {
+        "label": "Save audio recordings",
+        "description": "Off by default. Your voice is transcribed and then discarded; only the text is kept in history. Turn this on to keep the .wav files and use the history player."
+      },
+      "remoteProviderNotice": "This provider runs in the cloud: the transcribed text is sent to it. Your audio never leaves this computer."
     }
   },
   "footer": {
@@ -982,7 +989,8 @@
       "s4": "They get the translation"
     },
     "startError": "Could not start the room. The port may be busy; try again in a few seconds.",
-    "networkNote": "Heads up: the room travels over your local WiFi unencrypted. On a public network (café, event), use a private hotspot so no one else can read the translations."
+    "networkNote": "Heads up: the room travels over your local WiFi unencrypted. On a public network (café, event), use a private hotspot so no one else can read the translations.",
+    "lanPlaintextWarning": "The room travels unencrypted over your local network. Anyone on the same Wi-Fi who inspects traffic could listen in. Avoid it for sensitive meetings."
   },
   "translator": {
     "title": "Face-to-face translator",

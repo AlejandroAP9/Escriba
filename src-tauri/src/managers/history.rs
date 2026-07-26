@@ -71,6 +71,32 @@ pub struct HistoryManager {
     db_path: PathBuf,
 }
 
+/// Restringe una ruta al dueño: 0700 en carpetas, 0600 en archivos.
+///
+/// Silencioso a propósito: si el sistema de archivos no soporta permisos POSIX
+/// (un volumen exFAT, una unidad de red), no hay nada que hacer y tampoco tiene
+/// sentido impedir que la app arranque por eso. En Windows no se aplica: ahí el
+/// control es por ACL y el directorio de datos del usuario ya lo está.
+fn restrict_to_owner(path: &std::path::Path) {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let Ok(meta) = fs::metadata(path) else { return };
+        let mode = if meta.is_dir() { 0o700 } else { 0o600 };
+        if meta.permissions().mode() & 0o777 == mode {
+            return;
+        }
+        if let Err(e) = fs::set_permissions(path, fs::Permissions::from_mode(mode)) {
+            debug!(
+                "No se pudieron restringir los permisos de {:?}: {}",
+                path, e
+            );
+        }
+    }
+    #[cfg(not(unix))]
+    let _ = path;
+}
+
 impl HistoryManager {
     pub fn new(app_handle: &AppHandle) -> Result<Self> {
         // Create recordings directory in app data dir
@@ -84,6 +110,15 @@ impl HistoryManager {
             debug!("Created recordings directory: {:?}", recordings_dir);
         }
 
+        // Grabaciones e historial solo para el dueño de la cuenta.
+        //
+        // No sustituye al cifrado en reposo, que sigue pendiente: un proceso que
+        // corra COMO este usuario los sigue leyendo. Lo que sí cierra es el caso
+        // del equipo compartido, donde otra cuenta del mismo Mac o del mismo
+        // Linux podía entrar a leer el historial de dictados por defecto.
+        restrict_to_owner(&app_data_dir);
+        restrict_to_owner(&recordings_dir);
+
         let manager = Self {
             app_handle: app_handle.clone(),
             recordings_dir,
@@ -92,6 +127,10 @@ impl HistoryManager {
 
         // Initialize database and run migrations synchronously
         manager.init_database()?;
+
+        // La base se crea en init_database, así que sus permisos se ajustan
+        // después de que exista.
+        restrict_to_owner(&manager.db_path);
 
         Ok(manager)
     }
@@ -226,6 +265,16 @@ impl HistoryManager {
     ) -> Result<HistoryEntry> {
         let timestamp = Utc::now().timestamp();
         let title = self.format_timestamp_title(timestamp);
+
+        // Redacción antes de tocar el disco. Solo afecta a lo que se GUARDA:
+        // el texto que ya se pegó en la app de destino salió intacto, porque si
+        // el usuario dictó su tarjeta para meterla en un formulario tiene que
+        // llegar entera. Lo que no tiene por qué quedarse es la copia en el
+        // historial. Ver `crate::redaction` para el alcance exacto.
+        let transcription_text = crate::redaction::redact_for_storage(&transcription_text);
+        let post_processed_text = post_processed_text
+            .as_deref()
+            .map(crate::redaction::redact_for_storage);
 
         let conn = self.get_connection()?;
         conn.execute(

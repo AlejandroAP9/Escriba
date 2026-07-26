@@ -19,6 +19,7 @@ import { AutoSubmit } from "../AutoSubmit";
 import { AppendTrailingSpace } from "../AppendTrailingSpace";
 import { HistoryLimit } from "../HistoryLimit";
 import { RecordingRetentionPeriodSelector } from "../RecordingRetentionPeriod";
+import { SaveAudioRecordings } from "../SaveAudioRecordings";
 import { ExperimentalToggle } from "../ExperimentalToggle";
 import { useSettings } from "../../../hooks/useSettings";
 import { useModelStore } from "../../../stores/modelStore";
@@ -260,6 +261,12 @@ export const AdvancedSettings: React.FC = () => {
         </CollapsibleGroup>
 
         <CollapsibleGroup title={t("settings.advanced.groups.history")}>
+          {/*
+            El interruptor de guardar audio va PRIMERO: decide si llega a
+            existir un .wav, y el selector de retención solo tiene sentido para
+            los que sí se guardan.
+          */}
+          <SaveAudioRecordings descriptionMode="inline" grouped={true} />
           <HistoryLimit descriptionMode="inline" grouped={true} />
           <RecordingRetentionPeriodSelector
             descriptionMode="inline"

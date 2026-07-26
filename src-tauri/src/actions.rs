@@ -1327,14 +1327,25 @@ impl ShortcutAction for TranscribeAction {
                         samples = crate::audio_toolkit::denoise::denoise_16k_mono(&samples);
                         debug!("Noise suppression applied in {:?}", denoise_start.elapsed());
                     }
-                    // Save WAV concurrently with transcription
+                    // Save WAV concurrently with transcription.
+                    //
+                    // Guardar la grabación es OPCIONAL y viene apagado: el .wav
+                    // de tu propia voz es el dato más sensible que produce la
+                    // app, y antes se escribía siempre sin que nadie lo pidiera.
+                    // El texto de la transcripción sí se guarda igual, que es
+                    // lo que hace útil al historial.
+                    let save_audio = get_settings(&ah).save_audio_recordings;
                     let sample_count = samples.len();
-                    let file_name = format!("handy-{}.wav", chrono::Utc::now().timestamp());
+                    let file_name = format!("escriba-{}.wav", chrono::Utc::now().timestamp());
                     let wav_path = hm.recordings_dir().join(&file_name);
                     let wav_path_for_verify = wav_path.clone();
                     let samples_for_wav = samples.clone();
                     let wav_handle = tauri::async_runtime::spawn_blocking(move || {
-                        crate::audio_toolkit::save_wav_file(&wav_path, &samples_for_wav)
+                        if save_audio {
+                            crate::audio_toolkit::save_wav_file(&wav_path, &samples_for_wav)
+                        } else {
+                            Ok(())
+                        }
                     });
 
                     // Transcribe concurrently with WAV save. If a live stream was
@@ -1355,6 +1366,10 @@ impl ShortcutAction for TranscribeAction {
 
                     // Await WAV save and verify
                     let wav_saved = match wav_handle.await {
+                        // Sin guardado de audio no hay archivo que verificar:
+                        // se marca como no guardado y el historial queda solo
+                        // con el texto, sin reproductor.
+                        Ok(Ok(())) if !save_audio => false,
                         Ok(Ok(())) => {
                             match crate::audio_toolkit::verify_wav_file(
                                 &wav_path_for_verify,

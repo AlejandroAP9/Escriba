@@ -825,6 +825,13 @@
     },
     "transcription": {
       "title": "Transcripción"
+    },
+    "privacy": {
+      "saveAudio": {
+        "label": "Guardar las grabaciones de audio",
+        "description": "Apagado por omisión. Tu voz se transcribe y se descarta; en el historial solo queda el texto. Enciéndelo para conservar los .wav y usar el reproductor del historial."
+      },
+      "remoteProviderNotice": "Este proveedor corre en la nube: el texto transcrito se le envía. Tu audio nunca sale de este computador."
     }
   },
   "footer": {
@@ -982,7 +989,8 @@
       "s4": "Ellos reciben la traducción"
     },
     "startError": "No se pudo crear la sala. Puede que el puerto esté ocupado; prueba de nuevo en unos segundos.",
-    "networkNote": "Aviso: la sala viaja por tu WiFi local sin cifrar. En una red pública (café, evento), usa un hotspot privado para que nadie más pueda leer las traducciones."
+    "networkNote": "Aviso: la sala viaja por tu WiFi local sin cifrar. En una red pública (café, evento), usa un hotspot privado para que nadie más pueda leer las traducciones.",
+    "lanPlaintextWarning": "La sala viaja sin cifrar por tu red local. Alguien en la misma wifi que inspeccione el tráfico podría escucharla. Evítala para reuniones sensibles."
   },
   "translator": {
     "title": "Traductor cara a cara",

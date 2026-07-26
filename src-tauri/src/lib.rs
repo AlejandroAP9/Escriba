@@ -15,6 +15,7 @@ mod media;
 mod overlay;
 mod path_guard;
 pub mod portable;
+mod redaction;
 mod settings;
 mod shortcut;
 mod signal_handle;
@@ -721,6 +722,7 @@ pub fn run(cli_args: CliArgs) {
             shortcut::update_custom_words,
             shortcut::update_text_replacements,
             shortcut::change_noise_suppression_setting,
+            shortcut::change_save_audio_recordings_setting,
             shortcut::change_pause_media_on_dictate_setting,
             shortcut::change_mcp_autostart_setting,
             shortcut::suspend_binding,

@@ -192,6 +192,17 @@ export const InterpreterSettings: React.FC = () => {
           <p className="mt-3 text-xs text-mid-gray">
             {t("interpreter.scanHint")}
           </p>
+          {/*
+            La sala viaja por HTTP sin cifrar a toda la red local, con el token
+            en la URL (y por tanto dentro de este QR). El token y el código
+            protegen el ACCESO, no la confidencialidad del tráfico: alguien en
+            la misma wifi que mire los paquetes ve la reunión interpretada. Hay
+            que decirlo aquí, no en la documentación, porque es aquí donde
+            alguien decide usarlo en una reunión sensible.
+          */}
+          <p className="mt-2 max-w-xs text-3xs leading-relaxed text-warning">
+            {t("interpreter.lanPlaintextWarning")}
+          </p>
           <div className="mt-4 w-full rounded-card border border-line bg-background px-4 py-3">
             <div className="font-mono text-3xs uppercase tracking-[0.14em] text-mid-gray">
               {t("interpreter.roomCode")}

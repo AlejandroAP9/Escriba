@@ -116,6 +116,8 @@ const settingUpdaters: {
     ),
   recording_retention_period: (value) =>
     commands.updateRecordingRetentionPeriod(value as string),
+  save_audio_recordings: (value) =>
+    commands.changeSaveAudioRecordingsSetting(value as boolean),
   translate_to_english: (value) =>
     commands.changeTranslateToEnglishSetting(value as boolean),
   selected_language: (value) =>

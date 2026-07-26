@@ -73,3 +73,28 @@ permisivas y no imponen condiciones más allá de conservar el aviso.
 
 Si detectas una atribución que falta o una licencia mal declarada, abre un issue:
 se corrige de inmediato.
+
+---
+
+## Proveedores remotos opcionales (BYOK)
+
+Escriba **no envía nada por omisión**. Si activas un proveedor remoto para la
+corrección con IA, se le manda el **texto transcrito**; el audio nunca sale del
+equipo en ningún caso.
+
+Qué hace cada proveedor con ese texto (si lo retiene, por cuánto, o si lo usa
+para entrenar) **es su política, no la de Escriba**, y no se puede determinar
+desde este código. Antes de configurar uno, léela:
+
+| Proveedor               | Política de privacidad                     |
+| ----------------------- | ------------------------------------------ |
+| OpenAI                  | https://openai.com/policies/privacy-policy |
+| Anthropic               | https://www.anthropic.com/legal/privacy    |
+| Groq                    | https://groq.com/privacy-policy/           |
+| OpenRouter              | https://openrouter.ai/privacy              |
+| Cerebras                | https://www.cerebras.ai/privacy            |
+| z.ai                    | https://z.ai                               |
+| Proveedor personalizado | La del servidor que tú configures          |
+
+Los motores **locales** (el motor de IA local de Escriba, Ollama y Apple
+Intelligence) no envían nada a ninguna parte: corren en tu máquina.

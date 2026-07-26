@@ -778,6 +778,17 @@ pub fn change_noise_suppression_setting(app: AppHandle, enabled: bool) -> Result
     Ok(())
 }
 
+/// Guardar o no el .wav de cada dictado. Apagado por omisión: ver
+/// `settings::default_save_audio_recordings`.
+#[tauri::command]
+#[specta::specta]
+pub fn change_save_audio_recordings_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.save_audio_recordings = enabled;
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
 #[tauri::command]
 #[specta::specta]
 pub fn change_pause_media_on_dictate_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
