@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Tooltip } from "./Tooltip";
+import { SettingLabelContext } from "./settingLabel";
 
 interface SettingContainerProps {
   title: string;
@@ -13,7 +14,24 @@ interface SettingContainerProps {
   tooltipPosition?: "top" | "bottom";
 }
 
-export const SettingContainer: React.FC<SettingContainerProps> = ({
+/**
+ * Genera el id del título y lo publica para los controles que envuelve.
+ *
+ * El cuerpo va aparte porque son cuatro ramas de render y el proveedor tiene
+ * que envolverlas a todas por igual.
+ */
+export const SettingContainer: React.FC<SettingContainerProps> = (props) => {
+  const labelId = useId();
+  return (
+    <SettingLabelContext.Provider value={labelId}>
+      <SettingContainerBody {...props} labelId={labelId} />
+    </SettingLabelContext.Provider>
+  );
+};
+
+const SettingContainerBody: React.FC<
+  SettingContainerProps & { labelId: string }
+> = ({
   title,
   description,
   children,
@@ -22,6 +40,7 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
   layout = "horizontal",
   disabled = false,
   tooltipPosition = "top",
+  labelId,
 }) => {
   const { t } = useTranslation();
   const [showTooltip, setShowTooltip] = useState(false);
@@ -59,6 +78,7 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
         <div className={containerClasses}>
           <div className="flex items-center gap-2 mb-2">
             <h3
+              id={labelId}
               className={`text-sm font-medium ${disabled ? "opacity-50" : ""}`}
             >
               {title}
@@ -121,7 +141,10 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
     return (
       <div className={containerClasses}>
         <div className="mb-2">
-          <h3 className={`text-sm font-medium ${disabled ? "opacity-50" : ""}`}>
+          <h3
+            id={labelId}
+            className={`text-sm font-medium ${disabled ? "opacity-50" : ""}`}
+          >
             {title}
           </h3>
           <p className={`text-sm ${disabled ? "opacity-50" : ""}`}>
@@ -144,6 +167,7 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
         <div className="max-w-2/3">
           <div className="flex items-center gap-2">
             <h3
+              id={labelId}
               className={`text-sm font-medium ${disabled ? "opacity-50" : ""}`}
             >
               {title}
@@ -207,7 +231,10 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
   return (
     <div className={horizontalContainerClasses}>
       <div className="max-w-2/3">
-        <h3 className={`text-sm font-medium ${disabled ? "opacity-50" : ""}`}>
+        <h3
+          id={labelId}
+          className={`text-sm font-medium ${disabled ? "opacity-50" : ""}`}
+        >
           {title}
         </h3>
         <p className={`text-sm ${disabled ? "opacity-50" : ""}`}>

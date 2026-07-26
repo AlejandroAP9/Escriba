@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSettingLabelId } from "./settingLabel";
 
 export interface DropdownOption {
   value: string;
@@ -40,7 +41,17 @@ export const Dropdown: React.FC<DropdownProps> = ({
   const listboxRef = useRef<HTMLDivElement>(null);
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
+  const valueId = `${baseId}-value`;
   const optionId = (index: number) => `${baseId}-option-${index}`;
+  const settingLabelId = useSettingLabelId();
+
+  // `aria-label` REEMPLAZA el contenido del botón, así que ponerlo a secas
+  // anunciaría "Estilo del overlay" y se perdería el valor elegido. Nombrando
+  // por referencia al título y al valor se oyen los dos: "Estilo del overlay,
+  // Abajo al centro". Fuera de un SettingContainer no hay título al que
+  // apuntar y se cae al comportamiento anterior (solo el valor).
+  const labelledBy =
+    !ariaLabel && settingLabelId ? `${settingLabelId} ${valueId}` : undefined;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -174,6 +185,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
         aria-expanded={isOpen}
         aria-controls={isOpen ? listboxId : undefined}
         aria-label={ariaLabel}
+        aria-labelledby={labelledBy}
         className={`px-2 py-[5px] text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 rounded-md min-w-[200px] w-full text-start grid grid-cols-[1fr_auto] gap-2 items-center transition-all duration-150 ${
           disabled
             ? "opacity-50 cursor-not-allowed"
@@ -183,7 +195,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
         onKeyDown={handleTriggerKeyDown}
         disabled={disabled}
       >
-        <span className="truncate">{selectedOption?.label || placeholder}</span>
+        <span id={valueId} className="truncate">
+          {selectedOption?.label || placeholder}
+        </span>
         <svg
           className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "transform rotate-180" : ""}`}
           fill="none"
@@ -206,6 +220,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
           role="listbox"
           tabIndex={-1}
           aria-label={ariaLabel}
+          aria-labelledby={!ariaLabel ? settingLabelId : undefined}
           aria-activedescendant={
             activeIndex >= 0 ? optionId(activeIndex) : undefined
           }
