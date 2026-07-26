@@ -169,6 +169,51 @@ For translation contribution guidelines, see [CONTRIBUTING_TRANSLATIONS.md](CONT
 - Tailwind CSS for styling
 - Path aliases: `@/` → `./src/`
 
+## Protocolo de verificación (auditoría y cambios de código)
+
+Motivo: en varias rondas de auditoría sobre este proyecto, todo hallazgo que partió de **leer la función completa, sus consumidores y su propósito** se sostuvo al aplicarlo. Todo hallazgo o recomendación que partió de **un grep o un match de texto sin leer el contexto completo** falló. Esta sección existe para que cualquier agente que audite o modifique este repo aplique la misma disciplina.
+
+### Regla central
+
+**Todo lo que salga de un grep es una hipótesis, no un hallazgo.** Antes de afirmar algo sobre una línea de código — que un panic es alcanzable, que una variable no se usa, que un comportamiento se puede cambiar sin romper nada — hay que:
+
+1. Leer la función completa donde vive esa línea, no solo la línea señalada.
+2. Identificar quién consume ese valor/comportamiento en el resto del código, y para qué existe.
+3. Si depende de una librería externa, verificar su código fuente o documentación real — nunca asumir el comportamiento por el nombre de la función o el tipo.
+4. Si el hallazgo depende de que una condición de fallo sea alcanzable (panic, unwrap, indexación fuera de rango), listar cada guard/condición que la precede y decir explícitamente si la descarta o no.
+
+Si después de esto queda una duda genuina, repórtalo como **"plausible, no confirmado"** — nunca como "verificado". Ambas etiquetas son útiles; confundirlas no lo es.
+
+### Verificación adversarial
+
+Antes de cerrar cualquier hallazgo de severidad Alta, intenta refutarlo: relee la función completa buscando la razón por la que _no_ sería alcanzable. Si la encuentras, baja la severidad o cambia el veredicto. Si no la encuentras tras intentarlo genuinamente, el hallazgo se mantiene — y el informe puede decir que se buscó una vía de invalidación y no apareció.
+
+### Antes de aplicar cualquier parche
+
+Busca comentarios existentes cerca del código que vas a cambiar. Si hay uno, es probable que documente un invariante que alguien ya descubrió de la forma difícil — leerlo antes de tocar el código de al lado es más barato que redescubrirlo por un bug.
+
+Ejemplo real de este repo, en `src-tauri/src/managers/audio.rs:397-398`:
+
+```rust
+// stop_microphone_stream does not acquire the state lock,
+// so holding it here is safe (no deadlock).
+```
+
+Ese comentario documenta por qué `schedule_lazy_close` puede sostener el lock de estado mientras llama a esa función. Un parche propuesto en julio de 2026 quería añadir `*self.state.lock().unwrap() = Idle` dentro de `stop_microphone_stream`: como `std::sync::Mutex` no es reentrante, habría colgado ese hilo contra sí mismo. Leer el comentario antes de tocar el código de al lado lo evitó.
+
+### Formato de evidencia para hallazgos con disparador afirmado
+
+```text
+Afirmación: [qué se dice que es alcanzable/cierto/seguro de cambiar]
+Línea señalada: [archivo:línea — contenido literal, no reconstruido de memoria]
+Función completa leída: [sí/no]
+Consumidores/propósito trazados: [quién usa esto y para qué, con archivo:línea]
+Guards trazados (si aplica disparador de fallo): [cada condición previa, y si descarta o no el caso]
+Dependencia externa verificada: [sí/no — qué se consultó]
+Intento de refutación: [qué se buscó para invalidarlo]
+Veredicto: Verificado / Plausible no confirmado
+```
+
 ## CLI Parameters
 
 Escriba supports command-line parameters on all platforms for integration with scripts, window managers, and autostart configurations.
