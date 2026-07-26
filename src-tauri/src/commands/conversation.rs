@@ -88,6 +88,17 @@ pub struct ConversationStatus {
     /// "converse" | "listen"
     pub mode: String,
     pub turns: Vec<Turn>,
+    /// Los tres modos vivían SOLO como estáticos en el backend y como
+    /// `useState(false)` en la vista, sin nada que los reconciliara: este struct
+    /// se diseñó para los turnos y nunca se le pidió responder por los modos.
+    ///
+    /// El síntoma era de privacidad: salías de Sesiones con el audio del sistema
+    /// encendido, volvías, y el interruptor aparecía apagado mientras el backend
+    /// seguía capturando. Y `conversation_stop` los apaga los tres pero devolvía
+    /// un estado que no los mencionaba, así que la interfaz tampoco se enteraba.
+    pub hands_free: bool,
+    pub system_audio: bool,
+    pub sys_translate: bool,
 }
 
 pub fn is_listening() -> bool {
@@ -154,11 +165,20 @@ pub fn transcript(user_label: &str, assistant_label: &str, system_label: &str) -
         .unwrap_or_default()
 }
 
+/// Constructor único del estado. Lo usan `conversation_start`, `_status`,
+/// `_stop` y `_reset`, así que añadir un campo aquí lo cubre en los cuatro
+/// caminos de retorno, incluido el de `conversation_stop`, que era la segunda
+/// vía por la que la interfaz se quedaba desincronizada.
 fn status() -> ConversationStatus {
     ConversationStatus {
         listening: is_listening(),
         mode: mode(),
         turns: TURNS.lock().map(|t| t.clone()).unwrap_or_default(),
+        // `is_hands_free()` existía desde hacía tiempo y el compilador avisaba de
+        // que nadie la llamaba: el accesor correcto estaba escrito y sin conectar.
+        hands_free: is_hands_free(),
+        system_audio: SYSTEM_AUDIO.load(Ordering::Relaxed),
+        sys_translate: SYS_TRANSLATE.load(Ordering::Relaxed),
     }
 }
 

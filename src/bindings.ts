@@ -1401,7 +1401,18 @@ export type ConversationStatus = { listening: boolean;
 /**
  * "converse" | "listen"
  */
-mode: string; turns: Turn[] }
+mode: string; turns: Turn[];
+/**
+ * Los tres modos vivían SOLO como estáticos en el backend y como
+ * `useState(false)` en la vista, sin nada que los reconciliara: este struct
+ * se diseñó para los turnos y nunca se le pidió responder por los modos.
+ *
+ * El síntoma era de privacidad: salías de Sesiones con el audio del sistema
+ * encendido, volvías, y el interruptor aparecía apagado mientras el backend
+ * seguía capturando. Y `conversation_stop` los apaga los tres pero devolvía
+ * un estado que no los mencionaba, así que la interfaz tampoco se enteraba.
+ */
+hands_free: boolean; system_audio: boolean; sys_translate: boolean }
 export type CustomSounds = { start: boolean; stop: boolean }
 export type EngineType = 
 /**

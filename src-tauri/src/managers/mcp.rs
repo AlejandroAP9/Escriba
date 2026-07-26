@@ -260,9 +260,16 @@ impl McpServer {
 
     /// Registra una llamada a tool ejecutada (para conteos y actividad).
     fn record_call(&self, tool: &str, ms: u64) {
-        self.total_calls.fetch_add(1, Ordering::Relaxed);
+        // El total y el desglose por herramienta son la misma cuenta vista de
+        // dos formas, así que se mueven juntos: antes el atómico se incrementaba
+        // incondicionalmente y el mapa solo si el lock respondía, de modo que
+        // con el Mutex envenenado el panel mostraba un total que no cuadraba con
+        // la suma de sus partes. Si no se puede anotar el detalle, no se anota
+        // el total. (El registro de actividad de abajo es otra cosa: una lista
+        // de las últimas llamadas, no un contador, y va por su cuenta.)
         if let Ok(mut m) = self.tool_counts.lock() {
             *m.entry(tool.to_string()).or_insert(0) += 1;
+            self.total_calls.fetch_add(1, Ordering::Relaxed);
         }
         if let Ok(mut a) = self.activity.lock() {
             a.push_front(CallRecord {
@@ -297,9 +304,12 @@ impl McpServer {
 
     /// Limpia la telemetría de la sesión (al arrancar o detener).
     fn reset_telemetry(&self) {
-        self.total_calls.store(0, Ordering::Relaxed);
+        // Misma pareja, mismo criterio que en `record_call`: el total se pone a
+        // cero solo si también se pudo vaciar el desglose, para que no queden
+        // uno en cero y el otro con las cuentas de la sesión anterior.
         if let Ok(mut m) = self.tool_counts.lock() {
             m.clear();
+            self.total_calls.store(0, Ordering::Relaxed);
         }
         if let Ok(mut a) = self.activity.lock() {
             a.clear();

@@ -194,7 +194,6 @@ pub struct AudioRecordingManager {
 
     recorder: Arc<Mutex<Option<AudioRecorder>>>,
     is_open: Arc<Mutex<bool>>,
-    is_recording: Arc<Mutex<bool>>,
     did_mute: Arc<Mutex<bool>>,
     close_generation: Arc<AtomicU64>,
     cancel_generation: Arc<AtomicU64>,
@@ -229,7 +228,6 @@ impl AudioRecordingManager {
 
             recorder: Arc::new(Mutex::new(None)),
             is_open: Arc::new(Mutex::new(false)),
-            is_recording: Arc::new(Mutex::new(false)),
             did_mute: Arc::new(Mutex::new(false)),
             close_generation: Arc::new(AtomicU64::new(0)),
             cancel_generation: Arc::new(AtomicU64::new(0)),
@@ -465,11 +463,16 @@ impl AudioRecordingManager {
         *did_mute_guard = false;
 
         if let Some(rec) = self.recorder.lock().unwrap().as_mut() {
-            // If still recording, stop first.
-            if *self.is_recording.lock().unwrap() {
-                let _ = rec.stop();
-                *self.is_recording.lock().unwrap() = false;
-            }
+            // `stop()` antes de `close()` sin consultar ninguna bandera: el
+            // worker trata `Cmd::Stop` de forma idempotente (pone recording en
+            // false y devuelve lo que haya en el buffer), así que llamarlo sin
+            // estar grabando es inofensivo.
+            //
+            // Esta función NO debe tocar `state`: el hilo de cierre perezoso ya
+            // sostiene ese Mutex cuando la llama (ver `schedule_lazy_close`), y
+            // std::sync::Mutex no es reentrante. Tomarlo aquí colgaría ese hilo
+            // contra sí mismo.
+            let _ = rec.stop();
             let _ = rec.close();
         }
 
@@ -523,7 +526,6 @@ impl AudioRecordingManager {
 
             if let Some(rec) = self.recorder.lock().unwrap().as_ref() {
                 if rec.start(vad_policy).is_ok() {
-                    *self.is_recording.lock().unwrap() = true;
                     *state = RecordingState::Recording {
                         binding_id: binding_id.to_string(),
                     };
@@ -542,6 +544,28 @@ impl AudioRecordingManager {
         // open re-enumerates. (The name-keyed cache would miss anyway; this
         // just avoids holding a stale cpal::Device alive.)
         self.invalidate_device_cache();
+
+        // Con un dictado en curso NO se derriba el stream.
+        //
+        // Este era el hueco real del estado duplicado: de los tres llamadores de
+        // `stop_microphone_stream`, el cierre perezoso y `update_mode` comprueban
+        // antes que el estado sea `Idle`, y este no comprobaba nada. Cambiar de
+        // micrófono mientras dictabas cerraba el grabador y dejaba el estado en
+        // `Recording`: la bandeja seguía mostrando grabación y no se capturaba
+        // nada, hasta que el siguiente stop devolvía un dictado vacío.
+        //
+        // Se aplaza en vez de cancelar: perder lo que el usuario está diciendo
+        // es peor que estrenar el micrófono nuevo un dictado más tarde. El caché
+        // de dispositivo ya quedó invalidado arriba, así que la próxima apertura
+        // resuelve el elegido.
+        //
+        // Orden de bloqueo: `state` se libera al terminar la condición del `if`,
+        // antes de tomar `is_open`, así que se respeta state -> is_open.
+        if !matches!(*self.state.lock().unwrap(), RecordingState::Idle) {
+            debug!("Cambio de micrófono aplazado: hay un dictado en curso");
+            return Ok(());
+        }
+
         // If currently open, restart the microphone stream to use the new device
         if *self.is_open.lock().unwrap() {
             self.close_generation.fetch_add(1, Ordering::SeqCst);
@@ -604,7 +628,6 @@ impl AudioRecordingManager {
                     Vec::new()
                 };
 
-                *self.is_recording.lock().unwrap() = false;
                 *self.state.lock().unwrap() = RecordingState::Idle;
 
                 // In on-demand mode, close the mic (lazily if the setting is enabled)
@@ -655,8 +678,6 @@ impl AudioRecordingManager {
                 if let Some(rec) = self.recorder.lock().unwrap().as_ref() {
                     let _ = rec.stop(); // Discard the result
                 }
-
-                *self.is_recording.lock().unwrap() = false;
 
                 // In on-demand mode, close the mic (lazily if the setting is enabled)
                 if matches!(*self.mode.lock().unwrap(), MicrophoneMode::OnDemand) {

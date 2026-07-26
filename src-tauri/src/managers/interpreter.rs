@@ -378,14 +378,33 @@ impl InterpreterServer {
         true
     }
 
+    /// Libera el cupo, decrementando los DOS contadores bajo el mismo Mutex que
+    /// usa `try_reserve_listener` para incrementarlos.
+    ///
+    /// Antes el mapa se actualizaba dentro del lock y el total fuera, con un
+    /// `if let Ok` que se saltaba el mapa en silencio si el Mutex estaba
+    /// envenenado: el total bajaba, el mapa no, y esa IP quedaba bloqueada en su
+    /// tope sin poder reconectar. Ahora, si no se puede tocar el mapa tampoco se
+    /// toca el total: es preferible que los dos se queden atrás a que uno avance
+    /// sin el otro.
+    ///
+    /// El decremento del total solo ocurre si de verdad se decrementó una
+    /// entrada del mapa, así que los dos no pueden separarse ni con una
+    /// liberación de más (el `saturating_sub` del mapa no bastaba: el
+    /// `fetch_sub` del atómico sí desbordaría a `u32::MAX`).
     fn release_listener(&self, ip: IpAddr) {
-        if let Ok(mut per_ip) = self.per_ip.lock() {
-            if let Some(c) = per_ip.get_mut(&ip) {
-                *c = c.saturating_sub(1);
-                if *c == 0 {
-                    per_ip.remove(&ip);
-                }
-            }
+        let Ok(mut per_ip) = self.per_ip.lock() else {
+            warn!("release_listener: per_ip envenenado, no se toca ningún contador");
+            return;
+        };
+        let Some(c) = per_ip.get_mut(&ip) else {
+            // Sin entrada para esa IP no había cupo que liberar: decrementar el
+            // total aquí es justo lo que desincroniza los dos contadores.
+            return;
+        };
+        *c = c.saturating_sub(1);
+        if *c == 0 {
+            per_ip.remove(&ip);
         }
         let prev = self.listeners.load(Ordering::Relaxed);
         if prev > 0 {

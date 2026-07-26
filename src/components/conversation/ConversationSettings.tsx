@@ -203,6 +203,15 @@ export const ConversationSettings: React.FC = () => {
   // Reconectar con una sesión viva (cambio de pantalla y vuelta).
   useEffect(() => {
     commands.conversationStatus().then((s) => {
+      // Los tres modos se restauran SIEMPRE, fuera del `if` de abajo: no
+      // dependen de que haya turnos acumulados, y son justo los que quedaban
+      // desincronizados al desmontar la vista. Si el backend dice que el audio
+      // del sistema sigue capturando, el interruptor tiene que decirlo aunque
+      // la sesión no tenga ni un turno todavía.
+      setHandsFree(s.hands_free);
+      setSysAudio(s.system_audio);
+      setSysTranslate(s.sys_translate);
+
       if (s.turns.length > 0 || s.listening) {
         if (s.mode === "converse") {
           setMode("converse");
@@ -555,19 +564,24 @@ export const ConversationSettings: React.FC = () => {
       ? await commands.conversationStop()
       : await commands.conversationStart(effectiveMode);
     setListening(s.listening);
+    // Se lee lo que el backend REALMENTE dejó, en vez de suponer que apagó los
+    // tres. Antes se ponían a `false` a mano, que acertaba solo porque
+    // `conversation_stop` los apaga: la interfaz estaba adivinando el efecto de
+    // un comando en lugar de leer su resultado.
+    setHandsFree(s.hands_free);
+    setSysAudio(s.system_audio);
+    setSysTranslate(s.sys_translate);
     if (!s.listening) {
-      setHandsFree(false); // pausar apaga manos libres
-      setSysAudio(false); // y la captura del sistema
-      setSysTranslate(false);
       commands.conversationSystemTranslate(false, sysTranslateLang);
     }
   };
 
   const discard = async () => {
-    setHandsFree(false);
-    setSysAudio(false);
-    setSysTranslate(false); // el Intérprete se desarma con la sesión
-    await commands.conversationReset();
+    // `conversation_reset` apaga los tres y devuelve el estado ya reconciliado.
+    const s = await commands.conversationReset();
+    setHandsFree(s.hands_free);
+    setSysAudio(s.system_audio);
+    setSysTranslate(s.sys_translate);
     window.speechSynthesis?.cancel();
     commands.conversationSpeakStop();
     setTurns([]);
