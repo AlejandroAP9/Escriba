@@ -94,9 +94,17 @@ jobs:
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          # Sin `bun-version` esta acción resuelve a la última publicada, igual
+          # que un `latest` explícito. Es el build que produce los artefactos
+          # que se distribuyen, así que aquí importa más que en los otros dos.
+          bun-version: 1.3.14
 
-      - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      - name: install Rust 1.96.1
+        # La ref de esta acción ES el selector de toolchain: `@stable` traía el
+        # compilador que hubiera ese día. `@1.96.1` existe como rama del repo
+        # de la acción (verificado) y es la misma versión del entorno local.
+        uses: dtolnay/rust-toolchain@1.96.1
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ contains(inputs.platform, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
