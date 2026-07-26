@@ -301,6 +301,21 @@ const RecordingOverlay: React.FC = () => {
           </div>
           <div className="review-row">
             <span className="review-hint">{t("overlay.review.hint")}</span>
+            {/*
+              Este panel no puede ser editable: el overlay es una ventana NO
+              enfocable a propósito, para que la app de destino conserve el foco
+              y el pegado llegue a donde estabas escribiendo. Un campo de texto
+              aquí no recibiría teclado. Copiar es la salida que respeta ese
+              diseño: si el motor entendió mal, te llevas el texto y lo arreglas
+              en tu propio editor, sin repetir la frase entera.
+            */}
+            <button
+              type="button"
+              className="review-btn ghost"
+              onClick={() => commands.reviewCopy()}
+            >
+              {t("overlay.review.copy")}
+            </button>
             <button
               type="button"
               className="review-btn ghost"
@@ -390,6 +405,15 @@ const RecordingOverlay: React.FC = () => {
       dir={direction}
       className={`ov-stage ${position} ov-fade ${isVisible ? "show" : ""}`}
     >
+      {/*
+        El ciclo completo de grabar, transcribir y pegar ocurría en silencio
+        para quien no ve la pantalla: las fases se distinguían solo por el
+        icono y el color. Esta región anuncia el estado actual, y va aquí (en
+        la vista compacta, que es la que se muestra en el dictado normal).
+      */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {working ? workLabel : t("overlay.listening")}
+      </p>
       <div
         className={`scard compact ${working && isVisible ? "cworking" : ""}`}
       >

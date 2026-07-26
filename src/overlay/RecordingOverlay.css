@@ -1,5 +1,21 @@
 @import "../styles/theme.css";
 
+/* Esta ventana no carga App.css, así que las utilidades de Tailwind no existen
+   aquí y `sr-only` hay que definirla. La usa la región `aria-live` que anuncia
+   la fase del dictado: visible para un lector de pantalla, invisible en
+   pantalla, sin alterar la maquetación del overlay. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 :root {
   --s-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   /* Near-opaque app surface (theme.css --color-background at 98%). Auto-flips

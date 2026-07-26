@@ -70,3 +70,61 @@ pub fn review_discard(app: tauri::AppHandle) {
     clear();
     crate::overlay::hide_recording_overlay(&app);
 }
+
+/// Copia el texto pendiente al portapapeles y cierra la revisión.
+///
+/// La auditoría pedía poder EDITAR aquí, pero el overlay es un panel no
+/// enfocable a propósito (así la app de destino conserva el foco y el pegado
+/// llega a donde el usuario estaba escribiendo). Un campo de texto ahí dentro
+/// no podría recibir teclado, y hacer el panel enfocable rompería justo lo que
+/// hace útil a la feature.
+///
+/// Copiar es la salida que sí respeta ese diseño: si el motor entendió mal, el
+/// usuario se lleva el texto y lo arregla en su propio editor, sin tener que
+/// repetir la frase entera.
+#[tauri::command]
+#[specta::specta]
+pub fn review_copy(app: tauri::AppHandle) {
+    let Some(text) = PENDING.lock().ok().and_then(|mut g| g.take()) else {
+        return;
+    };
+    use tauri_plugin_clipboard_manager::ClipboardExt;
+    if let Err(e) = app.clipboard().write_text(text) {
+        log::error!("Revisión: fallo al copiar: {}", e);
+    }
+    crate::overlay::hide_recording_overlay(&app);
+}
+
+/// Alternativa por TECLADO al dictado: procesa un texto escrito con el mismo
+/// motor de IA y devuelve el resultado.
+///
+/// Toda la corrección, traducción y tonos de Escriba pasaban por hablar. Alguien
+/// que en ese momento no pueda usar la voz (una oficina compartida, afonía, una
+/// discapacidad del habla) no tenía forma de usar el motor local que la app ya
+/// tiene instalado, aunque la infraestructura estuviera entera.
+///
+/// Devuelve el texto en pantalla en vez de pegarlo: cuando la ventana principal
+/// tiene el foco, la aplicación de destino ya lo perdió, así que pegar iría al
+/// sitio equivocado. El usuario copia el resultado y lo lleva a donde quiera.
+#[tauri::command]
+#[specta::specta]
+pub async fn process_typed_text(app: tauri::AppHandle, text: String) -> Result<String, String> {
+    if text.trim().is_empty() {
+        return Err("EMPTY".to_string());
+    }
+    let settings = crate::settings::get_settings(&app);
+    if !settings.post_process_enabled {
+        return Err("POST_PROCESS_DISABLED".to_string());
+    }
+    let processed = crate::actions::post_process_public(
+        &app,
+        &settings,
+        &text,
+        crate::actions::TranscribeMode::Standard,
+    )
+    .await;
+    // Sin post-proceso disponible (motor no instalado, proveedor caído) se
+    // devuelve el original: el usuario nunca se queda sin su texto, igual que
+    // en el camino de voz.
+    Ok(processed.unwrap_or(text))
+}

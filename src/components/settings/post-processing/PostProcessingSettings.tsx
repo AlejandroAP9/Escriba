@@ -32,6 +32,7 @@ import { ModelSelect } from "../PostProcessingSettingsApi/ModelSelect";
 import { usePostProcessProviderState } from "../PostProcessingSettingsApi/usePostProcessProviderState";
 import { ShortcutInput } from "../ShortcutInput";
 import { AppContextRules } from "../AppContextRules";
+import { TypedTextInput } from "./TypedTextInput";
 import { TranslationTargetLanguage } from "../TranslationTargetLanguage";
 import { useSettings } from "../../../hooks/useSettings";
 
@@ -590,6 +591,15 @@ export const PostProcessingSettings: React.FC = () => {
         </h2>
         <AppContextRules />
       </section>
+
+      {/*
+        Alternativa por teclado: el mismo motor, sin usar la voz. Va justo
+        antes de los atajos porque es exactamente eso, la vía para quien no
+        puede o no quiere usar el micrófono en ese momento.
+      */}
+      <SettingsGroup title={t("settings.typedText.groupTitle")}>
+        <TypedTextInput />
+      </SettingsGroup>
 
       <SettingsGroup title={t("settings.postProcessing.translation.title")}>
         <ShortcutInput

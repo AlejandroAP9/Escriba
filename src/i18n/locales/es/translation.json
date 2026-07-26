@@ -832,6 +832,19 @@
         "description": "Apagado por omisión. Tu voz se transcribe y se descarta; en el historial solo queda el texto. Enciéndelo para conservar los .wav y usar el reproductor del historial."
       },
       "remoteProviderNotice": "Este proveedor corre en la nube: el texto transcrito se le envía. Tu audio nunca sale de este computador."
+    },
+    "typedText": {
+      "groupTitle": "Escribir en vez de dictar",
+      "title": "Escribe tu texto",
+      "description": "Aplica la misma corrección con IA local que el dictado, sin usar la voz. El resultado aparece aquí para que lo copies.",
+      "placeholder": "Escribe o pega tu texto aquí",
+      "inputLabel": "Texto a procesar",
+      "run": "Corregir con IA",
+      "working": "Procesando…",
+      "copy": "Copiar resultado",
+      "copied": "Copiado",
+      "disabled": "Enciende antes la corrección con IA, más arriba.",
+      "failed": "No se pudo procesar el texto."
     }
   },
   "footer": {
@@ -895,8 +908,11 @@
     "review": {
       "hint": "O dicta una corrección con tu atajo",
       "discard": "Descartar",
-      "paste": "Pegar"
-    }
+      "paste": "Pegar",
+      "copy": "Copiar"
+    },
+    "listening": "Escuchando",
+    "closing": "Cerrando tu turno"
   },
   "whatsNew": {
     "title": "Nuevo en Escriba v{{version}}"

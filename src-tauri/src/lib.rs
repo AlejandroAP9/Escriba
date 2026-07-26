@@ -791,6 +791,8 @@ pub fn run(cli_args: CliArgs) {
             commands::history::suggest_custom_words,
             commands::review::review_confirm,
             commands::review::review_discard,
+            commands::review::review_copy,
+            commands::review::process_typed_text,
             commands::history::toggle_history_entry_saved,
             commands::history::get_audio_file_path,
             commands::history::delete_history_entry,

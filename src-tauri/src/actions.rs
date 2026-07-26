@@ -344,6 +344,18 @@ fn is_blank_transcription(transcription: &str) -> bool {
     transcription.trim().is_empty()
 }
 
+/// Envoltorio público de [`post_process_transcription`] para los caminos que no
+/// vienen del micrófono (por ejemplo la entrada por teclado). Misma cascada,
+/// mismo vallado anti-inyección, mismo cortacircuitos.
+pub(crate) async fn post_process_public(
+    app: &AppHandle,
+    settings: &AppSettings,
+    text: &str,
+    mode: TranscribeMode,
+) -> Option<String> {
+    post_process_transcription(app, settings, text, mode).await
+}
+
 async fn post_process_transcription(
     app: &AppHandle,
     settings: &AppSettings,

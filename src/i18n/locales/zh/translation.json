@@ -832,6 +832,19 @@
         "description": "Off by default. Your voice is transcribed and then discarded; only the text is kept in history. Turn this on to keep the .wav files and use the history player."
       },
       "remoteProviderNotice": "This provider runs in the cloud: the transcribed text is sent to it. Your audio never leaves this computer."
+    },
+    "typedText": {
+      "groupTitle": "Write instead of speaking",
+      "title": "Type your text",
+      "description": "Runs the same local AI correction as dictation, without using your voice. The result appears here so you can copy it.",
+      "placeholder": "Write or paste your text here",
+      "inputLabel": "Text to process",
+      "run": "Correct with AI",
+      "working": "Working…",
+      "copy": "Copy result",
+      "copied": "Copied",
+      "disabled": "Turn on AI correction first, above.",
+      "failed": "Could not process the text."
     }
   },
   "footer": {
@@ -895,8 +908,11 @@
     "review": {
       "hint": "Or dictate a correction with your shortcut",
       "discard": "Discard",
-      "paste": "Paste"
-    }
+      "paste": "Paste",
+      "copy": "Copy"
+    },
+    "listening": "Listening",
+    "closing": "Finishing your turn"
   },
   "whatsNew": {
     "title": "Escriba v{{version}} 新功能"

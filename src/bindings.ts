@@ -1228,6 +1228,17 @@ async reviewConfirm() : Promise<void> {
 async reviewDiscard() : Promise<void> {
     await TAURI_INVOKE("review_discard");
 },
+async reviewCopy() : Promise<void> {
+    await TAURI_INVOKE("review_copy");
+},
+async processTypedText(text: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("process_typed_text", { text }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async toggleHistoryEntrySaved(id: number) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("toggle_history_entry_saved", { id }) };

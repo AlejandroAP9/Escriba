@@ -322,12 +322,23 @@ export const ConversationSettings: React.FC = () => {
         speak(e.payload.text);
       }
     });
+    const unPhase = listen<string>("conversation-turn-phase", (e) => {
+      const phase = e.payload;
+      if (
+        phase === "listening" ||
+        phase === "closing" ||
+        phase === "transcribing"
+      ) {
+        setTurnPhase(phase);
+      }
+    });
     const unFail = listen("conversation-reply-failed", () => {
       setThinking(false);
       toast.error(t("conversation.replyFailed"));
     });
     return () => {
       unTurn.then((fn) => fn());
+      unPhase.then((fn) => fn());
       unFail.then((fn) => fn());
     };
   }, [speak, t]);
@@ -375,6 +386,13 @@ export const ConversationSettings: React.FC = () => {
 
   // Manos libres: el micrófono queda abierto y el VAD corta cada intervención.
   const [handsFree, setHandsFree] = useState(false);
+  // Fase del turno en manos libres, emitida por el backend. Durante la cuenta
+  // de silencio la interfaz decía "escuchando", así que el usuario no
+  // distinguía "te sigo oyendo" de "ya terminé, estoy esperando" y tendía a
+  // repetirse o a hablar encima.
+  const [turnPhase, setTurnPhase] = useState<
+    "listening" | "closing" | "transcribing"
+  >("listening");
   const toggleHandsFree = async () => {
     const next = !handsFree;
     const r = await commands.conversationHandsFree(next);
@@ -1020,14 +1038,27 @@ export const ConversationSettings: React.FC = () => {
               {/* Manos libres: solo en modos de escucha (en Conversar la voz
                   de respuesta se re-capturaría a sí misma). */}
               {mode !== "converse" && listening && (
-                <Button
-                  variant={handsFree ? "primary-soft" : "secondary"}
-                  size="sm"
-                  onClick={toggleHandsFree}
-                >
-                  <Mic width={13} height={13} className="mr-1.5" />
-                  {t("conversation.handsFree.label")}
-                </Button>
+                <>
+                  <Button
+                    variant={handsFree ? "primary-soft" : "secondary"}
+                    size="sm"
+                    onClick={toggleHandsFree}
+                  >
+                    <Mic width={13} height={13} className="mr-1.5" />
+                    {t("conversation.handsFree.label")}
+                  </Button>
+                  {handsFree && turnPhase !== "listening" && (
+                    <span
+                      role="status"
+                      aria-live="polite"
+                      className="text-xs text-mid-gray"
+                    >
+                      {turnPhase === "closing"
+                        ? t("overlay.closing")
+                        : t("overlay.transcribing")}
+                    </span>
+                  )}
+                </>
               )}
               {/* Audio del sistema: solo modos de escucha y equipos que lo
                   soportan (macOS 13+). Capta la otra parte de la reunión. */}
