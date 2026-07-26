@@ -1,10 +1,7 @@
 {
   "identifier": "desktop-capability",
+  "description": "Plugins de escritorio para la ventana principal. `updater:default` NO va aquí: se concedía también en default.json y las dos capabilities aplican a `main`, así que el permiso se otorgaba dos veces. Vive en default.json, junto al resto de permisos de esa ventana.",
   "platforms": ["macOS", "windows", "linux"],
   "windows": ["main"],
-  "permissions": [
-    "autostart:default",
-    "global-shortcut:default",
-    "updater:default"
-  ]
+  "permissions": ["autostart:default", "global-shortcut:default"]
 }
