@@ -48,22 +48,42 @@ const EXTERNAL_MEDIA_ROOTS: &[&str] = &["/media", "/mnt", "/run/media"];
 #[cfg(target_os = "windows")]
 const EXTERNAL_MEDIA_ROOTS: &[&str] = &[];
 
+/// Letra de unidad de una ruta absoluta de Windows, normalizada a mayúscula.
+///
+/// Hay que leer el `Prefix` ya parseado y no el texto crudo del componente:
+/// `canonicalize` devuelve rutas de longitud extendida (`\\?\C:\…`, prefijo
+/// `VerbatimDisk`) mientras `home_dir()` devuelve la forma DOS (`C:\…`, prefijo
+/// `Disk`). Comparándolos como cadena, `\\?\C:` nunca es igual a `C:` y todo
+/// archivo pasaría por "medio externo", que es justo el camino que se salta la
+/// comprobación de raíces.
+///
+/// Devuelve `None` para rutas UNC (`\\servidor\recurso`), que no tienen letra.
+/// Al no poder afirmar que sean externas, caen a la comprobación de raíces.
+#[cfg(target_os = "windows")]
+fn drive_letter(p: &Path) -> Option<u8> {
+    use std::path::{Component, Prefix};
+    match p.components().next() {
+        Some(Component::Prefix(prefix)) => match prefix.kind() {
+            // `Prefix` compara con igualdad estructural, así que `Disk(b'c')` y
+            // `Disk(b'C')` son distintos: hay que normalizar a mano.
+            Prefix::Disk(d) | Prefix::VerbatimDisk(d) => Some(d.to_ascii_uppercase()),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
 /// En Windows: `true` si la ruta está en una unidad distinta de la del home.
 ///
-/// Una tarjeta SD o un disco USB se montan como `D:\`, `E:\`… Comparar el
-/// prefijo con el del home distingue "medio externo" de "el disco del sistema"
-/// sin tener que enumerar unidades.
+/// Una tarjeta SD o un disco USB se montan como `D:\`, `E:\`… Comparar la letra
+/// con la del home distingue "medio externo" de "el disco del sistema" sin
+/// tener que enumerar unidades.
 #[cfg(target_os = "windows")]
 fn is_external_media(app: &AppHandle, path: &Path) -> bool {
     let Ok(home) = app.path().home_dir() else {
         return false;
     };
-    let drive = |p: &Path| {
-        p.components()
-            .next()
-            .map(|c| c.as_os_str().to_ascii_uppercase())
-    };
-    match (drive(path), drive(&home)) {
+    match (drive_letter(path), drive_letter(&home)) {
         (Some(a), Some(b)) => a != b,
         _ => false,
     }
