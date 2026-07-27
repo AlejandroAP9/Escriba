@@ -9,6 +9,81 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [2.1.0] — 2026-07-26
+
+**La ronda del blindaje.** Cinco auditorías dirigidas — pipeline de voz,
+frontera IPC, estado, cadena de suministro y accesibilidad — aplicadas a
+fondo, con protocolo de verificación escrito (`AGENTS.md`). Y la otra mitad
+de la accesibilidad: a la operabilidad total con teclado y lector de
+pantalla se suman los modos visuales.
+
+### Añadido
+
+- **Enviar a Obsidian** — el acta de Sesiones y las transcripciones del
+  Estudio entran a tu vault como notas Markdown. 100% local: la exportación
+  no toca la red.
+- **Modo Calma** — le baja el volumen visual a toda la app: animaciones y
+  transiciones apagadas (no acortadas), +10% de texto sobre la escala que ya
+  elijas, +15% de aire, superficies planas sin degradados ni grano. Aplica
+  también a la ventana de grabación, que es donde más importa la quietud.
+- **Alto contraste** — tinta y bordes reforzados (AA holgado en ambos temas),
+  sin cristal difuminado.
+- **Asistencia para daltonismo** — éxito y error/grabando eran el único par
+  de estados que solo el color distinguía, y es justo el eje rojo/verde: pasan
+  a cian/violeta, distinguible en los tres tipos de daltonismo.
+- **Traducir por teclado** — el panel "Escribe tu texto" ahora también
+  traduce, no solo corrige. Quien no puede usar la voz en ese momento (aula
+  compartida, afonía, discapacidad del habla) ya tiene el motor completo.
+- **Palabras por día** — gráfica de actividad de la última semana en Inicio,
+  derivada del historial local, sin telemetría.
+- **Voz neural inglesa incluida** en el Intérprete: ya no depende de las
+  voces que traiga el sistema.
+- **Tonos por app en Windows** — la detección de la app activa llega a
+  Windows; cada app recibe su tono también ahí.
+- **Linux/Wayland** — el onboarding explica la limitación de atajos globales
+  y sus alternativas en vez de saltarse el paso en silencio.
+
+### Corregido
+
+- **Toda la app con teclado y lector de pantalla** — los desplegables son
+  listbox de verdad (una parada de tabulación, flechas, Escape) y cada
+  control de Ajustes anuncia su nombre y su valor, no solo "Abajo al centro".
+- **Barge-in completo** — hablar encima de la voz del Intérprete también la
+  corta; era la tercera fuente de audio y la única donde el eco ocurría de
+  verdad.
+- **El Estudio en Windows** — la contención de rutas no contenía nada: las
+  rutas canonicalizadas (`\\?\C:\…`) nunca igualaban al home (`C:\…`) y todo
+  archivo pasaba por "medio externo". Corregido comparando la letra de unidad
+  del prefijo parseado.
+- **Apple Events en el build firmado** — la 2.0.0 salió sin el entitlement:
+  pausar la música, silenciar al grabar e instalar BlackHole fallaban en
+  silencio en el binario distribuido (y funcionaban en desarrollo).
+  Confirmado con `codesign` sobre el binario firmado de esta versión.
+- **El corte de producción estaba roto** — desajuste de versiones entre el
+  crate de Tauri (2.10) y su cliente npm (2.11) que `tauri dev` no avisa.
+- **Dictado más rápido y honesto** — el turno cierra en la mitad de tiempo,
+  hablar interrumpe la respuesta, y los segmentos donde el motor dudó quedan
+  marcados con su confianza.
+
+### Seguridad
+
+- **La voz dictada deja de ser prompt de sistema** — lo transcrito viaja
+  vallado como datos: que alguien hable cerca durante una edición por voz ya
+  no puede convertirse en instrucción para el motor.
+- **Lo sensible no llega al disco** — el audio no se guarda por omisión
+  (opción explícita para activarlo) y los números de tarjeta se redactan
+  antes de persistir el texto.
+- **Red con cinturón** — timeout, reintentos con `Retry-After` y
+  cortacircuitos para el proveedor remoto de pulido: un proveedor caído ya no
+  cuelga el dictado.
+- **Estado y locks** — una sola fuente de verdad para "¿está grabando?", el
+  grabador se recupera solo si su worker muere, y los mutex de audio toleran
+  envenenamiento saneando a Idle.
+- **Cadena de suministro** — 7 avisos de dependencias cerrados comparando
+  contra el rango real de cada aviso (rustls-webpki 0.103.13, tar 0.4.46 y
+  las transitivas de npm), CI con toolchains fijados y overrides acotados a
+  la mayor que declaran sus consumidores.
+
 ## [2.0.0] — 2026-07-21
 
 **El Intérprete de Reuniones.** Escriba deja de ser solo dictado: ahora
