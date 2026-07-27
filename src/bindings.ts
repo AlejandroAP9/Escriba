@@ -422,6 +422,30 @@ async changeUiScaleSetting(scale: number) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async changeHighContrastSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_high_contrast_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeColorblindAssistSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_colorblind_assist_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeCalmModeSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_calm_mode_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changeStartHiddenSetting(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_start_hidden_setting", { enabled }) };
@@ -1352,7 +1376,21 @@ ui_theme?: string;
  * Escala del texto de toda la interfaz, en porcentaje (90-130).
  * Accesibilidad: ojos cansados o vista reducida sin tocar el sistema.
  */
-ui_scale?: number; 
+ui_scale?: number;
+/**
+ * Accesibilidad visual: tinta y bordes reforzados, sin cristal difuminado.
+ */
+high_contrast?: boolean;
+/**
+ * Accesibilidad visual: estados semánticos en par cian/violeta, que evita
+ * el eje rojo/verde (la confusión más común del daltonismo).
+ */
+colorblind_assist?: boolean;
+/**
+ * Modo Calma: sin animaciones ni transiciones, texto y espaciado ampliados,
+ * superficies planas. Para dictar sin estímulos visuales.
+ */
+calm_mode?: boolean;
 /**
  * Revisar antes de pegar: el dictado normal se muestra en el overlay
  * (Pegar / Descartar / corregir dictando) en vez de pegarse directo.

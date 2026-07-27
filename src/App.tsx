@@ -15,7 +15,7 @@ import Onboarding, { AccessibilityOnboarding } from "./components/onboarding";
 import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
 import { ActiveModeBanner } from "./components/shared/ActiveModeBanner";
 import { NAVIGATE_EVENT } from "./lib/navigation";
-import { applyUiScale, applyUiTheme } from "./lib/appearance";
+import { applyA11yModes, applyUiScale, applyUiTheme } from "./lib/appearance";
 import { WhatsNewGate } from "./components/whats-new";
 import { useSettings } from "./hooks/useSettings";
 import { useSettingsStore } from "./stores/settingsStore";
@@ -83,11 +83,23 @@ function App() {
     initializeRTL(i18n.language);
   }, [i18n.language]);
 
-  // Apariencia accesible: tema manual y escala de texto (tanda de inclusión).
+  // Apariencia accesible: tema manual, escala de texto y modos visuales
+  // (tanda de inclusión + brecha competitiva de accesibilidad visual).
   useEffect(() => {
     applyUiTheme(settings?.ui_theme);
-    applyUiScale(settings?.ui_scale);
-  }, [settings?.ui_theme, settings?.ui_scale]);
+    applyUiScale(settings?.ui_scale, settings?.calm_mode);
+    applyA11yModes({
+      highContrast: settings?.high_contrast,
+      colorblind: settings?.colorblind_assist,
+      calm: settings?.calm_mode,
+    });
+  }, [
+    settings?.ui_theme,
+    settings?.ui_scale,
+    settings?.high_contrast,
+    settings?.colorblind_assist,
+    settings?.calm_mode,
+  ]);
 
   // Initialize Enigo, shortcuts, and refresh audio devices when main app loads
   useEffect(() => {

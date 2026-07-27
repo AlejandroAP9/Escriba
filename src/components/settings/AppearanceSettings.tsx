@@ -3,11 +3,15 @@ import { useTranslation } from "react-i18next";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useSettings } from "../../hooks/useSettings";
 import { SettingContainer } from "../ui/SettingContainer";
+import { ToggleSwitch } from "../ui/ToggleSwitch";
 
 /**
- * Apariencia (tanda de inclusión): tema Día/Noche/Sistema y tamaño del texto.
- * Nacen de feedback de la comunidad (15-jul): ayudas visuales para ojos
- * cansados o vista reducida, y modo nocturno controlable sin tocar macOS.
+ * Apariencia (tanda de inclusión): tema Día/Noche/Sistema, tamaño del texto y
+ * modos de accesibilidad visual. Nacen de feedback de la comunidad (15-jul):
+ * ayudas visuales para ojos cansados o vista reducida, y modo nocturno
+ * controlable sin tocar macOS. Los tres modos visuales (alto contraste,
+ * daltonismo, Modo Calma) son tokens CSS sobre el sistema de tema; ver
+ * styles/a11y.css.
  */
 
 const THEMES = [
@@ -27,6 +31,9 @@ export const AppearanceSettings: React.FC<{ grouped?: boolean }> = ({
 
   const theme = (getSetting("ui_theme") ?? "system") as string;
   const scale = (getSetting("ui_scale") ?? 100) as number;
+  const highContrast = (getSetting("high_contrast") ?? false) as boolean;
+  const colorblind = (getSetting("colorblind_assist") ?? false) as boolean;
+  const calmMode = (getSetting("calm_mode") ?? false) as boolean;
 
   return (
     <>
@@ -83,6 +90,30 @@ export const AppearanceSettings: React.FC<{ grouped?: boolean }> = ({
           ))}
         </div>
       </SettingContainer>
+
+      <ToggleSwitch
+        checked={calmMode}
+        onChange={(v) => updateSetting("calm_mode", v)}
+        label={t("settings.general.appearance.calmModeTitle")}
+        description={t("settings.general.appearance.calmModeDescription")}
+        grouped={grouped}
+      />
+
+      <ToggleSwitch
+        checked={highContrast}
+        onChange={(v) => updateSetting("high_contrast", v)}
+        label={t("settings.general.appearance.highContrastTitle")}
+        description={t("settings.general.appearance.highContrastDescription")}
+        grouped={grouped}
+      />
+
+      <ToggleSwitch
+        checked={colorblind}
+        onChange={(v) => updateSetting("colorblind_assist", v)}
+        label={t("settings.general.appearance.colorblindTitle")}
+        description={t("settings.general.appearance.colorblindDescription")}
+        grouped={grouped}
+      />
     </>
   );
 };

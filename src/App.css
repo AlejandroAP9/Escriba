@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./styles/theme.css";
+@import "./styles/a11y.css";
 
 /* EB Garamond — serif de manuscrito de la marca, empaquetada en la app (se ve
    igual en macOS y Windows; no depende de fuentes del sistema). */

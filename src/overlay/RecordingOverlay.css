@@ -1,4 +1,9 @@
 @import "../styles/theme.css";
+/* Modos de accesibilidad visual: el overlay debe reaccionar igual que la
+   ventana principal — el Modo Calma promete quietud justo mientras dictas,
+   que es territorio de esta ventana. Los atributos los estampa
+   RecordingOverlay.tsx al mostrarse, leyendo los settings. */
+@import "../styles/a11y.css";
 
 /* Esta ventana no carga App.css, así que las utilidades de Tailwind no existen
    aquí y `sr-only` hay que definirla. La usa la región `aria-live` que anuncia

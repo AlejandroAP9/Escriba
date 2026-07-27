@@ -288,7 +288,13 @@
         },
         "textSizeTitle": "Text size",
         "textSizeDescription": "Scales the whole interface. For tired eyes or comfortable reading.",
-        "textSizeOption": "Text size {{pct}}%"
+        "textSizeOption": "Text size {{pct}}%",
+        "calmModeTitle": "Calm Mode",
+        "calmModeDescription": "Turns the whole app down: no motion, more air, larger text and flat surfaces. Applies while you dictate too.",
+        "highContrastTitle": "High contrast",
+        "highContrastDescription": "Stronger ink and sharper borders, without blurred glass.",
+        "colorblindTitle": "Color blindness assist",
+        "colorblindDescription": "Success and recording states switch to a safe cyan/violet pair instead of green and red."
       },
       "permissions": {
         "title": "Permissions",

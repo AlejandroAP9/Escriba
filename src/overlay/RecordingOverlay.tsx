@@ -98,6 +98,21 @@ const RecordingOverlay: React.FC = () => {
             setPosition(
               settings.data.overlay_position === "top" ? "top" : "bottom",
             );
+            // Modos de accesibilidad visual: esta ventana no corre App.tsx,
+            // así que se estampan aquí, en la misma lectura de settings que ya
+            // existe. Solo los atributos (quietud, superficies, colores) — la
+            // escala de texto NO se aplica: el overlay es una ventana de
+            // tamaño fijo y el texto crecido se saldría del marco.
+            const root = document.documentElement;
+            root.toggleAttribute(
+              "data-high-contrast",
+              !!settings.data.high_contrast,
+            );
+            root.toggleAttribute(
+              "data-colorblind",
+              !!settings.data.colorblind_assist,
+            );
+            root.toggleAttribute("data-calm", !!settings.data.calm_mode);
           }
         } catch {
           // Keep the previous/default placement if settings can't be read.

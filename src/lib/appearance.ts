@@ -24,8 +24,15 @@ export const UI_SCALE_MAX = 130;
  */
 const UI_BASE_FONT_PX = 15;
 
-export const applyUiScale = (scale?: number) => {
+/**
+ * Cuánto crece el texto en Modo Calma, ENCIMA de la escala elegida.
+ * 130% × 1,1 = 143%: deliberado, la escala manual conserva su significado.
+ */
+const CALM_TEXT_BOOST = 1.1;
+
+export const applyUiScale = (scale?: number, calmBoost = false) => {
   const pct = Math.min(UI_SCALE_MAX, Math.max(UI_SCALE_MIN, scale ?? 100));
+  const effective = calmBoost ? pct * CALM_TEXT_BOOST : pct;
   // Se escala en px sobre la base real de la app, no en %.
   //
   // Antes se ponía `${pct}%`, y un porcentaje sobre el root se resuelve contra
@@ -34,5 +41,21 @@ export const applyUiScale = (scale?: number) => {
   // pasos desiguales: 90% daba 14,4px (un 4% menos que 15) mientras que 115%
   // saltaba a 18,4px (un 23% más). El paso pequeño casi no se notaba y el
   // primero hacia arriba era brusco.
-  document.documentElement.style.fontSize = `${(UI_BASE_FONT_PX * pct) / 100}px`;
+  document.documentElement.style.fontSize = `${(UI_BASE_FONT_PX * effective) / 100}px`;
+};
+
+/**
+ * Modos de accesibilidad visual, como atributos en <html> (mismo mecanismo que
+ * `data-theme`): el CSS de `styles/a11y.css` reacciona a su presencia. Los tres
+ * componen entre sí y con ambos temas.
+ */
+export const applyA11yModes = (modes: {
+  highContrast?: boolean;
+  colorblind?: boolean;
+  calm?: boolean;
+}) => {
+  const root = document.documentElement;
+  root.toggleAttribute("data-high-contrast", !!modes.highContrast);
+  root.toggleAttribute("data-colorblind", !!modes.colorblind);
+  root.toggleAttribute("data-calm", !!modes.calm);
 };

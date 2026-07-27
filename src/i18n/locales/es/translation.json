@@ -288,7 +288,13 @@
         },
         "textSizeTitle": "Tamaño del texto",
         "textSizeDescription": "Agranda toda la interfaz. Para ojos cansados o para leer con comodidad.",
-        "textSizeOption": "Tamaño del texto {{pct}}%"
+        "textSizeOption": "Tamaño del texto {{pct}}%",
+        "calmModeTitle": "Modo Calma",
+        "calmModeDescription": "Le baja el volumen visual a toda la app: sin movimiento, más aire, texto más grande y superficies planas. Aplica también mientras dictas.",
+        "highContrastTitle": "Alto contraste",
+        "highContrastDescription": "Tinta más fuerte y bordes más nítidos, sin cristal difuminado.",
+        "colorblindTitle": "Asistencia para daltonismo",
+        "colorblindDescription": "Los estados de éxito y grabación pasan a un par seguro cian/violeta en vez de verde y rojo."
       },
       "permissions": {
         "title": "Permisos",

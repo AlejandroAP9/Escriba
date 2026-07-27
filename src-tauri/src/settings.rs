@@ -396,6 +396,17 @@ pub struct AppSettings {
     /// Accesibilidad: ojos cansados o vista reducida sin tocar el sistema.
     #[serde(default = "default_ui_scale")]
     pub ui_scale: u32,
+    /// Accesibilidad visual: tinta y bordes reforzados, sin cristal difuminado.
+    #[serde(default)]
+    pub high_contrast: bool,
+    /// Accesibilidad visual: estados semánticos en par cian/violeta, que evita
+    /// el eje rojo/verde (la confusión más común del daltonismo).
+    #[serde(default)]
+    pub colorblind_assist: bool,
+    /// Modo Calma: sin animaciones ni transiciones, texto y espaciado ampliados,
+    /// superficies planas. Para dictar sin estímulos visuales.
+    #[serde(default)]
+    pub calm_mode: bool,
     /// Revisar antes de pegar: el dictado normal se muestra en el overlay
     /// (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
     #[serde(default)]
@@ -1031,6 +1042,9 @@ pub fn get_default_settings() -> AppSettings {
         sound_theme: default_sound_theme(),
         ui_theme: default_ui_theme(),
         ui_scale: default_ui_scale(),
+        high_contrast: false,
+        colorblind_assist: false,
+        calm_mode: false,
         review_before_paste: false,
         start_hidden: default_start_hidden(),
         autostart_enabled: default_autostart_enabled(),

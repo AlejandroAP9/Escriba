@@ -1,0 +1,156 @@
+/* Escriba — modos de accesibilidad visual (Ajustes → General → Apariencia).
+   Reaccionan a atributos en <html> (`data-high-contrast`, `data-colorblind`,
+   `data-calm`), estampados por `lib/appearance.ts` en la ventana principal y
+   por el overlay al mostrarse. Mismo mecanismo que `data-theme`, y misma
+   estructura de cuatro bloques por modo que theme.css: base clara, media query
+   oscura, y los dos overrides manuales que ganan en ambas direcciones.
+
+   Este archivo lo importan App.css Y RecordingOverlay.css: los tres modos
+   afectan también a la ventana de grabación, que es donde el Modo Calma
+   importa más (quietud mientras dictas). Va importado DESPUÉS de theme.css a
+   propósito: a igual especificidad, estos bloques deben ganar en cascada. */
+
+/* == Alto contraste ========================================================
+   Tinta y bordes reforzados. Solo se tocan tokens de TEXTO y LÍNEA: el oro de
+   superficie (`logo-primary`) no se oscurece porque romperia el otro lado del
+   trato (la tinta encima del oro dejaría de pasar AA, ver theme.css). Los
+   valores clares dan ≥7:1 sobre pergamino; los oscuros ≥9:1 sobre tinta. */
+
+:root[data-high-contrast] {
+  --color-text: #0d0a13;
+  --color-mid-gray: #453c31;
+  --color-line: rgba(69, 60, 49, 0.55);
+  --color-gold-text: #6b4c19;
+  --color-lacre: #822f1f;
+  --color-warning: #6d4405;
+  --color-info: #0847ad;
+  --color-success: #0d5a2c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-high-contrast] {
+    --color-text: #f8f1de;
+    --color-mid-gray: #c9bb9e;
+    --color-line: rgba(201, 187, 158, 0.5);
+    --color-gold-text: #eeda9b;
+    --color-lacre: #e8907d;
+    --color-warning: #ffc23d;
+    --color-info: #7fadf9;
+    --color-success: #4ade80;
+  }
+}
+
+:root[data-theme="dark"][data-high-contrast] {
+  --color-text: #f8f1de;
+  --color-mid-gray: #c9bb9e;
+  --color-line: rgba(201, 187, 158, 0.5);
+  --color-gold-text: #eeda9b;
+  --color-lacre: #e8907d;
+  --color-warning: #ffc23d;
+  --color-info: #7fadf9;
+  --color-success: #4ade80;
+}
+
+:root[data-theme="light"][data-high-contrast] {
+  --color-text: #0d0a13;
+  --color-mid-gray: #453c31;
+  --color-line: rgba(69, 60, 49, 0.55);
+  --color-gold-text: #6b4c19;
+  --color-lacre: #822f1f;
+  --color-warning: #6d4405;
+  --color-info: #0847ad;
+  --color-success: #0d5a2c;
+}
+
+/* "Sin cristal difuminado": el difuminado de fondo es puramente decorativo,
+   así que aquí sí vale el mata-todo. */
+:root[data-high-contrast] *,
+:root[data-high-contrast] *::before,
+:root[data-high-contrast] *::after {
+  backdrop-filter: none !important;
+}
+
+/* == Asistencia para daltonismo ============================================
+   Los dos estados que el color distingue por sí solo son éxito (verde) y
+   error/grabando (lacre rojizo): justo el eje rojo/verde, la confusión más
+   común (deuteranopia/protanopia, ~8% de los hombres). Se sustituyen por el
+   par cian/violeta, distinguible en los tres tipos de daltonismo. `warning`
+   (ámbar) e `info` (azul) se dejan: no forman par confusable con nada.
+
+   Este bloque va DESPUÉS de alto contraste a propósito: con ambos modos
+   activos, la tinta y los bordes reforzados se conservan, pero en los estados
+   semánticos gana el par seguro — distinguirlos importa más que el punto
+   extra de contraste (y estos valores también pasan AA). */
+
+:root[data-colorblind] {
+  --color-success: #0e7490;
+  --color-lacre: #6d28d9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-colorblind] {
+    --color-success: #22d3ee;
+    --color-lacre: #a78bfa;
+  }
+}
+
+:root[data-theme="dark"][data-colorblind] {
+  --color-success: #22d3ee;
+  --color-lacre: #a78bfa;
+}
+
+:root[data-theme="light"][data-colorblind] {
+  --color-success: #0e7490;
+  --color-lacre: #6d28d9;
+}
+
+/* == Modo Calma ============================================================
+   Baja el volumen visual entero: quietud, aire y superficies planas. El
+   aumento de texto (+10% sobre la escala elegida) no vive aquí sino en
+   `applyUiScale` (appearance.ts), porque compone con el font-size inline. */
+
+:root[data-calm] {
+  /* +15% de aire: las utilidades de espaciado de Tailwind v4 calculan sobre
+     esta variable EN RUNTIME (verificado en el CSS compilado), así que un
+     solo token escala padding, margin y gap de toda la app. 0,25rem × 1,15. */
+  --spacing: 0.2875rem;
+
+  /* Superficies planas: el oro deja de ser gradiente y el pergamino pierde el
+     grano. Ambos tokens se consumen via var() en runtime. */
+  --gold-grad: linear-gradient(
+    180deg,
+    var(--color-logo-primary) 0%,
+    var(--color-logo-primary) 100%
+  );
+  --paper-grain: none;
+}
+
+/* Cero movimiento: animaciones y transiciones APAGADAS, no acortadas. Es la
+   misma política que ya aplica `prefers-reduced-motion` en App.css, pero
+   activable desde Ajustes sin tocar el sistema operativo. */
+:root[data-calm] *,
+:root[data-calm] *::before,
+:root[data-calm] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* Sombras decorativas planas. NO se usa `box-shadow: none` global porque los
+   anillos de foco de Tailwind también son box-shadow y el foco visible es
+   irrenunciable: se vacía solo el hueco `--tw-shadow` de cada utilidad
+   decorativa, y los huecos de ring quedan intactos en la composición. */
+:root[data-calm] .shadow-card,
+:root[data-calm] .shadow-lift,
+:root[data-calm] .shadow-sm,
+:root[data-calm] .shadow-lg,
+:root[data-calm] .shadow-xl {
+  --tw-shadow: 0 0 0 0 transparent;
+}
+
+/* Sin cristal difuminado, igual que alto contraste. */
+:root[data-calm] *,
+:root[data-calm] *::before,
+:root[data-calm] *::after {
+  backdrop-filter: none !important;
+}
