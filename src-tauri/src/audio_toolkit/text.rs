@@ -171,27 +171,25 @@ fn preserve_case_pattern(original: &str, replacement: &str) -> String {
 }
 
 /// Extracts punctuation prefix and suffix from a word
+///
+/// Los índices son de BYTES, no de caracteres: la versión anterior contaba
+/// caracteres y rebanaba bytes, así que un prefijo multibyte ("¿cómo",
+/// "¡ándale!") hacía panic al caer el corte a mitad del signo — justo en el
+/// camino caliente del dictado cuando el diccionario personal empataba.
 fn extract_punctuation(word: &str) -> (&str, &str) {
-    let prefix_end = word.chars().take_while(|c| !c.is_alphanumeric()).count();
+    let prefix_end = word
+        .char_indices()
+        .find(|(_, c)| c.is_alphanumeric())
+        .map(|(i, _)| i)
+        .unwrap_or(word.len());
     let suffix_start = word
         .char_indices()
         .rev()
-        .take_while(|(_, c)| !c.is_alphanumeric())
-        .count();
+        .find(|(_, c)| c.is_alphanumeric())
+        .map(|(i, c)| i + c.len_utf8())
+        .unwrap_or(prefix_end);
 
-    let prefix = if prefix_end > 0 {
-        &word[..prefix_end]
-    } else {
-        ""
-    };
-
-    let suffix = if suffix_start > 0 {
-        &word[word.len() - suffix_start..]
-    } else {
-        ""
-    };
-
-    (prefix, suffix)
+    (&word[..prefix_end], &word[suffix_start..])
 }
 
 /// Returns filler words appropriate for the given language code.
@@ -230,6 +228,95 @@ fn get_filler_words_for_language(lang: &str) -> &'static [&'static str] {
 }
 
 static MULTI_SPACE_PATTERN: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s{2,}").unwrap());
+
+/// Interrogativas con tilde. En español la tilde ES la marca interrogativa
+/// ("como" conjunción vs "cómo" pregunta), así que anclan sin ambigüedad: no
+/// existen con esa grafía en portugués, catalán ni gallego, y por eso estas
+/// reglas no necesitan saber el idioma del dictado — se auto-limitan a texto
+/// español. "por qué" se captura extendiendo "qué" hacia atrás.
+const INTERROGATIVE_WORDS: &str =
+    "qué|cómo|cuándo|dónde|adónde|quién|quiénes|cuál|cuáles|cuánto|cuánta|cuántos|cuántas";
+
+/// "cómo ¿estás?" → el "¿" tiene delante una interrogativa con tilde: Whisper
+/// decidió tarde que era pregunta y plantó el signo donde subió la entonación.
+/// Se mueve el signo delante de la interrogativa (y de su "por" si es
+/// "por qué").
+static MISPLACED_OPENING_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(&format!(
+        r"(?i)\b((?:por\s+)?(?:{INTERROGATIVE_WORDS})\s+)¿"
+    ))
+    .unwrap()
+});
+
+/// Normaliza los signos de apertura de interrogación del español.
+///
+/// El modelo comete dos fallos con "¿", y los dos se corrigen con la misma
+/// ancla conservadora (una interrogativa CON tilde):
+///
+/// 1. **Mal colocado** — "Hola, cómo ¿estás?": el signo se mueve delante de la
+///    interrogativa.
+/// 2. **Ausente** — "Hola, cómo estás?": la oración termina en "?" sin "¿" en
+///    ninguna parte; se inserta delante de la interrogativa que abre la última
+///    cláusula (tras coma/punto y coma/dos puntos, o el inicio de la oración).
+///
+/// Lo que NO hace, a propósito: tocar oraciones sin ancla ("Vienes mañana?"),
+/// porque insertar a ciegas rompería más de lo que arregla, ni oraciones que
+/// ya traen un "¿" ("Vienes, ¿no?" queda tal cual).
+pub fn fix_spanish_question_marks(text: &str) -> String {
+    // Paso 1: mover los mal colocados.
+    let text = MISPLACED_OPENING_PATTERN.replace_all(text, "¿$1");
+
+    // Paso 2: insertar los ausentes, oración por oración (offsets de bytes).
+    let mut result = String::with_capacity(text.len() + 8);
+    let mut sentence_start = 0usize;
+    let mut i = 0usize;
+    while i < text.len() {
+        let ch = text[i..].chars().next().unwrap();
+        let ch_len = ch.len_utf8();
+        if ch == '?' || ch == '!' || ch == '.' || ch == '\n' {
+            let sentence = &text[sentence_start..i + ch_len];
+            if ch == '?' && !sentence.contains('¿') {
+                result.push_str(&insert_opening_mark(sentence));
+            } else {
+                result.push_str(sentence);
+            }
+            i += ch_len;
+            // El espacio entre oraciones pertenece a la siguiente.
+            sentence_start = i;
+        } else {
+            i += ch_len;
+        }
+    }
+    result.push_str(&text[sentence_start..]);
+    result
+}
+
+/// Inserta "¿" en una oración que termina en "?" y no lo trae, si la última
+/// cláusula empieza con una interrogativa con tilde. Si no hay ancla, la
+/// oración vuelve intacta.
+fn insert_opening_mark(sentence: &str) -> String {
+    // Inicio de la última cláusula: tras la última coma/;/: o el inicio.
+    let clause_start = sentence.rfind([',', ';', ':']).map(|p| p + 1).unwrap_or(0);
+    // Salta espacios al comienzo de la cláusula (offset de bytes).
+    let word_start = sentence[clause_start..]
+        .char_indices()
+        .find(|(_, c)| !c.is_whitespace())
+        .map(|(i, _)| clause_start + i)
+        .unwrap_or(sentence.len());
+
+    // ¿La cláusula abre con interrogativa (con "por qué" incluido)?
+    static CLAUSE_ANCHOR: Lazy<Regex> =
+        Lazy::new(|| Regex::new(&format!(r"(?i)^(?:por\s+)?(?:{INTERROGATIVE_WORDS})\b")).unwrap());
+    if CLAUSE_ANCHOR.is_match(&sentence[word_start..]) {
+        let mut fixed = String::with_capacity(sentence.len() + 2);
+        fixed.push_str(&sentence[..word_start]);
+        fixed.push('¿');
+        fixed.push_str(&sentence[word_start..]);
+        fixed
+    } else {
+        sentence.to_string()
+    }
+}
 
 /// Collapses repeated words (3+ repetitions) to a single instance.
 /// E.g., "wh wh wh wh" -> "wh", "I I I I" -> "I"
@@ -548,6 +635,93 @@ mod tests {
         let custom_words = vec!["MacBook Pro".to_string()];
         let result = apply_custom_words(text, &custom_words, 0.5);
         assert!(result.contains("MacBook"));
+    }
+
+    #[test]
+    fn test_extract_punctuation_multibyte_no_panic() {
+        // La versión anterior contaba caracteres y rebanaba bytes: "¿" y "¡"
+        // (2 bytes) hacían panic a mitad del signo.
+        assert_eq!(extract_punctuation("¿cómo"), ("¿", ""));
+        assert_eq!(extract_punctuation("¡ándale!"), ("¡", "!"));
+        assert_eq!(extract_punctuation("«hola»"), ("«", "»"));
+    }
+
+    #[test]
+    fn test_apply_custom_words_multibyte_punctuation_prefix() {
+        // Camino real del panic: diccionario personal empatando una palabra
+        // que llega del modelo con signo de apertura pegado.
+        let text = "veamos ¡andale! amigo";
+        let custom_words = vec!["ándale".to_string()];
+        let result = apply_custom_words(text, &custom_words, 0.5);
+        assert_eq!(result, "veamos ¡ándale! amigo");
+    }
+
+    #[test]
+    fn test_fix_misplaced_opening_mark() {
+        // El caso de la captura del 26-jul: Whisper planta el ¿ donde subió
+        // la entonación, no donde empieza la pregunta.
+        assert_eq!(
+            fix_spanish_question_marks("Hola, cómo ¿estás?"),
+            "Hola, ¿cómo estás?"
+        );
+    }
+
+    #[test]
+    fn test_fix_misplaced_opening_mark_por_que() {
+        assert_eq!(
+            fix_spanish_question_marks("pero por qué ¿dices eso?"),
+            "pero ¿por qué dices eso?"
+        );
+    }
+
+    #[test]
+    fn test_fix_missing_opening_mark_after_comma() {
+        assert_eq!(
+            fix_spanish_question_marks("Hola, cómo estás?"),
+            "Hola, ¿cómo estás?"
+        );
+    }
+
+    #[test]
+    fn test_fix_missing_opening_mark_sentence_start() {
+        assert_eq!(fix_spanish_question_marks("Cómo estás?"), "¿Cómo estás?");
+    }
+
+    #[test]
+    fn test_fix_leaves_correct_spanish_alone() {
+        assert_eq!(fix_spanish_question_marks("¿Cómo estás?"), "¿Cómo estás?");
+        // La coletilla ya trae su ¿: no se toca.
+        assert_eq!(
+            fix_spanish_question_marks("Vienes mañana, ¿no?"),
+            "Vienes mañana, ¿no?"
+        );
+    }
+
+    #[test]
+    fn test_fix_no_anchor_no_guess() {
+        // Sin interrogativa con tilde no se inserta a ciegas.
+        assert_eq!(
+            fix_spanish_question_marks("Vienes mañana?"),
+            "Vienes mañana?"
+        );
+        assert_eq!(fix_spanish_question_marks("How are you?"), "How are you?");
+    }
+
+    #[test]
+    fn test_fix_multiple_sentences() {
+        assert_eq!(
+            fix_spanish_question_marks("Hola. Cómo estás? Bien, gracias."),
+            "Hola. ¿Cómo estás? Bien, gracias."
+        );
+    }
+
+    #[test]
+    fn test_fix_statement_with_como_untouched() {
+        // "cómo" indirecto sin "?" al final: nada que hacer.
+        assert_eq!(
+            fix_spanish_question_marks("No sé cómo estás."),
+            "No sé cómo estás."
+        );
     }
 
     #[test]

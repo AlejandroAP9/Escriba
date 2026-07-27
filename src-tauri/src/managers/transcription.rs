@@ -1,4 +1,6 @@
-use crate::audio_toolkit::{apply_custom_words, filter_transcription_output};
+use crate::audio_toolkit::{
+    apply_custom_words, filter_transcription_output, fix_spanish_question_marks,
+};
 use crate::managers::audio::AudioRecordingManager;
 use crate::managers::model::{EngineType, ModelManager};
 use crate::settings::{
@@ -1823,11 +1825,16 @@ fn post_process_transcription_text(
         raw
     };
 
-    filter_transcription_output(
+    let filtered = filter_transcription_output(
         &corrected,
         &settings.app_language,
         &settings.custom_filler_words,
-    )
+    );
+
+    // Whisper coloca mal (o se come) el "¿" en español; las reglas se anclan
+    // en interrogativas CON tilde, así que en texto de otros idiomas no
+    // disparan y no hace falta saber el idioma del dictado.
+    fix_spanish_question_marks(&filtered)
 }
 
 /// Decide a transcribe-cpp run's task + translation target from settings.
