@@ -1153,7 +1153,9 @@
       "accessibility": "Accesibilidad concedida",
       "accessibilityMissing": "Falta el permiso de Accesibilidad",
       "micMissing": "Falta el permiso del micrófono"
-    }
+    },
+    "wordsByDay": "Palabras por día",
+    "wordsByDaySummary": "{{count}} palabras dictadas en los últimos 7 días"
   },
   "conversation": {
     "heroTitle": "Habla una hora. Llévate un documento listo.",

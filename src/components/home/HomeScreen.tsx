@@ -101,6 +101,29 @@ export const HomeScreen: React.FC = () => {
     t("settings.general.hero.free"),
   ];
 
+  // Palabras por día: el backend entrega 7 baldes (el último es hoy). Las
+  // barras se escalan contra el máximo de la semana; 4px de mínimo visible
+  // para que un día con pocas palabras no desaparezca.
+  const wordsByDay = stats?.words_by_day ?? [];
+  const weekTotal = wordsByDay.reduce((a, b) => a + b, 0);
+  const weekMax = Math.max(...wordsByDay, 1);
+  const dayFormatter = new Intl.DateTimeFormat(i18n.language, {
+    weekday: "narrow",
+  });
+  const weekBars = wordsByDay.map((words, i) => {
+    const date = new Date(
+      Date.now() - (wordsByDay.length - 1 - i) * 86_400_000,
+    );
+    return {
+      key: i,
+      words,
+      dayLabel: dayFormatter.format(date),
+      isToday: i === wordsByDay.length - 1,
+      heightPx:
+        words === 0 ? 2 : Math.max(4, Math.round((words / weekMax) * 44)),
+    };
+  });
+
   const statCards = [
     { value: `${savedValue}`, unit: savedUnit, label: t("home.timeSaved") },
     {
@@ -307,6 +330,51 @@ export const HomeScreen: React.FC = () => {
               </Card>
             ))}
           </div>
+
+          {/* Palabras por día (últimos 7). Un solo color: la altura ya codifica
+              el dato, así que la gráfica no depende del color y funciona igual
+              en alto contraste y con daltonismo. Para un lector de pantalla es
+              una imagen con resumen; el detalle por día va en el title. */}
+          {weekTotal > 0 && (
+            <Card variant="metric" className="p-3">
+              <div className="mb-2 flex items-baseline justify-between">
+                <span className="text-2xs leading-tight text-mid-gray">
+                  {t("home.wordsByDay")}
+                </span>
+                <span className="text-2xs text-mid-gray">
+                  {weekTotal.toLocaleString()}
+                </span>
+              </div>
+              <div
+                role="img"
+                aria-label={t("home.wordsByDaySummary", {
+                  count: weekTotal,
+                })}
+                className="flex items-end justify-between gap-1"
+              >
+                {weekBars.map((bar) => (
+                  <div
+                    key={bar.key}
+                    title={`${bar.dayLabel}: ${bar.words.toLocaleString()}`}
+                    className="flex flex-1 flex-col items-center gap-1"
+                  >
+                    <div
+                      className={`w-full rounded-t-sm ${
+                        bar.isToday ? "bg-logo-primary" : "bg-logo-primary/45"
+                      }`}
+                      style={{ height: `${bar.heightPx}px` }}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="text-3xs uppercase text-mid-gray"
+                    >
+                      {bar.dayLabel}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </aside>
       </div>
     </div>

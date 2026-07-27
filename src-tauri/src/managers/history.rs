@@ -795,6 +795,11 @@ pub struct UsageStats {
     /// Minutos ahorrados vs teclear a 40 palabras/minuto (supuesto explícito
     /// mostrado en la UI), descontando ~200 wpm de dictado efectivo.
     pub minutes_saved: u32,
+    /// Palabras dictadas por día en los últimos 7 días, la más antigua primero
+    /// (el índice 6 es hoy). Mismo balde de día UTC que usa la racha: un
+    /// dictado nocturno puede caer en el día siguiente, y se prefiere esa
+    /// imprecisión conocida a tener dos nociones de "día" en la misma tarjeta.
+    pub words_by_day: Vec<u32>,
 }
 
 impl HistoryManager {
@@ -818,6 +823,8 @@ impl HistoryManager {
         let mut total_words = 0u32;
         let mut words_30 = 0u32;
         let mut active_days: std::collections::HashSet<i64> = std::collections::HashSet::new();
+        let mut words_per_day: std::collections::HashMap<i64, u32> =
+            std::collections::HashMap::new();
 
         for row in rows.flatten() {
             let (ts, text) = row;
@@ -827,7 +834,9 @@ impl HistoryManager {
             if ts >= cutoff_30 {
                 words_30 += words;
             }
-            active_days.insert(ts / day);
+            let bucket = ts / day;
+            active_days.insert(bucket);
+            *words_per_day.entry(bucket).or_insert(0) += words;
         }
 
         let today = now / day;
@@ -849,6 +858,10 @@ impl HistoryManager {
         // 40 wpm tecleando vs ~200 wpm dictando => ahorras 1/40 - 1/200 = 0.02 min/palabra.
         let minutes_saved = ((total_words as f64) * 0.02).round() as u32;
 
+        let words_by_day = ((today - 6)..=today)
+            .map(|d| words_per_day.get(&d).copied().unwrap_or(0))
+            .collect();
+
         Ok(UsageStats {
             total_transcriptions,
             total_words,
@@ -856,6 +869,7 @@ impl HistoryManager {
             active_days_last_30: active_days_30,
             current_streak_days: streak,
             minutes_saved,
+            words_by_day,
         })
     }
 }

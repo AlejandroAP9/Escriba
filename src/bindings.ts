@@ -1615,7 +1615,12 @@ export type UsageStats = { total_transcriptions: number; total_words: number; wo
  * Minutos ahorrados vs teclear a 40 palabras/minuto (supuesto explícito
  * mostrado en la UI), descontando ~200 wpm de dictado efectivo.
  */
-minutes_saved: number }
+minutes_saved: number;
+/**
+ * Palabras dictadas por día en los últimos 7 días, la más antigua primero
+ * (el índice 6 es hoy). Mismo balde de día UTC que usa la racha.
+ */
+words_by_day: number[] }
 export type WindowsMicrophonePermissionStatus = { supported: boolean; overall_access: PermissionAccess; device_access: PermissionAccess; app_access: PermissionAccess; desktop_app_access: PermissionAccess }
 
 /** tauri-specta globals **/

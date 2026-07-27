@@ -1153,7 +1153,9 @@
       "accessibility": "Accessibility granted",
       "accessibilityMissing": "Accessibility permission missing",
       "micMissing": "Microphone permission missing"
-    }
+    },
+    "wordsByDay": "Words per day",
+    "wordsByDaySummary": "{{count}} words dictated in the last 7 days"
   },
   "conversation": {
     "heroTitle": "Talk for an hour. Walk away with a finished document.",
