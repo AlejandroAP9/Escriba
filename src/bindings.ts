@@ -446,6 +446,14 @@ async changeCalmModeSetting(enabled: boolean) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async changeAlwaysShowFocusSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_always_show_focus_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changeStartHiddenSetting(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_start_hidden_setting", { enabled }) };
@@ -1391,6 +1399,11 @@ colorblind_assist?: boolean;
  * superficies planas. Para dictar sin estímulos visuales.
  */
 calm_mode?: boolean;
+/**
+ * Anillo de foco también con el ratón, no solo al navegar con teclado.
+ * Para quien pierde de vista dónde está parado dentro de la interfaz.
+ */
+always_show_focus?: boolean;
 /**
  * Revisar antes de pegar: el dictado normal se muestra en el overlay
  * (Pegar / Descartar / corregir dictando) en vez de pegarse directo.

@@ -53,9 +53,11 @@ export const applyA11yModes = (modes: {
   highContrast?: boolean;
   colorblind?: boolean;
   calm?: boolean;
+  alwaysShowFocus?: boolean;
 }) => {
   const root = document.documentElement;
   root.toggleAttribute("data-high-contrast", !!modes.highContrast);
   root.toggleAttribute("data-colorblind", !!modes.colorblind);
   root.toggleAttribute("data-calm", !!modes.calm);
+  root.toggleAttribute("data-focus-always", !!modes.alwaysShowFocus);
 };

@@ -93,6 +93,7 @@ function App() {
       highContrast: settings?.high_contrast,
       colorblind: settings?.colorblind_assist,
       calm: settings?.calm_mode,
+      alwaysShowFocus: settings?.always_show_focus,
     });
   }, [
     settings?.ui_theme,
@@ -100,6 +101,7 @@ function App() {
     settings?.high_contrast,
     settings?.colorblind_assist,
     settings?.calm_mode,
+    settings?.always_show_focus,
   ]);
 
   // Initialize Enigo, shortcuts, and refresh audio devices when main app loads

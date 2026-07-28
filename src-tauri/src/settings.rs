@@ -407,6 +407,10 @@ pub struct AppSettings {
     /// superficies planas. Para dictar sin estímulos visuales.
     #[serde(default)]
     pub calm_mode: bool,
+    /// Anillo de foco también con el ratón, no solo al navegar con teclado.
+    /// Para quien pierde de vista dónde está parado dentro de la interfaz.
+    #[serde(default)]
+    pub always_show_focus: bool,
     /// Revisar antes de pegar: el dictado normal se muestra en el overlay
     /// (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
     #[serde(default)]
@@ -1045,6 +1049,7 @@ pub fn get_default_settings() -> AppSettings {
         high_contrast: false,
         colorblind_assist: false,
         calm_mode: false,
+        always_show_focus: false,
         review_before_paste: false,
         start_hidden: default_start_hidden(),
         autostart_enabled: default_autostart_enabled(),

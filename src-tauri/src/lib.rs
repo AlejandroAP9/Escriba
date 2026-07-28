@@ -693,6 +693,7 @@ pub fn run(cli_args: CliArgs) {
             shortcut::change_high_contrast_setting,
             shortcut::change_colorblind_assist_setting,
             shortcut::change_calm_mode_setting,
+            shortcut::change_always_show_focus_setting,
             shortcut::change_start_hidden_setting,
             shortcut::change_autostart_setting,
             shortcut::change_translate_to_english_setting,

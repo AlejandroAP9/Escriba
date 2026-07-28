@@ -141,6 +141,19 @@
   --color-lacre: #6d28d9;
 }
 
+/* == Foco siempre visible ==================================================
+   El anillo global de App.css usa `:focus-visible`, que el navegador reserva
+   para navegación por teclado: quien usa el ratón nunca ve dónde está parado.
+   Es lo correcto por omisión —un anillo tras cada clic es ruido— pero deja
+   fuera a quien pierde la referencia dentro de la interfaz, o a quien alterna
+   ratón y teclado. Con esto, el mismo anillo aparece también con `:focus`. */
+
+:root[data-focus-always] *:focus {
+  outline: 2px solid var(--color-logo-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 /* == Modo Calma ============================================================
    Baja el volumen visual entero: quietud, aire y superficies planas. El
    aumento de texto (+10% sobre la escala elegida) no vive aquí sino en

@@ -91,6 +91,8 @@ const settingUpdaters: {
   colorblind_assist: (value) =>
     commands.changeColorblindAssistSetting(value as boolean),
   calm_mode: (value) => commands.changeCalmModeSetting(value as boolean),
+  always_show_focus: (value) =>
+    commands.changeAlwaysShowFocusSetting(value as boolean),
   review_before_paste: (value) =>
     commands.changeReviewBeforePasteSetting(value as boolean),
   start_hidden: (value) => commands.changeStartHiddenSetting(value as boolean),

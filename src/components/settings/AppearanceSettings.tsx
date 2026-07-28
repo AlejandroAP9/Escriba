@@ -34,6 +34,7 @@ export const AppearanceSettings: React.FC<{ grouped?: boolean }> = ({
   const highContrast = (getSetting("high_contrast") ?? false) as boolean;
   const colorblind = (getSetting("colorblind_assist") ?? false) as boolean;
   const calmMode = (getSetting("calm_mode") ?? false) as boolean;
+  const alwaysFocus = (getSetting("always_show_focus") ?? false) as boolean;
 
   return (
     <>
@@ -112,6 +113,14 @@ export const AppearanceSettings: React.FC<{ grouped?: boolean }> = ({
         onChange={(v) => updateSetting("colorblind_assist", v)}
         label={t("settings.general.appearance.colorblindTitle")}
         description={t("settings.general.appearance.colorblindDescription")}
+        grouped={grouped}
+      />
+
+      <ToggleSwitch
+        checked={alwaysFocus}
+        onChange={(v) => updateSetting("always_show_focus", v)}
+        label={t("settings.general.appearance.alwaysFocusTitle")}
+        description={t("settings.general.appearance.alwaysFocusDescription")}
         grouped={grouped}
       />
     </>

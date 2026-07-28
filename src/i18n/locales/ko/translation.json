@@ -276,7 +276,9 @@
         "highContrastTitle": "High contrast",
         "highContrastDescription": "Stronger ink and sharper borders, without blurred glass.",
         "colorblindTitle": "Color blindness assist",
-        "colorblindDescription": "Success and recording states switch to a safe cyan/violet pair instead of green and red."
+        "colorblindDescription": "Success and recording states switch to a safe cyan/violet pair instead of green and red.",
+        "alwaysFocusTitle": "Always show focus",
+        "alwaysFocusDescription": "Keeps the focus ring visible with the mouse too, not only when navigating by keyboard."
       },
       "permissions": {
         "title": "Permissions",

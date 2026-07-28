@@ -294,7 +294,9 @@
         "highContrastTitle": "Alto contraste",
         "highContrastDescription": "Tinta más fuerte y bordes más nítidos, sin cristal difuminado.",
         "colorblindTitle": "Asistencia para daltonismo",
-        "colorblindDescription": "Los estados de éxito y grabación pasan a un par seguro cian/violeta en vez de verde y rojo."
+        "colorblindDescription": "Los estados de éxito y grabación pasan a un par seguro cian/violeta en vez de verde y rojo.",
+        "alwaysFocusTitle": "Foco siempre visible",
+        "alwaysFocusDescription": "Mantiene visible el anillo de foco también con el ratón, no solo al navegar con el teclado."
       },
       "permissions": {
         "title": "Permisos",
