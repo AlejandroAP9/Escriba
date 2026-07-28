@@ -111,9 +111,12 @@ export const HomeScreen: React.FC = () => {
     weekday: "narrow",
   });
   const weekBars = wordsByDay.map((words, i) => {
-    const date = new Date(
-      Date.now() - (wordsByDay.length - 1 - i) * 86_400_000,
-    );
+    // Se retrocede por FECHA, no restando 24h fijas: en los dos días del año con
+    // cambio de hora el día local no dura 86.400 s, y restar esa cantidad deja
+    // la etiqueta un día corrida respecto al balde que el backend cubicó (que
+    // también es por fecha local, ver `local_day` en history.rs).
+    const date = new Date();
+    date.setDate(date.getDate() - (wordsByDay.length - 1 - i));
     return {
       key: i,
       words,

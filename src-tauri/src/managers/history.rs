@@ -40,8 +40,8 @@ static MIGRATIONS: &[M] = &[
     // estaban BORRADOS. También arrastraba la racha, los días activos y la
     // gráfica de la semana (reporte de Flor, 28-jul-2026).
     //
-    // Un balde por día en UTC —el mismo que ya usaba la racha— cuesta 365 filas
-    // al año y sobrevive a cualquier política de retención.
+    // Un balde por día cuesta 365 filas al año y sobrevive a cualquier política
+    // de retención. El día es el LOCAL, no el UTC: ver `local_day`.
     M::up(
         "CREATE TABLE IF NOT EXISTS usage_daily (
             day INTEGER PRIMARY KEY,
@@ -53,9 +53,15 @@ static MIGRATIONS: &[M] = &[
     // de dónde recuperarlo; esto al menos evita que quien actualiza empiece de
     // cero. El conteo de palabras aquí se aproxima contando espacios, en vez de
     // `split_whitespace`: es una sola pasada sobre unas pocas filas.
+    //
+    // `julianday(...) - 2440587.5` son los días desde el 1-ene-1970, y con
+    // `localtime` salen los del día LOCAL, igual que hace `local_day` en Rust.
+    // Quien ya sembró con la 2.2.0 conserva sus filas en UTC (el sembrado no se
+    // repite): como mucho, un día de desfase en dictados nocturnos anteriores a
+    // la actualización, dentro del margen que este sembrado ya declara.
     M::up(
         "INSERT OR REPLACE INTO usage_daily (day, transcriptions, words)
-         SELECT timestamp / 86400,
+         SELECT CAST(julianday(timestamp, 'unixepoch', 'localtime') - 2440587.5 AS INTEGER),
                 COUNT(*),
                 SUM(
                     CASE WHEN trim(COALESCE(NULLIF(post_processed_text, ''), transcription_text)) = ''
@@ -66,9 +72,49 @@ static MIGRATIONS: &[M] = &[
                     END
                 )
          FROM transcription_history
-         GROUP BY timestamp / 86400;",
+         GROUP BY CAST(julianday(timestamp, 'unixepoch', 'localtime') - 2440587.5 AS INTEGER);",
     ),
 ];
+
+/// Día calendario **local** de una marca de tiempo, numerado como días desde el
+/// 1 de enero de 1970 — el mismo esquema que el `timestamp / 86_400` de antes,
+/// para que las filas ya escritas sigan siendo comparables.
+///
+/// El agregado se cubicaba en UTC, pero el gráfico de Inicio etiqueta cada barra
+/// con el día LOCAL (`HomeScreen.tsx`, vía `Intl.DateTimeFormat`). En Chile
+/// (UTC−4) eso desplaza todo lo dictado entre las 20:00 y medianoche al balde
+/// del día siguiente: por la noche, lo dictado esa misma mañana aparecía en la
+/// barra de ayer. Y de paso partía un día local en dos días activos, inflando la
+/// racha. Se cubica por el día que la persona vivió, que es el que la app le
+/// muestra — y esa franja nocturna es justo la hora en que un profesor prepara
+/// clases.
+fn local_day(timestamp: i64) -> i64 {
+    day_in_zone(&Local, timestamp)
+}
+
+/// El cálculo de `local_day`, con la zona horaria como parámetro.
+///
+/// Existe separado solo para poder probarlo: `Local` lee la zona del proceso, y
+/// un test escrito contra ella pasaría igual con el cubicado en UTC cuando corre
+/// en una máquina en UTC — que es exactamente lo que hace el CI. Con la zona
+/// explícita, el test falla si alguien vuelve a `timestamp / 86_400`, corra donde
+/// corra.
+fn day_in_zone<Tz: chrono::TimeZone>(tz: &Tz, timestamp: i64) -> i64 {
+    // `TimeZone` no se importa: el método llega por el propio límite genérico.
+    use chrono::NaiveDate;
+
+    // Sin zona horaria resoluble no hay nada mejor que UTC. `div_euclid` en vez
+    // de `/` porque la división trunca hacia cero, y antes de 1970 eso no es el
+    // día anterior sino el siguiente.
+    let fallback = timestamp.div_euclid(86_400);
+    let (Some(epoch), Some(dt)) = (
+        NaiveDate::from_ymd_opt(1970, 1, 1),
+        tz.timestamp_opt(timestamp, 0).single(),
+    ) else {
+        return fallback;
+    };
+    dt.date_naive().signed_duration_since(epoch).num_days()
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
 pub struct PaginatedHistory {
@@ -360,7 +406,7 @@ impl HistoryManager {
                  ON CONFLICT(day) DO UPDATE SET
                     transcriptions = transcriptions + 1,
                     words = words + excluded.words",
-                params![timestamp / 86_400, words],
+                params![local_day(timestamp), words],
             ) {
                 // Que fallen las estadísticas no puede impedir que se guarde el
                 // dictado, que es lo que el usuario vino a hacer.
@@ -907,15 +953,46 @@ mod tests {
         );
     }
 
-    /// Un "ahora" fijo para que los tests no dependan del reloj: día 1000.
-    const NOW: i64 = 1000 * 86_400;
+    /// Un "hoy" fijo para que los tests no dependan del reloj: día 1000.
+    const TODAY: i64 = 1000;
+
+    /// El desfase que motivó `local_day`, con la zona de Chile fijada para que
+    /// el test signifique lo mismo aquí y en el CI (que corre en UTC).
+    #[test]
+    fn day_buckets_by_the_day_the_person_lived_not_utc() {
+        use chrono::{FixedOffset, TimeZone};
+
+        let chile = FixedOffset::west_opt(4 * 3600).expect("UTC−4 es un huso válido");
+        let at = |h, m| {
+            chile
+                .with_ymd_and_hms(2026, 7, 24, h, m, 0)
+                .single()
+                .expect("24-jul-2026 no tiene saltos horarios en UTC−4")
+                .timestamp()
+        };
+
+        // 24-jul-2026 son 20658 días desde el 1-ene-1970.
+        assert_eq!(day_in_zone(&chile, at(12, 0)), 20658);
+
+        // Las 21:00 del MISMO día local: en UTC ya es el 25, y ahí estaba el
+        // fallo. Con `timestamp / 86_400` esto daría 20659 y aparecería en la
+        // barra del sábado habiéndose dictado el viernes.
+        assert_eq!(
+            day_in_zone(&chile, at(21, 0)),
+            20658,
+            "lo dictado de noche debe quedar en el día local, no en el UTC"
+        );
+
+        // Y la frontera por el otro lado: las 00:01 siguen siendo el día 24.
+        assert_eq!(day_in_zone(&chile, at(0, 1)), 20658);
+    }
 
     #[test]
     fn stats_accumulate_beyond_the_history_limit() {
         // El fallo que reportó Flor: el historial guarda 5 entradas, pero las
         // estadísticas tienen que contar los 120 dictados de siempre.
         let buckets: Vec<(i64, i64, i64)> = (0..40).map(|i| (1000 - i, 3, 120)).collect();
-        let stats = compute_usage_stats(&buckets, NOW);
+        let stats = compute_usage_stats(&buckets, TODAY);
 
         assert_eq!(stats.total_transcriptions, 120);
         assert_eq!(stats.total_words, 4800);
@@ -927,20 +1004,20 @@ mod tests {
     fn stats_streak_counts_consecutive_days_backwards() {
         // Hoy, ayer y anteayer; luego un hueco.
         let buckets = vec![(1000, 1, 10), (999, 1, 10), (998, 1, 10), (995, 1, 10)];
-        assert_eq!(compute_usage_stats(&buckets, NOW).current_streak_days, 3);
+        assert_eq!(compute_usage_stats(&buckets, TODAY).current_streak_days, 3);
     }
 
     #[test]
     fn stats_streak_tolerates_not_dictating_yet_today() {
         // Sin dictar hoy, la racha cuenta desde ayer en vez de romperse.
         let buckets = vec![(999, 1, 10), (998, 1, 10)];
-        assert_eq!(compute_usage_stats(&buckets, NOW).current_streak_days, 2);
+        assert_eq!(compute_usage_stats(&buckets, TODAY).current_streak_days, 2);
     }
 
     #[test]
     fn stats_words_by_day_covers_seven_days_ending_today() {
         let buckets = vec![(1000, 1, 7), (997, 1, 4), (900, 1, 999)];
-        let stats = compute_usage_stats(&buckets, NOW);
+        let stats = compute_usage_stats(&buckets, TODAY);
 
         assert_eq!(stats.words_by_day.len(), 7);
         // El índice 6 es hoy; el 3 es hace tres días.
@@ -954,7 +1031,7 @@ mod tests {
     #[test]
     fn stats_thirty_day_window_excludes_older_buckets() {
         let buckets = vec![(1000, 1, 100), (980, 1, 50), (960, 1, 999)];
-        let stats = compute_usage_stats(&buckets, NOW);
+        let stats = compute_usage_stats(&buckets, TODAY);
 
         assert_eq!(stats.words_last_30_days, 150);
         assert_eq!(stats.active_days_last_30, 2);
@@ -962,7 +1039,7 @@ mod tests {
 
     #[test]
     fn stats_empty_history_is_all_zeros() {
-        let stats = compute_usage_stats(&[], NOW);
+        let stats = compute_usage_stats(&[], TODAY);
         assert_eq!(stats.total_transcriptions, 0);
         assert_eq!(stats.current_streak_days, 0);
         assert_eq!(stats.words_by_day, vec![0; 7]);
@@ -1008,7 +1085,7 @@ impl HistoryManager {
         let buckets: Vec<(i64, i64, i64)> = rows.flatten().collect();
         Ok(compute_usage_stats(
             &buckets,
-            chrono::Utc::now().timestamp(),
+            local_day(Utc::now().timestamp()),
         ))
     }
 }
@@ -1016,10 +1093,14 @@ impl HistoryManager {
 /// Cálculo puro sobre los baldes diarios, aparte para poder probarlo: el fallo
 /// que lo motivó (estadísticas que solo contaban las últimas cinco entradas)
 /// era justo de esta lógica, y no había forma de cubrirlo con un test.
-fn compute_usage_stats(buckets: &[(i64, i64, i64)], now: i64) -> UsageStats {
+///
+/// `today` llega ya resuelto como número de día (ver `local_day`) en vez de como
+/// marca de tiempo: así la función razona solo en días —igual que los baldes que
+/// recibe— y sigue sin depender del reloj ni de la zona horaria, que es lo que
+/// la hace comprobable.
+fn compute_usage_stats(buckets: &[(i64, i64, i64)], today: i64) -> UsageStats {
     {
-        let day = 86_400i64;
-        let cutoff_30 = now - 30 * day;
+        let cutoff_30 = today - 30;
 
         let mut total_transcriptions = 0u32;
         let mut total_words = 0u32;
@@ -1033,7 +1114,7 @@ fn compute_usage_stats(buckets: &[(i64, i64, i64)], now: i64) -> UsageStats {
             let words = words.max(0) as u32;
             total_transcriptions += count;
             total_words += words;
-            if bucket >= cutoff_30 / day {
+            if bucket >= cutoff_30 {
                 words_30 += words;
             }
             if count > 0 {
@@ -1042,7 +1123,6 @@ fn compute_usage_stats(buckets: &[(i64, i64, i64)], now: i64) -> UsageStats {
             *words_per_day.entry(bucket).or_insert(0) += words;
         }
 
-        let today = now / day;
         let mut streak = 0u32;
         let mut cursor = today;
         // La racha admite que hoy aún no dictes (cuenta desde ayer también).
@@ -1056,7 +1136,7 @@ fn compute_usage_stats(buckets: &[(i64, i64, i64)], now: i64) -> UsageStats {
 
         let active_days_30 = active_days
             .iter()
-            .filter(|d| **d >= cutoff_30 / day)
+            .filter(|d| **d >= cutoff_30)
             .count() as u32;
         // 40 wpm tecleando vs ~200 wpm dictando => ahorras 1/40 - 1/200 = 0.02 min/palabra.
         let minutes_saved = ((total_words as f64) * 0.02).round() as u32;
