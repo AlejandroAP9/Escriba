@@ -9,6 +9,49 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [2.1.1] — 2026-07-28
+
+**Lo que salió de probar la app de verdad.** Ocho arreglos, todos nacidos de
+una sesión de pruebas sobre la 2.1.0: dos rompían funciones enteras, tres eran
+cosas que se veían mal, y uno era una función que decía hacer algo y no lo
+hacía.
+
+### Corregido
+
+- **"Terminar y crear documento" moría a los 30 segundos.** El límite de
+  espera del motor está pensado para pulir un dictado de dos frases, pero el
+  documento de sesión le manda la transcripción entera: en el motor local,
+  procesarla puede tardar más que eso antes de escribir la primera palabra. El
+  documento se cortaba siempre, y el aviso culpaba al motor, que estaba sano.
+  Ahora las peticiones largas tienen su propio margen.
+- **El "¿" caía en el sitio equivocado.** "Hola, cómo ¿estás?" en vez de
+  "Hola, ¿cómo estás?": el modelo planta el signo donde subes la entonación,
+  no donde empieza la pregunta. Ahora se coloca bien, y también se pone cuando
+  el modelo se lo come. Solo actúa donde el español no deja lugar a dudas.
+- **Alto contraste no contrastaba.** Solo oscurecía la tinta, pero el tema base
+  ya daba 16,58:1 — muy por encima de lo que exige la norma más estricta.
+  Ahora quita el tinte del papel: fondo blanco puro, barra lateral negra,
+  21:1 de texto. Medido en los dos temas.
+- **El QR tapaba su propia explicación**, porque se dibujaba más grande que su
+  recuadro.
+- **La pantalla del móvil del Intérprete salía corrida**: la barra de controles
+  no cabía en pantallas angostas y empujaba la página entera de lado. De paso,
+  ahora respeta la muesca del teléfono.
+- **La duración de los audios del historial se salía de la tarjeta.**
+- **Un error escondido al dictar**: si tenías palabras en tu diccionario
+  personal y el modelo devolvía una con signo de apertura pegado ("¡ándale!"),
+  la transcripción reventaba por dentro.
+
+### Añadido
+
+- **Ajustes → Avanzado → Obsidian**: ya puedes ver qué vault tienes
+  configurado, cambiarlo u olvidarlo. Antes solo se podía elegir tropezándose
+  con el selector de carpetas al exportar, y después no había vuelta atrás.
+  Ahora además se avisa antes de pedírtelo.
+- Cuando el documento de sesión falla, el registro dice **por qué**. Antes
+  callaba, y con el motor apareciendo sano en el log la causa era
+  indistinguible sin volver a reproducirla.
+
 ## [2.1.0] — 2026-07-26
 
 **La ronda del blindaje.** Cinco auditorías dirigidas — pipeline de voz,

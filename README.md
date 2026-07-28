@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.1.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.1.1-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -126,6 +126,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                                                                                                    |
 | ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 2.1.1   | 28-jul | 🔧 Ocho arreglos salidos de probar la app: documento de sesión, "¿" del dictado, alto contraste real y ajustes de Obsidian   |
 | 2.1.0   | 26-jul | 🛡️ **La ronda del blindaje**: 5 auditorías aplicadas + 📝 Enviar a **Obsidian** + ♿ Modo Calma, alto contraste y daltonismo |
 | 2.0.0   | 21-jul | 🎙️ **Intérprete de reuniones** en vivo, ida y vuelta (idea de John Walter) + micrófono virtual integrado                     |
 | 1.9.1   | 18-jul | 🐧 Motor local en **Linux** + fixes del Traductor (QA Flor)                                                                  |
