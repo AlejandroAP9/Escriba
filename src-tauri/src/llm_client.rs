@@ -28,6 +28,16 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 /// hardware modesto sin renunciar a la protección contra el cuelgue infinito.
 pub const LONG_FORM_REQUEST_TIMEOUT: Duration = Duration::from_secs(300);
 
+/// Espera para lo que ocurre EN VIVO, donde llegar tarde equivale a no llegar.
+///
+/// El Intérprete traduce frase a frase mientras el guía habla: medido con el
+/// motor local, cada traducción cuesta de 1 a 2 segundos, y 30 dejan margen de
+/// sobra incluso si el modelo tiene que cargarse en la primera. Pasado eso, esa
+/// traducción ya no le sirve a nadie y se descarta para no bloquear la
+/// siguiente frase — con la espera larga, una petición atascada congelaba la
+/// sala cinco minutos.
+pub const LIVE_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+
 /// Error del cliente, con la causa distinguida para que quien llama pueda
 /// reaccionar distinto ante un límite de tasa que ante un fallo cualquiera.
 #[derive(Debug)]

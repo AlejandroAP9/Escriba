@@ -111,6 +111,13 @@
       .line.new {
         animation: pop 0.3s ease;
       }
+      /* Anticipo: la frase en el idioma del guia, mientras se traduce a la
+         tuya. Se muestra atenuada para que se note que aun va a cambiar, en vez
+         de dejar la pantalla en blanco esperando. */
+      .line.pending {
+        opacity: 0.55;
+        border-left-color: rgba(230, 210, 168, 0.35);
+      }
       @keyframes pop {
         from {
           opacity: 0;
@@ -323,13 +330,32 @@
         window.speechSynthesis.speak(u);
       }
 
-      function addLine(text) {
-        const div = document.createElement("div");
-        div.className = "line new";
-        div.textContent = text;
-        subs.prepend(div);
-        speak(text);
-        while (subs.children.length > 30) subs.lastChild.remove();
+      // Una misma frase llega VARIAS veces con el mismo `seq`: primero el
+      // original (para no dejar la pantalla vacia mientras se traduce) y luego
+      // la traduccion a tu idioma. Se guarda el nodo por seq para reemplazar su
+      // texto en vez de apilar la frase dos veces.
+      let bySeq = new Map();
+
+      function addLine(text, seq, settled) {
+        let div = seq === undefined ? null : bySeq.get(seq);
+        if (div) {
+          div.textContent = text;
+        } else {
+          div = document.createElement("div");
+          div.className = "line new";
+          div.textContent = text;
+          subs.prepend(div);
+          if (seq !== undefined) bySeq.set(seq, div);
+        }
+        div.classList.toggle("pending", !settled);
+        // La voz solo suena con el texto definitivo: leer el anticipo en el
+        // idioma del guia y volver a leerlo traducido seria oirlo dos veces.
+        if (settled) speak(text);
+        while (subs.children.length > 30) {
+          const gone = subs.lastChild;
+          for (const [k, v] of bySeq) if (v === gone) bySeq.delete(k);
+          gone.remove();
+        }
       }
 
       const langLive = document.getElementById("langLive");
@@ -337,15 +363,19 @@
 
       function connect(room, lang) {
         if (es) es.close();
+        // Los tres parametros van codificados: un valor con & o = partiria la
+        // consulta y el servidor leeria algo distinto de lo que se eligio.
         es = new EventSource(
-          `/events?room=${room}&lang=${lang}&t=${encodeURIComponent(roomToken)}`,
+          `/events?room=${encodeURIComponent(room)}&lang=${encodeURIComponent(lang)}&t=${encodeURIComponent(roomToken)}`,
         );
         es.onmessage = (ev) => {
           try {
             const line = JSON.parse(ev.data);
-            addLine(line.text);
+            // `settled` ausente (servidor anterior) se trata como definitivo:
+            // asi la pagina sigue funcionando contra una version vieja.
+            addLine(line.text, line.seq, line.settled !== false);
           } catch {
-            addLine(ev.data);
+            addLine(ev.data, undefined, true);
           }
         };
         es.onerror = () => {
@@ -378,7 +408,7 @@
         status.textContent = "Conectando...";
         try {
           const r = await fetch(
-            `/join?room=${room}&lang=${lang}&t=${encodeURIComponent(roomToken)}`,
+            `/join?room=${encodeURIComponent(room)}&lang=${encodeURIComponent(lang)}&t=${encodeURIComponent(roomToken)}`,
           );
           if (!r.ok) {
             status.textContent = "Sala no encontrada. Revisa el código.";

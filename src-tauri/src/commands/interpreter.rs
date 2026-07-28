@@ -62,21 +62,47 @@ pub async fn interpreter_publish(app: tauri::AppHandle, text: String, source_lan
     publish_translated(&app, text, &source_lang).await;
 }
 
-/// Traduce `text` a cada idioma activo (una vez por idioma) y publica la línea.
+/// Publica una frase del guía: primero el original a todos, y después cada
+/// traducción en cuanto está lista.
+///
+/// Antes esto traducía a TODOS los idiomas activos antes de emitir nada, y en
+/// serie. Medido con el motor local, cada traducción cuesta de 1 a 2 segundos,
+/// así que una sala con cinco idiomas dejaba la pantalla en blanco entre cinco y
+/// diez segundos — y quien escuchaba en el idioma de origen, que no necesita
+/// ninguna traducción, esperaba igual a las otras cuatro. Se probó siempre con
+/// un solo idioma y por eso parecía instantáneo.
+///
+/// Ahora el original sale de inmediato y cada idioma reemplaza su línea al
+/// llegar la suya. Las traducciones siguen en serie a propósito: el motor local
+/// arranca sin `-np`, así que atiende una petición a la vez y lanzarlas juntas
+/// solo movería la cola del cliente al servidor.
 pub async fn publish_translated(app: &tauri::AppHandle, text: String, source_lang: &str) {
     use std::collections::HashMap;
     let server = global();
-    let mut translations: HashMap<String, String> = HashMap::new();
+    let seq = server.next_seq();
+
+    // 1) El original, ya. Quien escucha en el idioma de origen recibe su texto
+    //    definitivo aquí mismo; el resto lo ve como anticipo mientras se traduce.
+    let mut first: HashMap<String, String> = HashMap::new();
+    first.insert(source_lang.to_string(), text.clone());
+    server.publish_line(seq, text.clone(), first, Vec::new());
+
+    // 2) Cada traducción, dirigida solo a su idioma, en cuanto está.
     for lang in server.active_languages() {
         if lang == source_lang {
-            translations.insert(lang, text.clone());
             continue;
         }
-        if let Some(t) = crate::actions::translate_text(app, &text, &lang).await {
-            translations.insert(lang, t);
+        // La sala pudo cerrarse mientras se traducía la frase anterior: sin esto
+        // se seguiría gastando el modelo en emisiones que ya no escucha nadie.
+        if !server.is_running() {
+            return;
+        }
+        if let Some(t) = crate::actions::translate_live(app, &text, &lang).await {
+            let mut one = HashMap::new();
+            one.insert(lang.clone(), t);
+            server.publish_line(seq, text.clone(), one, vec![lang]);
         }
     }
-    server.publish_line(text, translations);
 }
 
 #[tauri::command]

@@ -14,6 +14,20 @@ use tauri::{AppHandle, Emitter, Manager};
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
+/// Un trabajo del Estudio a la vez.
+///
+/// Antes cada archivo arrancaba su hilo sin esperar a nadie, y la
+/// DECODIFICACIÓN ocurre antes del candado del motor: soltar diez grabaciones
+/// dejaba diez audios enteros en memoria a la vez, cada uno aguardando su turno
+/// para transcribir. Diez clases de 45 minutos son ~1,7 GB, y arrastrar varias
+/// grabaciones de golpe es justo para lo que existe el Estudio.
+///
+/// Esperar aquí casi no cuesta tiempo: el motor ya serializaba la transcripción
+/// (`lock_engine` se mantiene durante todo `run`), así que lo único que se
+/// pierde es solapar la decodificación de uno con la transcripción de otro —
+/// segundos frente a minutos— y a cambio la memoria queda acotada a un archivo.
+static JOB_SLOT: Mutex<()> = Mutex::new(());
+
 #[derive(Serialize, Deserialize, Clone, Type, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum JobStatus {
@@ -138,6 +152,11 @@ pub fn studio_enqueue(app: AppHandle, paths: Vec<String>) -> Result<Vec<u64>, St
 
 fn spawn_job(app: AppHandle, id: u64, path: PathBuf, model_id: Option<String>) {
     std::thread::spawn(move || {
+        // Turno ANTES de decodificar, que es donde se reserva la memoria. El
+        // job se queda en Pending mientras espera, que es lo que la UI ya
+        // muestra. Se recupera de un candado envenenado a propósito: un job que
+        // entre en pánico no puede dejar el Estudio inservible hasta reiniciar.
+        let _slot = JOB_SLOT.lock().unwrap_or_else(|e| e.into_inner());
         let state = app.state::<Arc<StudioState>>();
         let tm = app.state::<Arc<TranscriptionManager>>();
         set_status(&state, id, JobStatus::Processing);
@@ -322,9 +341,10 @@ pub async fn studio_summarize(app: AppHandle, id: u64) -> Result<String, String>
         job.paragraphs.join("\n\n")
     };
 
-    let summary = crate::actions::summarize_text(&app, &full_text)
-        .await
-        .ok_or("No se pudo generar el resumen (¿motor local disponible?)")?;
+    // El error sube tal cual: dice si faltó el motor, si el texto es demasiado
+    // largo o qué parte falló. El mensaje único de antes mandaba a revisar el
+    // motor incluso cuando el motor estaba bien.
+    let summary = crate::actions::summarize_text(&app, &full_text).await?;
 
     if let Some(job) = app
         .state::<Arc<StudioState>>()

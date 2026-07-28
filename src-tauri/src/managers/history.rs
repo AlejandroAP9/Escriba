@@ -1134,10 +1134,7 @@ fn compute_usage_stats(buckets: &[(i64, i64, i64)], today: i64) -> UsageStats {
             cursor -= 1;
         }
 
-        let active_days_30 = active_days
-            .iter()
-            .filter(|d| **d >= cutoff_30)
-            .count() as u32;
+        let active_days_30 = active_days.iter().filter(|d| **d >= cutoff_30).count() as u32;
         // 40 wpm tecleando vs ~200 wpm dictando => ahorras 1/40 - 1/200 = 0.02 min/palabra.
         let minutes_saved = ((total_words as f64) * 0.02).round() as u32;
 

@@ -1725,6 +1725,63 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
 
 #[cfg(test)]
 mod tests {
+
+    use super::{split_for_summary, SUMMARY_CHUNK_BYTES};
+
+    /// La propiedad que importa: ningún trozo se pasa del presupuesto y no se
+    /// pierde ni una palabra. Si un trozo se pasara, la petición al motor local
+    /// fallaría por contexto — que es justo el fallo que este troceado arregla.
+    #[test]
+    fn summary_chunks_fit_the_budget_and_lose_nothing() {
+        let para = "palabra ".repeat(400);
+        let text = vec![para.trim(); 40].join("\n\n");
+
+        let chunks = split_for_summary(&text, SUMMARY_CHUNK_BYTES);
+        assert!(
+            chunks.len() > 1,
+            "este texto debería necesitar varias pasadas"
+        );
+        for (i, c) in chunks.iter().enumerate() {
+            assert!(
+                c.len() <= SUMMARY_CHUNK_BYTES,
+                "el trozo {i} ocupa {} y el tope es {SUMMARY_CHUNK_BYTES}",
+                c.len()
+            );
+        }
+        assert_eq!(
+            chunks
+                .iter()
+                .map(|c| c.split_whitespace().count())
+                .sum::<usize>(),
+            text.split_whitespace().count(),
+            "el troceado perdió o duplicó palabras"
+        );
+    }
+
+    /// Un párrafo enorme sin saltos de línea (una transcripción de corrido) se
+    /// parte igual, por palabras, sin cortar ninguna por la mitad.
+    #[test]
+    fn summary_splits_a_single_huge_paragraph_without_cutting_words() {
+        let text = "hola ".repeat(5_000);
+        let chunks = split_for_summary(&text, 500);
+
+        assert!(chunks.len() > 1);
+        for c in &chunks {
+            assert!(c.len() <= 500);
+            assert!(
+                c.split_whitespace().all(|w| w == "hola"),
+                "se partió una palabra"
+            );
+        }
+    }
+
+    /// Un texto que cabe entero sale como un solo trozo: el camino corto, que es
+    /// el del dictado normal, no debe dar rodeos.
+    #[test]
+    fn summary_short_text_stays_in_one_pass() {
+        let chunks = split_for_summary("Una frase corta.", SUMMARY_CHUNK_BYTES);
+        assert_eq!(chunks, vec!["Una frase corta.".to_string()]);
+    }
     use super::is_blank_transcription;
 
     #[test]
@@ -1817,16 +1874,45 @@ fn notify_fallback(app: &AppHandle, route: &str, detail: &str) {
 
 /// Resume un texto largo con el motor LLM local (misma cascada del phraser,
 /// temperatura baja). Usado por el Estudio. Devuelve None si no hay ruta local.
-pub async fn summarize_text(app: &AppHandle, text: &str) -> Option<String> {
+/// Bytes de transcripción que se mandan en una sola pasada al motor local.
+///
+/// El sidecar arranca con 4096 tokens de contexto (`local_llm.rs`), y hay que
+/// descontar el encargo y dejar sitio al propio resumen. Se mide en bytes y no
+/// en caracteres porque es O(1) y porque en español las tildes ocupan dos: el
+/// presupuesto sale conservador por el lado bueno.
+const SUMMARY_CHUNK_BYTES: usize = 7_000;
+
+/// Tope de pasadas: unas dos horas de habla. Más que eso se rechaza diciéndolo,
+/// en vez de resumir solo el principio y presentarlo como el resumen del todo.
+const SUMMARY_MAX_CHUNKS: usize = 16;
+
+const SUMMARY_PROMPT: &str = "Eres un asistente que resume transcripciones. Entrega un resumen claro y fiel en el mismo idioma del texto: primero 2-3 frases con la idea central, luego los puntos clave en viñetas. No inventes nada que no esté en el texto. Responde solo con el resumen.";
+
+const SUMMARY_PART_PROMPT: &str = "Eres un asistente que resume transcripciones. Esto es solo UNA PARTE de una grabación más larga. Resúmela en un máximo de 3 frases, en el mismo idioma del texto, conservando nombres, cifras y acuerdos. No inventes nada ni intentes concluir: otras partes vienen antes y después. Responde solo con el resumen.";
+
+/// Resume una transcripción con el motor local, troceándola si no cabe.
+///
+/// Antes esto mandaba el texto entero de una vez. Con 4096 tokens de contexto,
+/// una clase de una hora (unas 9.000 palabras) es el triple de lo que cabe, así
+/// que la petición fallaba — y todos los errores caían en el mismo `_ => None`,
+/// de modo que el usuario leía "¿motor local disponible?" cuando el motor estaba
+/// perfectamente disponible y el problema era el largo. Es decir, fallaba justo
+/// en el caso para el que existe la función, y además señalando el sitio
+/// equivocado.
+///
+/// Ahora se resume por partes y luego se resumen los resúmenes. Devuelve
+/// `Result` para que la causa real llegue a la interfaz.
+pub async fn summarize_text(app: &AppHandle, text: &str) -> Result<String, String> {
     if text.trim().is_empty() {
-        return None;
+        return Err("No hay texto que resumir.".to_string());
     }
     let settings = get_settings(app);
     let mut provider = settings
         .post_process_providers
         .iter()
         .find(|p| p.id == crate::settings::LOCAL_LLM_PROVIDER_ID)
-        .cloned()?;
+        .cloned()
+        .ok_or("El motor de IA local no está configurado.")?;
     let model = settings
         .post_process_models
         .get(crate::settings::LOCAL_LLM_PROVIDER_ID)
@@ -1839,16 +1925,70 @@ pub async fn summarize_text(app: &AppHandle, text: &str) -> Option<String> {
             provider.base_url = base_url;
             provider.supports_structured_output = false;
         }
-        _ => return None,
+        _ => {
+            return Err(
+                "El motor de IA local no está disponible. Instálalo en Post Proceso.".to_string(),
+            )
+        }
     }
 
-    let system_prompt = "Eres un asistente que resume transcripciones. Entrega un resumen claro y fiel en el mismo idioma del texto: primero 2-3 frases con la idea central, luego los puntos clave en viñetas. No inventes nada que no esté en el texto. Responde solo con el resumen.".to_string();
+    let chunks = split_for_summary(text, SUMMARY_CHUNK_BYTES);
+    if chunks.len() > SUMMARY_MAX_CHUNKS {
+        return Err(format!(
+            "La transcripción es demasiado larga para resumirla entera ({} palabras). Resume por partes o divide la grabación.",
+            text.split_whitespace().count()
+        ));
+    }
 
+    // Cabe de una vez: el camino de siempre, sin dar rodeos.
+    if chunks.len() <= 1 {
+        return summarize_once(&provider, &model, SUMMARY_PROMPT, text).await;
+    }
+
+    let total = chunks.len();
+    let mut partials = Vec::with_capacity(total);
+    for (i, chunk) in chunks.iter().enumerate() {
+        let part = summarize_once(&provider, &model, SUMMARY_PART_PROMPT, chunk)
+            .await
+            .map_err(|e| format!("Falló al resumir la parte {} de {}: {}", i + 1, total, e))?;
+        partials.push(part);
+    }
+
+    // Se pidieron 3 frases por parte, pero el modelo puede pasarse: si los
+    // parciales juntos tampoco caben, se resumen ELLOS por grupos y se reduce
+    // otra vez. Dos niveles y se para: mejor decirlo que dar vueltas.
+    let joined = partials.join("\n\n");
+    if joined.len() <= SUMMARY_CHUNK_BYTES {
+        return summarize_once(&provider, &model, SUMMARY_PROMPT, &joined).await;
+    }
+    let groups = split_for_summary(&joined, SUMMARY_CHUNK_BYTES);
+    let mut second = Vec::with_capacity(groups.len());
+    for group in &groups {
+        second.push(summarize_once(&provider, &model, SUMMARY_PART_PROMPT, group).await?);
+    }
+    let joined = second.join("\n\n");
+    if joined.len() > SUMMARY_CHUNK_BYTES {
+        return Err(
+            "La transcripción es demasiado larga para resumirla entera. Resume por partes."
+                .to_string(),
+        );
+    }
+    summarize_once(&provider, &model, SUMMARY_PROMPT, &joined).await
+}
+
+/// Una pasada de resumen. El error sube con su causa en vez de convertirse en
+/// `None`, que es lo que borraba la pista de qué había pasado.
+async fn summarize_once(
+    provider: &crate::settings::PostProcessProvider,
+    model: &str,
+    instruction: &str,
+    text: &str,
+) -> Result<String, String> {
     match crate::llm_client::send_chat_completion(
-        &provider,
+        provider,
         String::new(),
-        &model,
-        format!("{}\n\nTranscripción:\n{}", system_prompt, text),
+        model,
+        format!("{}\n\nTranscripción:\n{}", instruction, text),
         Some("none".to_string()),
         None,
         Some(0.3),
@@ -1859,13 +1999,57 @@ pub async fn summarize_text(app: &AppHandle, text: &str) -> Option<String> {
         Ok(Some(content)) => {
             let cleaned = strip_invisible_chars(&content);
             if cleaned.trim().is_empty() {
-                None
+                Err("el motor devolvió un resumen vacío".to_string())
             } else {
-                Some(cleaned)
+                Ok(cleaned)
             }
         }
-        _ => None,
+        Ok(None) => Err("el motor no devolvió contenido".to_string()),
+        Err(e) => Err(e),
     }
+}
+
+/// Parte un texto en trozos que quepan en `max_bytes`, cortando por párrafos y,
+/// si un párrafo solo ya no cabe, por palabras. Nunca parte una palabra.
+fn split_for_summary(text: &str, max_bytes: usize) -> Vec<String> {
+    // Primero, piezas que ya quepan por sí solas.
+    let mut pieces: Vec<String> = Vec::new();
+    for para in text.split("\n\n").map(str::trim).filter(|p| !p.is_empty()) {
+        if para.len() <= max_bytes {
+            pieces.push(para.to_string());
+            continue;
+        }
+        let mut buf = String::new();
+        for word in para.split_whitespace() {
+            if !buf.is_empty() && buf.len() + 1 + word.len() > max_bytes {
+                pieces.push(std::mem::take(&mut buf));
+            }
+            if !buf.is_empty() {
+                buf.push(' ');
+            }
+            buf.push_str(word);
+        }
+        if !buf.is_empty() {
+            pieces.push(buf);
+        }
+    }
+
+    // Y ahora se juntan piezas hasta llenar cada pasada.
+    let mut chunks: Vec<String> = Vec::new();
+    let mut current = String::new();
+    for piece in pieces {
+        if !current.is_empty() && current.len() + 2 + piece.len() > max_bytes {
+            chunks.push(std::mem::take(&mut current));
+        }
+        if !current.is_empty() {
+            current.push_str("\n\n");
+        }
+        current.push_str(&piece);
+    }
+    if !current.is_empty() {
+        chunks.push(current);
+    }
+    chunks
 }
 
 /// Corrige y pule un texto con el motor local: muletillas, repeticiones y
@@ -1924,9 +2108,44 @@ pub async fn polish_text(app: &AppHandle, text: &str) -> Option<String> {
     }
 }
 
-/// Traduce un texto al idioma destino (código ISO) con el motor local. Usado
-/// por el Intérprete en vivo. Devuelve None si no hay ruta local o falla.
+/// Traduce un texto al idioma destino (código ISO) con el motor local.
+///
+/// Para textos que el usuario está esperando sentado: el Traductor y la
+/// herramienta MCP. Admite esperas largas.
 pub async fn translate_text(app: &AppHandle, text: &str, target_lang: &str) -> Option<String> {
+    translate_with_timeout(
+        app,
+        text,
+        target_lang,
+        crate::llm_client::LONG_FORM_REQUEST_TIMEOUT,
+    )
+    .await
+}
+
+/// Traducción para el Intérprete en vivo.
+///
+/// Igual que `translate_text` pero con una espera acotada. La larga son cinco
+/// minutos, pensada para un texto que alguien pidió traducir entero; en una sala
+/// en vivo, una petición atascada con ese margen dejaría a los oyentes mirando
+/// una frase congelada durante cinco minutos. Pasado el plazo se descarta esa
+/// traducción y la sala sigue: el oyente se queda con el original, que ya tiene
+/// en pantalla desde el primer instante.
+pub async fn translate_live(app: &AppHandle, text: &str, target_lang: &str) -> Option<String> {
+    translate_with_timeout(
+        app,
+        text,
+        target_lang,
+        crate::llm_client::LIVE_REQUEST_TIMEOUT,
+    )
+    .await
+}
+
+async fn translate_with_timeout(
+    app: &AppHandle,
+    text: &str,
+    target_lang: &str,
+    timeout: std::time::Duration,
+) -> Option<String> {
     if text.trim().is_empty() {
         return None;
     }
@@ -1964,7 +2183,7 @@ pub async fn translate_text(app: &AppHandle, text: &str, target_lang: &str) -> O
         Some("none".to_string()),
         None,
         Some(0.2),
-        Some(crate::llm_client::LONG_FORM_REQUEST_TIMEOUT),
+        Some(timeout),
     )
     .await
     {

@@ -139,6 +139,17 @@ fn decode_symphonia(path: &Path) -> Result<Vec<f32>, String> {
         .codec_params
         .sample_rate
         .ok_or("Pista sin sample rate")? as usize;
+    // La frecuencia sale de la cabecera del archivo, o sea de fuera. Sin este
+    // límite, un archivo con una cabecera corrupta o inventada llega hasta el
+    // `vec![0.0f32; src_rate / 10]` del vaciado y hasta el resampler: 4.000
+    // millones de Hz son 1,7 GB reservados de golpe por un dato que nadie miró.
+    // El tope cubre de sobra cualquier audio real (el máximo habitual es 384k).
+    if !(1_000..=768_000).contains(&src_rate) {
+        return Err(format!(
+            "La pista declara {} Hz, que no es una frecuencia de audio válida",
+            src_rate
+        ));
+    }
 
     let mut decoder = symphonia::default::get_codecs()
         .make(&track.codec_params, &DecoderOptions::default())

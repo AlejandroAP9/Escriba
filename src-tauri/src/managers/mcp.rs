@@ -591,9 +591,7 @@ async fn call_tool(
                 .and_then(|t| t.as_str())
                 .unwrap_or("")
                 .to_string();
-            crate::actions::summarize_text(&app, &text)
-                .await
-                .ok_or_else(|| "No se pudo resumir (¿motor local disponible?)".to_string())
+            crate::actions::summarize_text(&app, &text).await
         }
         other => return Err((-32602, format!("Tool desconocida: {}", other))),
     };
