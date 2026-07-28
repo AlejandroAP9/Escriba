@@ -4,7 +4,7 @@ import { scrollBehavior } from "@/lib/motion";
 import { listen } from "@tauri-apps/api/event";
 import { confirm as confirmDialog } from "@tauri-apps/plugin-dialog";
 import { toast } from "sonner";
-import { sendToObsidian } from "@/lib/obsidian";
+import { requestObsidianExport } from "@/stores/obsidianStore";
 import {
   ArrowRight,
   Check,
@@ -705,7 +705,7 @@ export const ConversationSettings: React.FC = () => {
     const title = firstLine.replace(/^#+\s*/, "").slice(0, 80);
     setSendingObsidian(true);
     try {
-      await sendToObsidian(title, doc, t);
+      requestObsidianExport(title, doc);
     } finally {
       setSendingObsidian(false);
     }

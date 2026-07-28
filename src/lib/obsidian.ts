@@ -9,11 +9,16 @@ import { commands } from "@/bindings";
  * vault, lo guarda y reintenta. El backend escribe la nota Markdown. Muestra
  * el resultado con un toast; no lanza excepciones al llamador.
  */
+/**
+ * Devuelve `true` solo si la nota llegó al vault. Quien llama lo necesita para
+ * decidir si cierra el diálogo de revisión: cancelar el selector de carpeta no
+ * es un guardado, y cerrar ahí tiraría las ediciones del usuario.
+ */
 export async function sendToObsidian(
   title: string,
   content: string,
   t: TFunction,
-): Promise<void> {
+): Promise<boolean> {
   const write = async (): Promise<
     { ok: true; path: string } | { ok: false; code: string }
   > => {
@@ -43,18 +48,19 @@ export async function sendToObsidian(
       multiple: false,
       title: t("obsidian.pickVault"),
     });
-    if (typeof folder !== "string") return; // el usuario canceló
+    if (typeof folder !== "string") return false; // el usuario canceló
     const saved = await commands.setObsidianVault(folder);
     if (saved.status === "error") {
       toast.error(saved.error);
-      return;
+      return false;
     }
     result = await write();
   }
 
   if (result.ok) {
     toast.success(t("obsidian.sent"));
-  } else {
-    toast.error(t("obsidian.failed"));
+    return true;
   }
+  toast.error(t("obsidian.failed"));
+  return false;
 }

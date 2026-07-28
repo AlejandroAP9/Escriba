@@ -17,6 +17,7 @@ import { ActiveModeBanner } from "./components/shared/ActiveModeBanner";
 import { NAVIGATE_EVENT } from "./lib/navigation";
 import { applyA11yModes, applyUiScale, applyUiTheme } from "./lib/appearance";
 import { WhatsNewGate } from "./components/whats-new";
+import { ObsidianPreviewDialog } from "./components/obsidian/ObsidianPreviewDialog";
 import { useSettings } from "./hooks/useSettings";
 import { useSettingsStore } from "./stores/settingsStore";
 import { commands } from "@/bindings";
@@ -383,6 +384,9 @@ function App() {
         }}
       />
       <WhatsNewGate />
+      {/* Revisión de la nota antes de que toque el vault. Se monta una sola
+          vez aquí; Sesiones y el Estudio lo abren por el store. */}
+      <ObsidianPreviewDialog />
       {/* Main content area that takes remaining space */}
       <div className="flex-1 flex overflow-hidden">
         <Sidebar

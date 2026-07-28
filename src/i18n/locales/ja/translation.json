@@ -885,7 +885,8 @@
     "clear": "クリア",
     "noOptionsFound": "オプションが見つかりません",
     "downloading": "Downloading…",
-    "downloadingCount": "{{count}} downloading…"
+    "downloadingCount": "{{count}} downloading…",
+    "cancel": "Cancel"
   },
   "accessibility": {
     "permissionsDescription": "Escriba が文字起こしテキストを入力するには、アクセシビリティ権限が必要です。",
@@ -1341,6 +1342,13 @@
     "vaultChoose": "Choose folder",
     "vaultChange": "Change folder",
     "vaultForget": "Forget",
-    "vaultSaved": "Obsidian vault saved"
+    "vaultSaved": "Obsidian vault saved",
+    "previewTitle": "Review before saving to your vault",
+    "previewDescription": "Nothing reaches your vault until you confirm. Edit whatever you want first.",
+    "noteTitle": "Note title",
+    "noteTitleHint": "Becomes the file name inside your vault.",
+    "noteBody": "Note body",
+    "saveToVault": "Save to vault",
+    "saving": "Saving…"
   }
 }

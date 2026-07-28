@@ -885,7 +885,8 @@
     "clear": "Svuota",
     "noOptionsFound": "Nessuna opzione trovata",
     "downloading": "Downloading…",
-    "downloadingCount": "{{count}} downloading…"
+    "downloadingCount": "{{count}} downloading…",
+    "cancel": "Cancel"
   },
   "accessibility": {
     "permissionsDescription": "Escriba ha bisogno dei permessi di accessibilità per digitare il testo trascritto.",
@@ -1341,6 +1342,13 @@
     "vaultChoose": "Choose folder",
     "vaultChange": "Change folder",
     "vaultForget": "Forget",
-    "vaultSaved": "Obsidian vault saved"
+    "vaultSaved": "Obsidian vault saved",
+    "previewTitle": "Review before saving to your vault",
+    "previewDescription": "Nothing reaches your vault until you confirm. Edit whatever you want first.",
+    "noteTitle": "Note title",
+    "noteTitleHint": "Becomes the file name inside your vault.",
+    "noteBody": "Note body",
+    "saveToVault": "Save to vault",
+    "saving": "Saving…"
   }
 }

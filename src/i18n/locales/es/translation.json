@@ -885,7 +885,8 @@
     "clear": "Limpiar",
     "noOptionsFound": "No se encontraron opciones",
     "downloading": "Descargando…",
-    "downloadingCount": "{{count}} descargando…"
+    "downloadingCount": "{{count}} descargando…",
+    "cancel": "Cancelar"
   },
   "accessibility": {
     "permissionsDescription": "Escriba necesita permisos de accesibilidad para escribir texto transcrito.",
@@ -1341,6 +1342,13 @@
     "vaultChoose": "Elegir carpeta",
     "vaultChange": "Cambiar carpeta",
     "vaultForget": "Olvidar",
-    "vaultSaved": "Vault de Obsidian guardado"
+    "vaultSaved": "Vault de Obsidian guardado",
+    "previewTitle": "Revisa antes de guardar en tu vault",
+    "previewDescription": "Nada llega a tu vault hasta que confirmes. Edita lo que quieras antes.",
+    "noteTitle": "Título de la nota",
+    "noteTitleHint": "Será el nombre del archivo dentro de tu vault.",
+    "noteBody": "Cuerpo de la nota",
+    "saveToVault": "Guardar en el vault",
+    "saving": "Guardando…"
   }
 }
