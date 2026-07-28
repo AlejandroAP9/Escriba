@@ -360,7 +360,8 @@
         "experimental": "Experimental",
         "startup": "Inicio",
         "interface": "Interfaz",
-        "performance": "Rendimiento"
+        "performance": "Rendimiento",
+        "obsidian": "Obsidian"
       },
       "experimentalToggle": {
         "label": "Funciones experimentales",
@@ -1331,6 +1332,15 @@
     "sending": "Enviando…",
     "sent": "Nota guardada en tu vault de Obsidian",
     "failed": "No se pudo guardar la nota",
-    "pickVault": "Elige la carpeta de tu vault de Obsidian"
+    "pickVault": "Elige la carpeta de tu vault de Obsidian",
+    "firstTimeHint": "Primero elige la carpeta de tu vault de Obsidian. Solo esta vez.",
+    "vaultMissingHint": "Tu carpeta del vault ya no está ahí. Vuelve a elegirla.",
+    "vaultTitle": "Vault de Obsidian",
+    "vaultDescription": "Carpeta donde 'Enviar a Obsidian' escribe sus notas, desde Sesiones y el Estudio. Tiene que estar dentro de tu carpeta personal.",
+    "vaultNotSet": "Sin configurar",
+    "vaultChoose": "Elegir carpeta",
+    "vaultChange": "Cambiar carpeta",
+    "vaultForget": "Olvidar",
+    "vaultSaved": "Vault de Obsidian guardado"
   }
 }

@@ -7,6 +7,7 @@ import { Card } from "../../ui/Card";
 import { ShowOverlay } from "../ShowOverlay";
 import { ModelUnloadTimeoutSetting } from "../ModelUnloadTimeout";
 import { CustomWords } from "../CustomWords";
+import { ObsidianVault } from "../ObsidianVault";
 import { TextReplacements } from "../TextReplacements";
 import { CollapsibleGroup } from "../../ui/CollapsibleGroup";
 import { StartHidden } from "../StartHidden";
@@ -258,6 +259,10 @@ export const AdvancedSettings: React.FC = () => {
           <CustomWords descriptionMode="inline" grouped />
           <TextReplacements descriptionMode="inline" grouped />
           <AppendTrailingSpace descriptionMode="inline" grouped={true} />
+        </CollapsibleGroup>
+
+        <CollapsibleGroup title={t("settings.advanced.groups.obsidian")}>
+          <ObsidianVault descriptionMode="inline" grouped={true} />
         </CollapsibleGroup>
 
         <CollapsibleGroup title={t("settings.advanced.groups.history")}>

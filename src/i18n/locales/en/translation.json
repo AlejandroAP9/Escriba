@@ -360,7 +360,8 @@
         "experimental": "Experimental",
         "startup": "Startup",
         "interface": "Interface",
-        "performance": "Performance"
+        "performance": "Performance",
+        "obsidian": "Obsidian"
       },
       "experimentalToggle": {
         "label": "Experimental Features",
@@ -1331,6 +1332,15 @@
     "sending": "Sending…",
     "sent": "Note saved to your Obsidian vault",
     "failed": "Could not save the note",
-    "pickVault": "Choose your Obsidian vault folder"
+    "pickVault": "Choose your Obsidian vault folder",
+    "firstTimeHint": "First, choose your Obsidian vault folder. Only this once.",
+    "vaultMissingHint": "Your vault folder is no longer there. Choose it again.",
+    "vaultTitle": "Obsidian vault",
+    "vaultDescription": "Folder where 'Send to Obsidian' writes its notes, from Sessions and Studio. It must be inside your home folder.",
+    "vaultNotSet": "Not set yet",
+    "vaultChoose": "Choose folder",
+    "vaultChange": "Change folder",
+    "vaultForget": "Forget",
+    "vaultSaved": "Obsidian vault saved"
   }
 }

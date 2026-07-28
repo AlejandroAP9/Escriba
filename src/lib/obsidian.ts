@@ -29,6 +29,15 @@ export async function sendToObsidian(
     !result.ok &&
     (result.code === "SIN_VAULT" || result.code === "VAULT_NO_EXISTE")
   ) {
+    // Avisar ANTES de abrir el selector. Sin esto, pulsabas "Enviar a
+    // Obsidian" y te aparecía un explorador de carpetas sin explicación:
+    // parecía un paso de cada envío cuando es la configuración de una sola
+    // vez. El toast dura lo justo para leerse mientras se abre el diálogo.
+    toast.info(
+      result.code === "SIN_VAULT"
+        ? t("obsidian.firstTimeHint")
+        : t("obsidian.vaultMissingHint"),
+    );
     const folder = await openDialog({
       directory: true,
       multiple: false,
