@@ -31,6 +31,43 @@ static MIGRATIONS: &[M] = &[
     M::up("ALTER TABLE transcription_history ADD COLUMN post_processed_text TEXT;"),
     M::up("ALTER TABLE transcription_history ADD COLUMN post_process_prompt TEXT;"),
     M::up("ALTER TABLE transcription_history ADD COLUMN post_process_requested BOOLEAN NOT NULL DEFAULT 0;"),
+    // Agregados de uso, que NO se podan.
+    //
+    // Las estadísticas se calculaban recorriendo `transcription_history`, pero
+    // esa tabla se recorta en cada dictado (`cleanup_by_count`, 5 entradas por
+    // omisión). El resultado era que "has dictado N veces" y "te has ahorrado X
+    // minutos" solo contaban las últimas cinco: los datos no estaban ocultos,
+    // estaban BORRADOS. También arrastraba la racha, los días activos y la
+    // gráfica de la semana (reporte de Flor, 28-jul-2026).
+    //
+    // Un balde por día en UTC —el mismo que ya usaba la racha— cuesta 365 filas
+    // al año y sobrevive a cualquier política de retención.
+    M::up(
+        "CREATE TABLE IF NOT EXISTS usage_daily (
+            day INTEGER PRIMARY KEY,
+            transcriptions INTEGER NOT NULL DEFAULT 0,
+            words INTEGER NOT NULL DEFAULT 0
+        );",
+    ),
+    // Siembra con lo que quede en el historial. Lo ya podado se perdió y no hay
+    // de dónde recuperarlo; esto al menos evita que quien actualiza empiece de
+    // cero. El conteo de palabras aquí se aproxima contando espacios, en vez de
+    // `split_whitespace`: es una sola pasada sobre unas pocas filas.
+    M::up(
+        "INSERT OR REPLACE INTO usage_daily (day, transcriptions, words)
+         SELECT timestamp / 86400,
+                COUNT(*),
+                SUM(
+                    CASE WHEN trim(COALESCE(NULLIF(post_processed_text, ''), transcription_text)) = ''
+                    THEN 0
+                    ELSE length(trim(COALESCE(NULLIF(post_processed_text, ''), transcription_text)))
+                       - length(replace(trim(COALESCE(NULLIF(post_processed_text, ''), transcription_text)), ' ', ''))
+                       + 1
+                    END
+                )
+         FROM transcription_history
+         GROUP BY timestamp / 86400;",
+    ),
 ];
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
@@ -275,6 +312,29 @@ impl HistoryManager {
         let post_processed_text = post_processed_text
             .as_deref()
             .map(crate::redaction::redact_for_storage);
+
+        // Agregado diario ANTES de insertar: es lo único que sobrevive a la
+        // poda, así que tiene que quedar contado aunque esta misma entrada sea
+        // la que se recorte dentro de un momento.
+        {
+            let counted = post_processed_text
+                .as_deref()
+                .filter(|t| !t.trim().is_empty())
+                .unwrap_or(&transcription_text);
+            let words = counted.split_whitespace().count() as i64;
+            let conn = self.get_connection()?;
+            if let Err(e) = conn.execute(
+                "INSERT INTO usage_daily (day, transcriptions, words) VALUES (?1, 1, ?2)
+                 ON CONFLICT(day) DO UPDATE SET
+                    transcriptions = transcriptions + 1,
+                    words = words + excluded.words",
+                params![timestamp / 86_400, words],
+            ) {
+                // Que fallen las estadísticas no puede impedir que se guarde el
+                // dictado, que es lo que el usuario vino a hacer.
+                error!("No se pudo actualizar el agregado de uso: {}", e);
+            }
+        }
 
         let conn = self.get_connection()?;
         conn.execute(
@@ -783,6 +843,67 @@ mod tests {
         assert_eq!(entry.timestamp, 100);
         assert_eq!(entry.transcription_text, "completed");
     }
+
+    /// Un "ahora" fijo para que los tests no dependan del reloj: día 1000.
+    const NOW: i64 = 1000 * 86_400;
+
+    #[test]
+    fn stats_accumulate_beyond_the_history_limit() {
+        // El fallo que reportó Flor: el historial guarda 5 entradas, pero las
+        // estadísticas tienen que contar los 120 dictados de siempre.
+        let buckets: Vec<(i64, i64, i64)> = (0..40).map(|i| (1000 - i, 3, 120)).collect();
+        let stats = compute_usage_stats(&buckets, NOW);
+
+        assert_eq!(stats.total_transcriptions, 120);
+        assert_eq!(stats.total_words, 4800);
+        // 4800 palabras * 0,02 min ahorrados por palabra.
+        assert_eq!(stats.minutes_saved, 96);
+    }
+
+    #[test]
+    fn stats_streak_counts_consecutive_days_backwards() {
+        // Hoy, ayer y anteayer; luego un hueco.
+        let buckets = vec![(1000, 1, 10), (999, 1, 10), (998, 1, 10), (995, 1, 10)];
+        assert_eq!(compute_usage_stats(&buckets, NOW).current_streak_days, 3);
+    }
+
+    #[test]
+    fn stats_streak_tolerates_not_dictating_yet_today() {
+        // Sin dictar hoy, la racha cuenta desde ayer en vez de romperse.
+        let buckets = vec![(999, 1, 10), (998, 1, 10)];
+        assert_eq!(compute_usage_stats(&buckets, NOW).current_streak_days, 2);
+    }
+
+    #[test]
+    fn stats_words_by_day_covers_seven_days_ending_today() {
+        let buckets = vec![(1000, 1, 7), (997, 1, 4), (900, 1, 999)];
+        let stats = compute_usage_stats(&buckets, NOW);
+
+        assert_eq!(stats.words_by_day.len(), 7);
+        // El índice 6 es hoy; el 3 es hace tres días.
+        assert_eq!(stats.words_by_day[6], 7);
+        assert_eq!(stats.words_by_day[3], 4);
+        // Lo viejo cuenta en el total pero no en la ventana de la semana.
+        assert_eq!(stats.words_by_day.iter().sum::<u32>(), 11);
+        assert_eq!(stats.total_words, 1010);
+    }
+
+    #[test]
+    fn stats_thirty_day_window_excludes_older_buckets() {
+        let buckets = vec![(1000, 1, 100), (980, 1, 50), (960, 1, 999)];
+        let stats = compute_usage_stats(&buckets, NOW);
+
+        assert_eq!(stats.words_last_30_days, 150);
+        assert_eq!(stats.active_days_last_30, 2);
+    }
+
+    #[test]
+    fn stats_empty_history_is_all_zeros() {
+        let stats = compute_usage_stats(&[], NOW);
+        assert_eq!(stats.total_transcriptions, 0);
+        assert_eq!(stats.current_streak_days, 0);
+        assert_eq!(stats.words_by_day, vec![0; 7]);
+    }
 }
 
 #[derive(serde::Serialize, Clone, specta::Type)]
@@ -803,19 +924,37 @@ pub struct UsageStats {
 }
 
 impl HistoryManager {
-    /// Estadísticas derivadas del historial existente (sin migraciones):
-    /// palabras = split por espacios del texto final; racha = días
-    /// consecutivos con actividad hasta hoy.
+    /// Estadísticas de uso acumuladas.
+    ///
+    /// Salen de `usage_daily`, NO del historial. El historial se recorta en cada
+    /// dictado (5 entradas por omisión), así que calcular sobre él hacía que
+    /// "has dictado N veces" contara solo las últimas cinco — y lo mismo la
+    /// racha, los días activos y la gráfica de la semana. Los agregados no se
+    /// podan nunca.
     pub fn get_usage_stats(&self) -> Result<UsageStats> {
         let conn = self.get_connection()?;
-        let mut stmt = conn.prepare(
-            "SELECT timestamp, COALESCE(NULLIF(post_processed_text, ''), transcription_text) FROM transcription_history",
-        )?;
+        let mut stmt = conn.prepare("SELECT day, transcriptions, words FROM usage_daily")?;
         let rows = stmt.query_map([], |row| {
-            Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+            Ok((
+                row.get::<_, i64>(0)?,
+                row.get::<_, i64>(1)?,
+                row.get::<_, i64>(2)?,
+            ))
         })?;
 
-        let now = chrono::Utc::now().timestamp();
+        let buckets: Vec<(i64, i64, i64)> = rows.flatten().collect();
+        Ok(compute_usage_stats(
+            &buckets,
+            chrono::Utc::now().timestamp(),
+        ))
+    }
+}
+
+/// Cálculo puro sobre los baldes diarios, aparte para poder probarlo: el fallo
+/// que lo motivó (estadísticas que solo contaban las últimas cinco entradas)
+/// era justo de esta lógica, y no había forma de cubrirlo con un test.
+fn compute_usage_stats(buckets: &[(i64, i64, i64)], now: i64) -> UsageStats {
+    {
         let day = 86_400i64;
         let cutoff_30 = now - 30 * day;
 
@@ -826,16 +965,17 @@ impl HistoryManager {
         let mut words_per_day: std::collections::HashMap<i64, u32> =
             std::collections::HashMap::new();
 
-        for row in rows.flatten() {
-            let (ts, text) = row;
-            let words = text.split_whitespace().count() as u32;
-            total_transcriptions += 1;
+        for &(bucket, count, words) in buckets {
+            let count = count.max(0) as u32;
+            let words = words.max(0) as u32;
+            total_transcriptions += count;
             total_words += words;
-            if ts >= cutoff_30 {
+            if bucket >= cutoff_30 / day {
                 words_30 += words;
             }
-            let bucket = ts / day;
-            active_days.insert(bucket);
+            if count > 0 {
+                active_days.insert(bucket);
+            }
             *words_per_day.entry(bucket).or_insert(0) += words;
         }
 
@@ -862,7 +1002,7 @@ impl HistoryManager {
             .map(|d| words_per_day.get(&d).copied().unwrap_or(0))
             .collect();
 
-        Ok(UsageStats {
+        UsageStats {
             total_transcriptions,
             total_words,
             words_last_30_days: words_30,
@@ -870,6 +1010,6 @@ impl HistoryManager {
             current_streak_days: streak,
             minutes_saved,
             words_by_day,
-        })
+        }
     }
 }
