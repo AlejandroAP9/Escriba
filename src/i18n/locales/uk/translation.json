@@ -888,7 +888,8 @@
     "noOptionsFound": "Опцій не знайдено",
     "downloading": "Downloading…",
     "downloadingCount": "{{count}} downloading…",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "back": "Back"
   },
   "accessibility": {
     "permissionsDescription": "Escriba потребує дозволи доступності для введення транскрибованого тексту.",
@@ -1352,5 +1353,70 @@
     "noteBody": "Note body",
     "saveToVault": "Save to vault",
     "saving": "Saving…"
+  },
+  "wizard": {
+    "progress": "Step {{step}} of {{total}}",
+    "next": "Continue",
+    "skip": "Not now",
+    "later": "Later",
+    "welcome": {
+      "title": "I'm Plumín, and I'll walk you through this",
+      "narration": "In a few minutes you'll be dictating. I'll show you what matters; everything else you can change later.",
+      "cta": "Let's start",
+      "local": {
+        "title": "I listen right here",
+        "body": "Speech recognition runs on your computer. Your voice never leaves it."
+      },
+      "noCloud": {
+        "title": "No cloud involved",
+        "body": "Works without internet. Nothing is uploaded anywhere."
+      },
+      "noAccount": {
+        "title": "No account, no subscription",
+        "body": "Nothing to sign up for. Free, with no usage limit."
+      }
+    },
+    "model": {
+      "title": "Choose how I'll hear you",
+      "narration": "This is the model that turns your voice into text. It starts downloading as soon as you pick one, and keeps going while we finish the rest."
+    },
+    "engine": {
+      "title": "And this one is for thinking, not just writing",
+      "narration": "An AI engine that runs on your machine. It's optional: skip it and dictation still works.",
+      "unlocksTitle": "This turns on:",
+      "unlocks": {
+        "polish": "Polishing what you dictate: fillers out, punctuation in, and a tone per app",
+        "translate": "Translating as you dictate, and the meeting Interpreter",
+        "sessions": "Minutes and notes when a session ends"
+      },
+      "sizeNote": "About 2.5 GB. You can install it later from Settings → Post Processing."
+    },
+    "shortcut": {
+      "title": "Your shortcut to talk to me",
+      "narration": "Hold it down, say what you want, let go. The text appears wherever your cursor is, in any app."
+    },
+    "obsidian": {
+      "title": "Do you keep notes in Obsidian?",
+      "narration": "I can leave your transcriptions and session minutes there as real notes. Without going through the internet."
+    },
+    "test": {
+      "title": "Now tell me something",
+      "narration": "Press the microphone and speak. I want you to see your words before we go on.",
+      "titleDone": "You wrote that with your voice",
+      "narrationDone": "And I can do more with it. Try me: translate it.",
+      "placeholder": "Your words will appear here.",
+      "listening": "I'm listening…",
+      "writing": "Writing…",
+      "start": "Speak",
+      "stop": "Done",
+      "again": "Again",
+      "translate": "Translate it",
+      "translating": "Translating…",
+      "translationLabel": "Translation",
+      "translationNote": "Translated on your machine, nothing sent.",
+      "shortcutHint": "Outside of here, your shortcut is",
+      "finish": "Finish",
+      "finishEmpty": "Skip and finish"
+    }
   }
 }

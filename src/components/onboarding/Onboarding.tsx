@@ -10,12 +10,25 @@ import EscribaLogo from "../icons/EscribaLogo";
 import { Plumin } from "../shared/Plumin";
 import { Button } from "../ui/Button";
 import { useModelStore } from "../../stores/modelStore";
+import { WizardShell } from "./WizardShell";
 
 interface OnboardingProps {
   onModelSelected: () => void;
+  /**
+   * Cuando viene, este paso se pinta DENTRO del asistente (Plumín, progreso,
+   * navegación) en vez de con su propia pantalla completa. La lista de modelos
+   * es la misma en los dos casos: una sola implementación, no dos que se van
+   * separando con el tiempo.
+   */
+  wizard?: {
+    step: number;
+    totalSteps: number;
+    onBack: () => void;
+    onNext: () => void;
+  };
 }
 
-const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
+const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected, wizard }) => {
   const { t, i18n } = useTranslation();
   const {
     models,
@@ -143,6 +156,123 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
     return downloadStats[modelId]?.speed;
   };
 
+  const modelList = (
+    <div className="space-y-6 pb-6">
+      {models.some((m: ModelInfo) => m.is_downloaded) && (
+        <div className="space-y-3">
+          <div className="text-left">
+            <h2 className="text-sm font-medium text-mid-gray">
+              {t("onboarding.existingModelsTitle")}
+            </h2>
+          </div>
+          {models
+            .filter((m: ModelInfo) => m.is_downloaded)
+            .map((model: ModelInfo) => (
+              <ModelCard
+                key={model.id}
+                model={model}
+                status={getExistingModelStatus(model.id)}
+                disabled={isBusy}
+                onSelect={handleSelectExistingModel}
+                showRecommended={false}
+              />
+            ))}
+        </div>
+      )}
+
+      {downloadable.length > 0 && (
+        <div className="space-y-3">
+          <div className="text-left">
+            <h2 className="text-sm font-medium text-mid-gray">
+              {t("onboarding.downloadModelsTitle")}
+            </h2>
+          </div>
+
+          {topPicks.map((model: ModelInfo) => (
+            <ModelCard
+              key={model.id}
+              model={model}
+              variant="featured"
+              status={getModelStatus(model.id)}
+              disabled={isBusy}
+              onSelect={handleDownloadModel}
+              onDownload={handleDownloadModel}
+              downloadProgress={getModelDownloadProgress(model.id)}
+              downloadSpeed={getModelDownloadSpeed(model.id)}
+              showRecommended={false}
+            />
+          ))}
+
+          {otherRecommended.map((model: ModelInfo) => (
+            <ModelCard
+              key={model.id}
+              model={model}
+              status={getModelStatus(model.id)}
+              disabled={isBusy}
+              onSelect={handleDownloadModel}
+              onDownload={handleDownloadModel}
+              downloadProgress={getModelDownloadProgress(model.id)}
+              downloadSpeed={getModelDownloadSpeed(model.id)}
+              showRecommended={false}
+            />
+          ))}
+
+          {hasRecommended && rest.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowAll((v) => !v)}
+              className="flex items-center justify-center gap-1.5 mx-auto text-mid-gray hover:text-text"
+            >
+              {showAll
+                ? t("onboarding.showFewerModels")
+                : t("onboarding.showAllModels", {
+                    total: downloadable.length,
+                  })}
+              <ChevronDown
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  showAll ? "rotate-180" : ""
+                }`}
+              />
+            </Button>
+          )}
+
+          {showRest &&
+            rest.map((model: ModelInfo) => (
+              <ModelCard
+                key={model.id}
+                model={model}
+                status={getModelStatus(model.id)}
+                disabled={isBusy}
+                onSelect={handleDownloadModel}
+                onDownload={handleDownloadModel}
+                downloadProgress={getModelDownloadProgress(model.id)}
+                downloadSpeed={getModelDownloadSpeed(model.id)}
+                showRecommended={false}
+              />
+            ))}
+        </div>
+      )}
+    </div>
+  );
+
+  if (wizard) {
+    return (
+      <WizardShell
+        step={wizard.step}
+        totalSteps={wizard.totalSteps}
+        pose="neutral"
+        title={t("wizard.model.title")}
+        narration={t("wizard.model.narration")}
+        onBack={wizard.onBack}
+        onNext={wizard.onNext}
+        nextLabel={t("wizard.next")}
+      >
+        {modelList}
+      </WizardShell>
+    );
+  }
+
   return (
     <div className="h-screen w-screen flex flex-col p-6 gap-4 inset-0">
       <div className="flex flex-col items-center gap-2 shrink-0">
@@ -157,103 +287,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
       </div>
 
       <div className="max-w-[600px] w-full mx-auto text-center flex-1 flex flex-col min-h-0">
-        <div className="space-y-6 pb-6">
-          {models.some((m: ModelInfo) => m.is_downloaded) && (
-            <div className="space-y-3">
-              <div className="text-left">
-                <h2 className="text-sm font-medium text-mid-gray">
-                  {t("onboarding.existingModelsTitle")}
-                </h2>
-              </div>
-              {models
-                .filter((m: ModelInfo) => m.is_downloaded)
-                .map((model: ModelInfo) => (
-                  <ModelCard
-                    key={model.id}
-                    model={model}
-                    status={getExistingModelStatus(model.id)}
-                    disabled={isBusy}
-                    onSelect={handleSelectExistingModel}
-                    showRecommended={false}
-                  />
-                ))}
-            </div>
-          )}
-
-          {downloadable.length > 0 && (
-            <div className="space-y-3">
-              <div className="text-left">
-                <h2 className="text-sm font-medium text-mid-gray">
-                  {t("onboarding.downloadModelsTitle")}
-                </h2>
-              </div>
-
-              {topPicks.map((model: ModelInfo) => (
-                <ModelCard
-                  key={model.id}
-                  model={model}
-                  variant="featured"
-                  status={getModelStatus(model.id)}
-                  disabled={isBusy}
-                  onSelect={handleDownloadModel}
-                  onDownload={handleDownloadModel}
-                  downloadProgress={getModelDownloadProgress(model.id)}
-                  downloadSpeed={getModelDownloadSpeed(model.id)}
-                  showRecommended={false}
-                />
-              ))}
-
-              {otherRecommended.map((model: ModelInfo) => (
-                <ModelCard
-                  key={model.id}
-                  model={model}
-                  status={getModelStatus(model.id)}
-                  disabled={isBusy}
-                  onSelect={handleDownloadModel}
-                  onDownload={handleDownloadModel}
-                  downloadProgress={getModelDownloadProgress(model.id)}
-                  downloadSpeed={getModelDownloadSpeed(model.id)}
-                  showRecommended={false}
-                />
-              ))}
-
-              {hasRecommended && rest.length > 0 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowAll((v) => !v)}
-                  className="flex items-center justify-center gap-1.5 mx-auto text-mid-gray hover:text-text"
-                >
-                  {showAll
-                    ? t("onboarding.showFewerModels")
-                    : t("onboarding.showAllModels", {
-                        total: downloadable.length,
-                      })}
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      showAll ? "rotate-180" : ""
-                    }`}
-                  />
-                </Button>
-              )}
-
-              {showRest &&
-                rest.map((model: ModelInfo) => (
-                  <ModelCard
-                    key={model.id}
-                    model={model}
-                    status={getModelStatus(model.id)}
-                    disabled={isBusy}
-                    onSelect={handleDownloadModel}
-                    onDownload={handleDownloadModel}
-                    downloadProgress={getModelDownloadProgress(model.id)}
-                    downloadSpeed={getModelDownloadSpeed(model.id)}
-                    showRecommended={false}
-                  />
-                ))}
-            </div>
-          )}
-        </div>
+        {modelList}
       </div>
     </div>
   );

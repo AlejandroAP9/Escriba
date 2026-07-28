@@ -888,7 +888,8 @@
     "noOptionsFound": "No se encontraron opciones",
     "downloading": "Descargando…",
     "downloadingCount": "{{count}} descargando…",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "back": "Atrás"
   },
   "accessibility": {
     "permissionsDescription": "Escriba necesita permisos de accesibilidad para escribir texto transcrito.",
@@ -1352,5 +1353,70 @@
     "noteBody": "Cuerpo de la nota",
     "saveToVault": "Guardar en el vault",
     "saving": "Guardando…"
+  },
+  "wizard": {
+    "progress": "Paso {{step}} de {{total}}",
+    "next": "Continuar",
+    "skip": "Ahora no",
+    "later": "Más tarde",
+    "welcome": {
+      "title": "Soy Plumín, y voy a acompañarte",
+      "narration": "En unos minutos vas a estar dictando. Te muestro lo importante y lo demás lo cambias cuando quieras.",
+      "cta": "Empecemos",
+      "local": {
+        "title": "Yo escucho aquí mismo",
+        "body": "El reconocimiento de voz corre en tu computador. Tu voz no sale de él."
+      },
+      "noCloud": {
+        "title": "Sin nube de por medio",
+        "body": "Funciona sin internet. Nada se sube a ningún servidor."
+      },
+      "noAccount": {
+        "title": "Sin cuenta ni suscripción",
+        "body": "Nada que registrar. Gratis, y sin límite de uso."
+      }
+    },
+    "model": {
+      "title": "Elige con qué voy a escucharte",
+      "narration": "Es el modelo que convierte tu voz en texto. Empieza descargando en cuanto elijas, y seguirá bajando mientras terminamos lo demás."
+    },
+    "engine": {
+      "title": "Y esto es para pensar, no solo escribir",
+      "narration": "Un motor de IA que corre en tu máquina. Es opcional: si lo saltas, el dictado funciona igual.",
+      "unlocksTitle": "Con esto se enciende:",
+      "unlocks": {
+        "polish": "Pulir lo dictado: muletillas fuera, puntuación puesta, y el tono de cada app",
+        "translate": "Traducir mientras dictas, y el Intérprete de reuniones",
+        "sessions": "Actas y apuntes al terminar una sesión"
+      },
+      "sizeNote": "Son unos 2,5 GB. Puedes instalarlo después desde Ajustes → Post Proceso."
+    },
+    "shortcut": {
+      "title": "Tu atajo para hablarme",
+      "narration": "Manténlo pulsado, di lo que quieras, y suéltalo. El texto aparece donde tengas el cursor, en cualquier app."
+    },
+    "obsidian": {
+      "title": "¿Guardas notas en Obsidian?",
+      "narration": "Puedo dejar ahí tus transcripciones y las actas de tus sesiones, como notas de verdad. Sin pasar por internet."
+    },
+    "test": {
+      "title": "Ahora dime algo",
+      "narration": "Pulsa el micrófono y habla. Quiero que veas tus palabras antes de que sigamos.",
+      "titleDone": "Eso lo escribiste con la voz",
+      "narrationDone": "Y puedo hacer más con ello. Pruébame: tradúcelo.",
+      "placeholder": "Aquí van a aparecer tus palabras.",
+      "listening": "Te escucho…",
+      "writing": "Escribiendo…",
+      "start": "Hablar",
+      "stop": "Listo",
+      "again": "Otra vez",
+      "translate": "Tradúcelo",
+      "translating": "Traduciendo…",
+      "translationLabel": "Traducción",
+      "translationNote": "Traducido en tu máquina, sin enviar nada.",
+      "shortcutHint": "Fuera de aquí, tu atajo es",
+      "finish": "Terminar",
+      "finishEmpty": "Saltar y terminar"
+    }
   }
 }

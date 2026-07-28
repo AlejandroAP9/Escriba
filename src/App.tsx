@@ -11,7 +11,8 @@ import { ModelStateEvent, RecordingErrorEvent } from "./lib/types/events";
 import "./App.css";
 import AccessibilityPermissions from "./components/AccessibilityPermissions";
 import Footer from "./components/footer";
-import Onboarding, { AccessibilityOnboarding } from "./components/onboarding";
+import { AccessibilityOnboarding } from "./components/onboarding";
+import { SetupWizard } from "./components/onboarding/SetupWizard";
 import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
 import { ActiveModeBanner } from "./components/shared/ActiveModeBanner";
 import { NAVIGATE_EVENT } from "./lib/navigation";
@@ -365,7 +366,15 @@ function App() {
   }
 
   if (onboardingStep === "model") {
-    return <Onboarding onModelSelected={handleModelSelected} />;
+    // El asistente completo: bienvenida, modelo, motor local, atajo, Obsidian
+    // y la primera dictada. Los permisos van antes, en su propia pantalla.
+    const binding = (
+      settings?.bindings as
+        Record<string, { current_binding?: string }> | undefined
+    )?.transcribe?.current_binding;
+    return (
+      <SetupWizard shortcut={binding ?? "—"} onComplete={handleModelSelected} />
+    );
   }
 
   return (
