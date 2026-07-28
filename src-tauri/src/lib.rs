@@ -665,6 +665,7 @@ pub fn run(cli_args: CliArgs) {
             commands::virtual_mic::virtual_mic_uninstall,
             commands::obsidian::set_obsidian_vault,
             commands::obsidian::get_obsidian_vault,
+            commands::obsidian::set_obsidian_notes_folder,
             commands::obsidian::export_to_obsidian,
             commands::mcp::mcp_start,
             commands::mcp::mcp_stop,

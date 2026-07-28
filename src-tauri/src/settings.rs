@@ -411,6 +411,9 @@ pub struct AppSettings {
     /// Para quien pierde de vista dónde está parado dentro de la interfaz.
     #[serde(default)]
     pub always_show_focus: bool,
+    /// Subcarpeta dentro del vault donde aterrizan las notas. Vacío = raíz.
+    #[serde(default = "default_obsidian_notes_folder")]
+    pub obsidian_notes_folder: String,
     /// Revisar antes de pegar: el dictado normal se muestra en el overlay
     /// (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
     #[serde(default)]
@@ -676,6 +679,13 @@ fn default_ui_theme() -> String {
 
 fn default_ui_scale() -> u32 {
     100
+}
+
+fn default_obsidian_notes_folder() -> String {
+    // Las notas exportadas no tienen por qué ensuciar la raíz del vault de
+    // nadie: van a su propia carpeta, que se crea sola. Vaciar el campo
+    // devuelve el comportamiento anterior (escribir en la raíz).
+    "Escriba".to_string()
 }
 
 fn default_sound_theme() -> SoundTheme {
@@ -1050,6 +1060,7 @@ pub fn get_default_settings() -> AppSettings {
         colorblind_assist: false,
         calm_mode: false,
         always_show_focus: false,
+        obsidian_notes_folder: default_obsidian_notes_folder(),
         review_before_paste: false,
         start_hidden: default_start_hidden(),
         autostart_enabled: default_autostart_enabled(),

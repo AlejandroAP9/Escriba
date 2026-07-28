@@ -4,6 +4,7 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { SettingContainer } from "../ui/SettingContainer";
+import { useSettings } from "../../hooks/useSettings";
 import { Button } from "../ui/Button";
 
 interface ObsidianVaultProps {
@@ -24,12 +25,26 @@ export const ObsidianVault: React.FC<ObsidianVaultProps> = React.memo(
   ({ descriptionMode = "tooltip", grouped = false }) => {
     const { t } = useTranslation();
     const [vault, setVault] = useState<string | null>(null);
+    const [folder, setFolder] = useState("");
     const [busy, setBusy] = useState(false);
+    const { getSetting } = useSettings();
 
     const refresh = useCallback(async () => {
       const r = await commands.getObsidianVault();
       setVault(r.status === "ok" ? r.data : "");
     }, []);
+
+    // El valor persistido manda: el backend lo guarda ya saneado, así que si
+    // escribiste algo que no vale, al volver ves lo que de verdad se usa.
+    const stored = (getSetting("obsidian_notes_folder") ?? "") as string;
+    useEffect(() => {
+      setFolder(stored);
+    }, [stored]);
+
+    const saveFolder = async () => {
+      if (folder === stored) return;
+      await commands.setObsidianNotesFolder(folder);
+    };
 
     useEffect(() => {
       refresh();
@@ -102,6 +117,37 @@ export const ObsidianVault: React.FC<ObsidianVaultProps> = React.memo(
               </Button>
             )}
           </div>
+
+          {/* La subcarpeta solo tiene sentido con un vault elegido. Se crea
+              sola al exportar, así que aquí no hay nada que hacer más que
+              ponerle nombre. */}
+          {configured && (
+            <div className="mt-1 flex flex-col gap-1">
+              <label
+                htmlFor="obsidian-notes-folder"
+                className="text-xs font-medium text-mid-gray"
+              >
+                {t("obsidian.folderLabel")}
+              </label>
+              <input
+                id="obsidian-notes-folder"
+                type="text"
+                value={folder}
+                placeholder={t("obsidian.folderPlaceholder")}
+                onChange={(e) => setFolder(e.target.value)}
+                // Se guarda al salir del campo, no en cada tecla: el backend
+                // sanea el nombre y devolverlo mientras escribes movería el
+                // cursor a mitad de palabra.
+                onBlur={saveFolder}
+                className="w-full rounded-control border border-line bg-background px-3 py-2 font-mono text-2xs text-text focus:outline-none focus:ring-1 focus:ring-logo-primary"
+              />
+              <p className="text-3xs text-mid-gray">
+                {folder.trim()
+                  ? t("obsidian.folderHint", { folder: folder.trim() })
+                  : t("obsidian.folderHintRoot")}
+              </p>
+            </div>
+          )}
         </div>
       </SettingContainer>
     );

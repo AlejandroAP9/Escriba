@@ -222,6 +222,14 @@ async getObsidianVault() : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async setObsidianNotesFolder(folder: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_obsidian_notes_folder", { folder }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async exportToObsidian(title: string, content: string) : Promise<Result<string, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("export_to_obsidian", { title, content }) };
@@ -1404,6 +1412,10 @@ calm_mode?: boolean;
  * Para quien pierde de vista dónde está parado dentro de la interfaz.
  */
 always_show_focus?: boolean;
+/**
+ * Subcarpeta dentro del vault donde aterrizan las notas. Vacío = raíz.
+ */
+obsidian_notes_folder?: string;
 /**
  * Revisar antes de pegar: el dictado normal se muestra en el overlay
  * (Pegar / Descartar / corregir dictando) en vez de pegarse directo.

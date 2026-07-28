@@ -1357,7 +1357,11 @@
     "noteTitleHint": "Becomes the file name inside your vault.",
     "noteBody": "Note body",
     "saveToVault": "Save to vault",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "folderLabel": "Folder inside the vault",
+    "folderPlaceholder": "Escriba",
+    "folderHint": "Notes go into “{{folder}}”. It gets created on first use.",
+    "folderHintRoot": "Empty: notes land loose in your vault root."
   },
   "wizard": {
     "progress": "Step {{step}} of {{total}}",

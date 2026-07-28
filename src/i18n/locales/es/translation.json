@@ -1357,7 +1357,11 @@
     "noteTitleHint": "Será el nombre del archivo dentro de tu vault.",
     "noteBody": "Cuerpo de la nota",
     "saveToVault": "Guardar en el vault",
-    "saving": "Guardando…"
+    "saving": "Guardando…",
+    "folderLabel": "Carpeta dentro del vault",
+    "folderPlaceholder": "Escriba",
+    "folderHint": "Las notas entran en «{{folder}}». Se crea sola la primera vez.",
+    "folderHintRoot": "Vacío: las notas caen sueltas en la raíz de tu vault."
   },
   "wizard": {
     "progress": "Paso {{step}} de {{total}}",
