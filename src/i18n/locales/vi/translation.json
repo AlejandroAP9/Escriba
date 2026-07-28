@@ -777,6 +777,11 @@
         "button": "Xem trước",
         "noNotes": "Không tìm thấy ghi chú phát hành được đóng gói",
         "error": "Không thể xem trước ghi chú phát hành"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

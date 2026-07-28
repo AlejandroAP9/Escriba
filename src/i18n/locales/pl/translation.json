@@ -777,6 +777,11 @@
         "button": "Podgląd",
         "noNotes": "Nie znaleziono dołączonych informacji o wydaniu",
         "error": "Nie udało się wyświetlić podglądu informacji o wydaniu"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

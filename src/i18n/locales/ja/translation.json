@@ -777,6 +777,11 @@
         "button": "プレビュー",
         "noNotes": "同梱リリースノートが見つかりません",
         "error": "リリースノートのプレビューに失敗しました"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

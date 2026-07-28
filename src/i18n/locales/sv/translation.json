@@ -777,6 +777,11 @@
         "button": "Förhandsvisa",
         "noNotes": "Ingen medföljande versionsinformation hittades",
         "error": "Det gick inte att förhandsvisa versionsinformationen"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

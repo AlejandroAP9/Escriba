@@ -777,6 +777,11 @@
       "recordingBuffer": {
         "title": "Extra opnamebuffer",
         "description": "Extra tijd (in milliseconden) om te blijven opnemen nadat je de toets loslaat, om naloopaudio op te vangen. 0 = geen extra buffer."
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

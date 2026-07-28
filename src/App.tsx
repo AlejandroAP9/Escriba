@@ -15,7 +15,7 @@ import { AccessibilityOnboarding } from "./components/onboarding";
 import { SetupWizard } from "./components/onboarding/SetupWizard";
 import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
 import { ActiveModeBanner } from "./components/shared/ActiveModeBanner";
-import { NAVIGATE_EVENT } from "./lib/navigation";
+import { NAVIGATE_EVENT, REPLAY_ONBOARDING_EVENT } from "./lib/navigation";
 import { applyA11yModes, applyUiScale, applyUiTheme } from "./lib/appearance";
 import { WhatsNewGate } from "./components/whats-new";
 import { ObsidianPreviewDialog } from "./components/obsidian/ObsidianPreviewDialog";
@@ -67,6 +67,11 @@ function App() {
     const handler = (e: Event) => {
       setCurrentSection((e as CustomEvent<SidebarSection>).detail);
     };
+    // Volver a ver la bienvenida (Ajustes -> Depuración). Solo estado en
+    // memoria: al terminar, `handleModelSelected` devuelve a la app sin haber
+    // tocado ningún ajuste.
+    const replay = () => setOnboardingStep("model");
+    window.addEventListener(REPLAY_ONBOARDING_EVENT, replay);
     window.addEventListener(NAVIGATE_EVENT, handler);
     // El tray navega por evento tauri (Sesión rápida, Historial).
     const unTray = listen<string>("escriba-navigate", (e) => {
@@ -76,6 +81,7 @@ function App() {
     });
     return () => {
       window.removeEventListener(NAVIGATE_EVENT, handler);
+      window.removeEventListener(REPLAY_ONBOARDING_EVENT, replay);
       unTray.then((fn) => fn());
     };
   }, []);

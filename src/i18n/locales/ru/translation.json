@@ -777,6 +777,11 @@
         "button": "Предпросмотр",
         "noNotes": "Встроенные примечания к выпуску не найдены",
         "error": "Не удалось показать предварительный просмотр примечаний к выпуску"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

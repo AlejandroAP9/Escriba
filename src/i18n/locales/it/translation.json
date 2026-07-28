@@ -777,6 +777,11 @@
         "button": "Anteprima",
         "noNotes": "Nessuna nota di rilascio inclusa trovata",
         "error": "Impossibile mostrare l'anteprima delle note di rilascio"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

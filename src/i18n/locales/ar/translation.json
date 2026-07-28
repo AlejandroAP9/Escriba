@@ -756,6 +756,11 @@
         "button": "معاينة",
         "noNotes": "لم يتم العثور على ملاحظات إصدار مضمنة",
         "error": "تعذرت معاينة ملاحظات الإصدار"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

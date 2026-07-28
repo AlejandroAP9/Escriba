@@ -777,6 +777,11 @@
         "button": "תצוגה מקדימה",
         "noNotes": "לא נמצאו הערות גרסה מצורפות",
         "error": "הצגת התצוגה המקדימה של הערות הגרסה נכשלה"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

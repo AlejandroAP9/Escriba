@@ -777,6 +777,11 @@
         "button": "预览",
         "noNotes": "未找到内置发行说明",
         "error": "无法预览发行说明"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

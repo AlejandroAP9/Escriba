@@ -777,6 +777,11 @@
         "button": "미리보기",
         "noNotes": "내장 릴리스 노트를 찾을 수 없습니다",
         "error": "릴리스 노트를 미리 볼 수 없습니다"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {

@@ -777,6 +777,11 @@
         "button": "Vista previa",
         "noNotes": "No se encontraron notas de la versión incluidas",
         "error": "No se pudo mostrar la vista previa de las notas de la versión"
+      },
+      "replayOnboarding": {
+        "title": "Volver a ver la bienvenida",
+        "description": "Relanza el asistente de Plumín tal como lo ve alguien que instala por primera vez. No cambia ninguno de tus ajustes.",
+        "button": "Ver de nuevo"
       }
     },
     "about": {

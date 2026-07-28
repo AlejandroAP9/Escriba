@@ -777,6 +777,11 @@
         "button": "Náhled",
         "noNotes": "Nebyly nalezeny žádné přibalené poznámky k vydání",
         "error": "Nepodařilo se zobrazit náhled poznámek k vydání"
+      },
+      "replayOnboarding": {
+        "title": "Replay the welcome",
+        "description": "Runs Plumín's setup wizard exactly as a first-time install sees it. None of your settings change.",
+        "button": "Replay"
       }
     },
     "about": {
