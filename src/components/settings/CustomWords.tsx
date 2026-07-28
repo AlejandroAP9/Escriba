@@ -38,12 +38,19 @@ export const CustomWords: React.FC<CustomWordsProps> = React.memo(
 
     const handleAddWord = () => {
       const trimmedWord = newWord.trim();
-      const sanitizedWord = trimmedWord.replace(/[<>"'&]/g, "");
-      if (
-        sanitizedWord &&
-        !sanitizedWord.includes(" ") &&
-        sanitizedWord.length <= 50
-      ) {
+      // Se permiten varias palabras ("Imperio Agéntico", "MacBook Pro"): el
+      // motor las soporta desde siempre —las compara sin espacios contra
+      // n-gramas del dictado, y tiene test propio— pero esta pantalla las
+      // rechazaba, así que justo los nombres compuestos, que son los que más
+      // se transcriben mal, no se podían registrar.
+      //
+      // Los espacios internos se colapsan para que "Imperio  Agéntico" y
+      // "Imperio Agéntico" no acaben como dos entradas distintas.
+      const sanitizedWord = trimmedWord
+        .replace(/[<>"'&]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (sanitizedWord && sanitizedWord.length <= 50) {
         if (customWords.includes(sanitizedWord)) {
           toast.error(
             t("settings.advanced.customWords.duplicate", {
@@ -100,7 +107,6 @@ export const CustomWords: React.FC<CustomWordsProps> = React.memo(
               onClick={handleAddWord}
               disabled={
                 !newWord.trim() ||
-                newWord.includes(" ") ||
                 newWord.trim().length > 50 ||
                 isUpdating("custom_words")
               }
