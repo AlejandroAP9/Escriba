@@ -11,55 +11,92 @@
    propósito: a igual especificidad, estos bloques deben ganar en cascada. */
 
 /* == Alto contraste ========================================================
-   Tinta y bordes reforzados. Solo se tocan tokens de TEXTO y LÍNEA: el oro de
-   superficie (`logo-primary`) no se oscurece porque romperia el otro lado del
-   trato (la tinta encima del oro dejaría de pasar AA, ver theme.css). Los
-   valores clares dan ≥7:1 sobre pergamino; los oscuros ≥9:1 sobre tinta. */
+   La primera versión de este modo solo oscurecía la tinta, y no servía de
+   nada: el tema base ya da 16,58:1 de texto sobre pergamino (muy por encima
+   del 7:1 de AAA), así que llevarlo a 18,20:1 era un cambio que nadie puede
+   percibir. Se construyó suponiendo que quedaba margen en la tinta sin medir
+   que no lo había.
+
+   Cuando el texto ya es casi negro, la palanca real es EL FONDO: quitar el
+   tinte del pergamino y de la vitela deja blanco puro contra negro puro
+   (21:1) y elimina de paso el grano del papel. Eso sí se ve, y es lo que
+   hacen los modos de alto contraste del sistema.
+
+   El oro de superficie (`logo-primary`) sigue sin tocarse: oscurecerlo
+   rompería la tinta que va ENCIMA de él (ver theme.css). */
 
 :root[data-high-contrast] {
-  --color-text: #0d0a13;
-  --color-mid-gray: #453c31;
-  --color-line: rgba(69, 60, 49, 0.55);
-  --color-gold-text: #6b4c19;
-  --color-lacre: #822f1f;
-  --color-warning: #6d4405;
-  --color-info: #0847ad;
-  --color-success: #0d5a2c;
+  /* Fondo plano sin tinte: el cambio que de verdad se nota. */
+  --color-background: #ffffff;
+  --color-vitela: #f0f0f0;
+  --color-text: #000000;
+  --color-mid-gray: #383838;
+  /* Bordes duros: de 0,15 de opacidad a 0,7 sobre blanco. */
+  --color-line: rgba(0, 0, 0, 0.7);
+  --color-gold-text: #5c3d00;
+  --color-lacre: #a10000;
+  --color-warning: #6b4000;
+  --color-info: #003ea8;
+  --color-success: #00532a;
+  /* La barra lateral se vuelve negra pura con texto blanco. */
+  --color-ink: #000000;
+  --color-ink-fg: #ffffff;
+  --color-ink-muted: #d0d0d0;
+  /* El grano del papel es ruido sobre el texto: fuera. */
+  --paper-grain: none;
 }
 
 @media (prefers-color-scheme: dark) {
   :root[data-high-contrast] {
-    --color-text: #f8f1de;
-    --color-mid-gray: #c9bb9e;
-    --color-line: rgba(201, 187, 158, 0.5);
-    --color-gold-text: #eeda9b;
-    --color-lacre: #e8907d;
-    --color-warning: #ffc23d;
-    --color-info: #7fadf9;
-    --color-success: #4ade80;
+    --color-background: #000000;
+    --color-vitela: #141414;
+    --color-text: #ffffff;
+    --color-mid-gray: #d8d8d8;
+    --color-line: rgba(255, 255, 255, 0.65);
+    --color-gold-text: #ffd980;
+    --color-lacre: #ff9b85;
+    --color-warning: #ffc93d;
+    --color-info: #8fb8ff;
+    --color-success: #5ce68a;
+    --color-ink: #000000;
+    --color-ink-fg: #ffffff;
+    --color-ink-muted: #d0d0d0;
+    --paper-grain: none;
   }
 }
 
 :root[data-theme="dark"][data-high-contrast] {
-  --color-text: #f8f1de;
-  --color-mid-gray: #c9bb9e;
-  --color-line: rgba(201, 187, 158, 0.5);
-  --color-gold-text: #eeda9b;
-  --color-lacre: #e8907d;
-  --color-warning: #ffc23d;
-  --color-info: #7fadf9;
-  --color-success: #4ade80;
+  --color-background: #000000;
+  --color-vitela: #141414;
+  --color-text: #ffffff;
+  --color-mid-gray: #d8d8d8;
+  --color-line: rgba(255, 255, 255, 0.65);
+  --color-gold-text: #ffd980;
+  --color-lacre: #ff9b85;
+  --color-warning: #ffc93d;
+  --color-info: #8fb8ff;
+  --color-success: #5ce68a;
+  --color-ink: #000000;
+  --color-ink-fg: #ffffff;
+  --color-ink-muted: #d0d0d0;
+  --paper-grain: none;
 }
 
 :root[data-theme="light"][data-high-contrast] {
-  --color-text: #0d0a13;
-  --color-mid-gray: #453c31;
-  --color-line: rgba(69, 60, 49, 0.55);
-  --color-gold-text: #6b4c19;
-  --color-lacre: #822f1f;
-  --color-warning: #6d4405;
-  --color-info: #0847ad;
-  --color-success: #0d5a2c;
+  --color-background: #ffffff;
+  --color-vitela: #f0f0f0;
+  --color-text: #000000;
+  --color-mid-gray: #383838;
+  --color-line: rgba(0, 0, 0, 0.7);
+  --color-gold-text: #5c3d00;
+  --color-lacre: #a10000;
+  --color-warning: #6b4000;
+  --color-info: #003ea8;
+  --color-success: #00532a;
+  --color-ink: #000000;
+  --color-ink-fg: #ffffff;
+  --color-ink-muted: #d0d0d0;
+  --paper-grain: none;
 }
 
 /* "Sin cristal difuminado": el difuminado de fondo es puramente decorativo,
