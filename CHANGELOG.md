@@ -9,6 +9,51 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [2.2.0] — 2026-07-28
+
+**Plumín te recibe.** La app ya no te suelta en una pantalla vacía después de
+elegir modelo: ahora hay un asistente de primera vez donde Plumín te acompaña
+paso a paso y termina pidiéndote que le hables, para que veas tus propias
+palabras antes de empezar. Y las notas de Obsidian dejan de ensuciar tu vault.
+
+### Añadido
+
+- **Asistente de bienvenida narrado por Plumín** — seis pasos, y él cambia de
+  expresión en cada uno: te recibe, te ayuda a elegir con qué va a escucharte,
+  te explica el motor de IA local, tu atajo, tu vault de Obsidian, y al final
+  **te pide que digas algo**. Dictas, ves aparecer tus palabras, y puedes
+  pedirle ahí mismo que las traduzca. Terminas la instalación habiendo usado la
+  app con tu voz, no mirando capturas.
+- **Volver a ver la bienvenida** desde Ajustes → Depuración, sin tocar nada de
+  tu configuración.
+- **Las notas de Obsidian van a su propia carpeta**, creada por la app la
+  primera vez. Por omisión `Escriba`, y le puedes cambiar el nombre o dejar el
+  campo vacío para que caigan en la raíz como antes.
+- **Revisar la nota antes de que toque el vault** — se abre con el título y el
+  cuerpo editables, y nada se escribe en disco hasta que confirmas. Tu vault es
+  tu segundo cerebro, no una bandeja de salida.
+- **Ver el foco también con el ratón**, para quien pierde la referencia de
+  dónde está parado en la interfaz. Con esto son cuatro los modos de
+  accesibilidad visual, y siguen conviviendo con todo lo demás.
+
+### Corregido
+
+- **Las estadísticas ya son acumuladas** (reporte de Flor). El historial guarda
+  cinco entradas y borra el resto, y las estadísticas se calculaban sobre esa
+  tabla: "has dictado N veces" y "te has ahorrado X minutos" solo contaban las
+  últimas cinco, y lo mismo la racha y la gráfica de la semana. Los datos no
+  estaban ocultos, estaban borrados. Ahora hay un contador aparte que no se
+  poda nunca. Lo ya perdido no vuelve, pero de aquí en adelante cuenta todo.
+- **Instalar el motor local ya lo deja funcionando.** Antes se descargaban
+  2,5 GB y no pasaba nada, porque el interruptor que lo enciende vivía en otra
+  pantalla.
+
+### Seguridad
+
+- El nombre de la carpeta de notas se sanea y la contención se revalida
+  **después** de crear el directorio: el nombre puede ser inocente y aun así
+  apuntar fuera del vault si la carpeta ya existía como enlace simbólico.
+
 ## [2.1.1] — 2026-07-28
 
 **Lo que salió de probar la app de verdad.** Ocho arreglos, todos nacidos de
