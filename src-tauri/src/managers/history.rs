@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, Local, Utc};
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use rusqlite::{params, Connection, OptionalExtension};
 use rusqlite_migration::{Migrations, M};
 use serde::{Deserialize, Serialize};
@@ -193,8 +193,40 @@ impl HistoryManager {
             conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
         debug!("Database version before migration: {}", version_before);
 
-        // Apply any pending migrations
-        migrations.to_latest(&mut conn)?;
+        // Apply any pending migrations.
+        //
+        // Una base MÁS NUEVA que el código no puede tumbar la app. Pasó de
+        // verdad (28-jul-2026): la 2.2.0 subió el esquema a la versión 6 con la
+        // tabla de agregados, y al abrir después la 2.1.1 —que solo conoce 4
+        // migraciones— `to_latest` devolvía `DatabaseTooFarAhead`, el `?` lo
+        // propagaba hasta el `.expect()` de `initialize_core_logic`, y el
+        // pánico cruzando la frontera de ObjC durante
+        // `applicationDidFinishLaunching` terminaba en SIGABRT. macOS ofrecía
+        // reiniciar y volvía a reventar: bucle de crashes, app inutilizable.
+        //
+        // Seguir adelante es seguro y es lo correcto: las tablas y columnas que
+        // el código de esta versión conoce siguen ahí —las migraciones solo
+        // añaden— y lo que no conoce simplemente lo ignora. El precio de
+        // abortar es un usuario con la app muerta; el de continuar, una tabla
+        // de más sin usar.
+        //
+        // Esto además hace posible volver atrás de versión, que sin ello era
+        // un camino sin retorno para cualquiera que actualizara.
+        if let Err(e) = migrations.to_latest(&mut conn) {
+            use rusqlite_migration::{Error as MigError, MigrationDefinitionError};
+            match e {
+                MigError::MigrationDefinition(MigrationDefinitionError::DatabaseTooFarAhead) => {
+                    warn!(
+                        "El historial fue creado por una versión más nueva de Escriba \
+                         (esquema {}, esta versión conoce {}). Se continúa: lo que esta \
+                         versión necesita sigue estando.",
+                        version_before,
+                        MIGRATIONS.len()
+                    );
+                }
+                other => return Err(other.into()),
+            }
+        }
 
         // Get version after migration
         let version_after: i32 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
@@ -842,6 +874,37 @@ mod tests {
 
         assert_eq!(entry.timestamp, 100);
         assert_eq!(entry.transcription_text, "completed");
+    }
+
+    /// Una base creada por una versión MÁS NUEVA no puede impedir el arranque.
+    ///
+    /// Es el crash en bucle del 28-jul-2026: la 2.2.0 subió el esquema a 6 y al
+    /// abrir la 2.1.1, que solo conoce 4 migraciones, `to_latest` devolvía
+    /// `DatabaseTooFarAhead` y la app moría antes de pintar nada. El test fija
+    /// la regla: ese error concreto se tolera, cualquier otro no.
+    #[test]
+    fn a_newer_database_is_tolerated_not_fatal() {
+        use rusqlite_migration::{Error as MigError, MigrationDefinitionError, Migrations, M};
+
+        let mut conn = Connection::open_in_memory().expect("open in-memory db");
+        // Base escrita por una versión futura: más migraciones aplicadas de las
+        // que este código conoce.
+        conn.pragma_update(None, "user_version", 6)
+            .expect("set user_version");
+
+        let known = Migrations::new(vec![
+            M::up("CREATE TABLE IF NOT EXISTS a (id INTEGER PRIMARY KEY);"),
+            M::up("CREATE TABLE IF NOT EXISTS b (id INTEGER PRIMARY KEY);"),
+        ]);
+
+        let err = known.to_latest(&mut conn).expect_err("debería quejarse");
+        assert!(
+            matches!(
+                err,
+                MigError::MigrationDefinition(MigrationDefinitionError::DatabaseTooFarAhead)
+            ),
+            "la librería cambió el error para una base adelantada: {err:?}"
+        );
     }
 
     /// Un "ahora" fijo para que los tests no dependan del reloj: día 1000.
