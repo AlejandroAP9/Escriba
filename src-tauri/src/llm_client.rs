@@ -8,13 +8,25 @@ use std::time::Duration;
 /// Tiempo máximo para establecer la conexión con el proveedor.
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// Tiempo máximo para la petición COMPLETA.
+/// Tiempo máximo para la petición COMPLETA (camino interactivo).
 ///
 /// Antes no había ninguno: un proveedor que aceptaba la conexión y no respondía
 /// dejaba la tarea colgada indefinidamente, y con ella el dictado del usuario,
 /// que está mirando la pantalla esperando su texto. 30 s da margen de sobra a un
 /// modelo con razonamiento sin dejar la app en un limbo permanente.
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+
+/// Tiempo máximo para las peticiones de FORMATO LARGO: el documento de sesión,
+/// resumir, pulir o traducir un texto entero.
+///
+/// Esas peticiones meten el transcript completo en el prompt y piden un
+/// documento de vuelta: en el motor local, solo procesar una sesión de una hora
+/// puede tardar más de 30 s antes de generar el primer token. Con el timeout
+/// interactivo, "Terminar y crear documento" moría a los 30 s exactos y el
+/// usuario veía "revisa el motor local" con el motor perfectamente sano
+/// (reporte real, 27-jul-2026). Cinco minutos cubre sesiones largas en
+/// hardware modesto sin renunciar a la protección contra el cuelgue infinito.
+pub const LONG_FORM_REQUEST_TIMEOUT: Duration = Duration::from_secs(300);
 
 /// Error del cliente, con la causa distinguida para que quien llama pueda
 /// reaccionar distinto ante un límite de tasa que ante un fallo cualquiera.
@@ -147,12 +159,16 @@ fn build_headers(provider: &PostProcessProvider, api_key: &str) -> Result<Header
 }
 
 /// Create an HTTP client with provider-specific headers
-fn create_client(provider: &PostProcessProvider, api_key: &str) -> Result<reqwest::Client, String> {
+fn create_client(
+    provider: &PostProcessProvider,
+    api_key: &str,
+    request_timeout: Duration,
+) -> Result<reqwest::Client, String> {
     let headers = build_headers(provider, api_key)?;
     reqwest::Client::builder()
         .default_headers(headers)
         .connect_timeout(CONNECT_TIMEOUT)
-        .timeout(REQUEST_TIMEOUT)
+        .timeout(request_timeout)
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))
 }
@@ -173,6 +189,9 @@ fn parse_retry_after(headers: &reqwest::header::HeaderMap) -> Option<Duration> {
 /// Send a chat completion request to an OpenAI-compatible API
 /// Returns Ok(Some(content)) on success, Ok(None) if response has no content,
 /// or Err on actual errors (HTTP, parsing, etc.)
+/// `request_timeout`: `None` usa el timeout interactivo (30 s); las peticiones
+/// de formato largo pasan [`LONG_FORM_REQUEST_TIMEOUT`].
+#[allow(clippy::too_many_arguments)]
 pub async fn send_chat_completion(
     provider: &PostProcessProvider,
     api_key: String,
@@ -181,6 +200,7 @@ pub async fn send_chat_completion(
     reasoning_effort: Option<String>,
     reasoning: Option<ReasoningConfig>,
     temperature: Option<f32>,
+    request_timeout: Option<Duration>,
 ) -> Result<Option<String>, String> {
     send_chat_completion_with_schema(
         provider,
@@ -192,6 +212,7 @@ pub async fn send_chat_completion(
         reasoning_effort,
         reasoning,
         temperature,
+        request_timeout,
     )
     .await
 }
@@ -212,13 +233,18 @@ pub async fn send_chat_completion_with_schema(
     reasoning_effort: Option<String>,
     reasoning: Option<ReasoningConfig>,
     temperature: Option<f32>,
+    request_timeout: Option<Duration>,
 ) -> Result<Option<String>, String> {
     let base_url = provider.base_url.trim_end_matches('/');
     let url = format!("{}/chat/completions", base_url);
 
     debug!("Sending chat completion request to: {}", url);
 
-    let client = create_client(provider, &api_key)?;
+    let client = create_client(
+        provider,
+        &api_key,
+        request_timeout.unwrap_or(REQUEST_TIMEOUT),
+    )?;
 
     // Build messages vector
     let mut messages = Vec::new();
@@ -319,7 +345,7 @@ pub async fn fetch_models(
 
     debug!("Fetching models from: {}", url);
 
-    let client = create_client(provider, &api_key)?;
+    let client = create_client(provider, &api_key, REQUEST_TIMEOUT)?;
 
     let response = client
         .get(&url)

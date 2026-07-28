@@ -667,6 +667,7 @@ Vocabulario personal del usuario (escribir SIEMPRE exactamente asi, sin corregir
             reasoning_effort.clone(),
             reasoning.clone(),
             temperature,
+            None,
         )
         .await
         {
@@ -740,6 +741,7 @@ Vocabulario personal del usuario (escribir SIEMPRE exactamente asi, sin corregir
         reasoning_effort,
         reasoning,
         temperature,
+        None,
     )
     .await
     {
@@ -1850,6 +1852,7 @@ pub async fn summarize_text(app: &AppHandle, text: &str) -> Option<String> {
         Some("none".to_string()),
         None,
         Some(0.3),
+        Some(crate::llm_client::LONG_FORM_REQUEST_TIMEOUT),
     )
     .await
     {
@@ -1905,6 +1908,7 @@ pub async fn polish_text(app: &AppHandle, text: &str) -> Option<String> {
         Some("none".to_string()),
         None,
         Some(0.2),
+        Some(crate::llm_client::LONG_FORM_REQUEST_TIMEOUT),
     )
     .await
     {
@@ -1960,6 +1964,7 @@ pub async fn translate_text(app: &AppHandle, text: &str, target_lang: &str) -> O
         Some("none".to_string()),
         None,
         Some(0.2),
+        Some(crate::llm_client::LONG_FORM_REQUEST_TIMEOUT),
     )
     .await
     {
@@ -2213,6 +2218,7 @@ async fn translate_with_local(app: &AppHandle, text: &str, target: &str) -> Opti
         Some("none".to_string()),
         None,
         Some(0.2),
+        None,
     )
     .await
     .ok()
@@ -2277,6 +2283,7 @@ Texto:
         Some("none".to_string()),
         None,
         Some(0.2),
+        None,
     )
     .await
     {
@@ -2306,6 +2313,7 @@ Texto:
             Some("none".to_string()),
             None,
             Some(0.2),
+            None,
         )
         .await
         {
@@ -2363,6 +2371,7 @@ Conversacion hasta ahora:\n{transcript}\n\nUsuario: {latest}\n\nRespuesta:",
         Some("none".to_string()),
         None,
         Some(0.5),
+        None,
     )
     .await
     {
@@ -2479,6 +2488,7 @@ Al cierre, en una linea final aparte, escribe exactamente [[animo:positivo]], [[
         Some("none".to_string()),
         None,
         Some(0.3),
+        Some(crate::llm_client::LONG_FORM_REQUEST_TIMEOUT),
     )
     .await
     {
