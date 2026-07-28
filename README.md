@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.2.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.2.1-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -125,33 +125,34 @@ Interfaz **completa en español e inglés**. Otros 19 idiomas están **en progre
 
 Toda la evolución de Escriba, versión por versión (fechas reales de la dupla en los Juegos Imperiales):
 
-| Versión | Fecha  | Novedades                                                                                                                    |
-| ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| 2.2.0   | 28-jul | 🪶 **Plumín te recibe**: asistente de bienvenida que termina con tu primera dictada + notas de Obsidian en su propia carpeta |
-| 2.1.1   | 28-jul | 🔧 Ocho arreglos salidos de probar la app: documento de sesión, "¿" del dictado, alto contraste real y ajustes de Obsidian   |
-| 2.1.0   | 26-jul | 🛡️ **La ronda del blindaje**: 5 auditorías aplicadas + 📝 Enviar a **Obsidian** + ♿ Modo Calma, alto contraste y daltonismo |
-| 2.0.0   | 21-jul | 🎙️ **Intérprete de reuniones** en vivo, ida y vuelta (idea de John Walter) + micrófono virtual integrado                     |
-| 1.9.1   | 18-jul | 🐧 Motor local en **Linux** + fixes del Traductor (QA Flor)                                                                  |
-| 1.9.0   | 17-jul | **Revisar antes de pegar** + fixes del QA Windows de la dupla                                                                |
-| 1.8.0   | 16-jul | 🤝 Tanda comunidad: sugerencias de diccionario + Plumín empático                                                             |
-| 1.7.0   | 15-jul | 🪶 Nace **Plumín** (mascota) + onda de voz viva                                                                              |
-| 1.6.0   | 15-jul | **Dictado libre** (cero teclas) + bandeja con acciones                                                                       |
-| 1.5.0   | 15-jul | Panel de **Permisos** + estado real + ventana con memoria                                                                    |
-| 1.4.0   | 15-jul | 👓 Tema Día/Noche + tamaño de texto (idea de la comunidad)                                                                   |
-| 1.3.2   | 15-jul | La pluma llega a la barra de menú                                                                                            |
-| 1.3.1   | 15-jul | QA de la dupla: aviso de motor faltante + indicador de modo activo                                                           |
-| 1.3.0   | 15-jul | 🖥️ **Audio del sistema** + **Tu tinta en voz** + **Tonos por app**                                                           |
-| 1.2.0   | 12-jul | 🎨 Rework de las 11 pantallas + Design System                                                                                |
-| 1.1.0   | 11-jul | 🔒 Auditoría de seguridad (MCP + privacidad)                                                                                 |
-| 1.0.0   | 11-jul | Rebrand visual + español total                                                                                               |
-| 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono                                                                               |
-| 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                                                                 |
-| 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                                                                                                  |
-| 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar                                                                                   |
-| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`) + onboarding es-first + estadísticas                                                    |
-| 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)                                                                                  |
-| 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar                                                                                    |
-| 0.2.0   | 07-jul | Rebrand + **motor de IA local**                                                                                              |
+| Versión | Fecha  | Novedades                                                                                                                          |
+| ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 2.2.1   | 28-jul | 🔁 Actualizar con marcha atrás (fin del bucle de cierres) + ⚡ Intérprete sin espera: la frase sale ya y cada idioma llega después |
+| 2.2.0   | 28-jul | 🪶 **Plumín te recibe**: asistente de bienvenida que termina con tu primera dictada + notas de Obsidian en su propia carpeta       |
+| 2.1.1   | 28-jul | 🔧 Ocho arreglos salidos de probar la app: documento de sesión, "¿" del dictado, alto contraste real y ajustes de Obsidian         |
+| 2.1.0   | 26-jul | 🛡️ **La ronda del blindaje**: 5 auditorías aplicadas + 📝 Enviar a **Obsidian** + ♿ Modo Calma, alto contraste y daltonismo       |
+| 2.0.0   | 21-jul | 🎙️ **Intérprete de reuniones** en vivo, ida y vuelta (idea de John Walter) + micrófono virtual integrado                           |
+| 1.9.1   | 18-jul | 🐧 Motor local en **Linux** + fixes del Traductor (QA Flor)                                                                        |
+| 1.9.0   | 17-jul | **Revisar antes de pegar** + fixes del QA Windows de la dupla                                                                      |
+| 1.8.0   | 16-jul | 🤝 Tanda comunidad: sugerencias de diccionario + Plumín empático                                                                   |
+| 1.7.0   | 15-jul | 🪶 Nace **Plumín** (mascota) + onda de voz viva                                                                                    |
+| 1.6.0   | 15-jul | **Dictado libre** (cero teclas) + bandeja con acciones                                                                             |
+| 1.5.0   | 15-jul | Panel de **Permisos** + estado real + ventana con memoria                                                                          |
+| 1.4.0   | 15-jul | 👓 Tema Día/Noche + tamaño de texto (idea de la comunidad)                                                                         |
+| 1.3.2   | 15-jul | La pluma llega a la barra de menú                                                                                                  |
+| 1.3.1   | 15-jul | QA de la dupla: aviso de motor faltante + indicador de modo activo                                                                 |
+| 1.3.0   | 15-jul | 🖥️ **Audio del sistema** + **Tu tinta en voz** + **Tonos por app**                                                                 |
+| 1.2.0   | 12-jul | 🎨 Rework de las 11 pantallas + Design System                                                                                      |
+| 1.1.0   | 11-jul | 🔒 Auditoría de seguridad (MCP + privacidad)                                                                                       |
+| 1.0.0   | 11-jul | Rebrand visual + español total                                                                                                     |
+| 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono                                                                                     |
+| 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                                                                       |
+| 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                                                                                                        |
+| 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar                                                                                         |
+| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`) + onboarding es-first + estadísticas                                                          |
+| 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)                                                                                        |
+| 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar                                                                                          |
+| 0.2.0   | 07-jul | Rebrand + **motor de IA local**                                                                                                    |
 
 ## 🙏 Construido sobre Handy
 

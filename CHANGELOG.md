@@ -9,6 +9,51 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [2.2.1] — 2026-07-28
+
+**Actualizar ya tiene marcha atrás.** Si abrías una versión anterior después de
+haber usado la 2.2.0, la app entraba en un bucle de cierres del que no se salía.
+Ya no. Y el Intérprete deja de hacer esperar a toda la sala por la traducción de
+uno solo: la frase aparece al instante y cada idioma llega cuando está.
+
+### Corregido
+
+- **Bucle de cierres al volver a una versión anterior** — la 2.2.0 dejaba el
+  historial en un formato que las versiones previas no reconocían, y en vez de
+  seguir adelante la app se cerraba, se ofrecía reabrir, y vuelta a empezar.
+  Ahora una base de datos más nueva no impide arrancar. Sin esto, actualizar era
+  un camino de ida.
+- **Las estadísticas contaban los días en el huso equivocado** — lo dictado a
+  partir de las 20:00 se apuntaba en el día siguiente, así que por la noche lo
+  de esa misma mañana aparecía en la barra de ayer, y un mismo día contaba dos
+  veces en la racha. Ahora el día es el que viviste tú.
+- **El diccionario personal no aceptaba nombres de varias palabras** — "Imperio
+  Agéntico" quedaba fuera; ahora entra.
+- **El asistente de bienvenida no tenía dónde mostrar un aviso** — si algo
+  fallaba durante la instalación, el mensaje no aparecía en ninguna parte.
+- **El Estudio ya puede resumir grabaciones largas** — antes, cualquier clase de
+  más de veinte minutos no cabía de una vez en el motor local y el resumen
+  fallaba culpando al motor, que estaba perfectamente. Ahora se resume por
+  partes y luego se juntan, y si algo falla el mensaje dice qué fue.
+- **Un archivo a la vez en el Estudio** — soltar varias grabaciones de golpe
+  cargaba todas enteras en memoria a la vez. Tardan lo mismo y ocupan mucho
+  menos.
+
+### Cambiado
+
+- **El Intérprete ya no hace esperar a nadie** — antes traducía a todos los
+  idiomas de la sala antes de mostrar nada, uno detrás de otro: con cinco
+  idiomas eran varios segundos de pantalla en blanco, y quien escuchaba en el
+  idioma del guía esperaba por traducciones que no necesita. Ahora la frase
+  original aparece de inmediato y cada idioma la reemplaza al llegar la suya.
+- **Una traducción atascada ya no congela la sala** — se descarta a los 30
+  segundos y la sala sigue, en vez de esperar cinco minutos.
+- **El Modo Calma se nota** — además del texto más grande, ahora apaga los
+  colores de aviso, error y confirmación, que era lo que llenaba la pantalla de
+  ruido. Queda un solo color hablando.
+- **El asistente de bienvenida trae más sustancia** en cada pantalla, con lo que
+  la app hace y lo que cuesta comparada con las alternativas de pago.
+
 ## [2.2.0] — 2026-07-28
 
 **Plumín te recibe.** La app ya no te suelta en una pantalla vacía después de
