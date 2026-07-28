@@ -1,173 +1,173 @@
 # AGENTS.md
 
-This file provides guidance to AI coding assistants working with code in this repository.
+Guía para los asistentes de IA que trabajen sobre este repositorio.
 
-## Development Commands
+## Comandos de desarrollo
 
-**Prerequisites:**
+**Requisitos previos:**
 
-- [Rust](https://rustup.rs/) (latest stable)
-- [Bun](https://bun.sh/) package manager
+- [Rust](https://rustup.rs/) (última estable)
+- Gestor de paquetes [Bun](https://bun.sh/)
 
-**Core Development:**
+**Desarrollo:**
 
 ```bash
-# Install dependencies
+# Instalar dependencias
 bun install
 
-# Run in development mode
+# Ejecutar en modo desarrollo
 bun run tauri dev
-# If cmake error on macOS:
+# Si da error de cmake en macOS:
 CMAKE_POLICY_VERSION_MINIMUM=3.5 bun run tauri dev
 
-# Build for production
+# Compilar para producción
 bun run tauri build
 
-# Frontend only development
-bun run dev        # Start Vite dev server
-bun run build      # Build frontend (TypeScript + Vite)
-bun run preview    # Preview built frontend
+# Solo frontend
+bun run dev        # Levanta el servidor de Vite
+bun run build      # Compila el frontend (TypeScript + Vite)
+bun run preview    # Previsualiza el frontend compilado
 ```
 
-**Linting and Formatting (run before committing):**
+**Linter y formato (correr antes de cada commit):**
 
 ```bash
-bun run lint              # ESLint for frontend
-bun run lint:fix          # ESLint with auto-fix
+bun run lint              # ESLint del frontend
+bun run lint:fix          # ESLint con arreglo automático
 bun run format            # Prettier + cargo fmt
-bun run format:check      # Check formatting without changes
-bun run format:frontend   # Prettier only
-bun run format:backend    # cargo fmt only
+bun run format:check      # Comprueba el formato sin tocar nada
+bun run format:frontend   # Solo Prettier
+bun run format:backend    # Solo cargo fmt
 ```
 
-**Model Setup (Required for Development):**
+**Modelo de VAD (hace falta para desarrollar):**
 
 ```bash
 mkdir -p src-tauri/resources/models
 curl -o src-tauri/resources/models/silero_vad_v4.onnx https://blob.handy.computer/silero_vad_v4.onnx
 ```
 
-For detailed platform-specific build setup, see [BUILD.md](BUILD.md).
+Para el detalle de compilación por plataforma, ver [BUILD.md](BUILD.md).
 
-## Architecture Overview
+## Panorama de la arquitectura
 
-Escriba is a cross-platform desktop speech-to-text application built with Tauri 2.x (Rust backend + React/TypeScript frontend). It is a rework of [Handy](https://github.com/cjpais/handy) (© CJ Pais, MIT).
+Escriba es una app de escritorio multiplataforma de voz a texto, hecha con Tauri 2.x (backend en Rust + frontend en React/TypeScript). Es un rework de [Handy](https://github.com/cjpais/handy) (© CJ Pais, MIT).
 
-### Backend Structure (src-tauri/src/)
+### Estructura del backend (src-tauri/src/)
 
-- `lib.rs` - Main entry point, Tauri setup, manager initialization
-- `managers/` - Core business logic:
-  - `audio.rs` - Audio recording and device management
-  - `model.rs` - Model downloading and management
-  - `transcription.rs` - Speech-to-text processing pipeline
-  - `history.rs` - Transcription history storage
-- `audio_toolkit/` - Low-level audio processing:
-  - `audio/` - Device enumeration, recording, resampling
-  - `vad/` - Voice Activity Detection (Silero VAD)
-- `commands/` - Tauri command handlers for frontend communication
-- `cli.rs` - CLI argument definitions (clap derive)
-- `shortcut.rs` - Global keyboard shortcut handling
-- `settings.rs` - Application settings management
-- `overlay.rs` - Recording overlay window (platform-specific)
-- `signal_handle.rs` - `send_transcription_input()` reusable function
-- `utils.rs` - Platform detection helpers
+- `lib.rs` — Punto de entrada, arranque de Tauri, inicialización de los managers
+- `managers/` — Lógica principal:
+  - `audio.rs` — Grabación y gestión de dispositivos
+  - `model.rs` — Descarga y gestión de modelos
+  - `transcription.rs` — Pipeline de voz a texto
+  - `history.rs` — Almacenamiento del historial
+- `audio_toolkit/` — Procesamiento de audio de bajo nivel:
+  - `audio/` — Enumeración de dispositivos, grabación, remuestreo
+  - `vad/` — Detección de actividad de voz (Silero VAD)
+- `commands/` — Comandos de Tauri, la frontera con el frontend
+- `cli.rs` — Definición de argumentos de línea de comandos (clap derive)
+- `shortcut.rs` — Atajos de teclado globales
+- `settings.rs` — Ajustes de la aplicación
+- `overlay.rs` — Ventana de grabación superpuesta (depende de la plataforma)
+- `signal_handle.rs` — La función reusable `send_transcription_input()`
+- `utils.rs` — Ayudas de detección de plataforma
 
-### Frontend Structure (src/)
+### Estructura del frontend (src/)
 
-- `App.tsx` - Main component with onboarding flow
-- `components/` - React UI components:
-  - `settings/` - Settings UI
-  - `model-selector/` - Model management interface
-  - `onboarding/` - First-run experience
-  - `overlay/` - Recording overlay UI
-  - `update-checker/` - App update notifications
-  - `shared/`, `ui/`, `icons/`, `footer/` - Shared components
-- `hooks/useSettings.ts` - Settings state management hook
-- `stores/settingsStore.ts` - Zustand store for settings
-- `bindings.ts` - Auto-generated Tauri type bindings (via tauri-specta)
-- `overlay/` - Recording overlay window entry point
-- `lib/types.ts` - Shared TypeScript type definitions
+- `App.tsx` — Componente principal, con el flujo de bienvenida
+- `components/` — Componentes de React:
+  - `settings/` — Pantallas de ajustes
+  - `model-selector/` — Gestión de modelos
+  - `onboarding/` — Asistente de primera vez
+  - `overlay/` — Interfaz de la ventana de grabación
+  - `update-checker/` — Avisos de actualización
+  - `shared/`, `ui/`, `icons/`, `footer/` — Componentes compartidos
+- `hooks/useSettings.ts` — Hook de estado de los ajustes
+- `stores/settingsStore.ts` — Store de Zustand para los ajustes
+- `bindings.ts` — Tipos generados por tauri-specta. OJO: solo se exportan en builds de depuración, así que fuera de ahí se editan a mano
+- `overlay/` — Punto de entrada de la ventana de grabación
+- `lib/types.ts` — Tipos de TypeScript compartidos
 
-### Key Architecture Patterns
+### Patrones de arquitectura
 
-**Manager Pattern:** Core functionality organized into managers (Audio, Model, Transcription) initialized at startup and managed via Tauri state.
+**Managers:** la funcionalidad principal se organiza en managers (Audio, Model, Transcription) que se inicializan al arrancar y viven en el estado de Tauri.
 
-**Command-Event Architecture:** Frontend → Backend via Tauri commands; Backend → Frontend via events.
+**Comandos y eventos:** del frontend al backend por comandos de Tauri; del backend al frontend por eventos.
 
-**Pipeline Processing:** Audio → VAD → Whisper/Parakeet → Text output → Clipboard/Paste
+**Pipeline:** audio → VAD → Whisper/Parakeet → texto → portapapeles/pegado.
 
-**State Flow:** Zustand → Tauri Command → Rust State → Persistence (tauri-plugin-store)
+**Flujo del estado:** Zustand → comando de Tauri → estado en Rust → persistencia (tauri-plugin-store).
 
-### Technology Stack
+### Tecnologías
 
-**Core Libraries:**
+**Librerías principales:**
 
-- `transcribe-cpp` - Local Whisper-family inference (GGML/GGUF) with GPU acceleration
-- `transcribe-rs` - ONNX speech recognition (Parakeet, Moonshine, SenseVoice, etc.)
-- `cpal` - Cross-platform audio I/O
-- `vad-rs` - Voice Activity Detection
-- `rdev` - Global keyboard shortcuts
-- `rubato` - Audio resampling
-- `rodio` - Audio playback for feedback sounds
+- `transcribe-cpp` — Inferencia local de la familia Whisper (GGML/GGUF) con aceleración por GPU
+- `transcribe-rs` — Reconocimiento de voz ONNX (Parakeet, Moonshine, SenseVoice…)
+- `cpal` — Entrada/salida de audio multiplataforma
+- `vad-rs` — Detección de actividad de voz
+- `rdev` — Atajos de teclado globales
+- `rubato` — Remuestreo de audio
+- `rodio` — Reproducción de los sonidos de aviso
 
-### Application Flow
+### Flujo de la aplicación
 
-1. **Initialization:** App starts minimized to tray, loads settings, initializes managers
-2. **Model Setup:** First-run downloads preferred Whisper model (Small/Medium/Turbo/Large)
-3. **Recording:** Global shortcut triggers audio recording with VAD filtering
-4. **Processing:** Audio sent to Whisper model for transcription
-5. **Output:** Text pasted to active application via system clipboard
+1. **Arranque:** la app abre minimizada en la bandeja, carga ajustes e inicializa los managers
+2. **Modelo:** en la primera vez se descarga el modelo elegido
+3. **Grabación:** el atajo global dispara la grabación, con filtrado por VAD
+4. **Proceso:** el audio va al modelo para transcribirse
+5. **Salida:** el texto se pega en la app activa
 
-### Settings System
+### Sistema de ajustes
 
-Settings are stored using Tauri's store plugin with reactive updates:
+Los ajustes se guardan con el plugin de store de Tauri, con actualización reactiva:
 
-- Keyboard shortcuts (configurable, supports push-to-talk)
-- Audio devices (microphone/output selection)
-- Model preferences (Small/Medium/Turbo/Large Whisper variants)
-- Audio feedback and translation options
+- Atajos de teclado (configurables, admiten pulsar para hablar)
+- Dispositivos de audio (micrófono y salida)
+- Preferencias de modelo
+- Sonidos de aviso y opciones de traducción
 
-### Single Instance Architecture
+### Instancia única
 
-The app enforces single instance behavior — launching when already running brings the settings window to front rather than creating a new process. Remote control flags (`--toggle-transcription`, etc.) work by launching a second instance that sends args to the running instance via `tauri_plugin_single_instance`, then exits.
+La app admite una sola instancia: abrirla estando ya en marcha trae la ventana al frente en vez de crear otro proceso. Las banderas de control remoto (`--toggle-transcription` y demás) funcionan lanzando una segunda instancia que pasa sus argumentos a la que ya corre vía `tauri_plugin_single_instance`, y termina.
 
 ## Internationalization (i18n)
 
-All user-facing strings must use i18next translations. ESLint enforces this (no hardcoded strings in JSX).
+Todo texto que vea el usuario tiene que pasar por i18next. ESLint lo exige: no se admiten literales en el JSX. Son 21 archivos de idioma y `bun run check:translations` falla si a alguno le falta una clave.
 
-**Adding new text:**
+**Para añadir texto nuevo:**
 
-1. Add key to `src/i18n/locales/en/translation.json`
-2. Use in component: `const { t } = useTranslation(); t('key.path')`
+1. Añade la clave en `src/i18n/locales/en/translation.json`
+2. Úsala en el componente: `const { t } = useTranslation(); t('ruta.de.la.clave')`
 
-**File structure:**
+**Estructura:**
 
 ```
 src/i18n/
 ├── index.ts           # i18n setup
 ├── languages.ts       # Language metadata
 └── locales/
-    ├── en/translation.json  # English (source)
+    ├── en/translation.json  # Inglés (origen)
     ├── de/, es/, fr/, ja/, ru/, zh/, ...
     └── ...
 ```
 
-For translation contribution guidelines, see [CONTRIBUTING_TRANSLATIONS.md](CONTRIBUTING_TRANSLATIONS.md).
+Para contribuir traducciones, ver [CONTRIBUTING_TRANSLATIONS.md](CONTRIBUTING_TRANSLATIONS.md).
 
-## Code Style
+## Estilo de código
 
 **Rust:**
 
-- Run `cargo fmt` and `cargo clippy` before committing
-- Handle errors explicitly (avoid unwrap in production)
-- Use descriptive names, add doc comments for public APIs
+- Corre `cargo fmt` y `cargo clippy` antes de cada commit
+- Maneja los errores de forma explícita (nada de `unwrap` en producción)
+- Nombres descriptivos, y comentarios de documentación en las APIs públicas
 
 **TypeScript/React:**
 
-- Strict TypeScript, avoid `any` types
-- Functional components with hooks
-- Tailwind CSS for styling
-- Path aliases: `@/` → `./src/`
+- TypeScript estricto, sin `any`
+- Componentes funcionales con hooks
+- Tailwind CSS para los estilos
+- Alias de rutas: `@/` → `./src/`
 
 ## Protocolo de verificación (auditoría y cambios de código)
 
@@ -205,49 +205,49 @@ Intento de refutación: [qué se buscó para invalidarlo]
 Veredicto: Verificado / Plausible no confirmado
 ```
 
-## CLI Parameters
+## Parámetros de línea de comandos
 
-Escriba supports command-line parameters on all platforms for integration with scripts, window managers, and autostart configurations.
+Escriba admite parámetros de línea de comandos en todas las plataformas, para integrarse con scripts, gestores de ventanas y arranque automático.
 
-**Implementation:** `cli.rs` (definitions), `main.rs` (parsing), `lib.rs` (applying), `signal_handle.rs` (shared logic)
+**Dónde vive:** `cli.rs` (definiciones), `main.rs` (parseo), `lib.rs` (aplicación), `signal_handle.rs` (lógica compartida)
 
-| Flag                     | Description                                                |
+| Bandera                  | Qué hace                                                   |
 | ------------------------ | ---------------------------------------------------------- |
-| `--toggle-transcription` | Toggle recording on/off on a running instance              |
-| `--toggle-post-process`  | Toggle recording with post-processing on/off               |
-| `--cancel`               | Cancel the current operation on a running instance         |
-| `--start-hidden`         | Launch without showing the main window (tray icon visible) |
-| `--no-tray`              | Launch without system tray (closing window quits the app)  |
-| `--debug`                | Enable debug mode with verbose (Trace) logging             |
+| `--toggle-transcription` | Alterna la grabación en una instancia en marcha            |
+| `--toggle-post-process`  | Alterna la grabación con post-proceso                      |
+| `--cancel`               | Cancela la operación en curso                              |
+| `--start-hidden`         | Arranca sin mostrar la ventana (queda el icono de bandeja) |
+| `--no-tray`              | Arranca sin bandeja (cerrar la ventana termina la app)     |
+| `--debug`                | Modo de depuración con log detallado (Trace)               |
 
-**Key design decisions:**
+**Decisiones de diseño:**
 
-- CLI flags are runtime-only overrides — they do NOT modify persisted settings
-- Remote control flags work via `tauri_plugin_single_instance`: second instance sends args, then exits
-- `send_transcription_input()` in `signal_handle.rs` is shared between signal handlers and CLI
+- Las banderas solo valen para esa ejecución: NO modifican los ajustes guardados
+- El control remoto va por `tauri_plugin_single_instance`: la segunda instancia pasa sus argumentos y termina
+- `send_transcription_input()`, en `signal_handle.rs`, es común a las señales y a la línea de comandos
 
-## Debug Mode
+## Modo de depuración
 
-Access debug features: `Cmd+Shift+D` (macOS) or `Ctrl+Shift+D` (Windows/Linux)
+Se activa con `Cmd+Shift+D` (macOS) o `Ctrl+Shift+D` (Windows/Linux). OJO: `debug_mode` es un ajuste PERSISTENTE que se envía a los usuarios, no una herramienta interna: lo que cuelga de ese panel son funciones reales de diagnóstico.
 
-## Platform Notes
+## Notas por plataforma
 
-- **macOS**: Metal acceleration, accessibility permissions required for keyboard shortcuts
-- **Windows**: Vulkan acceleration, code signing
-- **Linux**: OpenBLAS + Vulkan, limited Wayland support, overlay uses GTK layer shell (disable with `HANDY_NO_GTK_LAYER_SHELL=1`)
+- **macOS**: aceleración Metal; los atajos de teclado necesitan permiso de Accesibilidad
+- **Windows**: aceleración Vulkan, firma de código
+- **Linux**: OpenBLAS + Vulkan, soporte limitado de Wayland; la ventana superpuesta usa GTK layer shell (se desactiva con `HANDY_NO_GTK_LAYER_SHELL=1`)
 
-## Troubleshooting
+## Solución de problemas
 
-See [BUILD.md](BUILD.md) for build issues, and the install notes in [README.md](README.md) for first-run permissions on macOS and Windows.
+Para problemas de compilación, ver [BUILD.md](BUILD.md). Para los permisos de la primera apertura en macOS y Windows, las notas de instalación del [README.md](README.md).
 
-## GitHub workflow for AI coding assistants
+## Flujo de GitHub para asistentes de IA
 
-**MANDATORY. Before opening any PR, issue, or discussion in this repo: you MUST read the relevant template file and follow it strictly.** That includes sections that look "ceremonial" — checklists, AI Assistance disclosures, "Human Written Description". A generic Summary/Test-plan layout is not acceptable.
+**OBLIGATORIO. Antes de abrir un PR, una issue o una discusión en este repo: hay que leer la plantilla correspondiente y seguirla al pie de la letra.** Incluidas las secciones que parecen de trámite: listas de comprobación, declaración de uso de IA, "Human Written Description". Un resumen genérico con plan de pruebas no vale.
 
-- **Opening a PR:** Read [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md). Every section listed there is mandatory. If a section requires a human-written paragraph (e.g. "Human Written Description"), leave a clear TODO placeholder and ask the human contributor to fill it in — do not invent their voice.
-- **Opening an issue:** Read [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/). Blank issues are disabled; pick the right template (`bug_report.md` for bugs). Feature requests do not belong in issues — they go to [Discussions](https://github.com/AlejandroAP9/Escriba/discussions) (see `.github/ISSUE_TEMPLATE/config.yml`).
-- **Proposing a feature:** discuss it first in [Discussions](https://github.com/AlejandroAP9/Escriba/discussions). (The upstream Handy project is under a feature freeze; that policy is theirs, not Escriba's.)
-- **Translations:** Follow [CONTRIBUTING_TRANSLATIONS.md](CONTRIBUTING_TRANSLATIONS.md).
-- **Full contributor workflow:** [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Abrir un PR:** lee [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md). Todas sus secciones son obligatorias. Si alguna pide un párrafo escrito por una persona (por ejemplo "Human Written Description"), deja un TODO visible y pídeselo — no inventes su voz.
+- **Abrir una issue:** lee [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/). Las issues en blanco están desactivadas; elige la plantilla que toque (`bug_report.md` para errores). Las peticiones de features no van en issues: van a [Discussions](https://github.com/AlejandroAP9/Escriba/discussions) (ver `.github/ISSUE_TEMPLATE/config.yml`).
+- **Proponer una feature:** discútela primero en [Discussions](https://github.com/AlejandroAP9/Escriba/discussions). (El Handy original está congelado en features; esa política es suya, no de Escriba.)
+- **Traducciones:** sigue [CONTRIBUTING_TRANSLATIONS.md](CONTRIBUTING_TRANSLATIONS.md).
+- **Flujo completo para colaborar:** [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Commits:** Use conventional commit prefixes (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`). Focus the message on _why_, not _what_.
+**Commits:** usa los prefijos convencionales (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`). El mensaje explica el _porqué_, no el _qué_.

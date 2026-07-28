@@ -1383,7 +1383,11 @@
       "noAccount": {
         "title": "No account, no subscription",
         "body": "Nothing to sign up for. Free, with no usage limit."
-      }
+      },
+      "priceTitle": "What others charge per month:",
+      "priceTypeless": "US$12–30/mo",
+      "priceWispr": "US$15/mo",
+      "priceEscriba": "US$0, forever"
     },
     "model": {
       "title": "Choose how I'll hear you",
@@ -1402,7 +1406,8 @@
     },
     "shortcut": {
       "title": "Your shortcut to talk to me",
-      "narration": "Hold it down, say what you want, let go. The text appears wherever your cursor is, in any app."
+      "narration": "Hold it down, say what you want, let go. The text appears wherever your cursor is, in any app.",
+      "note": "Works in any app: the text lands wherever your cursor is, no copy-paste. And if you dictate in your editor or your mail client, Escriba can match the tone of each one."
     },
     "obsidian": {
       "title": "Do you keep notes in Obsidian?",

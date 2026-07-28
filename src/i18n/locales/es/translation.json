@@ -1383,7 +1383,11 @@
       "noAccount": {
         "title": "Sin cuenta ni suscripción",
         "body": "Nada que registrar. Gratis, y sin límite de uso."
-      }
+      },
+      "priceTitle": "Lo que otros cobran al mes:",
+      "priceTypeless": "12–30 US$/mes",
+      "priceWispr": "15 US$/mes",
+      "priceEscriba": "0 US$, para siempre"
     },
     "model": {
       "title": "Elige con qué voy a escucharte",
@@ -1402,7 +1406,8 @@
     },
     "shortcut": {
       "title": "Tu atajo para hablarme",
-      "narration": "Manténlo pulsado, di lo que quieras, y suéltalo. El texto aparece donde tengas el cursor, en cualquier app."
+      "narration": "Manténlo pulsado, di lo que quieras, y suéltalo. El texto aparece donde tengas el cursor, en cualquier app.",
+      "note": "Funciona en cualquier app: el texto aparece donde tengas el cursor, sin copiar ni pegar. Y si dictas en tu editor o en tu correo, Escriba puede ajustar el tono a cada uno."
     },
     "obsidian": {
       "title": "¿Guardas notas en Obsidian?",

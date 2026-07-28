@@ -98,6 +98,45 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
             </Card>
           ))}
         </div>
+
+        {/* El argumento más concreto que tenemos, y el que la landing pone en
+            el centro: lo mismo que otros cobran al mes, aquí no cuesta. Va con
+            cifras y con nombre, no como eslogan. */}
+        <div className="mt-3 rounded-card border border-line bg-vitela/25 px-4 py-3">
+          <p className="text-xs font-medium text-mid-gray">
+            {t("wizard.welcome.priceTitle")}
+          </p>
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1.5 text-sm">
+            {/* Los tres nombres son marcas: no se traducen, y por eso van como
+                datos y no como literales sueltos en el JSX. */}
+            {[
+              {
+                name: "Typeless",
+                price: t("wizard.welcome.priceTypeless"),
+                ours: false,
+              },
+              {
+                name: "Wispr Flow",
+                price: t("wizard.welcome.priceWispr"),
+                ours: false,
+              },
+              {
+                name: "Escriba",
+                price: t("wizard.welcome.priceEscriba"),
+                ours: true,
+              },
+            ].map((row) => (
+              <span
+                key={row.name}
+                className={
+                  row.ours ? "font-medium text-gold-text" : "text-mid-gray"
+                }
+              >
+                {row.name} <span className="tabular-nums">{row.price}</span>
+              </span>
+            ))}
+          </div>
+        </div>
       </WizardShell>
     );
   }
@@ -130,11 +169,30 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
         onNext={next}
         nextLabel={t("wizard.next")}
       >
-        <ShortcutInput
-          shortcutId="transcribe"
-          descriptionMode="inline"
-          grouped
-        />
+        <div className="flex flex-col gap-2">
+          <ShortcutInput
+            shortcutId="transcribe"
+            descriptionMode="inline"
+            grouped
+          />
+          <ShortcutInput
+            shortcutId="transcribe_with_post_process"
+            descriptionMode="inline"
+            grouped
+          />
+          <ShortcutInput
+            shortcutId="voice_edit"
+            descriptionMode="inline"
+            grouped
+          />
+
+          {/* Lo que de verdad hay que llevarse de esta pantalla no es la
+              combinación de teclas, sino que el texto aterriza en la app donde
+              estés, sin copiar ni pegar. */}
+          <p className="mt-1 text-xs leading-relaxed text-mid-gray">
+            {t("wizard.shortcut.note")}
+          </p>
+        </div>
       </WizardShell>
     );
   }

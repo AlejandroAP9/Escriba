@@ -160,6 +160,26 @@
    `applyUiScale` (appearance.ts), porque compone con el font-size inline. */
 
 :root[data-calm] {
+  /* UN SOLO COLOR DE ACENTO.
+     Esta es la regla que de verdad baja el volumen. La primera versión del modo
+     solo agrandaba el texto y quitaba animaciones, y el propio usuario lo
+     resumió bien: "lo único que noto es que se agranda la tipografía, y para
+     eso ya está el control de tamaño". Tenía razón — era un ajuste redundante.
+
+     Lo que hace ruido en esta interfaz no es el tamaño: son cinco colores
+     compitiendo (oro, lacre, ámbar, azul, verde) repartidos por avisos,
+     insignias y sellos. En Calma los cuatro semánticos colapsan hacia la tinta,
+     así que solo el oro sigue hablando y el resto se lee por su texto, no por
+     su color. Eso sí se ve al primer vistazo. */
+  --color-lacre: var(--color-text);
+  --color-warning: var(--color-text);
+  --color-info: var(--color-text);
+  --color-success: var(--color-text);
+
+  /* Y el propio oro baja el tono: sigue marcando lo importante sin brillar. */
+  --color-logo-primary: #8a6524;
+  --color-background-ui: #8a6524;
+
   /* +15% de aire: las utilidades de espaciado de Tailwind v4 calculan sobre
      esta variable EN RUNTIME (verificado en el CSS compilado), así que un
      solo token escala padding, margin y gap de toda la app. 0,25rem × 1,15. */
@@ -173,6 +193,31 @@
     var(--color-logo-primary) 100%
   );
   --paper-grain: none;
+}
+
+/* En oscuro, el oro apagado se aclara en vez de oscurecerse: sobre tinta, un
+   oro más oscuro desaparecería. La tinta ya es clara ahí, así que los estados
+   semánticos colapsados siguen leyéndose sin tocar nada más. */
+@media (prefers-color-scheme: dark) {
+  :root[data-calm] {
+    --color-logo-primary: #c9ae72;
+    --color-background-ui: #c9ae72;
+  }
+}
+:root[data-theme="dark"][data-calm] {
+  --color-logo-primary: #c9ae72;
+  --color-background-ui: #c9ae72;
+}
+:root[data-theme="light"][data-calm] {
+  --color-logo-primary: #8a6524;
+  --color-background-ui: #8a6524;
+}
+
+/* La marca de agua enorme de la pluma en Inicio es decoración pura: en Calma
+   sobra. */
+:root[data-calm] .escriba-mark--light,
+:root[data-calm] .escriba-mark--dark {
+  display: none;
 }
 
 /* Cero movimiento: animaciones y transiciones APAGADAS, no acortadas. Es la

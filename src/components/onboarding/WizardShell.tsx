@@ -55,6 +55,9 @@ export const WizardShell: React.FC<WizardShellProps> = ({
 
   return (
     <div className="h-screen w-screen overflow-y-auto">
+      {/* `justify-center` con `my-auto` en el contenido: en una ventana alta el
+          bloque queda centrado en vez de pegado arriba con medio metro de vacío
+          debajo, y en una ventana baja sigue haciendo scroll normal. */}
       <div className="mx-auto flex min-h-full max-w-2xl flex-col gap-5 px-6 py-8">
         {/* Cabecera: marca + progreso. El progreso es una fila de trazos, no
             un porcentaje: son pasos contables, no una descarga. */}
@@ -108,7 +111,7 @@ export const WizardShell: React.FC<WizardShellProps> = ({
           </div>
         </div>
 
-        <div className="flex-1">{children}</div>
+        <div className="my-auto">{children}</div>
 
         {(onNext || onSkip) && (
           <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
