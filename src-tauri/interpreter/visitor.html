@@ -24,6 +24,12 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        /* Nada debe poder empujar la página de lado: cuando la barra de la
+           vista en vivo se desbordaba, el teléfono ganaba scroll horizontal y
+           TODO se veía corrido — la cabecera cortada por la izquierda y las
+           burbujas pegadas al borde. Se arregla la causa abajo (flex-wrap),
+           pero esto evita que cualquier contenido futuro lo repita. */
+        overflow-x: hidden;
       }
       header {
         padding: 16px 20px;
@@ -35,6 +41,19 @@
       .live {
         padding: 20px;
         flex: 1;
+      }
+      /* El viewport es `viewport-fit=cover`, así que en un teléfono con muesca
+         el contenido llega hasta el borde físico y hay que respetar el área
+         segura. Va en declaraciones APARTE, después del padding base: un
+         navegador que no entienda `env()` descarta solo estas dos líneas y
+         conserva los 20px de arriba. Metido en el atajo `padding`, ese mismo
+         navegador se habría quedado sin ningún margen — y esta página se abre
+         en el teléfono de cualquiera, que es donde menos se controla. */
+      header,
+      .setup,
+      .live {
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
       }
       .live {
         display: none;
@@ -98,8 +117,12 @@
           transform: translateY(6px);
         }
       }
+      /* Cuatro controles en fila (voz, copiar, idioma, estado) no caben en un
+         teléfono angosto. Sin `wrap` el selector empujaba "Conectado" fuera de
+         la pantalla y con él toda la página. Ahora la fila se parte. */
       .toolbar {
         display: flex;
+        flex-wrap: wrap;
         gap: 10px;
         align-items: center;
         margin-bottom: 16px;
@@ -157,7 +180,13 @@
         <button id="copyBtn" class="muted" title="Copiar todo el texto">
           📋
         </button>
-        <select id="langLive" class="muted" style="width: auto; flex: 1">
+        <!-- `min-width: 0` deja que el selector se encoja por debajo del ancho
+             de su opción más larga en vez de forzar el desborde de la fila. -->
+        <select
+          id="langLive"
+          class="muted"
+          style="width: auto; flex: 1 1 140px; min-width: 0"
+        >
           <option value="es">Español</option>
           <option value="en">English (Inglés)</option>
           <option value="pt">Português (Portugués)</option>

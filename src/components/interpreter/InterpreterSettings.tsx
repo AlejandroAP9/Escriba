@@ -184,10 +184,19 @@ export const InterpreterSettings: React.FC = () => {
       <div className="grid gap-4 lg:grid-cols-[1fr_1fr] lg:items-start">
         {/* QR protagonista */}
         <div className="flex flex-col items-center rounded-card border border-line bg-vitela/30 p-5 text-center shadow-card">
+          {/*
+            El SVG se inyecta crudo, así que hay que dimensionarlo desde aquí:
+            `qr_svg()` lo genera con `min_dimensions(220, 220)` y el contenedor
+            (208px menos 24 de padding) solo le daba 184. Sin regla que lo
+            ajuste se dibujaba a su tamaño natural y se derramaba por debajo,
+            tapando el texto "Escanea con la cámara…". `overflow-hidden` no
+            sirve aquí: recortar un QR es dejarlo inescaneable. La altura queda
+            automática porque el QR es cuadrado.
+          */}
           <div
-            className="rounded-card bg-white p-3"
+            className="rounded-card bg-white p-3 [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
             dangerouslySetInnerHTML={{ __html: room.qr_svg }}
-            style={{ width: 208, height: 208 }}
+            style={{ width: 208 }}
           />
           <p className="mt-3 text-xs text-mid-gray">
             {t("interpreter.scanHint")}
