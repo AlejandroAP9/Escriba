@@ -258,9 +258,17 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         )}
       </button>
 
-      <div className="flex-1 flex items-center gap-2">
+      {/*
+        `min-w-0` en los dos niveles: un hijo flexible arranca con
+        `min-width: auto`, que le impide encogerse por debajo del ancho
+        intrínseco de su contenido. Un `<input type="range">` es un control de
+        formulario y trae el suyo (~129px), así que en el reproductor compacto
+        del historial (176px de ancho total) el slider se negaba a encoger y
+        empujaba la duración FUERA de la tarjeta, donde se veía cortada.
+      */}
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         {!compact && (
-          <span className="text-xs text-text/60 min-w-[30px] tabular-nums">
+          <span className="min-w-[30px] shrink-0 text-xs tabular-nums text-text/60">
             {formatTime(currentTime)}
           </span>
         )}
@@ -274,13 +282,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           onChange={handleSeek}
           onMouseDown={handleSliderMouseDown}
           onTouchStart={handleSliderTouchStart}
-          className={`flex-1 h-1 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-logo-primary ${progressPercent >= 99.5 ? "[&::-webkit-slider-thumb]:translate-x-0.5 [&::-moz-range-thumb]:translate-x-0.5" : ""}`}
+          className={`h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-lg focus:outline-none focus:ring-1 focus:ring-logo-primary ${progressPercent >= 99.5 ? "[&::-webkit-slider-thumb]:translate-x-0.5 [&::-moz-range-thumb]:translate-x-0.5" : ""}`}
           style={{
             background: `linear-gradient(to right, var(--color-logo-primary) 0%, var(--color-logo-primary) ${progressPercent}%, rgba(128, 128, 128, 0.2) ${progressPercent}%, rgba(128, 128, 128, 0.2) 100%)`,
           }}
         />
 
-        <span className="text-xs text-text/60 min-w-[30px] tabular-nums">
+        <span className="min-w-[30px] shrink-0 text-xs tabular-nums text-text/60">
           {formatTime(duration)}
         </span>
       </div>

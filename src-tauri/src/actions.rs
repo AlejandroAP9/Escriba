@@ -2495,11 +2495,25 @@ Al cierre, en una linea final aparte, escribe exactamente [[animo:positivo]], [[
         Ok(Some(content)) => {
             let cleaned = strip_invisible_chars(&content);
             if cleaned.trim().is_empty() {
+                warn!("El documento de sesion salio vacio del motor local");
                 None
             } else {
                 Some(cleaned.trim().to_string())
             }
         }
-        _ => None,
+        // El fallo NO puede ser mudo. Cuando este camino fallo de verdad
+        // (27-jul-2026), el usuario vio "revisa el motor local" y el log
+        // terminaba en la peticion enviada, sin una sola linea que dijera que
+        // paso: imposible distinguir un timeout de un modelo caido sin volver a
+        // reproducirlo. Lo que se pierde aqui puede ser una sesion de una hora,
+        // asi que la causa se registra siempre.
+        Ok(None) => {
+            warn!("El motor local no devolvio contenido para el documento de sesion");
+            None
+        }
+        Err(e) => {
+            warn!("No se pudo generar el documento de sesion: {}", e);
+            None
+        }
     }
 }
