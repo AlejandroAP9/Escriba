@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.1.1-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.2.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -64,8 +64,9 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | 🖥️ **Audio del sistema**         | Sesiones también escucha lo que suena en tu computador: la otra parte del Zoom/Meet entra al acta como "Otros", con marca de tiempo. Actas de reunión a dos voces, sin nube. (macOS 13+)                                                                                                    |
 | 🎙️ **Intérprete de reuniones**   | Interpretación en vivo de tus videollamadas, ida y vuelta: lo que suena llega en tu idioma; lo que dictas sale traducido y hablado _dentro_ de la llamada por un micrófono virtual integrado (1 clic). Hablas español, el otro escucha inglés. 100% local. (idea de John Walter, macOS 13+) |
 | 🔊 **Tu tinta en voz**           | Selecciona texto en cualquier app y ⌥⇧R: Escriba lo lee en voz alta con la mejor voz de tu equipo. Revisa tus borradores con los oídos.                                                                                                                                                     |
-| 👓 **Para todos los ojos**       | Tema Día/Noche/Sistema, tamaño de texto ajustable (90-130%), **alto contraste**, **asistencia para daltonismo** y **Modo Calma** (quietud total, más aire, superficies planas). Nacida de la comunidad.                                                                                     |
-| 📝 **Enviar a Obsidian**         | El acta de Sesiones y las transcripciones del Estudio entran a tu vault como notas Markdown. La exportación no toca la red.                                                                                                                                                                 |
+| 👓 **Para todos los ojos**       | Tema Día/Noche/Sistema, tamaño de texto ajustable (90-130%), **alto contraste**, **asistencia para daltonismo**, **Modo Calma** (quietud total, más aire, superficies planas) y foco siempre visible. Nacida de la comunidad.                                                               |
+| 🪶 **Plumín te recibe**          | Asistente de primera vez donde Plumín te acompaña paso a paso y termina pidiéndote que le hables: dictas, ves tus palabras aparecer, y le pides que las traduzca. Terminas la instalación habiendo usado la app, no mirando capturas.                                                       |
+| 📝 **Enviar a Obsidian**         | El acta de Sesiones y las transcripciones del Estudio entran a tu vault como notas Markdown, en su propia carpeta y tras dejarte revisarlas. La exportación no toca la red.                                                                                                                 |
 | ⌨️ **Escribir en vez de dictar** | Corrige o **traduce** un texto escrito con el mismo motor local, sin usar la voz. Para el aula compartida, la afonía o quien no puede hablar en ese momento.                                                                                                                                |
 | ✨ **Corrección con IA**         | Limpia muletillas y repeticiones, ordena listas y ajusta el tono según la app (WhatsApp casual, Mail formal, prompts para Cursor…).                                                                                                                                                         |
 | 🗣️ **Edición por voz**           | Selecciona texto en cualquier app, mantén el atajo y dile qué hacer: _"hazlo más formal"_, _"resúmelo en 3 líneas"_, _"tradúcelo al portugués"_.                                                                                                                                            |
@@ -126,6 +127,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                                                                                                    |
 | ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 2.2.0   | 28-jul | 🪶 **Plumín te recibe**: asistente de bienvenida que termina con tu primera dictada + notas de Obsidian en su propia carpeta |
 | 2.1.1   | 28-jul | 🔧 Ocho arreglos salidos de probar la app: documento de sesión, "¿" del dictado, alto contraste real y ajustes de Obsidian   |
 | 2.1.0   | 26-jul | 🛡️ **La ronda del blindaje**: 5 auditorías aplicadas + 📝 Enviar a **Obsidian** + ♿ Modo Calma, alto contraste y daltonismo |
 | 2.0.0   | 21-jul | 🎙️ **Intérprete de reuniones** en vivo, ida y vuelta (idea de John Walter) + micrófono virtual integrado                     |
