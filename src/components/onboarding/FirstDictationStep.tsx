@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, Mic, Square } from "lucide-react";
 import { listen } from "@tauri-apps/api/event";
+import { toast } from "sonner";
 import { commands } from "@/bindings";
+import { useSettings } from "../../hooks/useSettings";
 import { WizardShell } from "./WizardShell";
 import { Button } from "../ui/Button";
 
@@ -42,6 +44,13 @@ export const FirstDictationStep: React.FC<FirstDictationStepProps> = ({
   shortcut,
 }) => {
   const { t } = useTranslation();
+  const { getSetting } = useSettings();
+  // Traducir necesita el motor local, y el paso anterior deja saltarlo a
+  // propósito (son 2,5 GB). Sin esto, quien lo salta pulsaba "Tradúcelo" y no
+  // pasaba NADA: el comando devuelve POST_PROCESS_DISABLED y el botón solo
+  // dejaba de girar. Ofrecer algo que no puede funcionar es peor que no
+  // ofrecerlo.
+  const canTranslate = (getSetting("post_process_enabled") ?? false) as boolean;
   const [phase, setPhase] = useState<Phase>("idle");
   const [text, setText] = useState("");
   const [translation, setTranslation] = useState("");
@@ -79,7 +88,14 @@ export const FirstDictationStep: React.FC<FirstDictationStepProps> = ({
     setTranslating(true);
     try {
       const r = await commands.processTypedText(text, "translate");
-      if (r.status === "ok") setTranslation(r.data);
+      if (r.status === "ok") {
+        setTranslation(r.data);
+      } else {
+        // Aunque el motor esté encendido puede fallar (caído, a medio
+        // instalar). Que se diga, en vez de que el botón vuelva a su sitio
+        // como si nada.
+        toast.error(t("wizard.test.translateFailed"));
+      }
     } finally {
       setTranslating(false);
     }
@@ -152,7 +168,7 @@ export const FirstDictationStep: React.FC<FirstDictationStepProps> = ({
             </span>
           </Button>
 
-          {hasText && (
+          {hasText && canTranslate && (
             <Button
               variant="secondary"
               onClick={translate}
@@ -164,6 +180,13 @@ export const FirstDictationStep: React.FC<FirstDictationStepProps> = ({
             </Button>
           )}
         </div>
+
+        {/* Sin motor, se explica qué falta en vez de dejar un botón muerto. */}
+        {hasText && !canTranslate && (
+          <p className="text-xs text-mid-gray">
+            {t("wizard.test.needsEngine")}
+          </p>
+        )}
 
         {translation && (
           <div

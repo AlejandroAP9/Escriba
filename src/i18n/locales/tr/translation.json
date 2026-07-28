@@ -1425,7 +1425,9 @@
       "translationNote": "Translated on your machine, nothing sent.",
       "shortcutHint": "Outside of here, your shortcut is",
       "finish": "Finish",
-      "finishEmpty": "Skip and finish"
+      "finishEmpty": "Skip and finish",
+      "translateFailed": "Couldn't translate. Check the local engine in Settings.",
+      "needsEngine": "Translating needs the local engine, the one I offered two steps back. You can install it later from Settings → Post Processing."
     }
   }
 }

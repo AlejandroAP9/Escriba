@@ -1425,7 +1425,9 @@
       "translationNote": "Traducido en tu máquina, sin enviar nada.",
       "shortcutHint": "Fuera de aquí, tu atajo es",
       "finish": "Terminar",
-      "finishEmpty": "Saltar y terminar"
+      "finishEmpty": "Saltar y terminar",
+      "translateFailed": "No se pudo traducir. Revisa el motor local en Ajustes.",
+      "needsEngine": "Para traducir hace falta el motor local, el que te ofrecí hace dos pasos. Puedes instalarlo después en Ajustes → Post Proceso."
     }
   }
 }

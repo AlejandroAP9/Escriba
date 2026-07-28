@@ -362,13 +362,38 @@ function App() {
     setOnboardingStep("done");
   };
 
+  // El Toaster va FUERA de las ramas del onboarding y no dentro del return
+  // principal. Estaba dentro, después de los `return` tempranos, así que
+  // durante todo el asistente no había ninguna superficie donde mostrar avisos:
+  // elegir un vault fuera de tu carpeta personal fallaba en silencio, y
+  // cualquier otro error también. La app "funcionaba" porque no se veía nada.
+  const toaster = (
+    <Toaster
+      theme="system"
+      toastOptions={{
+        unstyled: true,
+        classNames: {
+          toast:
+            "bg-background border border-mid-gray/20 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 text-sm",
+          title: "font-medium",
+          description: "text-mid-gray",
+        },
+      }}
+    />
+  );
+
   // Still checking onboarding status
   if (onboardingStep === null) {
     return null;
   }
 
   if (onboardingStep === "accessibility") {
-    return <AccessibilityOnboarding onComplete={handleAccessibilityComplete} />;
+    return (
+      <>
+        {toaster}
+        <AccessibilityOnboarding onComplete={handleAccessibilityComplete} />
+      </>
+    );
   }
 
   if (onboardingStep === "model") {
@@ -379,7 +404,13 @@ function App() {
         Record<string, { current_binding?: string }> | undefined
     )?.transcribe?.current_binding;
     return (
-      <SetupWizard shortcut={binding ?? "—"} onComplete={handleModelSelected} />
+      <>
+        {toaster}
+        <SetupWizard
+          shortcut={binding ?? "—"}
+          onComplete={handleModelSelected}
+        />
+      </>
     );
   }
 
@@ -388,18 +419,7 @@ function App() {
       dir={direction}
       className="h-screen flex flex-col select-none cursor-default"
     >
-      <Toaster
-        theme="system"
-        toastOptions={{
-          unstyled: true,
-          classNames: {
-            toast:
-              "bg-background border border-mid-gray/20 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 text-sm",
-            title: "font-medium",
-            description: "text-mid-gray",
-          },
-        }}
-      />
+      {toaster}
       <WhatsNewGate />
       {/* Revisión de la nota antes de que toque el vault. Se monta una sola
           vez aquí; Sesiones y el Estudio lo abren por el store. */}
