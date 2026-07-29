@@ -29,6 +29,11 @@ uno solo: la frase aparece al instante y cada idioma llega cuando está.
   guardado. Quien usara el Intérprete a diario podía pasar días con el contador
   clavado mientras dictaba sin parar. Afectaba igual al Traductor y al asistente
   de bienvenida.
+- **Borrar un dictado del historial ahora lo descuenta de las estadísticas** —
+  antes seguía contando, así que Inicio podía decir 9 dictados con 4 en el
+  historial. El recorte automático sigue sin descontar, y eso es a propósito:
+  que el agregado le sobreviva es justo lo que arregla el conteo. Pero borrar a
+  mano es el usuario pidiendo que se quite, no una política de retención.
 - **El atajo de dictado saboteaba las sesiones que graban el computador** —
   pulsarlo pausaba el reproductor y silenciaba la salida, que es exactamente lo
   que la sesión estaba capturando, y sin decir nada. Ahora, con una sesión

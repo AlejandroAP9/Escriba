@@ -534,6 +534,39 @@ impl HistoryManager {
         }
     }
 
+    /// Resta una entrada del agregado diario de uso.
+    ///
+    /// Se llama SOLO al borrar a mano, nunca al recortar por retención, y esa
+    /// distinción es el fondo del asunto. El recorte automático es una política
+    /// de la app: que el agregado le sobreviva es exactamente para lo que se
+    /// creó, porque si no las estadísticas volverían a contar solo las últimas
+    /// cinco entradas. Borrar a mano es otra cosa: es el usuario diciendo
+    /// "quita esto". Seguir contando lo que te pidieron quitar es lo que hacía
+    /// que Inicio dijera 9 dictados con 4 en el historial.
+    fn discount_from_usage(&self, conn: &Connection, entry: &HistoryEntry) {
+        // Mismo criterio de conteo que al guardar; si divergen, los números se
+        // separan poco a poco y nadie sabe cuál de los dos miente.
+        let counted = entry
+            .post_processed_text
+            .as_deref()
+            .filter(|t| !t.trim().is_empty())
+            .unwrap_or(&entry.transcription_text);
+        let words = counted.split_whitespace().count() as i64;
+        // `MAX(0, ...)` en las dos columnas: el agregado de quien actualizó
+        // desde una versión anterior se sembró de un historial ya recortado, así
+        // que puede no cuadrar con lo que se borra. Un contador corto es feo; uno
+        // en negativo es un fallo a la vista.
+        if let Err(e) = conn.execute(
+            "UPDATE usage_daily
+                SET transcriptions = MAX(0, transcriptions - 1),
+                    words = MAX(0, words - ?2)
+              WHERE day = ?1",
+            params![local_day(entry.timestamp), words],
+        ) {
+            error!("No se pudo descontar del agregado de uso: {}", e);
+        }
+    }
+
     fn delete_entries_and_files(&self, entries: &[(i64, String)]) -> Result<usize> {
         if entries.is_empty() {
             return Ok(0);
@@ -807,6 +840,7 @@ impl HistoryManager {
                     // Continue with database deletion even if file deletion fails
                 }
             }
+            self.discount_from_usage(&conn, &entry);
         }
 
         // Delete from database
