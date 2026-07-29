@@ -105,6 +105,15 @@ pub fn is_listening() -> bool {
     LISTENING.load(Ordering::Relaxed)
 }
 
+/// Hay una sesión capturando el audio del computador ahora mismo.
+///
+/// Lo consulta el camino del dictado para no silenciar ni pausar lo que esa
+/// sesión está grabando (`audio.rs::apply_mute`, `actions.rs` con
+/// `pause_media_on_dictate`).
+pub fn system_audio_active() -> bool {
+    SYSTEM_AUDIO.load(Ordering::Relaxed)
+}
+
 pub fn mode() -> String {
     MODE.lock()
         .map(|m| {

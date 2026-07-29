@@ -1274,9 +1274,9 @@ async reviewDiscard() : Promise<void> {
 async reviewCopy() : Promise<void> {
     await TAURI_INVOKE("review_copy");
 },
-async processTypedText(text: string, action: TypedTextAction) : Promise<Result<string, string>> {
+async processTypedText(text: string, action: TypedTextAction, targetLang?: string | null) : Promise<Result<string, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("process_typed_text", { text, action }) };
+    return { status: "ok", data: await TAURI_INVOKE("process_typed_text", { text, action, targetLang }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

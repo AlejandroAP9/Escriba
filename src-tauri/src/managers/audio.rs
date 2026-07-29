@@ -419,6 +419,15 @@ impl AudioRecordingManager {
         if !settings.mute_while_recording {
             return;
         }
+        // Con una sesión capturando el audio del computador, silenciar la salida
+        // apaga justo lo que se está grabando. El silenciado existe para que el
+        // micrófono no se oiga a sí mismo; aquí la fuente ES el sistema, así que
+        // la cura mata al paciente: el usuario pone un vídeo, pulsa el atajo por
+        // costumbre, y la sesión se queda sin audio sin que nada se lo diga.
+        if crate::commands::conversation::system_audio_active() {
+            debug!("Sesión con audio del sistema activa: no se silencia la salida");
+            return;
+        }
 
         let open_flag = self.lock_is_open();
         let mut did_mute_guard = self.lock_did_mute();

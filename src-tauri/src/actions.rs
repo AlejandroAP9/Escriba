@@ -1142,17 +1142,27 @@ impl ShortcutAction for TranscribeAction {
         if is_always_on {
             // Always-on mode: Play audio feedback immediately, then apply mute after sound finishes
             debug!("Always-on mode: Playing audio feedback immediately");
-            let rm_clone = Arc::clone(&rm);
-            let app_clone = app.clone();
             // The blocking helper exits immediately if audio feedback is disabled,
             // so we can always reuse this thread to ensure mute happens right after playback.
-            std::thread::spawn(move || {
-                play_feedback_sound_blocking(&app_clone, SoundType::Start);
-                rm_clone.apply_mute();
-            });
-
-            if let Err(e) = rm.try_start_recording(&binding_id, vad_policy) {
-                debug!("Recording failed: {}", e);
+            //
+            // El silenciado va atado al resultado de la grabación, igual que en
+            // el modo bajo demanda. Antes se lanzaba pase lo que pase: si el
+            // micrófono estaba ocupado —por ejemplo por una sesión de manos
+            // libres— la grabación fallaba y el sistema se quedaba silenciado
+            // igual, sin nada que lo hubiera pedido.
+            let start_result = rm.try_start_recording(&binding_id, vad_policy);
+            match &start_result {
+                Ok(()) => {
+                    let rm_clone = Arc::clone(&rm);
+                    let app_clone = app.clone();
+                    std::thread::spawn(move || {
+                        play_feedback_sound_blocking(&app_clone, SoundType::Start);
+                        rm_clone.apply_mute();
+                    });
+                }
+                Err(e) => debug!("Recording failed: {}", e),
+            }
+            if let Err(e) = start_result {
                 recording_error = Some(e);
             }
         } else {
@@ -1184,7 +1194,11 @@ impl ShortcutAction for TranscribeAction {
 
         if recording_error.is_none() {
             // Pausa los medios que estén sonando (no bloquea el inicio del dictado).
-            if settings.pause_media_on_dictate {
+            // Salvo que una sesión esté capturando el audio del computador: ahí
+            // el reproductor ES la fuente, y pausarlo deja la sesión en silencio.
+            if settings.pause_media_on_dictate
+                && !crate::commands::conversation::system_audio_active()
+            {
                 std::thread::spawn(crate::media::pause_media);
             }
             // Dynamically register the cancel shortcut in a separate task to avoid deadlock
@@ -1476,6 +1490,25 @@ impl ShortcutAction for TranscribeAction {
 
                             if processed.interpreter_published {
                                 debug!("dictado publicado al interprete; no se pega");
+                                // Este `return` está para NO PEGAR el texto, que
+                                // ya se entregó por otra vía. Pero el guardado en
+                                // historial vive más abajo, así que se lo saltaba:
+                                // todo lo dictado al Intérprete, al Traductor o a
+                                // un campo de la app no existía para el historial
+                                // ni para las estadísticas. Con el Intérprete en
+                                // uso, el contador podía pasar días sin moverse
+                                // mientras se dictaba a diario.
+                                if wav_saved {
+                                    if let Err(err) = hm.save_entry(
+                                        file_name,
+                                        transcription,
+                                        post_process,
+                                        processed.post_processed_text.clone(),
+                                        processed.post_process_prompt.clone(),
+                                    ) {
+                                        error!("Failed to save history entry: {}", err);
+                                    }
+                                }
                                 utils::hide_recording_overlay(&ah);
                                 change_tray_icon(&ah, TrayIconState::Idle);
                                 return;

@@ -43,7 +43,7 @@ export const FirstDictationStep: React.FC<FirstDictationStepProps> = ({
   onDone,
   shortcut,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { getSetting } = useSettings();
   // Traducir necesita el motor local, y el paso anterior deja saltarlo a
   // propósito (son 2,5 GB). Sin esto, quien lo salta pulsaba "Tradúcelo" y no
@@ -87,7 +87,14 @@ export const FirstDictationStep: React.FC<FirstDictationStepProps> = ({
   const translate = async () => {
     setTranslating(true);
     try {
-      const r = await commands.processTypedText(text, "translate");
+      // Destino explícito, no el de los Ajustes. Esta pantalla existe para
+      // ENSEÑAR que traduce, así que el destino tiene que ser distinto del
+      // idioma en que acabas de dictar: con el global se podía traducir español
+      // a español y devolver el mismo texto, que parece un fallo sin serlo.
+      // Se traduce al inglés, salvo que la app ya esté en inglés.
+      const uiLang = (i18n.language || "es").split("-")[0];
+      const target = uiLang === "en" ? "es" : "en";
+      const r = await commands.processTypedText(text, "translate", target);
       if (r.status === "ok") {
         setTranslation(r.data);
       } else {

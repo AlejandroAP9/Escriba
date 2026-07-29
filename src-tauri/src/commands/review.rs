@@ -127,11 +127,23 @@ pub async fn process_typed_text(
     app: tauri::AppHandle,
     text: String,
     action: TypedTextAction,
+    // `target_lang`: idioma destino solo para esta llamada, sin tocar los
+    // ajustes. Lo usa el asistente de bienvenida: su pantalla final existe para
+    // ENSEÑAR la traducción, y tomaba el destino global. Quien lo tuviera en su
+    // propio idioma (normal si usó el Traductor para traducir HACIA el suyo)
+    // veía traducir español a español: la demostración devolvía exactamente el
+    // mismo texto y parecía rota estando bien.
+    target_lang: Option<String>,
 ) -> Result<String, String> {
     if text.trim().is_empty() {
         return Err("EMPTY".to_string());
     }
-    let settings = crate::settings::get_settings(&app);
+    let mut settings = crate::settings::get_settings(&app);
+    if let Some(target) = target_lang.as_deref().map(str::trim) {
+        if !target.is_empty() {
+            settings.translation_target_language = target.to_string();
+        }
+    }
     if !settings.post_process_enabled {
         return Err("POST_PROCESS_DISABLED".to_string());
     }

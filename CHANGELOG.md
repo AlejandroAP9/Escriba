@@ -23,6 +23,16 @@ uno solo: la frase aparece al instante y cada idioma llega cuando está.
   seguir adelante la app se cerraba, se ofrecía reabrir, y vuelta a empezar.
   Ahora una base de datos más nueva no impide arrancar. Sin esto, actualizar era
   un camino de ida.
+- **Lo dictado al Intérprete y al Traductor no entraba al historial** — y por
+  tanto tampoco a las estadísticas. Esos dictados se entregan por otra vía en
+  vez de pegarse, y el atajo que evitaba pegarlos se saltaba también el
+  guardado. Quien usara el Intérprete a diario podía pasar días con el contador
+  clavado mientras dictaba sin parar. Afectaba igual al Traductor y al asistente
+  de bienvenida.
+- **El atajo de dictado saboteaba las sesiones que graban el computador** —
+  pulsarlo pausaba el reproductor y silenciaba la salida, que es exactamente lo
+  que la sesión estaba capturando, y sin decir nada. Ahora, con una sesión
+  grabando el audio del sistema, el dictado no pausa ni silencia nada.
 - **Las estadísticas contaban los días en el huso equivocado** — lo dictado a
   partir de las 20:00 se apuntaba en el día siguiente, así que por la noche lo
   de esa misma mañana aparecía en la barra de ayer, y un mismo día contaba dos
@@ -52,7 +62,12 @@ uno solo: la frase aparece al instante y cada idioma llega cuando está.
   colores de aviso, error y confirmación, que era lo que llenaba la pantalla de
   ruido. Queda un solo color hablando.
 - **El asistente de bienvenida trae más sustancia** en cada pantalla, con lo que
-  la app hace y lo que cuesta comparada con las alternativas de pago.
+  la app hace y lo que cuesta comparada con las alternativas de pago. Y su
+  última pantalla traduce a un idioma distinto del tuyo: antes usaba tu destino
+  de los Ajustes, así que si lo tenías en español traducía español a español y
+  devolvía el mismo texto.
+- **En el Intérprete, una traducción que falla ya no deja al oyente mudo** — se
+  cierra la línea con el original en vez de dejarla esperando para siempre.
 
 ## [2.2.0] — 2026-07-28
 

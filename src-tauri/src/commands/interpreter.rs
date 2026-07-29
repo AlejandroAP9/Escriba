@@ -1,6 +1,7 @@
 //! Comandos del Intérprete en vivo (guía).
 
 use crate::managers::interpreter::{global, RoomInfo};
+use log::warn;
 use serde::Serialize;
 use specta::Type;
 
@@ -97,11 +98,23 @@ pub async fn publish_translated(app: &tauri::AppHandle, text: String, source_lan
         if !server.is_running() {
             return;
         }
-        if let Some(t) = crate::actions::translate_live(app, &text, &lang).await {
-            let mut one = HashMap::new();
-            one.insert(lang.clone(), t);
-            server.publish_line(seq, text.clone(), one, vec![lang]);
+        let mut one = HashMap::new();
+        match crate::actions::translate_live(app, &text, &lang).await {
+            Some(t) => {
+                one.insert(lang.clone(), t);
+            }
+            // Sin traducción (motor caído, plazo agotado) se cierra igualmente
+            // la línea con el ORIGINAL. Si no, ese oyente se queda con el
+            // anticipo colgado para siempre: atenuado en pantalla y, lo que es
+            // peor, MUDO, porque la página solo lee en voz alta el texto
+            // definitivo. Vale más oír la frase en el idioma del guía que no
+            // oír nada.
+            None => {
+                warn!("sin traducción a '{}': se cierra con el original", lang);
+                one.insert(lang.clone(), text.clone());
+            }
         }
+        server.publish_line(seq, text.clone(), one, vec![lang]);
     }
 }
 
