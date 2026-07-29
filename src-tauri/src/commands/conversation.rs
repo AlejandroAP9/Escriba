@@ -5,6 +5,7 @@
 //! local convierte la sesión en un documento limpio. Nada sale del equipo.
 //! Sigue el patrón del Traductor: estado estático + interceptor en actions.rs.
 
+use log::{debug, error, warn};
 use serde::Serialize;
 use specta::Type;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -455,6 +456,11 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
                     }
                     emit_turn_phase(&app2, "transcribing");
                     let samples = std::mem::take(&mut buffer);
+                    // Se guarda antes de mover `samples` al hilo: sirve para
+                    // decir en el log cuánto audio se le dio al motor cuando
+                    // devuelve vacío, que es la diferencia entre "no te oyó" y
+                    // "te oyó y no supo transcribirlo".
+                    let samples_len = samples.len();
                     let app3 = app2.clone();
                     let tm3 = Arc::clone(&app2.state::<Arc<TranscriptionManager>>());
                     tauri::async_runtime::spawn(async move {
@@ -462,18 +468,54 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
                             crate::studio::pipeline::transcribe_samples(&tm3, &samples, |_| {})
                         })
                         .await;
-                        if let Ok(Ok(segs)) = segs {
-                            let text = crate::studio::segments::group_paragraphs(&segs)
-                                .join(" ")
-                                .trim()
-                                .to_string();
-                            if !text.is_empty() && is_listening() {
-                                let turn = push_turn("user", &text);
-                                use tauri::Emitter;
-                                let _ = app3.emit("conversation-turn", turn);
-                                // Manos libres también pasa por el Intérprete:
-                                // tu voz sale traducida sin tocar una tecla.
-                                crate::actions::interpreter_reply_flow(&app3, text);
+                        // Los tres modos de fallar se distinguen a propósito.
+                        //
+                        // Antes esto era `if let Ok(Ok(segs))` y punto: un error
+                        // del motor, un texto vacío y una sesión pausada se
+                        // tragaban igual, sin registrar nada. Como el
+                        // `emit_turn_phase("listening")` de abajo corre pase lo
+                        // que pase, el indicador seguía ciclando y desde fuera
+                        // los tres se veían idénticos: "aparece que escucha,
+                        // aparece el cambio de turno, y no sale texto" (QA de
+                        // Flor, 29-jul). Sin una sola línea en el log, la causa
+                        // solo se podía conjeturar.
+                        use tauri::Emitter;
+                        match segs {
+                            Err(e) => {
+                                error!("manos libres: la tarea de transcripción murió: {e}");
+                                let _ = app3.emit("conversation-turn-error", "engine");
+                            }
+                            Ok(Err(e)) => {
+                                error!("manos libres: el motor falló al transcribir el turno: {e}");
+                                let _ = app3.emit("conversation-turn-error", "engine");
+                            }
+                            Ok(Ok(segs)) => {
+                                let text = crate::studio::segments::group_paragraphs(&segs)
+                                    .join(" ")
+                                    .trim()
+                                    .to_string();
+                                if text.is_empty() {
+                                    // El motor respondió sin devolver palabras.
+                                    // Pasa con modelos que no digieren fragmentos
+                                    // cortos por esta vía: el turno se cierra, el
+                                    // indicador sigue, y el acta nunca crece.
+                                    warn!(
+                                        "manos libres: turno de {:.1}s transcrito a texto VACÍO \
+                                         (modelo que no digiere este fragmento por la vía del Estudio)",
+                                        samples_len as f32 / 16_000.0
+                                    );
+                                    let _ = app3.emit("conversation-turn-error", "empty");
+                                } else if !is_listening() {
+                                    debug!(
+                                        "manos libres: turno descartado, la sesión ya no escucha"
+                                    );
+                                } else {
+                                    let turn = push_turn("user", &text);
+                                    let _ = app3.emit("conversation-turn", turn);
+                                    // Manos libres también pasa por el Intérprete:
+                                    // tu voz sale traducida sin tocar una tecla.
+                                    crate::actions::interpreter_reply_flow(&app3, text);
+                                }
                             }
                         }
                         emit_turn_phase(&app3, "listening");
