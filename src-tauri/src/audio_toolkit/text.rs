@@ -67,9 +67,21 @@ fn find_best_match<'a>(
         // Calculate phonetic similarity using Soundex
         let phonetic_match = soundex(candidate, custom_word_nospace);
 
-        // Combine scores: favor phonetic matches, but also consider string similarity
-        let combined_score = if phonetic_match {
-            levenshtein_score * 0.3 // Give significant boost to phonetic matches
+        // El impulso fonético solo vale para candidatos que YA están cerca por
+        // escritura. Sin este tope rescataba cadenas 56% distintas: medido con
+        // el diccionario real, "imperiales con su" (3 palabras) se convertía en
+        // "Imperio Agéntico" y el verbo "escribir" en "Escriba". Un dictado
+        // castellano corriente quedaba corrompido en silencio, que es peor que
+        // no corregir un término raro.
+        //
+        // El corte sale de medir, no de intuición: los aciertos legítimos
+        // ("imperio agentico" -> "Imperio Agéntico") tienen distancia ≤ 0,06;
+        // los destrozos empiezan en 0,25. 0,20 los separa con holgura.
+        // (Provocado por la medición pública de Diapasón, 30-jul-2026.)
+        const MAX_LEV_PARA_IMPULSO_FONETICO: f64 = 0.20;
+        let combined_score = if phonetic_match && levenshtein_score < MAX_LEV_PARA_IMPULSO_FONETICO
+        {
+            levenshtein_score * 0.3
         } else {
             levenshtein_score
         };
@@ -404,6 +416,46 @@ pub fn filter_transcription_output(
 
     // Trim leading/trailing whitespace
     filtered.trim().to_string()
+}
+
+#[cfg(test)]
+mod correccion_castellano {
+    use super::apply_custom_words;
+
+    /// Fija el comportamiento que provocó la medición pública de Diapasón
+    /// (avance 2, 30-jul-2026): la corrección por distancia + fonética "se come
+    /// palabras enteras" en castellano. Se midió con el diccionario real de
+    /// Alejandro y el umbral de fábrica, y era cierto también aquí.
+    ///
+    /// El daño venía del impulso fonético, que rescataba cadenas hasta 56%
+    /// distintas. Ahora solo aplica a candidatos ya cercanos por escritura.
+    #[test]
+    fn no_devora_castellano_corriente_y_sigue_corrigiendo() {
+        let dicc = vec![
+            "Escriba".to_string(),
+            "Imperio Agéntico".to_string(),
+            "Claude".to_string(),
+        ];
+        let intactos = [
+            // Antes: "los juegos Imperio Agéntico jurado" (3 palabras devoradas).
+            "los juegos imperiales con su jurado",
+            // Antes: "vamos a Escriba la propuesta" (verbo destrozado).
+            "vamos a escribir la propuesta",
+            "hay que escribirle a la apoderada",
+            "la clase de ayer estuvo buena",
+            "el club de lectura es el jueves",
+        ];
+        for t in intactos {
+            assert_eq!(apply_custom_words(t, &dicc, 0.18), t, "no debía tocarse");
+        }
+
+        // Y lo que SÍ debe corregir sigue corrigiéndose: el término real,
+        // dictado sin tilde, que es justo para lo que existe el diccionario.
+        assert_eq!(
+            apply_custom_words("esto es para imperio agentico", &dicc, 0.18),
+            "esto es para Imperio Agéntico"
+        );
+    }
 }
 
 #[cfg(test)]

@@ -1613,7 +1613,20 @@ impl TranscriptionManager {
         // family). We don't pass a prompt to non-whisper models (it requires the
         // whisper-kind run extension), so they still get fuzzy correction here,
         // same as the ONNX engines.
-        let filtered_result = post_process_transcription_text(result, &settings, model_is_whisper);
+        // Antes se pasaba `model_is_whisper` aquí: la idea era que si el modelo
+        // YA recibió las palabras como initial_prompt, corregir después sobraba.
+        // La dupla Diapasón midió esa premisa sobre el mismo audio en nueve
+        // configuraciones (avance 2, 30-jul-2026) y no se sostiene: entre poner
+        // el mejor vocabulario en el motor y no poner nada, el texto cambia una
+        // coma en 926 caracteres. Cero términos.
+        //
+        // Consecuencia para nosotros: con un modelo Whisper el diccionario
+        // personal no hacía NADA — prompteado (que no sirve) y saltado para la
+        // corrección. Ahora la corrección corre siempre; el prompt se mantiene
+        // porque no estorba. Va de la mano del tope al impulso fonético en
+        // `apply_custom_words`, sin el cual esto habría corrompido castellano
+        // corriente.
+        let filtered_result = post_process_transcription_text(result, &settings, false);
 
         let et = std::time::Instant::now();
         let translation_note = if settings.translate_to_english {
