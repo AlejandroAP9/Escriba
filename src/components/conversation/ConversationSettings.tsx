@@ -30,6 +30,7 @@ import { EmptyState } from "../ui/EmptyState";
 import { EngineRequiredCard } from "../shared/EngineRequiredCard";
 import { Plumin } from "../shared/Plumin";
 import { ToggleSwitch } from "../ui/ToggleSwitch";
+import { MarkdownContent } from "../whats-new/MarkdownContent";
 import { useSettings } from "../../hooks/useSettings";
 
 /**
@@ -1412,9 +1413,14 @@ export const ConversationSettings: React.FC = () => {
                 </button>
               </div>
             </div>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-text/90">
-              {doc}
-            </p>
+            {/* El motor local escribe el documento en Markdown (los prompts
+                piden encabezados y viñetas), y esto se mostraba como texto
+                plano: los asteriscos de **Resumen** salían crudos en pantalla,
+                justo en la feature que va al video. El botón Copiar sigue
+                copiando el Markdown fuente, que es lo que Obsidian espera. */}
+            <div className="space-y-2">
+              <MarkdownContent markdown={doc} />
+            </div>
           </Card>
 
           <div className="flex justify-center">

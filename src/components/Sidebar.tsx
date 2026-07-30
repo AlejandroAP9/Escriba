@@ -144,9 +144,14 @@ const NAV_GROUPS: { labelKey?: string; ids: SidebarSection[] }[] = [
   { labelKey: "sidebar.groupDictation", ids: ["models", "history", "studio"] },
   {
     labelKey: "sidebar.groupTools",
-    ids: ["conversation", "translator", "interpreter"],
+    // Escritura Inteligente vivía bajo "Desarrolladores" con el nombre "Post
+    // Proceso": jerga de programador para la feature central del público de
+    // esta app (corregir, dar tono, traducir). Una profesora jamás la
+    // buscaría ahí. En Desarrolladores queda solo lo que de verdad es para
+    // desarrolladores: el MCP.
+    ids: ["conversation", "translator", "interpreter", "postprocessing"],
   },
-  { labelKey: "sidebar.groupDevelopers", ids: ["mcp", "postprocessing"] },
+  { labelKey: "sidebar.groupDevelopers", ids: ["mcp"] },
   {
     labelKey: "sidebar.groupConfig",
     ids: ["general", "advanced", "debug", "about"],

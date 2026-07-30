@@ -713,7 +713,7 @@ fn usage_stats_text(app: &AppHandle) -> Result<String, String> {
     let hm = app.state::<Arc<crate::managers::history::HistoryManager>>();
     let s = hm.get_usage_stats().map_err(|e| e.to_string())?;
     Ok(format!(
-        "Transcripciones totales: {}\nPalabras totales: {}\nPalabras últimos 30 días: {}\nDías activos últimos 30: {}\nRacha actual: {} días\nMinutos ahorrados (vs teclear a 40 ppm): {}",
+        "Transcripciones totales: {}\nPalabras totales: {}\nPalabras últimos 30 días: {}\nDías activos últimos 30: {}\nRacha actual: {} días\nMinutos ahorrados (vs teclear a 52 ppm, Dhakal et al. CHI 2018): {}",
         s.total_transcriptions,
         s.total_words,
         s.words_last_30_days,

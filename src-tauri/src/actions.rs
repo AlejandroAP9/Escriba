@@ -1960,7 +1960,8 @@ pub async fn summarize_text(app: &AppHandle, text: &str) -> Result<String, Strin
         }
         _ => {
             return Err(
-                "El motor de IA local no está disponible. Instálalo en Post Proceso.".to_string(),
+                "El motor de IA local no está disponible. Instálalo en Escritura Inteligente."
+                    .to_string(),
             )
         }
     }
@@ -2671,40 +2672,87 @@ pub async fn conversation_document(
         _ => return None,
     }
 
+    // Plantilla de salida explicita en vez de instrucciones numeradas: el
+    // modelo local copiaba la numeracion del encargo dentro del documento
+    // ("1. El usuario inicia la conversacion...") y anadia secciones
+    // condicionales que no tocaban (un 'Texto final' con el dialogo crudo en
+    // una sesion donde no se redacto nada; QA 28-jul). Un modelo chico imita
+    // una estructura mucho mejor de lo que obedece una lista de reglas, asi
+    // que se le ensena el documento terminado con huecos <asi>. Los titulos
+    // van en **negrita** porque el panel ya renderiza Markdown.
     let instructions = match mode {
         "converse" => {
-            "Convierte esta conversacion en una nota clara y util, en el idioma de la conversacion:\n\
-1. Primero 2-3 frases con la idea central.\n\
-2. Luego los puntos clave en vinetas.\n\
-3. Si se redacto un texto (correo, mensaje, parrafo), incluye la version final completa al cierre bajo el titulo 'Texto final'.\n\
-No inventes nada que no este en la conversacion. Responde solo con la nota."
+            "Convierte esta conversacion en una nota clara y util, en el idioma de la conversacion. Escribe el documento con EXACTAMENTE esta estructura, rellenando lo que va entre <>:\n\
+\n\
+**Resumen**\n\
+<2-3 frases con la idea central de la conversacion>\n\
+\n\
+**Puntos clave**\n\
+- <un punto por vineta>\n\
+\n\
+Solo si durante la conversacion se redacto un texto concreto (un correo, un mensaje, un parrafo pedido por el usuario), agrega al final una seccion '**Texto final**' con ese texto completo en su version definitiva. Si no se redacto ningun texto, esa seccion NO debe aparecer.\n\
+No copies estas instrucciones ni escribas los simbolos <>. No inventes nada que no este en la conversacion. Responde solo con la nota."
         }
         "interview" => {
-            "Convierte esta transcripcion de entrevista en un documento organizado, en el idioma de la transcripcion:\n\
-1. Contexto (1-2 frases sobre de que trato la entrevista).\n\
-2. Los temas tratados como secciones, cada una con sus puntos clave en vinetas; conserva entre comillas las frases textuales importantes.\n\
-3. Cierra con 'Lo esencial': las 3-5 ideas mas importantes en vinetas.\n\
-No inventes nada que no este en la transcripcion. Responde solo con el documento."
+            "Convierte esta transcripcion de entrevista en un documento organizado, en el idioma de la transcripcion. Escribe el documento con EXACTAMENTE esta estructura, rellenando lo que va entre <> y repitiendo la seccion de tema una vez por tema tratado:\n\
+\n\
+**Contexto**\n\
+<1-2 frases sobre de que trato la entrevista>\n\
+\n\
+**<Nombre del tema>**\n\
+- <punto clave; conserva entre comillas las frases textuales importantes>\n\
+\n\
+**Lo esencial**\n\
+- <las 3-5 ideas mas importantes, una por vineta>\n\
+\n\
+No copies estas instrucciones ni escribas los simbolos <>. No inventes nada que no este en la transcripcion. Responde solo con el documento."
         }
         "class" => {
-            "Convierte esta transcripcion de una clase en apuntes de estudio, en el idioma de la transcripcion:\n\
-1. Tema de la clase como titulo.\n\
-2. Los conceptos clave en vinetas, cada uno con una explicacion breve y fiel a lo dicho.\n\
-3. Ejemplos mencionados, si los hay.\n\
-4. Cierra con 'Para repasar': 3-5 preguntas de estudio basadas SOLO en lo dicho.\n\
-No inventes contenido que no este en la transcripcion. Responde solo con los apuntes."
+            "Convierte esta transcripcion de una clase en apuntes de estudio, en el idioma de la transcripcion. Escribe los apuntes con EXACTAMENTE esta estructura, rellenando lo que va entre <>:\n\
+\n\
+**<Tema de la clase>**\n\
+\n\
+**Conceptos clave**\n\
+- <concepto>: <explicacion breve y fiel a lo dicho>\n\
+\n\
+**Ejemplos**\n\
+- <ejemplo mencionado en la clase>\n\
+\n\
+**Para repasar**\n\
+- <3-5 preguntas de estudio basadas SOLO en lo dicho>\n\
+\n\
+Si en la clase no se menciono ningun ejemplo, la seccion 'Ejemplos' NO debe aparecer. No copies estas instrucciones ni escribas los simbolos <>. No inventes contenido que no este en la transcripcion. Responde solo con los apuntes."
         }
         "brainstorm" => {
-            "Convierte esta lluvia de ideas en un documento accionable, en el idioma de la transcripcion:\n\
-1. Agrupa las ideas por tema, como secciones con vinetas.\n\
-2. Marca bajo 'Destacadas' las 2-3 ideas mas prometedoras segun el propio enfasis del hablante.\n\
-3. Cierra con 'Proximos pasos' en vinetas.\n\
-No inventes ideas nuevas ni completes las que faltan. Responde solo con el documento."
+            "Convierte esta lluvia de ideas en un documento accionable, en el idioma de la transcripcion. Escribe el documento con EXACTAMENTE esta estructura, rellenando lo que va entre <> y repitiendo la seccion de tema una vez por tema:\n\
+\n\
+**<Nombre del tema>**\n\
+- <idea, tal como se dicto>\n\
+\n\
+**Destacadas**\n\
+- <las 2-3 ideas mas prometedoras segun el propio enfasis del hablante>\n\
+\n\
+**Proximos pasos**\n\
+- <paso accionable>\n\
+\n\
+No copies estas instrucciones ni escribas los simbolos <>. No inventes ideas nuevas ni completes las que faltan. Responde solo con el documento."
         }
         _ => {
-            "Convierte esta transcripcion en un acta breve y fiel, en el idioma de la transcripcion, con estas secciones:\n\
-Resumen (2-3 frases), Puntos tratados (vinetas), Decisiones (vinetas; 'Sin decisiones registradas' si no hay) y Proximos pasos (vinetas con responsable si se menciona; 'Sin acciones registradas' si no hay).\n\
-No inventes nada que no este en la transcripcion. Responde solo con el acta."
+            "Convierte esta transcripcion en un acta breve y fiel, en el idioma de la transcripcion. Escribe el acta con EXACTAMENTE esta estructura, rellenando lo que va entre <>:\n\
+\n\
+**Resumen**\n\
+<2-3 frases>\n\
+\n\
+**Puntos tratados**\n\
+- <un punto por vineta>\n\
+\n\
+**Decisiones**\n\
+- <decision tomada; si no hubo ninguna, escribe la vineta 'Sin decisiones registradas'>\n\
+\n\
+**Proximos pasos**\n\
+- <accion, con responsable si se menciona; si no hubo ninguna, escribe la vineta 'Sin acciones registradas'>\n\
+\n\
+No copies estas instrucciones ni escribas los simbolos <>. No inventes nada que no este en la transcripcion. Responde solo con el acta."
         }
     };
 

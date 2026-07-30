@@ -18,7 +18,7 @@
     "general": "General",
     "models": "Models",
     "advanced": "Advanced",
-    "postProcessing": "Post Process",
+    "postProcessing": "Smart Writing",
     "history": "History",
     "debug": "Debug",
     "about": "About",
@@ -205,7 +205,7 @@
             "description": "The keyboard shortcut to cancel the current recording."
           },
           "transcribe_with_post_process": {
-            "name": "Post-Processing Hotkey",
+            "name": "Smart Writing Hotkey",
             "description": "Optional: A dedicated hotkey that always applies AI post-processing to your transcription."
           },
           "transcribe_translate": {
@@ -511,7 +511,7 @@
         "autostart": "Start on login",
         "experimental": "Experimental",
         "active": "Active",
-        "inactive": "Inactive",
+        "inactive": "Loads when you dictate",
         "running": "Running",
         "stopped": "Stopped",
         "yes": "Yes",
@@ -747,7 +747,7 @@
         "description": "Microphone to use when laptop lid is closed"
       },
       "postProcessingToggle": {
-        "label": "Post Processing",
+        "label": "Smart Writing",
         "description": "Enable AI-powered text refinement after transcription"
       },
       "muteWhileRecording": {
@@ -945,7 +945,7 @@
     "fallbackOllamaDescription": "Using your Ollama ({{model}}) for this dictation.",
     "fallbackAppleTitle": "Local engine unavailable: used Apple Intelligence",
     "fallbackRawTitle": "Text pasted without AI cleanup",
-    "fallbackRawDescription": "The local engine is not available. Install it in Settings > Post-Processing.",
+    "fallbackRawDescription": "The local engine is not available. Install it in Settings > Smart Writing.",
     "noSelectionTitle": "Nothing selected",
     "noSelectionDescription": "Select text first, then hold the voice-edit shortcut and speak your instruction.",
     "selectionTooLongTitle": "Selection too long for voice editing (max ~8,000 characters)",
@@ -989,7 +989,7 @@
   "historyStats": {
     "words": "Words dictated",
     "minutesSaved": "Minutes saved",
-    "minutesSavedHint": "Assuming 40 words/min typing vs ~200 dictating",
+    "minutesSavedHint": "Compared with typing at 52 words/min (Dhakal et al., CHI 2018) vs ~200 dictating",
     "streak": "Day streak",
     "activeDays": "Active days (30d)"
   },
@@ -1200,7 +1200,7 @@
     "copy": "Copy",
     "copied": "Copied",
     "newSession": "New session",
-    "replyFailed": "We couldn’t reply. Check the local engine in Post Process.",
+    "replyFailed": "We couldn’t reply. Check the local engine in Smart Writing.",
     "docError": "We couldn’t create the document. Check the local engine and try again.",
     "emptyFinish": "The session is empty: nothing to convert.",
     "localNote": "Local by default: your voice is always transcribed on your machine. Text only leaves if you turn on a remote provider.",
@@ -1317,7 +1317,7 @@
   },
   "engine": {
     "requiredTitle": "This feature needs the local AI engine",
-    "requiredBody": "Translations, replies and documents are generated on your computer, no cloud. Download the engine once (~2.5 GB) from Post Process. Ollama works too.",
+    "requiredBody": "Translations, replies and documents are generated on your computer, no cloud. Download the engine once (~2.5 GB) from Smart Writing. Ollama works too.",
     "requiredCta": "Install engine"
   },
   "activeMode": {
@@ -1404,7 +1404,7 @@
         "translate": "Translating as you dictate, and the meeting Interpreter",
         "sessions": "Minutes and notes when a session ends"
       },
-      "sizeNote": "About 2.5 GB. You can install it later from Settings → Post Processing."
+      "sizeNote": "About 2.5 GB. You can install it later from Settings → Smart Writing."
     },
     "shortcut": {
       "title": "Your shortcut to talk to me",
@@ -1434,7 +1434,7 @@
       "finish": "Finish",
       "finishEmpty": "Skip and finish",
       "translateFailed": "Couldn't translate. Check the local engine in Settings.",
-      "needsEngine": "Translating needs the local engine, the one I offered two steps back. You can install it later from Settings → Post Processing."
+      "needsEngine": "Translating needs the local engine, the one I offered two steps back. You can install it later from Settings → Smart Writing."
     }
   }
 }

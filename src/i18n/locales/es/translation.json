@@ -18,7 +18,7 @@
     "general": "General",
     "models": "Modelos",
     "advanced": "Avanzado",
-    "postProcessing": "Post Proceso",
+    "postProcessing": "Escritura Inteligente",
     "history": "Historial",
     "debug": "Depuración",
     "about": "Acerca de",
@@ -223,7 +223,7 @@
             "description": "El atajo de teclado para cancelar la grabación actual."
           },
           "transcribe_with_post_process": {
-            "name": "Tecla de Post Proceso",
+            "name": "Tecla de Escritura Inteligente",
             "description": "Opcional: Una tecla de acceso rápido dedicada que siempre aplica post procesamiento con IA a tu transcripción."
           },
           "transcribe_translate": {
@@ -511,7 +511,7 @@
         "autostart": "Inicio automático",
         "experimental": "Experimental",
         "active": "Activo",
-        "inactive": "Inactivo",
+        "inactive": "Se carga al dictar",
         "running": "Activo",
         "stopped": "Detenido",
         "yes": "Sí",
@@ -740,7 +740,7 @@
         "description": "Micrófono a usar cuando la tapa del portátil está cerrada"
       },
       "postProcessingToggle": {
-        "label": "Post Proceso",
+        "label": "Escritura Inteligente",
         "description": "Habilitar refinamiento de texto impulsado por IA después de la transcripción"
       },
       "muteWhileRecording": {
@@ -989,7 +989,7 @@
   "historyStats": {
     "words": "Palabras dictadas",
     "minutesSaved": "Minutos ahorrados",
-    "minutesSavedHint": "Asumiendo 40 palabras/min tecleando vs ~200 dictando",
+    "minutesSavedHint": "Comparado con teclear a 52 palabras/min (Dhakal et al., CHI 2018) vs ~200 dictando",
     "streak": "Días de racha",
     "activeDays": "Días activos (30d)"
   },
@@ -1200,7 +1200,7 @@
     "copy": "Copiar",
     "copied": "Copiado",
     "newSession": "Nueva sesión",
-    "replyFailed": "No pudimos responder. Revisa el motor local en Post Proceso.",
+    "replyFailed": "No pudimos responder. Revisa el motor local en Escritura Inteligente.",
     "docError": "No pudimos crear el documento. Revisa el motor local e inténtalo de nuevo.",
     "emptyFinish": "La sesión está vacía: no hay nada que convertir.",
     "localNote": "Local por defecto: tu voz siempre se transcribe en tu equipo. El texto solo sale si activas un proveedor remoto.",
@@ -1317,7 +1317,7 @@
   },
   "engine": {
     "requiredTitle": "Esta función necesita el motor de IA local",
-    "requiredBody": "Traducciones, respuestas y documentos se generan en tu computador, sin nube. Descarga el motor una sola vez (~2.5 GB) desde Post Proceso. Si usas Ollama, también sirve.",
+    "requiredBody": "Traducciones, respuestas y documentos se generan en tu computador, sin nube. Descarga el motor una sola vez (~2.5 GB) desde Escritura Inteligente. Si usas Ollama, también sirve.",
     "requiredCta": "Instalar motor"
   },
   "activeMode": {
@@ -1404,7 +1404,7 @@
         "translate": "Traducir mientras dictas, y el Intérprete de reuniones",
         "sessions": "Actas y apuntes al terminar una sesión"
       },
-      "sizeNote": "Son unos 2,5 GB. Puedes instalarlo después desde Ajustes → Post Proceso."
+      "sizeNote": "Son unos 2,5 GB. Puedes instalarlo después desde Ajustes → Escritura Inteligente."
     },
     "shortcut": {
       "title": "Tu atajo para hablarme",
@@ -1434,7 +1434,7 @@
       "finish": "Terminar",
       "finishEmpty": "Saltar y terminar",
       "translateFailed": "No se pudo traducir. Revisa el motor local en Ajustes.",
-      "needsEngine": "Para traducir hace falta el motor local, el que te ofrecí hace dos pasos. Puedes instalarlo después en Ajustes → Post Proceso."
+      "needsEngine": "Para traducir hace falta el motor local, el que te ofrecí hace dos pasos. Puedes instalarlo después en Ajustes → Escritura Inteligente."
     }
   }
 }

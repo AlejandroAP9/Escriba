@@ -871,10 +871,13 @@ fn default_post_process_prompts() -> Vec<LLMPrompt> {
         name: "Apuntes al vuelo".to_string(),
         prompt: "El usuario dicto ideas sueltas mientras trabajaba en otra cosa. Conviertelas en una nota clara y accionable: si hay varias ideas, usa vinetas; si hay tareas, marcalas como lista de pendientes; conserva TODOS los detalles dictados (nombres, fechas, numeros) sin inventar nada. Elimina muletillas y repeticiones, conserva el idioma. Responde UNICAMENTE con la nota.\n\nDictado:\n${output}".to_string(),
     },
+    // Heredada de Handy; nombre y prompt estaban en inglés y la tarjeta salía
+    // en inglés en medio de la interfaz en español. El id se conserva porque
+    // hay ajustes existentes que lo referencian (selección, migración).
     LLMPrompt {
         id: "default_improve_transcriptions".to_string(),
-        name: "Improve Transcriptions".to_string(),
-        prompt: "Clean this transcript:\n1. Fix spelling, capitalization, and punctuation errors\n2. Convert number words to digits (twenty-five → 25, ten percent → 10%, five dollars → $5)\n3. Replace spoken punctuation with symbols (period → ., comma → ,, question mark → ?)\n4. Remove filler words (um, uh, like as filler)\n5. Keep the language in the original version (if it was french, keep it in french for example)\n\nPreserve exact meaning and word order. Do not paraphrase or reorder content.\n\nReturn only the cleaned transcript.\n\nTranscript:\n${output}".to_string(),
+        name: "Pulir transcripción".to_string(),
+        prompt: "Limpia esta transcripcion:\n1. Corrige ortografia, mayusculas y puntuacion.\n2. Convierte numeros en palabras a cifras (veinticinco → 25, diez por ciento → 10%).\n3. Reemplaza la puntuacion dictada por su simbolo (punto → ., coma → ,, signo de interrogacion → ?).\n4. Elimina muletillas (em, eh, este como relleno).\n5. Conserva el idioma original del texto (si estaba en frances, dejalo en frances).\n\nConserva el significado y el orden exactos de las palabras. No parafrasees ni reordenes.\n\nResponde UNICAMENTE con la transcripcion limpia.\n\nTranscripcion:\n${output}".to_string(),
     }]
 }
 
@@ -1288,6 +1291,35 @@ fn apply_settings_migrations(
     if settings_value.get("onboarding_completed").is_none() {
         settings.onboarding_completed = !settings.selected_model.is_empty();
         updated = true;
+    }
+
+    // La plantilla "Improve Transcriptions" venía de Handy con nombre y prompt
+    // en inglés, sembrada en los ajustes: una tarjeta en inglés en medio de la
+    // interfaz en español (el mismo fallo que la competencia del hackathon
+    // presumió arreglar en su avance 6). Renombrar el default solo arregla
+    // instalaciones nuevas; esta migración alcanza a las existentes. Solo se
+    // toca si el usuario NO la editó: si cambió el nombre o el prompt, eso es
+    // suyo y se respeta.
+    if let Some(p) = settings
+        .post_process_prompts
+        .iter_mut()
+        .find(|p| p.id == "default_improve_transcriptions")
+    {
+        if p.name == "Improve Transcriptions" {
+            if let Some(fresh) = get_default_settings()
+                .post_process_prompts
+                .into_iter()
+                .find(|d| d.id == "default_improve_transcriptions")
+            {
+                p.name = fresh.name;
+                // El cuerpo solo se reemplaza si seguía siendo el default viejo
+                // (empezaba con la instrucción inglesa original).
+                if p.prompt.starts_with("Clean this transcript:") {
+                    p.prompt = fresh.prompt;
+                }
+                updated = true;
+            }
+        }
     }
 
     // One-time What's New migration: migrations only run on an existing store

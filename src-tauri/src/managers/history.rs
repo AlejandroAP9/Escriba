@@ -1030,8 +1030,9 @@ mod tests {
 
         assert_eq!(stats.total_transcriptions, 120);
         assert_eq!(stats.total_words, 4800);
-        // 4800 palabras * 0,02 min ahorrados por palabra.
-        assert_eq!(stats.minutes_saved, 96);
+        // 4800 palabras * (1/52 - 1/200) min ahorrados por palabra (52 ppm de
+        // tecleo segun Dhakal et al., CHI 2018; ~200 ppm de habla) = 68,3.
+        assert_eq!(stats.minutes_saved, 68);
     }
 
     #[test]
@@ -1169,8 +1170,13 @@ fn compute_usage_stats(buckets: &[(i64, i64, i64)], today: i64) -> UsageStats {
         }
 
         let active_days_30 = active_days.iter().filter(|d| **d >= cutoff_30).count() as u32;
-        // 40 wpm tecleando vs ~200 wpm dictando => ahorras 1/40 - 1/200 = 0.02 min/palabra.
-        let minutes_saved = ((total_words as f64) * 0.02).round() as u32;
+        // Tecleo promedio real: 52 palabras/min (Dhakal, Feit, Kristensson y
+        // Oulasvirta, "Observations on Typing from 136 Million Keystrokes",
+        // CHI 2018). Habla: ~200 ppm. Ahorro por palabra: 1/52 - 1/200 ≈
+        // 0,0142 min. El 40 ppm anterior no tenia fuente e INFLABA el ahorro
+        // (~40%): la cifra que presume la app es justo la que mas barato sale
+        // poder defender con una cita.
+        let minutes_saved = ((total_words as f64) * (1.0 / 52.0 - 1.0 / 200.0)).round() as u32;
 
         let words_by_day = ((today - 6)..=today)
             .map(|d| words_per_day.get(&d).copied().unwrap_or(0))
