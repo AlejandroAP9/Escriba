@@ -1253,6 +1253,16 @@ impl TranscriptionManager {
                 (count > 0).then(|| sum / count as f32)
             };
 
+            // La misma limpieza del dictado, que esta rama se saltaba: el texto
+            // salía crudo, sin diccionario personal, sin filtro de muletillas y
+            // sin el arreglo del "¿". Se notaba a simple vista en los turnos de
+            // Sesiones ("Hola, cómo ¿estás?", captura del QA 29-jul) y afectaba
+            // igual al Estudio, al manos libres y al Dictado libre, que entran
+            // todos por aquí. `false` porque esta rama no pasa las palabras del
+            // diccionario como initial prompt del modelo.
+            let clean = |raw: &str| {
+                post_process_transcription_text(raw.trim().to_string(), &settings, false)
+            };
             let mut segments: Vec<StudioSegment> = transcript
                 .segments
                 .iter()
@@ -1260,9 +1270,11 @@ impl TranscriptionManager {
                 .map(|(index, seg)| StudioSegment {
                     start_s: seg.t0_ms as f64 / 1000.0,
                     end_s: seg.t1_ms as f64 / 1000.0,
-                    text: seg.text.trim().to_string(),
+                    text: clean(&seg.text),
                     confidence: confidence_by_segment(index),
                 })
+                // También caza los segmentos que la limpieza vació (por
+                // ejemplo, uno que era pura muletilla).
                 .filter(|seg| !seg.text.is_empty())
                 .collect();
             if segments.is_empty() && !transcript.text.trim().is_empty() {
@@ -1276,12 +1288,17 @@ impl TranscriptionManager {
                     .collect();
                 let confidence =
                     (!all.is_empty()).then(|| all.iter().sum::<f32>() / all.len() as f32);
-                segments.push(StudioSegment {
-                    start_s: 0.0,
-                    end_s: duration_s,
-                    text: transcript.text.trim().to_string(),
-                    confidence,
-                });
+                // Misma limpieza, y con la misma salvaguarda: si la limpieza lo
+                // vacía, no se publica un segmento en blanco.
+                let text = clean(&transcript.text);
+                if !text.is_empty() {
+                    segments.push(StudioSegment {
+                        start_s: 0.0,
+                        end_s: duration_s,
+                        text,
+                        confidence,
+                    });
+                }
             }
             return Ok(segments);
         }
