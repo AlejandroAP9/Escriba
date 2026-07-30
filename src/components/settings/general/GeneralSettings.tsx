@@ -131,6 +131,14 @@ export const GeneralSettings: React.FC = () => {
         <MuteWhileRecording descriptionMode="inline" grouped={true} />
         <PauseMediaOnDictate descriptionMode="inline" grouped={true} />
         <AudioFeedback descriptionMode="inline" grouped={true} />
+        {/* Leer en voz alta es SALIDA de sonido, no escritura: vivía en la
+            página de Escritura Inteligente por herencia, entre atajos que sí
+            disparan el motor de IA. Este es su grupo. */}
+        <ShortcutInput
+          shortcutId="read_selection"
+          descriptionMode="inline"
+          grouped={true}
+        />
       </SettingsGroup>
 
       {/* Avanzado: lo que el 90% no toca, plegado. */}

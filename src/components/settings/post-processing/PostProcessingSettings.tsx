@@ -582,7 +582,13 @@ export const PostProcessingSettings: React.FC = () => {
         </div>
       </section>
 
-      {/* Bloque 2 — Qué quieres que haga la IA: plantillas, traducción, atajos. */}
+      {/*
+        Bloque 2 — Cómo transforma tu dictado, en orden de decisión: qué
+        plantilla aplica (plantillas), cuándo cambia sola (tonos por app), a
+        qué idioma traduce (traducción) y con qué teclas se dispara (atajos).
+        Antes este bloque intercalaba la herramienta de escribir sin dictar en
+        medio de la configuración, que era la mitad del efecto cajón de sastre.
+      */}
       <TemplateLibraryComponent />
 
       <section className="space-y-2">
@@ -591,15 +597,6 @@ export const PostProcessingSettings: React.FC = () => {
         </h2>
         <AppContextRules />
       </section>
-
-      {/*
-        Alternativa por teclado: el mismo motor, sin usar la voz. Va justo
-        antes de los atajos porque es exactamente eso, la vía para quien no
-        puede o no quiere usar el micrófono en ese momento.
-      */}
-      <SettingsGroup title={t("settings.typedText.groupTitle")}>
-        <TypedTextInput />
-      </SettingsGroup>
 
       <SettingsGroup title={t("settings.postProcessing.translation.title")}>
         <ShortcutInput
@@ -610,6 +607,10 @@ export const PostProcessingSettings: React.FC = () => {
         <TranslationTargetLanguage />
       </SettingsGroup>
 
+      {/* Solo los atajos que disparan ESCRITURA: la tecla dedicada y la
+          edición por voz. "Leer selección en voz alta" es texto a voz, no
+          escritura, y vivía aquí por herencia: se fue a General → Audio, con
+          el resto del sonido. */}
       <SettingsGroup title={t("settings.postProcessing.shortcutsTitle")}>
         <ShortcutInput
           shortcutId="transcribe_with_post_process"
@@ -621,14 +622,20 @@ export const PostProcessingSettings: React.FC = () => {
           descriptionMode="tooltip"
           grouped={true}
         />
-        <ShortcutInput
-          shortcutId="read_selection"
-          descriptionMode="tooltip"
-          grouped={true}
-        />
       </SettingsGroup>
 
-      {/* Bloque 3 — Opciones avanzadas: el 95% no lo toca. */}
+      {/* Bloque 3 — La herramienta: el mismo motor sin usar la voz, para el
+          aula compartida, la afonía o quien no puede hablar en ese momento.
+          Cierra el bloque de uso, separada de la configuración de arriba. */}
+      <SettingsGroup title={t("settings.typedText.groupTitle")}>
+        <TypedTextInput />
+      </SettingsGroup>
+
+      {/* Bloque 4 — El motor que ejecuta todo lo de arriba. Antes se llamaba
+          "Opciones avanzadas": todos los errores de la app dicen "instálalo en
+          Escritura Inteligente", y quien llegaba siguiendo ese consejo no
+          tenía ninguna pista de que el motor viviera detrás de un plegable con
+          ese nombre. Ahora el título dice lo que contiene. */}
       <div className="pt-2">
         <CollapsibleGroup title={t("settings.postProcessing.advancedTitle")}>
           <div className="p-4">

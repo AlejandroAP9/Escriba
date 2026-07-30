@@ -645,7 +645,7 @@
         "default_improve_transcriptions": "Limpia la transcripción en su idioma original."
       },
       "shortcutsTitle": "Atajos",
-      "advancedTitle": "Opciones avanzadas",
+      "advancedTitle": "Motor de IA",
       "enabledBadge": "Activada",
       "disabledBadge": "Desactivada",
       "appContext": {

@@ -645,7 +645,7 @@
         "default_improve_transcriptions": "Cleans up the transcript in its original language."
       },
       "shortcutsTitle": "Shortcuts",
-      "advancedTitle": "Advanced options",
+      "advancedTitle": "AI engine",
       "enabledBadge": "On",
       "disabledBadge": "Off",
       "appContext": {
