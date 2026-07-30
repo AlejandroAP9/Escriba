@@ -9,6 +9,56 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [2.2.2] — 2026-07-30
+
+**La casa ordenada.** Cada pantalla hace un solo trabajo y cada ajuste vive
+donde lo buscarías. Las sesiones de una hora ya terminan en documento, y las
+plantillas de IA se probaron contra el motor real hasta que dejaron de perder
+lo que dices.
+
+### Corregido
+
+- **El documento de una sesión de una hora ya no falla** — la transcripción
+  completa no cabía en el motor local (~9.000 tokens contra 4.096) y "Terminar
+  y crear documento" moría con un error. Ahora se condensa por partes
+  conservando quién dijo cada cosa y el documento se redacta sobre esas notas.
+  En sesiones largas tarda más; antes no terminaba.
+- **Las plantillas de IA ya no pierden tus correcciones** — dictabas "la
+  reunión es el lunes... no, mejor el martes" y podía salir "el lunes". Las
+  seis plantillas se probaron contra el motor local con dictados difíciles y
+  ahora llevan un ejemplo incrustado que ancla cada caso: la autocorrección se
+  conserva, una pregunta dictada no se responde sola, y el "signo de
+  interrogación" dictado se vuelve símbolo. Si editaste una plantilla, tu
+  versión se respeta tal cual.
+- **Los turnos de Sesiones y el Estudio salen limpios** — el diccionario
+  personal, el filtro de muletillas y el arreglo del "¿" solo corrían en el
+  dictado normal; las sesiones y el Estudio publicaban el texto crudo ("Hola,
+  cómo ¿estás?" en el acta). Ahora todos los caminos limpian igual.
+- **El documento de Sesiones se ve como documento** — los títulos salían con
+  asteriscos (`**Resumen**`); ahora se renderizan de verdad, y Copiar sigue
+  entregando el Markdown que Obsidian espera.
+- **Con Manos libres activo, la pantalla vacía ya no te pide el atajo** — daba
+  la instrucción del modo contrario; ahora dice "Solo habla: te estoy
+  escuchando". Y si un turno del manos libres falla, queda registrado con su
+  causa exacta en vez de perderse en silencio.
+
+### Cambiado
+
+- **Los ajustes cotidianos salieron de Avanzado**: el diccionario personal,
+  Obsidian y arranque/bandeja están ahora en General, visibles y sin
+  acordeones; el guardado y la retención del historial viven en la propia
+  página de Historial. Avanzado queda solo con lo interno de verdad.
+- **Escritura Inteligente, ordenada**: primero la configuración (plantillas,
+  tonos, traducción, atajos), después la herramienta de escribir sin dictar, y
+  al cierre el **Motor de IA**, que antes se escondía detrás de un plegable
+  llamado "Opciones avanzadas" siendo el destino de todos los errores.
+- **La pantalla de Sesiones respira**: fuera el diagrama de pasos y la maqueta
+  del acta, que repetían el subtítulo; la privacidad va en una línea. Elegir
+  modo y empezar, que es su único trabajo.
+- **"Tiempo ahorrado" con fuente citable**: 52 palabras/minuto de tecleo
+  (Dhakal et al., CHI 2018) en vez de un 40 sin cita que inflaba el ahorro.
+  El número baja; ahora es defendible.
+
 ## [2.2.1] — 2026-07-28
 
 **Actualizar ya tiene marcha atrás.** Si abrías una versión anterior después de

@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.2.1-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.2.2-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -127,6 +127,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                                                                                                          |
 | ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 2.2.2   | 30-jul | 🧹 **La casa ordenada**: cada ajuste donde lo buscarías + actas de sesiones de una hora + plantillas probadas contra el motor real |
 | 2.2.1   | 28-jul | 🔁 Actualizar con marcha atrás (fin del bucle de cierres) + ⚡ Intérprete sin espera: la frase sale ya y cada idioma llega después |
 | 2.2.0   | 28-jul | 🪶 **Plumín te recibe**: asistente de bienvenida que termina con tu primera dictada + notas de Obsidian en su propia carpeta       |
 | 2.1.1   | 28-jul | 🔧 Ocho arreglos salidos de probar la app: documento de sesión, "¿" del dictado, alto contraste real y ajustes de Obsidian         |
