@@ -577,11 +577,20 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
         <span>{relativeTime(entry.timestamp, i18n.language)}</span>
         <span aria-hidden="true">·</span>
         <span className="tabular-nums">{timeLabel}</span>
-        <AudioPlayer
-          onLoadRequest={handleLoadAudio}
-          compact
-          className="ms-auto w-44 max-w-[45%]"
-        />
+        {/* Sin .wav no hay reproductor: guardar audio viene apagado de
+            fábrica, así que la mayoría de las entradas son solo texto y un
+            play que no suena sería peor que no tenerlo. */}
+        {entry.file_name ? (
+          <AudioPlayer
+            onLoadRequest={handleLoadAudio}
+            compact
+            className="ms-auto w-44 max-w-[45%]"
+          />
+        ) : (
+          <span className="ms-auto text-2xs text-mid-gray/70">
+            {t("settings.history.noAudio")}
+          </span>
+        )}
       </div>
     </div>
   );

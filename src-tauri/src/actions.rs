@@ -1393,6 +1393,18 @@ impl ShortcutAction for TranscribeAction {
                     };
 
                     // Await WAV save and verify
+                    //
+                    // OJO con lo que significa esto: `wav_saved` responde "¿hay
+                    // un .wav reproducible?", NO "¿hay que guardar el dictado?".
+                    // Se usaba como guardián de las cuatro llamadas a
+                    // `save_entry`, y como guardar audio viene APAGADO de
+                    // fábrica (por privacidad, ver `default_save_audio_recordings`),
+                    // una instalación nueva no guardaba NADA: ni el texto en el
+                    // historial ni el contador de Inicio. Cualquiera que
+                    // instalara veía "0 dictados" para siempre por más que
+                    // dictara (reporte de Flor, 30-jul-2026). El comentario de
+                    // abajo ya decía la intención correcta —"el historial queda
+                    // solo con el texto"— y el código hacía lo contrario.
                     let wav_saved = match wav_handle.await {
                         // Sin guardado de audio no hay archivo que verificar:
                         // se marca como no guardado y el historial queda solo
@@ -1417,6 +1429,17 @@ impl ShortcutAction for TranscribeAction {
                         Err(e) => {
                             error!("WAV save task panicked: {}", e);
                             false
+                        }
+                    };
+
+                    // Nombre del .wav para la entrada, o vacío si no hay archivo:
+                    // así el historial guarda el texto igual y el frontend sabe
+                    // que no debe ofrecer reproductor.
+                    let audio_name = || {
+                        if wav_saved {
+                            file_name.clone()
+                        } else {
+                            String::new()
                         }
                     };
 
@@ -1472,9 +1495,9 @@ impl ShortcutAction for TranscribeAction {
                                 // Guardar la versión corregida en el historial
                                 // (auditoría #15): si luego descartas, el texto
                                 // corregido no se pierde, se recupera de ahí.
-                                if corrected && wav_saved {
+                                if corrected {
                                     if let Err(err) = hm.save_entry(
-                                        file_name,
+                                        audio_name(),
                                         updated.clone(),
                                         post_process,
                                         Some(updated.clone()),
@@ -1498,16 +1521,14 @@ impl ShortcutAction for TranscribeAction {
                                 // ni para las estadísticas. Con el Intérprete en
                                 // uso, el contador podía pasar días sin moverse
                                 // mientras se dictaba a diario.
-                                if wav_saved {
-                                    if let Err(err) = hm.save_entry(
-                                        file_name,
-                                        transcription,
-                                        post_process,
-                                        processed.post_processed_text.clone(),
-                                        processed.post_process_prompt.clone(),
-                                    ) {
-                                        error!("Failed to save history entry: {}", err);
-                                    }
+                                if let Err(err) = hm.save_entry(
+                                    audio_name(),
+                                    transcription,
+                                    post_process,
+                                    processed.post_processed_text.clone(),
+                                    processed.post_process_prompt.clone(),
+                                ) {
+                                    error!("Failed to save history entry: {}", err);
                                 }
                                 utils::hide_recording_overlay(&ah);
                                 change_tray_icon(&ah, TrayIconState::Idle);
@@ -1530,10 +1551,11 @@ impl ShortcutAction for TranscribeAction {
                                 return;
                             }
 
-                            // Save to history if WAV was saved
-                            if wav_saved {
+                            // El historial guarda SIEMPRE el texto; el audio
+                            // es opcional y solo añade el reproductor.
+                            {
                                 if let Err(err) = hm.save_entry(
-                                    file_name,
+                                    audio_name(),
                                     transcription,
                                     post_process,
                                     processed.post_processed_text.clone(),
@@ -1607,10 +1629,12 @@ impl ShortcutAction for TranscribeAction {
                             // Surface the failure to the UI (toast). The full
                             // message is also in handy.log via the line above.
                             let _ = ah.emit("transcription-error", err.to_string());
-                            // Save entry with empty text so user can retry
+                            // Entrada con texto vacío para poder reintentar.
+                            // Solo tiene sentido si quedó el audio: sin él no hay
+                            // nada que reintentar ni que mostrar.
                             if wav_saved {
                                 if let Err(save_err) = hm.save_entry(
-                                    file_name,
+                                    audio_name(),
                                     String::new(),
                                     post_process,
                                     None,

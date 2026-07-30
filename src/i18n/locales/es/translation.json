@@ -686,7 +686,8 @@
       "showLess": "Ver menos",
       "noResults": "Ningún dictado coincide con tu búsqueda.",
       "storageTitle": "Guardado y retención",
-      "deleteConfirm": "Se borrará el texto y su audio para siempre. Esta acción no se puede deshacer."
+      "deleteConfirm": "Se borrará el texto y su audio para siempre. Esta acción no se puede deshacer.",
+      "noAudio": "Sin audio guardado"
     },
     "debug": {
       "title": "Depuración",

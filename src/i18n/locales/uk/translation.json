@@ -686,7 +686,8 @@
       "showLess": "Show less",
       "noResults": "No dictations match your search.",
       "storageTitle": "Storage & retention",
-      "deleteConfirm": "This will permanently delete the text and its audio. This can't be undone."
+      "deleteConfirm": "This will permanently delete the text and its audio. This can't be undone.",
+      "noAudio": "No audio saved"
     },
     "debug": {
       "title": "Дебаг",
