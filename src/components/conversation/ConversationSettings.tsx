@@ -1206,8 +1206,20 @@ export const ConversationSettings: React.FC = () => {
                 <EmptyState
                   compact
                   plumin="escucha"
-                  title={t("conversation.empty")}
-                  description={t("conversation.hint")}
+                  // Con Manos libres activo, la instrucción del atajo es la del
+                  // modo CONTRARIO: la usuaria lee "mantén tu atajo" cuando lo
+                  // correcto es solo hablar (QA de Flor, 29-jul: su captura
+                  // muestra el botón encendido y el texto del atajo debajo).
+                  title={t(
+                    handsFree
+                      ? "conversation.emptyHandsFree"
+                      : "conversation.empty",
+                  )}
+                  description={t(
+                    handsFree
+                      ? "conversation.hintHandsFree"
+                      : "conversation.hint",
+                  )}
                 />
               ) : (
                 <>
