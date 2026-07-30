@@ -59,7 +59,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
           }
         } catch {
           setModelStatus("error");
-          setModelError("Failed to check model status");
+          setModelError(t("models.errors.checkStatus"));
         }
       } else {
         setModelStatus("none");
@@ -148,8 +148,8 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
     if (!success) {
       setPendingModelId(null);
       setModelStatus("error");
-      setModelError("Failed to switch model");
-      onError?.("Failed to switch model");
+      setModelError(t("models.errors.switch"));
+      onError?.(t("models.errors.switch"));
     }
   };
 

@@ -1441,5 +1441,11 @@
       "translateFailed": "Couldn't translate. Check the local engine in Settings.",
       "needsEngine": "Translating needs the local engine, the one I offered two steps back. You can install it later from Settings → Smart Writing."
     }
+  },
+  "models": {
+    "errors": {
+      "checkStatus": "Couldn't check the model status.",
+      "switch": "Couldn't switch models."
+    }
   }
 }

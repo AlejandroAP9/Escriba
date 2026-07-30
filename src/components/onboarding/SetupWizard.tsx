@@ -248,12 +248,20 @@ const EngineStep: React.FC<{
 
   useEffect(() => {
     let cancelled = false;
+    // El sondeo corre cada 2 s mientras esta pantalla esté abierta, así que la
+    // activación tiene que ocurrir UNA vez, en el flanco de "aún no" a "listo".
+    // Antes se reescribían proveedor y post-proceso en cada vuelta: decenas de
+    // escrituras a los ajustes por minuto, y si el usuario apagaba el
+    // post-proceso sin salir del paso, el siguiente tick se lo volvía a
+    // encender (auditoría externa E-10, 30-jul-2026).
+    let armed = false;
     const check = async () => {
       const s = await commands.getLocalLlmStatus();
       if (cancelled) return;
       const isReady = Boolean(s.runtime_installed && s.model_installed);
       setReady(isReady);
-      if (isReady) {
+      if (isReady && !armed) {
+        armed = true;
         // Dejarlo utilizable, no solo instalado.
         await setProvider("local_llm");
         await updateSetting("post_process_enabled", true);

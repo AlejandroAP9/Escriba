@@ -1441,5 +1441,11 @@
       "translateFailed": "No se pudo traducir. Revisa el motor local en Ajustes.",
       "needsEngine": "Para traducir hace falta el motor local, el que te ofrecí hace dos pasos. Puedes instalarlo después en Ajustes → Escritura Inteligente."
     }
+  },
+  "models": {
+    "errors": {
+      "checkStatus": "No se pudo comprobar el estado del modelo.",
+      "switch": "No se pudo cambiar de modelo."
+    }
   }
 }
