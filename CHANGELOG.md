@@ -9,6 +9,42 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [2.2.3] — 2026-07-30
+
+**La ronda de la auditoría externa.** Una revisión independiente encontró un
+agujero que cinco rondas propias no vieron: la ventana de la app podía leer el
+archivo donde viven tus claves. Cerrado, junto con tres cosas más.
+
+### Corregido
+
+- **Tus API keys y el token del servidor MCP ya no están al alcance de la
+  interfaz** — el permiso de lectura de archivos abarcaba toda la carpeta de
+  datos, incluido el archivo de ajustes donde esas credenciales se guardan en
+  claro. Ahora solo alcanza la carpeta de grabaciones, que es lo único que la
+  interfaz necesita leer.
+- **El audio del historial vuelve a sonar en modo portable** — mismo origen: el
+  permiso apuntaba a una ruta fija que en portable no existe. Ahora se resuelve
+  la carpeta real al arrancar.
+- **El asistente de bienvenida ya no deja terminar sin modelo** — se podía
+  llegar al final sin nada descargado, o sea con una instalación que no puede
+  transcribir y falla en el primer atajo sin decir por qué.
+- **Borrar un dictado del historial ahora pregunta** — se llevaba el texto y el
+  audio para siempre, sin papelera ni deshacer, y era la única acción
+  destructiva de la app que no confirmaba.
+- **El asistente ya no reescribe tus ajustes cada dos segundos** — al instalar
+  el motor local, si apagabas el post-proceso sin salir de esa pantalla, se
+  volvía a encender solo.
+- **Dos errores de modelos salían en inglés** dentro de la app en español.
+
+### Nota de transparencia
+
+La auditoría también señaló hallazgos en `escriba-web`, el sitio de
+demostración, que es un proyecto aparte del que se descarga aquí. Quedan
+registrados y sin corregir en esta versión: el fallback de WebGPU a modo
+compatible, la accesibilidad por teclado del cargador, y un timestamp inválido
+en la exportación SRT de la web (el exportador de la app de escritorio está
+verificado y con test).
+
 ## [2.2.2] — 2026-07-30
 
 **La casa ordenada.** Cada pantalla hace un solo trabajo y cada ajuste vive
