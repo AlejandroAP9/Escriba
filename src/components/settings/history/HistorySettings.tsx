@@ -28,6 +28,10 @@ import {
 import { RetranscribeMenu } from "../../shared/RetranscribeMenu";
 import { useOsType } from "@/hooks/useOsType";
 import { AudioPlayer } from "../../ui/AudioPlayer";
+import { SettingsGroup } from "../../ui/SettingsGroup";
+import { SaveAudioRecordings } from "../SaveAudioRecordings";
+import { HistoryLimit } from "../HistoryLimit";
+import { RecordingRetentionPeriodSelector } from "../RecordingRetentionPeriod";
 import { EmptyState, LoadingState } from "../../ui/EmptyState";
 
 const IconButton: React.FC<{
@@ -384,6 +388,17 @@ export const HistorySettings: React.FC = () => {
       </div>
 
       {content}
+
+      {/* Guardado: cuánto se conserva y si queda el audio. Vivía en Avanzado,
+          pero quien decide cuánto historial guardar lo decide AQUÍ, mirándolo. */}
+      <SettingsGroup title={t("settings.history.storageTitle")}>
+        <SaveAudioRecordings descriptionMode="inline" grouped={true} />
+        <HistoryLimit descriptionMode="inline" grouped={true} />
+        <RecordingRetentionPeriodSelector
+          descriptionMode="inline"
+          grouped={true}
+        />
+      </SettingsGroup>
     </div>
   );
 };

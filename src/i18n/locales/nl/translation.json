@@ -301,7 +301,10 @@
       "reviewBeforePaste": {
         "label": "Review before pasting",
         "description": "The dictation shows on screen before it is typed: paste it, discard it, or dictate a correction with your shortcut. For delicate emails and formal documents."
-      }
+      },
+      "dictionaryTitle": "Personal dictionary",
+      "obsidianTitle": "Obsidian",
+      "appTitle": "Application"
     },
     "models": {
       "title": "Transcriptiemodellen",
@@ -681,7 +684,8 @@
       "filterSaved": "Favorites",
       "showMore": "Show more",
       "showLess": "Show less",
-      "noResults": "No dictations match your search."
+      "noResults": "No dictations match your search.",
+      "storageTitle": "Storage & retention"
     },
     "debug": {
       "title": "Probleemoplossing",

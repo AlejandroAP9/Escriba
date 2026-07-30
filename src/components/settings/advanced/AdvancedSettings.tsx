@@ -6,21 +6,12 @@ import { commands, type McpStatus } from "@/bindings";
 import { Card } from "../../ui/Card";
 import { ShowOverlay } from "../ShowOverlay";
 import { ModelUnloadTimeoutSetting } from "../ModelUnloadTimeout";
-import { CustomWords } from "../CustomWords";
-import { ObsidianVault } from "../ObsidianVault";
-import { TextReplacements } from "../TextReplacements";
 import { CollapsibleGroup } from "../../ui/CollapsibleGroup";
-import { StartHidden } from "../StartHidden";
-import { AutostartToggle } from "../AutostartToggle";
-import { ShowTrayIcon } from "../ShowTrayIcon";
 import { PasteMethodSetting } from "../PasteMethod";
 import { TypingToolSetting } from "../TypingTool";
 import { ClipboardHandlingSetting } from "../ClipboardHandling";
 import { AutoSubmit } from "../AutoSubmit";
 import { AppendTrailingSpace } from "../AppendTrailingSpace";
-import { HistoryLimit } from "../HistoryLimit";
-import { RecordingRetentionPeriodSelector } from "../RecordingRetentionPeriod";
-import { SaveAudioRecordings } from "../SaveAudioRecordings";
 import { ExperimentalToggle } from "../ExperimentalToggle";
 import { useSettings } from "../../../hooks/useSettings";
 import { useModelStore } from "../../../stores/modelStore";
@@ -218,18 +209,14 @@ export const AdvancedSettings: React.FC = () => {
         </p>
       </div>
 
+      {/* Esta página perdió a propósito arranque/bandeja (→ General →
+          Aplicación), Obsidian (→ General), diccionario y reemplazos
+          (→ General → Diccionario personal) y el guardado del historial
+          (→ página Historial): eran ajustes cotidianos secuestrados en la
+          zona técnica. Aquí queda solo lo interno de verdad. */}
       <SystemStatusPanel />
 
       <div className="space-y-3 pt-1">
-        <CollapsibleGroup
-          title={t("settings.advanced.groups.startup")}
-          defaultOpen
-        >
-          <AutostartToggle descriptionMode="inline" grouped={true} />
-          <StartHidden descriptionMode="inline" grouped={true} />
-          <ShowTrayIcon descriptionMode="inline" grouped={true} />
-        </CollapsibleGroup>
-
         <CollapsibleGroup title={t("settings.advanced.groups.interface")}>
           <ShowOverlay descriptionMode="inline" grouped={true} />
         </CollapsibleGroup>
@@ -256,27 +243,7 @@ export const AdvancedSettings: React.FC = () => {
 
         <CollapsibleGroup title={t("settings.advanced.groups.transcription")}>
           <VoiceActivityDetection descriptionMode="inline" grouped={true} />
-          <CustomWords descriptionMode="inline" grouped />
-          <TextReplacements descriptionMode="inline" grouped />
           <AppendTrailingSpace descriptionMode="inline" grouped={true} />
-        </CollapsibleGroup>
-
-        <CollapsibleGroup title={t("settings.advanced.groups.obsidian")}>
-          <ObsidianVault descriptionMode="inline" grouped={true} />
-        </CollapsibleGroup>
-
-        <CollapsibleGroup title={t("settings.advanced.groups.history")}>
-          {/*
-            El interruptor de guardar audio va PRIMERO: decide si llega a
-            existir un .wav, y el selector de retención solo tiene sentido para
-            los que sí se guardan.
-          */}
-          <SaveAudioRecordings descriptionMode="inline" grouped={true} />
-          <HistoryLimit descriptionMode="inline" grouped={true} />
-          <RecordingRetentionPeriodSelector
-            descriptionMode="inline"
-            grouped={true}
-          />
         </CollapsibleGroup>
 
         {experimentalEnabled && (

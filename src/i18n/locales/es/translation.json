@@ -319,7 +319,10 @@
       "reviewBeforePaste": {
         "label": "Revisar antes de pegar",
         "description": "El dictado se muestra en pantalla antes de escribirse: pégalo, descártalo o dicta una corrección con tu atajo. Para correos delicados y documentos formales."
-      }
+      },
+      "dictionaryTitle": "Diccionario personal",
+      "obsidianTitle": "Obsidian",
+      "appTitle": "Aplicación"
     },
     "sound": {
       "title": "Sonido",
@@ -681,7 +684,8 @@
       "filterSaved": "Favoritos",
       "showMore": "Ver más",
       "showLess": "Ver menos",
-      "noResults": "Ningún dictado coincide con tu búsqueda."
+      "noResults": "Ningún dictado coincide con tu búsqueda.",
+      "storageTitle": "Guardado y retención"
     },
     "debug": {
       "title": "Depuración",

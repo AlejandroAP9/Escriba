@@ -18,6 +18,12 @@ import { VolumeSlider } from "../VolumeSlider";
 import { MuteWhileRecording } from "../MuteWhileRecording";
 import { PauseMediaOnDictate } from "../PauseMediaOnDictate";
 import { NoiseSuppression } from "../NoiseSuppression";
+import { CustomWords } from "../CustomWords";
+import { TextReplacements } from "../TextReplacements";
+import { ObsidianVault } from "../ObsidianVault";
+import { AutostartToggle } from "../AutostartToggle";
+import { StartHidden } from "../StartHidden";
+import { ShowTrayIcon } from "../ShowTrayIcon";
 import { ModelSettingsCard } from "./ModelSettingsCard";
 
 export const GeneralSettings: React.FC = () => {
@@ -124,6 +130,14 @@ export const GeneralSettings: React.FC = () => {
       {/* Transcripción: idioma + traducir al inglés. */}
       <ModelSettingsCard />
 
+      {/* Diccionario personal: los nombres que el modelo debe respetar
+          ("Imperio Agéntico", apellidos del curso). Vivía enterrado en
+          Avanzado → Transcripción, siendo de lo más pedido del aula. */}
+      <SettingsGroup title={t("settings.general.dictionaryTitle")}>
+        <CustomWords descriptionMode="inline" grouped />
+        <TextReplacements descriptionMode="inline" grouped />
+      </SettingsGroup>
+
       {/* Audio: todo lo relacionado con el sonido, junto. */}
       <SettingsGroup title={t("settings.general.audioTitle")}>
         <MicrophoneSelector descriptionMode="inline" grouped={true} />
@@ -139,6 +153,20 @@ export const GeneralSettings: React.FC = () => {
           descriptionMode="inline"
           grouped={true}
         />
+      </SettingsGroup>
+
+      {/* Obsidian: dónde aterrizan las notas. Lo configura hasta el asistente
+          de bienvenida; tenerlo en Avanzado era esconderlo. */}
+      <SettingsGroup title={t("settings.general.obsidianTitle")}>
+        <ObsidianVault descriptionMode="inline" grouped={true} />
+      </SettingsGroup>
+
+      {/* Aplicación: arranque y bandeja. Ajustes de cualquier app, no de
+          usuario avanzado. */}
+      <SettingsGroup title={t("settings.general.appTitle")}>
+        <AutostartToggle descriptionMode="inline" grouped={true} />
+        <StartHidden descriptionMode="inline" grouped={true} />
+        <ShowTrayIcon descriptionMode="inline" grouped={true} />
       </SettingsGroup>
 
       {/* Avanzado: lo que el 90% no toca, plegado. */}
