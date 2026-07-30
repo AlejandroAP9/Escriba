@@ -564,6 +564,17 @@ impl HistoryManager {
             params![local_day(entry.timestamp), words],
         ) {
             error!("No se pudo descontar del agregado de uso: {}", e);
+            return;
+        }
+        // Un día que se queda en cero no es un día: era una fila con 0 dictados
+        // y 0 palabras que sobrevivía para siempre. No afecta a las cuentas
+        // (`compute_usage_stats` solo suma días con `count > 0`), pero ensucia
+        // la tabla y confunde a quien la mire por fuera.
+        if let Err(e) = conn.execute(
+            "DELETE FROM usage_daily WHERE day = ?1 AND transcriptions = 0 AND words = 0",
+            params![local_day(entry.timestamp)],
+        ) {
+            debug!("No se pudo limpiar el día vacío del agregado: {}", e);
         }
     }
 

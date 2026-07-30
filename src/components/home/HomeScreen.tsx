@@ -130,6 +130,10 @@ export const HomeScreen: React.FC = () => {
   const statCards = [
     { value: `${savedValue}`, unit: savedUnit, label: t("home.timeSaved") },
     {
+      // Cuenta DICTADOS, no archivos: el agregado sobrevive a propósito al
+      // recorte de grabaciones (es justo para lo que existe). La etiqueta decía
+      // "Audios", que invita a contrastarlo con la carpeta de grabaciones y no
+      // cuadra nunca en cuanto la retención borra un .wav.
       value: (stats?.total_transcriptions ?? 0).toLocaleString(),
       unit: "",
       label: t("home.audios"),

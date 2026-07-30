@@ -1162,7 +1162,7 @@
     "systemStatus": "System status",
     "micReady": "Microphone ready",
     "allLocal": "Everything runs locally",
-    "audios": "Audios",
+    "audios": "Dictations",
     "status": {
       "modelMissing": "Transcription model missing",
       "accessibility": "Accessibility granted",
