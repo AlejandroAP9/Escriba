@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { readFile } from "@tauri-apps/plugin-fs";
+import { confirm as confirmDialog } from "@tauri-apps/plugin-dialog";
 import {
   Check,
   Copy,
@@ -444,6 +445,15 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
   };
 
   const handleDeleteEntry = async () => {
+    // Borra el texto Y el .wav, sin papelera ni deshacer: puede ser la única
+    // copia de algo dictado hace semanas. Descartar una sesión ya preguntaba;
+    // esto no, y era la acción más destructiva de la app (auditoría externa,
+    // 30-jul-2026).
+    const proceed = await confirmDialog(t("settings.history.deleteConfirm"), {
+      title: "Escriba",
+      kind: "warning",
+    });
+    if (!proceed) return;
     try {
       await deleteAudio(entry.id);
     } catch (error) {

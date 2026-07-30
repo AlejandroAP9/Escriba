@@ -53,6 +53,34 @@ pub fn to_json(segments: &[Segment]) -> Result<String, String> {
 }
 
 #[cfg(test)]
+mod audit_tests {
+    use super::*;
+
+    /// Una auditoría externa (30-jul-2026) reportó que el exportador producía
+    /// timestamps inválidos como `00:00:59,1000` en los límites de minuto.
+    /// Este test fija que NO ocurre: el formateador redondea a milisegundos
+    /// TOTALES antes de descomponer, así que 59,9999 s desborda limpiamente a
+    /// 00:01:00,000 en vez de dejar 1000 ms dentro del segundo 59.
+    #[test]
+    fn timestamps_never_overflow_their_field() {
+        let cases = [
+            (59.9999_f64, "00:01:00,000"),
+            (59.9996, "00:01:00,000"),
+            (3599.9999, "01:00:00,000"),
+            (0.9999, "00:00:01,000"),
+            (0.0, "00:00:00,000"),
+            (61.5, "00:01:01,500"),
+        ];
+        for (input, expected) in cases {
+            let got = format_timestamp(input, ',');
+            assert_eq!(got, expected, "para {input}s");
+            let ms: u32 = got.split(',').nth(1).unwrap().parse().unwrap();
+            assert!(ms < 1000, "milisegundos fuera de rango en {got}");
+        }
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::studio::segments::Segment;

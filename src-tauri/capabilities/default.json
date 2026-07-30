@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permisos de la ventana principal. Deliberadamente sin `store:default`: ese permiso le daba a la webview lectura y escritura completas de settings_store.json, donde viven las API keys en texto plano, el token del servidor MCP y `external_script_path` (que se ejecuta en cada pegado). El frontend nunca importa @tauri-apps/plugin-store; toda la persistencia pasa por los comandos `change_*` del backend, que sí validan.",
+  "description": "Permisos de la ventana principal. Deliberadamente sin `store:default`: ese permiso le daba a la webview lectura y escritura completas de settings_store.json, donde viven las API keys en texto plano, el token del servidor MCP y `external_script_path` (que se ejecuta en cada pegado). El frontend nunca importa @tauri-apps/plugin-store; toda la persistencia pasa por los comandos `change_*` del backend, que sí validan. El scope de `fs` cubre SOLO `recordings/`: era `$APPDATA/**/*`, que volvía a dejar settings_store.json al alcance de `readFile` y anulaba en la práctica lo anterior (auditoría externa 30-jul-2026). La única lectura del frontend es el audio del historial en Linux. La carpeta real se añade además en arranque (`lib.rs`), porque en modo portable no está bajo $APPDATA.",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -21,16 +21,10 @@
       "identifier": "fs:scope",
       "allow": [
         {
-          "path": "$APPDATA"
+          "path": "$APPDATA/recordings"
         },
         {
-          "path": "$APPDATA/**/*"
-        },
-        {
-          "path": "$APPLOCALDATA"
-        },
-        {
-          "path": "$APPLOCALDATA/**/*"
+          "path": "$APPDATA/recordings/*"
         }
       ]
     }

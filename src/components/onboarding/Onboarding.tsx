@@ -266,6 +266,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected, wizard }) => {
         narration={t("wizard.model.narration")}
         onBack={wizard.onBack}
         onNext={wizard.onNext}
+        // Sin ningún modelo descargado, la app no puede transcribir nada: dejar
+        // avanzar aquí es entregar una instalación muerta que falla en el
+        // primer atajo, sin pista de por qué (auditoría externa, 30-jul-2026).
+        nextDisabled={!models.some((m: ModelInfo) => m.is_downloaded)}
         nextLabel={t("wizard.next")}
       >
         {modelList}

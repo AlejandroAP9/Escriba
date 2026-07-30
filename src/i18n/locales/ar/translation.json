@@ -664,7 +664,8 @@
       "showMore": "Show more",
       "showLess": "Show less",
       "noResults": "No dictations match your search.",
-      "storageTitle": "Storage & retention"
+      "storageTitle": "Storage & retention",
+      "deleteConfirm": "This will permanently delete the text and its audio. This can't be undone."
     },
     "debug": {
       "title": "تصحيح الأخطاء",
