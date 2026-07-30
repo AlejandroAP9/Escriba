@@ -722,12 +722,6 @@ export const ConversationSettings: React.FC = () => {
     Record<string, { current_binding?: string }> | undefined;
   const shortcutKeys = formatKeys(bindings?.transcribe?.current_binding);
 
-  const FLOW: { key: string; icon: typeof Mic | null }[] = [
-    { key: "speak", icon: Mic },
-    { key: "listen", icon: Ear },
-    { key: "organize", icon: Sparkles },
-    { key: "doc", icon: FileText },
-  ];
   const EXAMPLES = ["meeting", "brainstorm", "interview", "journal"];
 
   return (
@@ -893,32 +887,12 @@ export const ConversationSettings: React.FC = () => {
             </Card>
           )}
 
-          {/* Qué ocurre después: círculos conectados, se lee de un vistazo. */}
-          <div className="flex items-start justify-center">
-            {FLOW.map(({ key, icon: Icon }, i) => (
-              <React.Fragment key={key}>
-                {i > 0 && (
-                  <div className="mt-4 h-px w-8 shrink-0 bg-logo-primary/25 sm:w-14" />
-                )}
-                <div className="flex w-20 flex-col items-center gap-1.5 sm:w-24">
-                  <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-full border ${
-                      key === "organize"
-                        ? "border-logo-primary/40 bg-logo-primary/10 text-gold-text"
-                        : "border-line bg-background text-mid-gray"
-                    }`}
-                  >
-                    {Icon && <Icon width={14} height={14} />}
-                  </span>
-                  <span className="text-center text-2xs leading-tight text-mid-gray">
-                    {t(`conversation.flow.${key}`)}
-                  </span>
-                </div>
-              </React.Fragment>
-            ))}
-          </div>
-
-          {/* Casos de uso: entrada → resultado, con el principal destacado. */}
+          {/* Casos de uso: entrada → resultado, con el principal destacado.
+              Esta pantalla tenía además un diagrama de flujo de cuatro pasos y
+              una maqueta del acta: tres formas de contar lo mismo que el
+              subtítulo, apiladas. "Se ve con mucho texto" (Alejandro, 30-jul).
+              La pantalla de arranque tiene un solo trabajo: elegir modo y
+              empezar. Lo educativo vive en el asistente de bienvenida. */}
           <div>
             <p className="mb-2 font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
               {t("conversation.examplesTitle")}
@@ -965,61 +939,15 @@ export const ConversationSettings: React.FC = () => {
             </div>
           </div>
 
-          {/* Vista previa: la forma del resultado (las secciones son las reales
-              del acta; las barras son abstractas, no texto inventado). */}
-          <div>
-            <p className="mb-2 text-center font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
-              {t("conversation.preview.title")}
-            </p>
-            <div className="mx-auto max-w-xs rounded-card border border-line bg-background p-5 shadow-lift">
-              <p
-                className="text-base text-text"
-                style={{ fontFamily: "var(--font-serif)", fontWeight: 600 }}
-              >
-                {t("conversation.preview.doc")}
-              </p>
-              <div className="mt-3 space-y-3">
-                {(["s1", "s2", "s3"] as const).map((s, i) => (
-                  <div key={s}>
-                    <p className="text-3xs font-semibold uppercase tracking-wide text-gold-text">
-                      {t(`conversation.preview.${s}`)}
-                    </p>
-                    <div className="mt-1.5 space-y-1.5">
-                      <div className="h-1.5 w-full rounded-full bg-mid-gray/15" />
-                      <div
-                        className={`h-1.5 rounded-full bg-mid-gray/15 ${
-                          i === 0 ? "w-4/5" : i === 1 ? "w-2/3" : "w-3/4"
-                        }`}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Privacidad: el diferenciador, como bloque. */}
-          <div className="rounded-card border border-logo-primary/20 bg-logo-primary/5 p-4">
-            <p className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-text">
-              <Lock width={14} height={14} className="text-gold-text" />
-              {t("conversation.privacyTitle")}
-            </p>
-            <ul className="grid gap-1.5 sm:grid-cols-2">
-              {["p1", "p2", "p3", "p4"].map((k) => (
-                <li
-                  key={k}
-                  className="flex items-start gap-2 text-xs text-text/80"
-                >
-                  <Check
-                    width={13}
-                    height={13}
-                    className="mt-0.5 shrink-0 text-gold-text"
-                  />
-                  {t(`conversation.privacy.${k}`)}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Privacidad en una línea: el diferenciador se afirma, no se
+              explica. La caja de cuatro checks era la tercera pila de texto
+              de una pantalla cuyo trabajo es empezar una sesión. */}
+          <p className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-xs text-mid-gray">
+            <Lock width={12} height={12} className="shrink-0 text-gold-text" />
+            {["p1", "p2", "p3", "p4"]
+              .map((k) => t(`conversation.privacy.${k}`))
+              .join(" · ")}
+          </p>
         </div>
       )}
 

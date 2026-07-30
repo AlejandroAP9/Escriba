@@ -1759,7 +1759,46 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
 #[cfg(test)]
 mod tests {
 
-    use super::{split_for_summary, SUMMARY_CHUNK_BYTES};
+    use super::{chunk_transcript_lines, split_for_summary, SUMMARY_CHUNK_BYTES};
+
+    /// La propiedad que protege el acta: ningún turno se parte entre dos
+    /// trozos (la segunda mitad perdería a su hablante) y no se pierde nada.
+    #[test]
+    fn transcript_chunks_keep_turns_whole_and_lose_nothing() {
+        let lines: Vec<String> = (0..300)
+            .map(|i| {
+                let who = if i % 3 == 0 { "Otros" } else { "Usuario" };
+                format!("{who}: intervencion numero {i} con algo de contenido real")
+            })
+            .collect();
+        let text = lines.join("\n");
+
+        let chunks = chunk_transcript_lines(&text, 2_000);
+        assert!(
+            chunks.len() > 1,
+            "este transcript debe necesitar varios trozos"
+        );
+        for c in &chunks {
+            assert!(c.len() <= 2_000);
+        }
+        let reassembled: Vec<&str> = chunks.iter().flat_map(|c| c.lines()).collect();
+        assert_eq!(reassembled, lines, "se partio o perdio un turno");
+    }
+
+    /// Un monólogo más largo que el presupuesto se parte por palabras, sin
+    /// cortar ninguna: es el único caso donde un turno puede ocupar dos trozos.
+    #[test]
+    fn transcript_monologue_splits_by_words() {
+        let text = format!("Usuario: {}", "palabra ".repeat(2_000));
+        let chunks = chunk_transcript_lines(&text, 1_000);
+        assert!(chunks.len() > 1);
+        for c in &chunks {
+            assert!(c.len() <= 1_000);
+            for w in c.split_whitespace() {
+                assert!(w == "palabra" || w == "Usuario:", "palabra cortada: {w}");
+            }
+        }
+    }
 
     /// La propiedad que importa: ningún trozo se pasa del presupuesto y no se
     /// pierde ni una palabra. Si un trozo se pasara, la petición al motor local
@@ -1922,6 +1961,55 @@ const SUMMARY_MAX_CHUNKS: usize = 16;
 const SUMMARY_PROMPT: &str = "Eres un asistente que resume transcripciones. Entrega un resumen claro y fiel en el mismo idioma del texto: primero 2-3 frases con la idea central, luego los puntos clave en viñetas. No inventes nada que no esté en el texto. Responde solo con el resumen.";
 
 const SUMMARY_PART_PROMPT: &str = "Eres un asistente que resume transcripciones. Esto es solo UNA PARTE de una grabación más larga. Resúmela en un máximo de 3 frases, en el mismo idioma del texto, conservando nombres, cifras y acuerdos. No inventes nada ni intentes concluir: otras partes vienen antes y después. Responde solo con el resumen.";
+
+/// Condensación por partes para el documento de Sesiones. A diferencia del
+/// resumen del Estudio, aquí importa QUIÉN dijo cada cosa: el acta atribuye
+/// acuerdos y citas, así que las notas parciales conservan los hablantes.
+const SESSION_PART_PROMPT: &str = "Esto es UNA PARTE de una sesion mas larga. Condensala en vinetas densas, en el idioma de la sesion, conservando quien dice cada cosa (Usuario, Otros, o el nombre si se menciona), los datos, cifras, fechas, acuerdos y tareas, y las citas textuales importantes entre comillas. No inventes nada y no intentes concluir: hay mas partes antes y despues. Responde solo con las vinetas.";
+
+/// Parte una transcripción de sesión en trozos que quepan en `max_bytes`,
+/// cortando por LÍNEAS: cada línea es un turno ("Rol: texto") y partir un
+/// turno entre dos trozos le quitaría el hablante a la segunda mitad. Un
+/// turno que por sí solo exceda el tope (un monólogo) se parte por palabras,
+/// sin cortar ninguna.
+fn chunk_transcript_lines(text: &str, max_bytes: usize) -> Vec<String> {
+    let mut pieces: Vec<String> = Vec::new();
+    for line in text.lines().map(str::trim).filter(|l| !l.is_empty()) {
+        if line.len() <= max_bytes {
+            pieces.push(line.to_string());
+            continue;
+        }
+        let mut buf = String::new();
+        for word in line.split_whitespace() {
+            if !buf.is_empty() && buf.len() + 1 + word.len() > max_bytes {
+                pieces.push(std::mem::take(&mut buf));
+            }
+            if !buf.is_empty() {
+                buf.push(' ');
+            }
+            buf.push_str(word);
+        }
+        if !buf.is_empty() {
+            pieces.push(buf);
+        }
+    }
+
+    let mut chunks: Vec<String> = Vec::new();
+    let mut current = String::new();
+    for piece in pieces {
+        if !current.is_empty() && current.len() + 1 + piece.len() > max_bytes {
+            chunks.push(std::mem::take(&mut current));
+        }
+        if !current.is_empty() {
+            current.push('\n');
+        }
+        current.push_str(&piece);
+    }
+    if !current.is_empty() {
+        chunks.push(current);
+    }
+    chunks
+}
 
 /// Resume una transcripción con el motor local, troceándola si no cabe.
 ///
@@ -2780,11 +2868,71 @@ con claridad, no inventes la atribucion."
 Al cierre, en una linea final aparte, escribe exactamente [[animo:positivo]], [[animo:neutral]] o [[animo:tenso]] segun el tono general de la sesion. Solo el marcador en esa linea, nada mas."
     );
 
+    // La transcripción entera no siempre cabe: una reunión de una hora son
+    // ~9.000 tokens contra los 4.096 del motor, y la petición fallaba con
+    // exceed_context_size_error (fallo real del 29-jul, en el log). Mismo
+    // remedio que el resumen del Estudio: condensar por partes conservando
+    // hablantes y datos, y redactar el documento final sobre esas notas.
+    let source = if transcript.len() <= SUMMARY_CHUNK_BYTES {
+        format!("Transcripcion:\n{}", transcript)
+    } else {
+        let chunks = chunk_transcript_lines(transcript, SUMMARY_CHUNK_BYTES);
+        if chunks.len() > SUMMARY_MAX_CHUNKS {
+            warn!(
+                "Sesion demasiado larga para el documento: {} partes (tope {})",
+                chunks.len(),
+                SUMMARY_MAX_CHUNKS
+            );
+            return None;
+        }
+        let total = chunks.len();
+        let mut partials = Vec::with_capacity(total);
+        for (i, chunk) in chunks.iter().enumerate() {
+            match summarize_once(&provider, &model, SESSION_PART_PROMPT, chunk).await {
+                Ok(p) => partials.push(p),
+                Err(e) => {
+                    warn!(
+                        "Fallo al condensar la parte {} de {} de la sesion: {}",
+                        i + 1,
+                        total,
+                        e
+                    );
+                    return None;
+                }
+            }
+        }
+        // Si ni las notas condensadas caben, se condensan una vez más. Igual
+        // que en el Estudio: dos niveles y se para.
+        let mut joined = partials.join("\n\n");
+        if joined.len() > SUMMARY_CHUNK_BYTES {
+            let groups = split_for_summary(&joined, SUMMARY_CHUNK_BYTES);
+            let mut second = Vec::with_capacity(groups.len());
+            for group in &groups {
+                match summarize_once(&provider, &model, SESSION_PART_PROMPT, group).await {
+                    Ok(p) => second.push(p),
+                    Err(e) => {
+                        warn!("Fallo en la segunda condensacion de la sesion: {}", e);
+                        return None;
+                    }
+                }
+            }
+            joined = second.join("\n\n");
+            if joined.len() > SUMMARY_CHUNK_BYTES {
+                warn!("La sesion no cupo ni condensada dos veces");
+                return None;
+            }
+        }
+        format!(
+            "Notas condensadas de la sesion, en orden (conservan quien dijo cada cosa):\n{}",
+            joined
+        )
+    };
+
     match crate::llm_client::send_chat_completion(
         &provider,
         String::new(),
         &model,
-        format!("{}\n\nTranscripcion:\n{}", instructions, transcript),
+        format!("{}\n\n{}", instructions, source),
         Some("none".to_string()),
         None,
         Some(0.3),
