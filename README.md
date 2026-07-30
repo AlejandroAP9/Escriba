@@ -41,10 +41,32 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 > **macOS Intel todavía no tiene build.** Escriba se compila para Apple Silicon.
 > Si tienes un Mac Intel, por ahora toca compilarla tú siguiendo [BUILD.md](./BUILD.md).
 
-> **Primera vez que abres la app:**
+> ### ⚠️ macOS te va a bloquear el archivo la primera vez. Es normal.
 >
-> - **macOS:** clic derecho sobre Escriba → **Abrir** → **Abrir** (Escriba aún no está firmada por Apple; esto solo se hace una vez).
-> - **Windows:** si aparece SmartScreen, haz clic en **Más información** → **Ejecutar de todas formas**.
+> Al abrir el `.dmg` verás un aviso de que **no se puede abrir**, y las únicas
+> opciones serán **Mover a la papelera** o **Cancelar**. **No lo mandes a la
+> papelera: el archivo está bien.** Escriba está firmada, pero no notarizada por
+> Apple (eso cuesta una cuota anual de desarrollador), así que macOS la trata
+> como de origen desconocido.
+>
+> **Qué hacer, paso a paso:**
+>
+> 1. En el aviso, pulsa **Cancelar** (nunca "Mover a la papelera").
+> 2. Ve a **Ajustes del Sistema → Privacidad y seguridad**.
+> 3. Baja hasta la sección **Seguridad**: verás el aviso de que se bloqueó
+>    Escriba, con un botón **Abrir de todos modos**.
+> 4. Púlsalo, escribe tu contraseña del Mac y confirma.
+> 5. Ahora sí se monta el disco: arrastra Escriba a **Aplicaciones**.
+>
+> Después de instalar, concede el permiso de **Accesibilidad** (ver más abajo) o
+> el atajo no escribirá en ninguna parte.
+>
+> _(A veces basta con hacer clic derecho sobre el archivo → **Abrir**. Si esa
+> opción no aparece o no funciona, usa los cinco pasos de arriba, que funcionan
+> siempre.)_
+>
+> **Windows:** si aparece SmartScreen, haz clic en **Más información** →
+> **Ejecutar de todas formas**.
 
 > **macOS: después de cada actualización hay que volver a dar permiso de Accesibilidad.**
 > No es un error de la app. Escriba se firma con un certificado propio, y macOS
