@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.2.3-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.2.4-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -127,6 +127,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                                                                                                          |
 | ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 2.2.4   | 30-jul | 🐛 Lo que encontró el QA: historial y estadísticas ya no quedan en cero + diccionario que funciona sin comerse palabras            |
 | 2.2.3   | 30-jul | 🔐 Ronda de auditoría externa: las claves fuera del alcance de la interfaz + confirmación al borrar + asistente que exige modelo   |
 | 2.2.2   | 30-jul | 🧹 **La casa ordenada**: cada ajuste donde lo buscarías + actas de sesiones de una hora + plantillas probadas contra el motor real |
 | 2.2.1   | 28-jul | 🔁 Actualizar con marcha atrás (fin del bucle de cierres) + ⚡ Intérprete sin espera: la frase sale ya y cada idioma llega después |
