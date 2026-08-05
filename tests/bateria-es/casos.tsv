@@ -1,0 +1,41 @@
+id	voz	formato	texto
+TIL-01	Francisca (Enhanced)	wav	El médico llegó rápido y pidió quedarse.
+TIL-02	Mónica (Enhanced)	wav	La música clásica me ayuda a estudiar.
+TIL-03	Paulina	m4a	El propósito de la reunión es la evaluación.
+TIL-04	Eddy (Español (México))	wav	Tómate un café conmigo mañana.
+TIL-05	Flo (Español (España))	wav	La dirección está escrita en el papel.
+TIL-06	Grandma (Español (México))	m4a	El artículo salió en el periódico del sábado.
+TIL-07	Grandpa (Español (España))	wav	La educación pública necesita más atención.
+TIL-08	Francisca (Enhanced)	wav	El examen de matemáticas estuvo dificilísimo.
+AMB-01	Mónica (Enhanced)	wav	Esta casa está aquí desde hace años.
+AMB-02	Paulina	wav	Si vienes temprano, avísame.
+AMB-03	Eddy (Español (México))	m4a	Quiero más café, pero sin azúcar.
+AMB-04	Flo (Español (España))	wav	Aún no llega el resto del curso.
+AMB-05	Grandma (Español (México))	wav	Es un caso práctico, no teórico.
+AMB-06	Grandpa (Español (España))	m4a	Caminaba hacia el sur sin apuro.
+EMO-01	Francisca (Enhanced)	wav	Emoji cara feliz.
+EMO-02	Mónica (Enhanced)	wav	Te mando un emoji pulgar arriba.
+EMO-03	Paulina	wav	Emoji corazón rojo para ti.
+EMO-04	Paulina	wav	Me mandó un emoji precioso ayer.
+EMO-05	Flo (Español (España))	m4a	Ella puso un emoji en el chat del curso.
+EMO-06	Grandma (Español (México))	wav	Emoji aplausos, se lo merecen.
+NUM-01	Francisca (Enhanced)	wav	Tres millones y medio.
+NUM-02	Mónica (Enhanced)	wav	Ciento un mil trescientos cincuenta y nueve.
+NUM-03	Paulina	m4a	Cuarenta y dos coma cinco.
+NUM-04	Eddy (Español (México))	wav	Doscientos treinta y cuatro mil quinientos.
+NUM-05	Flo (Español (España))	wav	El presupuesto es de quinientos veinte mil pesos.
+NUM-06	Grandma (Español (México))	wav	Mil novecientos noventa y ocho.
+NUM-07	Grandpa (Español (España))	m4a	Setenta y cinco por ciento de asistencia.
+NUM-08	Francisca (Enhanced)	wav	Uno de los problemas es el tiempo.
+NUM-09	Mónica (Enhanced)	wav	Nos vemos en una hora y media.
+NUM-10	Paulina	wav	Es la una de la tarde.
+NUM-11	Eddy (Español (México))	m4a	Primero lo primero: revisar las notas.
+NUM-12	Flo (Español (España))	wav	Ninguno de los dos vino.
+GEN-01	Francisca (Enhanced)	wav	¿Cómo estás? ¿Llegaste bien?
+GEN-02	Mónica (Enhanced)	wav	La reunión quedó para el martes a las tres y media.
+GEN-03	Paulina	m4a	Hola, esto es una prueba de los Juegos Imperiales.
+GEN-04	Eddy (Español (México))	wav	El profesor pidió el informe para el viernes.
+GEN-05	Flo (Español (España))	wav	¿Me puedes mandar el acta de la sesión?
+GEN-06	Grandma (Español (México))	m4a	Anota esto: leche, pan, huevos y café.
+GEN-07	Grandpa (Español (España))	wav	El vuelo sale a las siete de la mañana desde Santiago.
+GEN-08	Francisca (Enhanced)	wav	Gracias por todo, nos vemos pronto.
