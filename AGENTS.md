@@ -211,14 +211,28 @@ Escriba admite parámetros de línea de comandos en todas las plataformas, para 
 
 **Dónde vive:** `cli.rs` (definiciones), `main.rs` (parseo), `lib.rs` (aplicación), `signal_handle.rs` (lógica compartida)
 
-| Bandera                  | Qué hace                                                   |
-| ------------------------ | ---------------------------------------------------------- |
-| `--toggle-transcription` | Alterna la grabación en una instancia en marcha            |
-| `--toggle-post-process`  | Alterna la grabación con post-proceso                      |
-| `--cancel`               | Cancela la operación en curso                              |
-| `--start-hidden`         | Arranca sin mostrar la ventana (queda el icono de bandeja) |
-| `--no-tray`              | Arranca sin bandeja (cerrar la ventana termina la app)     |
-| `--debug`                | Modo de depuración con log detallado (Trace)               |
+| Bandera                           | Qué hace                                                                                                                                                                                                                                                         |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--toggle-transcription`          | Alterna la grabación en una instancia en marcha                                                                                                                                                                                                                  |
+| `--toggle-post-process`           | Alterna la grabación con post-proceso                                                                                                                                                                                                                            |
+| `--cancel`                        | Cancela la operación en curso                                                                                                                                                                                                                                    |
+| `--start-hidden`                  | Arranca sin mostrar la ventana (queda el icono de bandeja)                                                                                                                                                                                                       |
+| `--no-tray`                       | Arranca sin bandeja (cerrar la ventana termina la app)                                                                                                                                                                                                           |
+| `--debug`                         | Modo de depuración con log detallado (Trace)                                                                                                                                                                                                                     |
+| `-f, --transcribe-file <ARCHIVO>` | Transcribe un archivo headless y termina. WAV 16 kHz mono va directo; todo lo demás (mp3, m4a, opus, ogg, flac, mp4/video) pasa por el decode local del Estudio. Sin micrófono, sin VAD, sin descarga: el modelo debe estar instalado. Error de entrada → exit 2 |
+| `--model <ID>`                    | Modelo a cargar para `--transcribe-file` (por defecto, el seleccionado en la app). Los ids salen de `--list-models`                                                                                                                                              |
+| `--device-index <N>`              | Fija el dispositivo de cómputo por índice del registro (ver `--list-devices`). Solo modelos transcribe-cpp; no se persiste                                                                                                                                       |
+| `--list-devices`                  | Lista los dispositivos de cómputo con índices y termina. Honra `--json`                                                                                                                                                                                          |
+| `--list-models`                   | Lista los modelos disponibles con sus ids y termina. Honra `--json`                                                                                                                                                                                              |
+| `--repeat <N>`                    | Repite la transcripción N veces (`best_ms` reporta la más rápida): benchmarks reproducibles                                                                                                                                                                      |
+| `--export-srt`                    | Estudio por CLI: escribe un `.srt` junto al archivo de entrada                                                                                                                                                                                                   |
+| `--json`                          | Salida JSON para `--transcribe-file` / `--list-models` / `--list-devices` (con `audio_secs`, `load_ms`, `transcribe_ms`, `best_ms`, `rtf`)                                                                                                                       |
+
+Ejemplo de benchmark reproducible:
+
+```bash
+escriba --transcribe-file prueba.opus --json --repeat 3
+```
 
 **Decisiones de diseño:**
 

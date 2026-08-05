@@ -1935,6 +1935,27 @@ pub fn init_transcribe_backend() {
 
 /// Human-readable list of the transcribe-cpp compute devices registered at
 /// startup, for the `--list-devices` flag. The reported `index` is the
+/// Machine-readable variant of [`describe_compute_devices`] for
+/// `--list-devices --json`: same registry, same indices, structured fields.
+pub fn compute_devices_json() -> Vec<serde_json::Value> {
+    transcribe_cpp::devices()
+        .into_iter()
+        .map(|d| {
+            let name = if d.description.is_empty() {
+                d.name
+            } else {
+                d.description
+            };
+            serde_json::json!({
+                "index": d.index,
+                "kind": d.kind,
+                "name": name,
+                "vram_mb": d.memory_total / (1024 * 1024),
+            })
+        })
+        .collect()
+}
+
 /// value to pass to `--device-index`. Backends must be initialized first
 /// (see [`init_transcribe_backend`]).
 pub fn describe_compute_devices() -> Vec<String> {

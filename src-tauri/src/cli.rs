@@ -31,10 +31,12 @@ pub struct CliArgs {
     #[arg(long)]
     pub debug: bool,
 
-    /// Transcribe this WAV (16 kHz mono) headlessly and exit. Runs the same
-    /// batch transcription path as the app — no mic, no VAD, no download
-    /// (the model must already be installed).
-    #[arg(short = 'f', long, value_name = "WAV")]
+    /// Transcribe this audio/video file headlessly and exit. Accepts the same
+    /// formats as the Studio (wav, mp3, m4a, opus, ogg, flac, mp4/mov…) via
+    /// local decode; 16 kHz mono WAV skips the decoder. Runs the same batch
+    /// transcription path as the app — no mic, no VAD, no download (the model
+    /// must already be installed).
+    #[arg(short = 'f', long, value_name = "FILE")]
     pub transcribe_file: Option<PathBuf>,
 
     /// Model id to load for --transcribe-file (default: the selected model).
@@ -48,6 +50,7 @@ pub struct CliArgs {
     pub device_index: Option<usize>,
 
     /// List the transcribe-cpp compute devices (with indices) and exit.
+    /// Honors --json for machine-readable output.
     #[arg(long)]
     pub list_devices: bool,
 
@@ -65,7 +68,7 @@ pub struct CliArgs {
     #[arg(long)]
     pub export_srt: bool,
 
-    /// Emit --transcribe-file results as JSON.
+    /// Emit --transcribe-file / --list-models / --list-devices results as JSON.
     #[arg(long)]
     pub json: bool,
 }

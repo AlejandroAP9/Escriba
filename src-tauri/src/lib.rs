@@ -418,13 +418,24 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
     // --list-devices: print registered compute devices (with indices) and exit.
     // Useful on multi-GPU machines to discover the index for --device-index.
     if args.list_devices {
-        let devices = crate::managers::transcription::describe_compute_devices();
-        if devices.is_empty() {
-            println!("No transcribe-cpp compute devices registered.");
+        if args.json {
+            let devices = crate::managers::transcription::compute_devices_json();
+            match serde_json::to_string_pretty(&devices) {
+                Ok(s) => println!("{}", s),
+                Err(e) => {
+                    eprintln!("error: failed to serialize devices: {}", e);
+                    return 1;
+                }
+            }
         } else {
-            println!("transcribe-cpp compute devices:");
-            for d in &devices {
-                println!("  {}", d);
+            let devices = crate::managers::transcription::describe_compute_devices();
+            if devices.is_empty() {
+                println!("No transcribe-cpp compute devices registered.");
+            } else {
+                println!("transcribe-cpp compute devices:");
+                for d in &devices {
+                    println!("  {}", d);
+                }
             }
         }
         if args.transcribe_file.is_none() {
@@ -532,35 +543,33 @@ fn run_headless_transcription(app: &AppHandle, args: &CliArgs) -> i32 {
         return 0;
     }
 
-    // read_wav_samples reads 16-bit int samples and does no validation; the app
-    // only ever saves 16 kHz mono 16-bit PCM, so reject anything else rather than
-    // transcribe garbage / mis-time / mis-decode.
-    match hound::WavReader::open(&wav) {
-        Ok(reader) => {
-            let spec = reader.spec();
-            if spec.sample_rate != 16_000
-                || spec.channels != 1
-                || spec.bits_per_sample != 16
-                || spec.sample_format != hound::SampleFormat::Int
-            {
-                eprintln!(
-                    "error: expected 16 kHz mono 16-bit PCM WAV, got {} Hz / {} ch / {}-bit {:?}",
-                    spec.sample_rate, spec.channels, spec.bits_per_sample, spec.sample_format
-                );
+    // 16 kHz mono 16-bit PCM WAV (what the app itself records) skips the
+    // decoder; anything else — other WAV specs, mp3, m4a, opus, ogg, flac,
+    // mp4/video — goes through the Studio's universal local decoder, the same
+    // one --export-srt already uses. Any decode failure is bad input: exit 2.
+    let is_fast_path_wav = matches!(
+        hound::WavReader::open(&wav).map(|r| r.spec()),
+        Ok(spec)
+            if spec.sample_rate == 16_000
+                && spec.channels == 1
+                && spec.bits_per_sample == 16
+                && spec.sample_format == hound::SampleFormat::Int
+    );
+    let samples = if is_fast_path_wav {
+        match crate::audio_toolkit::read_wav_samples(&wav) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("error: failed to read {}: {}", wav.display(), e);
                 return 2;
             }
         }
-        Err(e) => {
-            eprintln!("error: cannot open {}: {}", wav.display(), e);
-            return 2;
-        }
-    }
-
-    let samples = match crate::audio_toolkit::read_wav_samples(&wav) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("error: failed to read {}: {}", wav.display(), e);
-            return 2;
+    } else {
+        match crate::studio::decode::decode_to_16k_mono(&wav) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("error: cannot decode {}: {}", wav.display(), e);
+                return 2;
+            }
         }
     };
     let audio_secs = samples.len() as f64 / 16_000.0;

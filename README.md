@@ -97,6 +97,7 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | 📡 **Intérprete en vivo**        | Tu Mac levanta una sala y muestra un **QR**; cada asistente lo abre en su teléfono y lee los subtítulos **en su propio idioma**. Para guías turísticos, clases y charlas con extranjeros.                                                                                                   |
 | 🔄 **Traductor cara a cara**     | Conversación 1-a-1 bidireccional con **detección automática de idioma**, pantalla grande y voz.                                                                                                                                                                                             |
 | 🤖 **Agentes (MCP)**             | Un servidor local (puerto fijo) para que **Claude Code, Cursor o Cline** usen a Escriba como herramientas: transcribir, traducir, resumir, pulir texto y **leer tu historial de dictados**. 100% local.                                                                                     |
+| ⌨️ **CLI para scripts**          | Transcribe archivos desde la terminal con el mismo motor de la app: `escriba --transcribe-file audio.opus --json`. Benchmarks reproducibles con `--repeat`. Ver [la tabla completa de banderas](#%EF%B8%8F-desde-la-terminal-cli).                                                          |
 | 🎚️ **Re-transcribir**            | Mismo audio, otro modelo: compara precisión sin volver a subir nada.                                                                                                                                                                                                                        |
 | 🎤 **Micrófono en los campos**   | Dicta directo dentro de la propia app, en cualquier campo de texto.                                                                                                                                                                                                                         |
 | 🔇 **Supresión de ruido**        | Limpia ventilador, teclado y tráfico del micrófono antes de transcribir. 100% local (RNNoise).                                                                                                                                                                                              |
@@ -138,6 +139,40 @@ Escriba no compite por atención, compite por desaparecer. Cuando el usuario rec
 4. **Listo:** el texto se pega en la app que estés usando.
 
 Todo el procesamiento es local: el silencio se filtra con **Silero VAD**, la transcripción usa modelos **Whisper** (Small/Medium/Turbo/Large) o **Parakeet V3** (optimizado para CPU, con detección automática de idioma), y la corrección/traducción usa un **LLM local**.
+
+## ⌨️ Desde la terminal (CLI)
+
+Escriba también funciona sin ventana, para scripts, benchmarks y automatización. El mismo binario de la app es el CLI:
+
+```bash
+# Transcribir cualquier archivo (wav, mp3, m4a, opus, ogg, flac, mp4/video)
+escriba --transcribe-file reunion.opus
+
+# Salida JSON con métricas, repitiendo 3 veces (benchmark reproducible)
+escriba --transcribe-file prueba.opus --json --repeat 3
+
+# Subtítulos: escribe reunion.srt junto al archivo
+escriba --transcribe-file reunion.mp4 --export-srt
+```
+
+| Bandera                           | Qué hace                                                                                                                              |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `-f, --transcribe-file <ARCHIVO>` | Transcribe un archivo y termina. Sin micrófono ni conexión; el modelo debe estar instalado. Acepta los mismos formatos que el Estudio |
+| `--model <ID>`                    | Modelo a usar (por defecto, el elegido en la app). Los ids salen de `--list-models`                                                   |
+| `--list-models`                   | Lista los modelos disponibles y sus ids. Honra `--json`                                                                               |
+| `--list-devices`                  | Lista los dispositivos de cómputo (CPU/GPU) con sus índices. Honra `--json`                                                           |
+| `--device-index <N>`              | Fuerza un dispositivo de cómputo por índice (solo modelos Whisper)                                                                    |
+| `--repeat <N>`                    | Repite la transcripción N veces; `best_ms` reporta la más rápida                                                                      |
+| `--export-srt`                    | Escribe un `.srt` de subtítulos junto al archivo de entrada                                                                           |
+| `--json`                          | Salida JSON (`text`, `audio_secs`, `load_ms`, `transcribe_ms`, `best_ms`, `rtf`)                                                      |
+| `--toggle-transcription`          | Alterna la grabación en una instancia ya abierta (para atajos del sistema)                                                            |
+| `--toggle-post-process`           | Alterna la grabación con post-proceso en una instancia ya abierta                                                                     |
+| `--cancel`                        | Cancela la operación en curso de la instancia abierta                                                                                 |
+| `--start-hidden`                  | Arranca sin mostrar la ventana (queda el icono de bandeja)                                                                            |
+| `--no-tray`                       | Arranca sin icono de bandeja (cerrar la ventana termina la app)                                                                       |
+| `--debug`                         | Log detallado para diagnóstico                                                                                                        |
+
+Un archivo corrupto o no soportado termina con mensaje claro y código de salida 2, apto para scripts.
 
 ## 🌍 Idiomas
 
