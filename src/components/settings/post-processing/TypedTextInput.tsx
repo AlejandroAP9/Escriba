@@ -32,7 +32,10 @@ export const TypedTextInput: React.FC = () => {
     setBusy(action);
     setOutput("");
     try {
-      const result = await commands.processTypedText(input, action);
+      // targetLang null = usar el idioma destino global de los ajustes; el
+      // override por llamada existe solo para la demo del asistente de
+      // bienvenida (ver process_typed_text en review.rs).
+      const result = await commands.processTypedText(input, action, null);
       if (result.status === "ok") {
         setOutput(result.data);
       } else if (result.error === "POST_PROCESS_DISABLED") {

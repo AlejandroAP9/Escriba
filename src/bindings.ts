@@ -109,9 +109,17 @@ async ttsSetup() : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * ¿Está lista la voz neural incluida para este idioma? (Intérprete de
+ * reuniones: inglés y español tienen voz; otros idiomas usan la del sistema.)
+ */
 async interpreterVoiceStatus(lang: string) : Promise<boolean> {
     return await TAURI_INVOKE("interpreter_voice_status", { lang });
 },
+/**
+ * Descarga la voz neural incluida para el idioma del Intérprete (runtime
+ * compartido + voz, SHA256 pinneado). Emite `tts-setup-progress`.
+ */
 async interpreterVoiceSetup(lang: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("interpreter_voice_setup", { lang }) };
@@ -188,7 +196,8 @@ async virtualMicInstalled() : Promise<boolean> {
 /**
  * Descarga el paquete oficial (SHA256 verificado, descartado si no calza) y
  * lo instala con el diálogo nativo de privilegios de macOS. Devuelve false
- * si el usuario canceló el diálogo (no es un error, no hay drama).
+ * si el usuario canceló el diálogo (no es un error, no hay drama). Los
+ * errores son claves estables para que el frontend traduzca (auditoría #14).
  */
 async virtualMicInstall() : Promise<Result<boolean, string>> {
     try {
@@ -198,6 +207,11 @@ async virtualMicInstall() : Promise<Result<boolean, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Desinstala el micrófono virtual (auditoría #13: antes salir exigía `sudo rm`
+ * a mano). Borra el driver de BlackHole y reinicia coreaudiod, con el diálogo
+ * de privilegios de macOS. false = el usuario canceló el diálogo.
+ */
 async virtualMicUninstall() : Promise<Result<boolean, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("virtual_mic_uninstall") };
@@ -206,6 +220,15 @@ async virtualMicUninstall() : Promise<Result<boolean, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Guarda (o borra) la carpeta del vault de Obsidian en los ajustes.
+ * 
+ * La carpeta se contiene al home del usuario. El comentario de cabecera decía
+ * que "la ruta la consiente el usuario con el selector de carpeta", pero el
+ * backend no puede comprobar que la cadena venga de verdad del selector: sin
+ * esta validación, cualquiera que pudiera escribir en los ajustes convertía
+ * este comando en una escritura de archivos `.md` en cualquier parte del disco.
+ */
 async setObsidianVault(path: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("set_obsidian_vault", { path }) };
@@ -214,6 +237,9 @@ async setObsidianVault(path: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Ruta del vault configurada (cadena vacía si no hay).
+ */
 async getObsidianVault() : Promise<Result<string, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_obsidian_vault") };
@@ -222,6 +248,10 @@ async getObsidianVault() : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Subcarpeta de notas. Se guarda ya saneada, para que lo que se muestre en
+ * Ajustes sea exactamente lo que se va a usar al exportar.
+ */
 async setObsidianNotesFolder(folder: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("set_obsidian_notes_folder", { folder }) };
@@ -230,6 +260,11 @@ async setObsidianNotesFolder(folder: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Escribe `content` como nota Markdown titulada `title` en el vault. Devuelve
+ * la ruta del archivo creado. Falla con un mensaje claro si no hay vault
+ * configurado o la carpeta ya no existe (para que el frontend pida elegirla).
+ */
 async exportToObsidian(title: string, content: string) : Promise<Result<string, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("export_to_obsidian", { title, content }) };
@@ -279,6 +314,12 @@ async freeDictationStatus() : Promise<boolean> {
 },
 /**
  * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
+ * 
+ * La ruta se valida además de la extensión. Antes el único filtro era el sufijo
+ * del archivo, así que este comando transcribía CUALQUIER audio o video del
+ * disco y devolvía el texto en `studio_jobs`: un oráculo de lectura para un
+ * frontend comprometido. Se guarda la ruta ya canonicalizada, para que
+ * `studio_retranscribe` reabra la que se validó y no la cadena original.
  */
 async studioEnqueue(paths: string[]) : Promise<Result<number[], string>> {
     try {
@@ -323,6 +364,11 @@ async studioExport(id: number, format: string) : Promise<Result<string, string>>
  * Exporta un job y lo ESCRIBE en la ruta que el usuario eligió con el diálogo
  * nativo. La escritura ocurre en el backend (std::fs), no en el webview, para
  * que la app no necesite permisos de escritura al home en la capa de la UI.
+ * 
+ * El backend no puede comprobar que `dest` venga de verdad del diálogo nativo,
+ * así que además contiene la ruta al home del usuario: sin eso, este comando
+ * escribía bytes arbitrarios en cualquier ruta absoluta (`~/.zshrc`, un
+ * LaunchAgent, `~/.ssh/authorized_keys`).
  */
 async studioExportTo(id: number, format: string, dest: string) : Promise<Result<null, string>> {
     try {
@@ -713,6 +759,10 @@ async changeNoiseSuppressionSetting(enabled: boolean) : Promise<Result<null, str
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Guardar o no el .wav de cada dictado. Apagado por omisión: ver
+ * `settings::default_save_audio_recordings`.
+ */
 async changeSaveAudioRecordingsSetting(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_save_audio_recordings_setting", { enabled }) };
@@ -931,6 +981,19 @@ async cancelOperation() : Promise<void> {
 async isPortable() : Promise<boolean> {
     return await TAURI_INVOKE("is_portable");
 },
+/**
+ * Servidor gráfico en uso, para que el onboarding pueda avisar en Linux.
+ * 
+ * Devuelve `"wayland"`, `"other"` o `"not_linux"`. La app ya detectaba Wayland
+ * para elegir cómo escribir en el portapapeles (`utils::is_wayland`), pero esa
+ * información nunca llegaba a la interfaz: el onboarding trataba Linux como
+ * "plataforma no soportada" y se saltaba entero, así que quien usa Wayland se
+ * quedaba sin saber por qué su atajo global podía no responder.
+ * 
+ * `"other"` en vez de `"x11"` a propósito: si no hay `WAYLAND_DISPLAY` ni
+ * `XDG_SESSION_TYPE=wayland`, lo único que se puede afirmar es que no es
+ * Wayland, no que sea X11.
+ */
 async linuxDisplayServer() : Promise<string> {
     return await TAURI_INVOKE("linux_display_server");
 },
@@ -942,6 +1005,15 @@ async getAppDirPath() : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Ajustes para la UI, con las API keys enmascaradas.
+ * 
+ * Este comando se llama en cada lectura de ajustes, así que antes mandaba
+ * todas las claves de los proveedores LLM en texto plano al webview una y otra
+ * vez. El backend ya tiene las claves de verdad cuando las necesita (las lee de
+ * `get_settings` en `actions.rs`), y la escritura pasa por `change_*`, así que
+ * el frontend nunca necesitó el valor real.
+ */
 async getAppSettings() : Promise<Result<AppSettings, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_app_settings") };
@@ -1271,10 +1343,36 @@ async reviewConfirm() : Promise<void> {
 async reviewDiscard() : Promise<void> {
     await TAURI_INVOKE("review_discard");
 },
+/**
+ * Copia el texto pendiente al portapapeles y cierra la revisión.
+ * 
+ * La auditoría pedía poder EDITAR aquí, pero el overlay es un panel no
+ * enfocable a propósito (así la app de destino conserva el foco y el pegado
+ * llega a donde el usuario estaba escribiendo). Un campo de texto ahí dentro
+ * no podría recibir teclado, y hacer el panel enfocable rompería justo lo que
+ * hace útil a la feature.
+ * 
+ * Copiar es la salida que sí respeta ese diseño: si el motor entendió mal, el
+ * usuario se lleva el texto y lo arregla en su propio editor, sin tener que
+ * repetir la frase entera.
+ */
 async reviewCopy() : Promise<void> {
     await TAURI_INVOKE("review_copy");
 },
-async processTypedText(text: string, action: TypedTextAction, targetLang?: string | null) : Promise<Result<string, string>> {
+/**
+ * Alternativa por TECLADO al dictado: procesa un texto escrito con el mismo
+ * motor de IA y devuelve el resultado.
+ * 
+ * Toda la corrección, traducción y tonos de Escriba pasaban por hablar. Alguien
+ * que en ese momento no pueda usar la voz (una oficina compartida, afonía, una
+ * discapacidad del habla) no tenía forma de usar el motor local que la app ya
+ * tiene instalado, aunque la infraestructura estuviera entera.
+ * 
+ * Devuelve el texto en pantalla en vez de pegarlo: cuando la ventana principal
+ * tiene el foco, la aplicación de destino ya lo perdió, así que pegar iría al
+ * sitio equivocado. El usuario copia el resultado y lo lleva a donde quiera.
+ */
+async processTypedText(text: string, action: TypedTextAction, targetLang: string | null) : Promise<Result<string, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("process_typed_text", { text, action, targetLang }) };
 } catch (e) {
@@ -1392,30 +1490,30 @@ ui_theme?: string;
  * Escala del texto de toda la interfaz, en porcentaje (90-130).
  * Accesibilidad: ojos cansados o vista reducida sin tocar el sistema.
  */
-ui_scale?: number;
+ui_scale?: number; 
 /**
  * Accesibilidad visual: tinta y bordes reforzados, sin cristal difuminado.
  */
-high_contrast?: boolean;
+high_contrast?: boolean; 
 /**
  * Accesibilidad visual: estados semánticos en par cian/violeta, que evita
  * el eje rojo/verde (la confusión más común del daltonismo).
  */
-colorblind_assist?: boolean;
+colorblind_assist?: boolean; 
 /**
  * Modo Calma: sin animaciones ni transiciones, texto y espaciado ampliados,
  * superficies planas. Para dictar sin estímulos visuales.
  */
-calm_mode?: boolean;
+calm_mode?: boolean; 
 /**
  * Anillo de foco también con el ratón, no solo al navegar con teclado.
  * Para quien pierde de vista dónde está parado dentro de la interfaz.
  */
-always_show_focus?: boolean;
+always_show_focus?: boolean; 
 /**
  * Subcarpeta dentro del vault donde aterrizan las notas. Vacío = raíz.
  */
-obsidian_notes_folder?: string;
+obsidian_notes_folder?: string; 
 /**
  * Revisar antes de pegar: el dictado normal se muestra en el overlay
  * (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
@@ -1427,7 +1525,18 @@ review_before_paste?: boolean; start_hidden?: boolean; autostart_enabled?: boole
  * upgrading from before this key existed are blanked by the migration so they
  * see the current release's notes — see `apply_settings_migrations`.
  */
-whats_new_last_seen_version?: string; selected_model?: string; onboarding_completed?: boolean; always_on_microphone?: boolean; selected_microphone?: string | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; save_audio_recordings?: boolean; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; 
+whats_new_last_seen_version?: string; selected_model?: string; onboarding_completed?: boolean; always_on_microphone?: boolean; selected_microphone?: string | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; 
+/**
+ * Escribir el .wav de cada dictado en disco. Apagado por omisión: ver
+ * `default_save_audio_recordings`.
+ */
+save_audio_recordings?: boolean; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; 
+/**
+ * Carpeta del vault de Obsidian (o cualquier carpeta de notas Markdown)
+ * donde "Enviar a Obsidian" escribe el documento. Vacío = sin configurar;
+ * se pide con el selector de carpeta la primera vez.
+ */
+obsidian_vault_path?: string; 
 /**
  * Tonos por app: activa el override de plantilla según la app activa.
  */
@@ -1467,12 +1576,12 @@ export type ConversationStatus = { listening: boolean;
 /**
  * "converse" | "listen"
  */
-mode: string; turns: Turn[];
+mode: string; turns: Turn[]; 
 /**
  * Los tres modos vivían SOLO como estáticos en el backend y como
  * `useState(false)` en la vista, sin nada que los reconciliara: este struct
  * se diseñó para los turnos y nunca se le pidió responder por los modos.
- *
+ * 
  * El síntoma era de privacidad: salías de Sesiones con el audio del sistema
  * encendido, volvías, y el interruptor aparecía apagado mientras el backend
  * seguía capturando. Y `conversation_stop` los apaga los tres pero devolvía
@@ -1608,7 +1717,7 @@ export type StudioJob = { id: number; file_name: string; path: string; status: J
  * Modelo con el que se produjo esta transcripción (para mostrar el recibo
  * "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
  */
-model_id: string | null;
+model_id: string | null; 
 /**
  * Hubo tramos donde el modelo estaba adivinando (confianza media por debajo
  * del umbral). Sirve para avisar al usuario de que conviene repasar antes
@@ -1633,17 +1742,35 @@ role: string; text: string;
  * Segundos desde el inicio de la sesión (para mostrar mm:ss).
  */
 at_secs: number }
-export type TypedTextAction = "correct" | "translate"
+/**
+ * Qué hacer con un texto escrito a teclado.
+ * 
+ * Solo dos de los cuatro [`crate::actions::TranscribeMode`] tienen sentido por
+ * aquí. `Edit` queda fuera a propósito: depende de la selección que captura el
+ * Cmd/Ctrl+C sintético al empezar una edición por voz, así que desde un panel
+ * de texto siempre encontraría el buffer vacío y caería en "no_selection".
+ */
+export type TypedTextAction = 
+/**
+ * Aplica el tono/plantilla configurada, igual que un dictado normal.
+ */
+"correct" | 
+/**
+ * Traduce al idioma de `translation_target_language`.
+ */
+"translate"
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"
 export type UsageStats = { total_transcriptions: number; total_words: number; words_last_30_days: number; active_days_last_30: number; current_streak_days: number; 
 /**
  * Minutos ahorrados vs teclear a 40 palabras/minuto (supuesto explícito
  * mostrado en la UI), descontando ~200 wpm de dictado efectivo.
  */
-minutes_saved: number;
+minutes_saved: number; 
 /**
  * Palabras dictadas por día en los últimos 7 días, la más antigua primero
- * (el índice 6 es hoy). Mismo balde de día UTC que usa la racha.
+ * (el índice 6 es hoy). Mismo balde de día UTC que usa la racha: un
+ * dictado nocturno puede caer en el día siguiente, y se prefiere esa
+ * imprecisión conocida a tener dos nociones de "día" en la misma tarjeta.
  */
 words_by_day: number[] }
 export type WindowsMicrophonePermissionStatus = { supported: boolean; overall_access: PermissionAccess; device_access: PermissionAccess; app_access: PermissionAccess; desktop_app_access: PermissionAccess }
