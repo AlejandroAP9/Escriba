@@ -41,6 +41,7 @@ pub async fn interpreter_start() -> Result<InterpreterRoom, String> {
 #[specta::specta]
 pub fn interpreter_stop() {
     global().stop();
+    limpiar_contexto_sala();
 }
 
 #[tauri::command]
@@ -77,10 +78,42 @@ pub async fn interpreter_publish(app: tauri::AppHandle, text: String, source_lan
 /// llegar la suya. Las traducciones siguen en serie a propósito: el motor local
 /// arranca sin `-np`, así que atiende una petición a la vez y lanzarlas juntas
 /// solo movería la cola del cliente al servidor.
+/// Últimas frases del orador (RAM, tope 3): contexto para que la traducción
+/// siguiente elija la acepción correcta (PRP-006, Fase 6). Se limpia al parar
+/// la sala.
+static ULTIMAS_FRASES: std::sync::Mutex<Vec<String>> = std::sync::Mutex::new(Vec::new());
+
+fn contexto_sala() -> Option<String> {
+    let f = ULTIMAS_FRASES.lock().ok()?;
+    if f.is_empty() {
+        return None;
+    }
+    Some(f.join("\n"))
+}
+
+fn recordar_frase(texto: &str) {
+    if let Ok(mut f) = ULTIMAS_FRASES.lock() {
+        f.push(texto.trim().chars().take(300).collect());
+        let sobra = f.len().saturating_sub(3);
+        if sobra > 0 {
+            f.drain(..sobra);
+        }
+    }
+}
+
+pub(crate) fn limpiar_contexto_sala() {
+    if let Ok(mut f) = ULTIMAS_FRASES.lock() {
+        f.clear();
+    }
+}
+
 pub async fn publish_translated(app: &tauri::AppHandle, text: String, source_lang: &str) {
     use std::collections::HashMap;
     let server = global();
     let seq = server.next_seq();
+    // El contexto son las frases ANTERIORES a esta: se lee antes de recordarla.
+    let contexto = contexto_sala();
+    recordar_frase(&text);
 
     // 1) El original, ya. Quien escucha en el idioma de origen recibe su texto
     //    definitivo aquí mismo; el resto lo ve como anticipo mientras se traduce.
@@ -99,7 +132,7 @@ pub async fn publish_translated(app: &tauri::AppHandle, text: String, source_lan
             return;
         }
         let mut one = HashMap::new();
-        match crate::actions::translate_live(app, &text, &lang).await {
+        match crate::actions::translate_live(app, &text, &lang, contexto.as_deref()).await {
             Some(t) => {
                 one.insert(lang.clone(), t);
             }
@@ -128,4 +161,7 @@ pub fn interpreter_set_source_lang(lang: String) {
 #[specta::specta]
 pub fn interpreter_set_listening(on: bool) {
     global().set_listening(on);
+    if !on {
+        limpiar_contexto_sala();
+    }
 }
