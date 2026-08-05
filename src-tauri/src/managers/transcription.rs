@@ -1861,10 +1861,38 @@ fn post_process_transcription_text(
         &settings.custom_filler_words,
     );
 
+    // Español profundo (PRP-006): correcciones deterministas, solo si el
+    // dictado es español ("es" explícito, o "auto" con evidencia en el propio
+    // texto). Orden: tildes (siempre, solo pares inequívocos) → emojis
+    // dictados (interruptor, apagado de fábrica). Todo ANTES del arreglo de
+    // interrogación, que se ancla en interrogativas con tilde.
+    let es_espanol =
+        crate::audio_toolkit::spanish::aplica_espanol(&settings.selected_language, &filtered);
+    let con_tildes = if es_espanol {
+        crate::audio_toolkit::spanish::restore_tildes(&filtered)
+    } else {
+        filtered
+    };
+    let con_emojis = if es_espanol && settings.dictated_emojis_enabled {
+        crate::audio_toolkit::spanish::apply_dictated_emojis(&con_tildes)
+    } else {
+        con_tildes
+    };
+    // Numerales en modo ESTRICTO (solo secuencias con evidencia fuerte). El
+    // modo planilla vive en actions.rs, junto a la detección de app al frente.
+    let con_numerales = if es_espanol && settings.spoken_numerals_enabled {
+        crate::audio_toolkit::spanish::spoken_numbers_to_digits(
+            &con_emojis,
+            crate::audio_toolkit::spanish::ModoNumerales::Estricto,
+        )
+    } else {
+        con_emojis
+    };
+
     // Whisper coloca mal (o se come) el "¿" en español; las reglas se anclan
     // en interrogativas CON tilde, así que en texto de otros idiomas no
     // disparan y no hace falta saber el idioma del dictado.
-    fix_spanish_question_marks(&filtered)
+    fix_spanish_question_marks(&con_numerales)
 }
 
 /// Decide a transcribe-cpp run's task + translation target from settings.

@@ -19,6 +19,7 @@ import { MuteWhileRecording } from "../MuteWhileRecording";
 import { PauseMediaOnDictate } from "../PauseMediaOnDictate";
 import { NoiseSuppression } from "../NoiseSuppression";
 import { CustomWords } from "../CustomWords";
+import { SpanishDictation } from "../SpanishDictation";
 import { TextReplacements } from "../TextReplacements";
 import { ObsidianVault } from "../ObsidianVault";
 import { AutostartToggle } from "../AutostartToggle";
@@ -136,6 +137,13 @@ export const GeneralSettings: React.FC = () => {
       <SettingsGroup title={t("settings.general.dictionaryTitle")}>
         <CustomWords descriptionMode="inline" grouped />
         <TextReplacements descriptionMode="inline" grouped />
+      </SettingsGroup>
+
+      {/* Español profundo: correcciones deterministas del dictado en español.
+          Las tildes inequívocas corren siempre (sin interruptor); esto agrupa
+          lo que sí se elige. */}
+      <SettingsGroup title={t("settings.general.spanishTitle")}>
+        <SpanishDictation descriptionMode="inline" grouped />
       </SettingsGroup>
 
       {/* Audio: todo lo relacionado con el sonido, junto. */}

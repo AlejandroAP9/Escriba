@@ -301,7 +301,20 @@
       },
       "dictionaryTitle": "Personal dictionary",
       "obsidianTitle": "Obsidian",
-      "appTitle": "Application"
+      "appTitle": "Application",
+      "spanishTitle": "Spanish dictation",
+      "dictatedEmojis": {
+        "label": "Dictated emojis",
+        "description": "Say \"emoji\" plus its Spanish name and the symbol appears: \"emoji cara feliz\" becomes 🙂. Names come from Unicode CLDR plus natural aliases."
+      },
+      "spokenNumerals": {
+        "label": "Spoken numbers as digits",
+        "description": "Long number phrases become digits: \"tres millones y medio\" turns into 3.500.000. Only unambiguous sequences convert; \"uno de los problemas\" stays untouched."
+      },
+      "numeralsSpreadsheet": {
+        "label": "Aggressive numbers in spreadsheets",
+        "description": "With Excel, Numbers or LibreOffice Calc in front, even single numbers become digits: say \"cinco\" and 5 is typed. Google Sheets in a browser can't be detected."
+      }
     },
     "sound": {
       "title": "الصوت",

@@ -322,7 +322,20 @@
       },
       "dictionaryTitle": "Diccionario personal",
       "obsidianTitle": "Obsidian",
-      "appTitle": "Aplicación"
+      "appTitle": "Aplicación",
+      "spanishTitle": "Dictado en español",
+      "dictatedEmojis": {
+        "label": "Emojis dictados",
+        "description": "Di \"emoji\" y su nombre, y aparece el símbolo: \"emoji cara feliz\" se vuelve 🙂. Los nombres salen de Unicode CLDR más alias naturales (\"pulgar arriba\", \"me gusta\")."
+      },
+      "spokenNumerals": {
+        "label": "Numerales hablados a cifras",
+        "description": "Las cantidades largas se vuelven cifras: \"tres millones y medio\" se escribe 3.500.000. Solo convierte secuencias inequívocas; \"uno de los problemas\" queda intacto."
+      },
+      "numeralsSpreadsheet": {
+        "label": "Números agresivos en planillas",
+        "description": "Con Excel, Numbers o LibreOffice Calc al frente, hasta un número suelto se vuelve cifra: dictas \"cinco\" y se escribe 5. Google Sheets en el navegador no se puede detectar."
+      }
     },
     "sound": {
       "title": "Sonido",

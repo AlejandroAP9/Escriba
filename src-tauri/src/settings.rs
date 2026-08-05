@@ -448,6 +448,17 @@ pub struct AppSettings {
     pub translate_to_english: bool,
     #[serde(default = "default_selected_language")]
     pub selected_language: String,
+    // Español profundo (PRP-006). Los tres nacen APAGADOS: un emoji o una
+    // cifra inesperados en un correo profesional cuestan más que el gesto de
+    // encender el interruptor (decisión de producto, 5-ago-2026). La
+    // restauración de tildes no tiene interruptor: solo toca pares
+    // inequívocos y corre siempre que el dictado sea español.
+    #[serde(default)]
+    pub dictated_emojis_enabled: bool,
+    #[serde(default)]
+    pub spoken_numerals_enabled: bool,
+    #[serde(default)]
+    pub numerals_spreadsheet_auto: bool,
     #[serde(default = "default_overlay_position")]
     pub overlay_position: OverlayPosition,
     #[serde(default = "default_debug_mode")]
@@ -1065,6 +1076,9 @@ pub fn get_default_settings() -> AppSettings {
         always_show_focus: false,
         obsidian_notes_folder: default_obsidian_notes_folder(),
         review_before_paste: false,
+        dictated_emojis_enabled: false,
+        spoken_numerals_enabled: false,
+        numerals_spreadsheet_auto: false,
         start_hidden: default_start_hidden(),
         autostart_enabled: default_autostart_enabled(),
         update_checks_enabled: default_update_checks_enabled(),

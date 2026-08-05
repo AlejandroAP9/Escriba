@@ -258,6 +258,30 @@ fn frontmost_app() -> Option<String> {
 
 /// Tonos por app: la plantilla que corresponde a la app en primer plano, si
 /// la feature está activa y alguna regla coincide. `None` = usar la global.
+/// ¿La app al frente es una planilla de cálculo? Lista CERRADA con match
+/// exacto (insensible a mayúsculas), nunca substring: "Numbers" dispara,
+/// "NumbersLike" no (blindaje matcher-includes). Google Sheets corre en el
+/// navegador y no es detectable por nombre de app: limitación documentada.
+fn frontmost_es_planilla() -> bool {
+    const PLANILLAS: &[&str] = &[
+        "microsoft excel",
+        "excel",
+        "excel.exe",
+        "numbers",
+        "libreoffice calc",
+        "soffice",
+        "soffice.exe",
+        "soffice.bin",
+    ];
+    match frontmost_app() {
+        Some(nombre) => {
+            let min = nombre.to_lowercase();
+            PLANILLAS.iter().any(|p| *p == min)
+        }
+        None => false,
+    }
+}
+
 fn app_context_prompt(settings: &AppSettings) -> Option<String> {
     if !settings.app_context_enabled || settings.app_context_rules.is_empty() {
         return None;
@@ -1022,6 +1046,21 @@ pub(crate) async fn process_transcription_output(
             post_process_prompt: None,
             interpreter_published: true,
         };
+    }
+
+    // Modo planilla (PRP-006, petición de Juan Francisco Ceccarelli): con una
+    // planilla al frente y el auto activado, los numerales se convierten en
+    // agresivo ("cinco" → 5) aunque el interruptor global esté apagado. Vive
+    // AQUÍ y no en el pipeline compartido a propósito: el Estudio y el CLI no
+    // pegan en la app activa, así que la app al frente no les incumbe.
+    if settings.numerals_spreadsheet_auto
+        && frontmost_es_planilla()
+        && crate::audio_toolkit::spanish::aplica_espanol(&settings.selected_language, &final_text)
+    {
+        final_text = crate::audio_toolkit::spanish::spoken_numbers_to_digits(
+            &final_text,
+            crate::audio_toolkit::spanish::ModoNumerales::Planilla,
+        );
     }
 
     // Tonos por app: un dictado NORMAL en una app con regla se post-procesa

@@ -42,8 +42,10 @@ Español profundo (Fase 1 del plan):
 - [ ] Batería congelada de dictados difíciles en español (≥40 casos, audios
       reales) pasa **vía CLI sobre el motor real**, no solo en tests unitarios
       (la disciplina de las plantillas de 2.2.2).
-- [ ] "el medico llego rapido y pidio quedarse" → "el médico llegó rápido y
-      pidió quedarse" sin LLM, en dictado, Sesiones y Estudio.
+- [ ] "el medico llego rapido y pidio quedarse" → "el medico llego rápido y
+      pidió quedarse" sin LLM (rapido/pidio deterministas; medico/llego son
+      formas válidas de medicar/llegar y quedan intactos POR DISEÑO: ver
+      Aprendizajes 5-ago), en dictado, Sesiones y Estudio.
 - [ ] Los pares ambiguos quedan intactos: "esta casa esta aqui" no cambia
       ninguna "esta"; "si", "mas", "aun", "practico", "hacia" tampoco.
 - [ ] "emoji cara feliz" → 🙂 con el interruptor activo; "me mandó un emoji"
@@ -381,6 +383,48 @@ crash; borrar llave no mata la app; kill a mitad de migración es recuperable.
 - **Aplicar en**: después de tocar cualquier comando, correr el binario debug
   una vez y dejar que specta regenere ANTES de commitear; el bindings a mano
   solo para hotfixes sin toolchain.
+
+### 2026-08-05: la batería heredaba los ajustes personales del usuario
+
+- **Error**: la primera congelada salió con el diccionario personal de la
+  instalación convirtiendo "escrita" → "Escriba" (TIL-05): el CLI usa los
+  ajustes guardados por diseño, así que el arnés no era comparable entre
+  máquinas. De paso destapó un caso real límite del rescate fonético de
+  2.2.4 (distancia 1: escrita/escriba), QUEDA PENDIENTE evaluar un guard de
+  validez para el rescate.
+- **Fix**: la batería corre en MODO PORTABLE en un sandbox propio (hardlink
+  del binario + marcador `portable`): ajustes de fábrica siempre.
+- **Aplicar en**: cualquier arnés futuro que use el CLI: sandbox portable
+  primero.
+
+### 2026-08-05: cabeceras vs reglas en el parser del .aff (gen-tildes)
+
+- **Error**: una regla con add="0" ("SFX E r 0 [ae]r") se confundía con
+  cabecera y RESETEABA la clase, borrando reglas ya leídas: "llegó" se
+  generaba pero "llego" no, y el mapa incluía el par PELIGROSO llego→llegó.
+- **Fix**: cabecera = exactamente 4 campos con Y/N + conteo numérico. Y los
+  centinelas del generador ahora son bloqueantes (exit 1 si fallan).
+- **Aplicar en**: cualquier parser de formatos "posicionales con variantes";
+  nunca clasificar por un solo campo.
+
+### 2026-08-05: el largo mínimo del mapa escondía las joyas de 3 letras
+
+- **Error**: LARGO_MINIMO=4 excluía "dia"→"día", "ahi"→"ahí", "aca"→"acá"
+  (restauraciones únicas y frecuentísimas). Los monosílabos diacríticos
+  temidos (él/sí/qué/más) ya quedaban fuera por la regla de validez sola.
+- **Fix**: umbral en 3; centinelas dia/ahi/aca agregados al generador.
+- **Aplicar en**: al poner cinturones "por si acaso", verificar qué excluyen
+  de verdad antes de confiar en la intuición.
+
+### 2026-08-05: criterio del PRP ajustado con honestidad (medico/llego)
+
+- El criterio original esperaba "el medico llego rapido y pidio quedarse" →
+  todo acentuado sin LLM. Bajo la regla estricta (forma desnuda válida =
+  fuera), "medico" (yo medico) y "llego" (yo llego) NO son restaurables por
+  esta capa: quedan como los emita el motor (que casi siempre acierta) o
+  para el LLM. El criterio pasa a: "rapido"→"rápido" y "pidio"→"pidió"
+  deterministas; medico/llego intactos por diseño. "musica" y "publica"
+  también quedan fuera (musicar y publicar existen).
 
 ### 2026-08-05: build de audiopus_sys falla con install BSD (entorno sandbox)
 

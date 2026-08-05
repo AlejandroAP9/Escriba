@@ -1,0 +1,1938 @@
+# emojis.tsv — emojis dictados en español (generado, NO editar a mano)
+# Generador: scripts/gen-emojis.ts | nombres canónicos tts de CLDR es +
+# alias curados. Claves normalizadas: minúsculas y sin tildes.
+# Fuente: CLDR common/annotations/es.xml, licencia Unicode-3.0
+# es.xml sha256=9c9b188297205ddccd454f745a4648d6a1ab93123dac3a2ff5ff1f093407d01e
+# entradas=1932
+1 en punto	🕐
+10 en punto	🕙
+11 en punto	🕚
+12 en punto	🕛
+2 en punto	🕑
+3 en punto	🕒
+4 en punto	🕓
+5 en punto	🕔
+6 en punto	🕕
+7 en punto	🕖
+8 en punto	🕗
+9 en punto	🕘
+abaco	🧮
+abanico abierto	🪭
+abeja	🐝
+abrigo	🧥
+aceituna	🫒
+acordeon	🪗
+acuario	♒
+adn	🧬
+adorno de corazon	💟
+aduana	🛃
+advertencia	⚠
+agente de policia	👮
+agente de policia hombre	👮‍♂
+agente de policia mujer	👮‍♀
+agua no potable	🚱
+agua potable	🚰
+aguacate	🥑
+aguas termales	♨
+aguila	🦅
+aguja de coser	🪡
+agujero	🕳
+ajo	🧄
+ala	🪽
+alambique	⚗
+alce	🫎
+alfabeto latino	🔤
+alienigena	👽
+altavoz a volumen alto	🔊
+altavoz a volumen bajo	🔈
+altavoz a volumen medio	🔉
+altavoz de mano	📢
+altavoz silenciado	🔇
+alto voltaje	⚡
+alubias	🫘
+amanecer	🌅
+amanecer sobre montañas	🌄
+ambulancia	🚑
+anciana	👵
+anciano	👴
+ancla	⚓
+anfora	🏺
+angulo	∠
+angulo recto	∟
+anillo	💍
+anillo en igual a	≖
+antena de satelite	📡
+aparcamiento	🅿
+aplausos	👏
+apostrofo derecho	’
+apostrofo derecho bajo	‚
+apostrofo izquierdo	‘
+apreton de manos	🤝
+aproximadamente igual a	≅
+aproximadamente igual o la imagen de	≒
+arandanos	🫐
+araña	🕷
+arbol de hoja caduca	🌳
+arbol de hoja perenne	🌲
+arbol de navidad	🎄
+arbol de tanabata	🎋
+arbol sin hojas	🪾
+archivador	🗄
+archivador de tarjetas	🗃
+arco de cuadrante inferior derecho de circulo	◞
+arco de cuadrante inferior izquierdo de circulo	◟
+arco de cuadrante superior derecho de circulo	◝
+arco de cuadrante superior izquierdo de circulo	◜
+arco y flecha	🏹
+arcoiris	🌈
+ardilla	🐿
+aries	♈
+arpa	🪉
+arpon hacia abajo con la punta hacia la derecha	⇂
+arpon hacia abajo con la punta hacia la izquierda	⇃
+arpon hacia arriba con la punta hacia la derecha	↾
+arpon hacia arriba con la punta hacia la izquierda	↿
+arpon hacia la derecha con la punta hacia abajo	⇁
+arpon hacia la derecha con la punta hacia arriba	⇀
+arpon hacia la derecha sobre arpon hacia la izquierda	⇌
+arpon hacia la izquierda con la punta hacia abajo	↽
+arpon hacia la izquierda con la punta hacia arriba	↼
+arpon hacia la izquierda sobre arpon hacia la derecha	⇋
+arroz cocido	🍚
+arroz con curry	🍛
+artista	🧑‍🎨
+artista hombre	👨‍🎨
+artista mujer	👩‍🎨
+ascensor	🛗
+aseo para hombres	🚹
+aseos	🚾
+asiento de transporte	💺
+asintoticamente igual a	≃
+asterisco de ocho puntas	✳
+asterismo	⁂
+astronauta	🧑‍🚀
+astronauta hombre	👨‍🚀
+astronauta mujer	👩‍🚀
+ataud	⚰
+auricular	🎧
+auricular de telefono	📞
+austral	₳
+autobus	🚌
+autobus proximo	🚍
+autopista	🛣
+avance rapido	⏩
+avion	✈
+avion aterrizando	🛬
+avion despegando	🛫
+avioneta	🛩
+badminton	🏸
+bagel	🥯
+baguete	🥖
+bailarina	🥿
+bailarina de ballet	🧑‍🩰
+balanza	⚖
+ballena	🐋
+ballena soltando un chorro	🐳
+balon de baloncesto	🏀
+balon de futbol	⚽
+balon de futbol americano	🏈
+balon de rugby	🏉
+banco	🏦
+bandeja de entrada	📥
+bandeja de salida	📤
+bandera blanca	🏳
+bandera de cuadros	🏁
+bandera del arcoiris	🏳‍🌈
+bandera negra	🏴
+bandera pirata	🏴‍☠
+bandera transgenero	🏳‍⚧
+bandera triangular	🚩
+banderas cruzadas	🎌
+banderin de carpas	🎏
+banderin en hoyo	⛳
+banjo	🪕
+bañera	🛁
+barco	🚢
+barco a motor	🛥
+barco de pasajeros	🛳
+barra de division	∕
+barra de division dentro de circulo	⊘
+barra de fraccion	⁄
+barra horizontal	―
+barras de cobertura	📶
+barril de petroleo	🛢
+baston	🦯
+bata de laboratorio	🥼
+bateria baja	🪫
+bebe	👶
+bebe angel	👼
+bebida caliente	☕
+bebida tropical	🍹
+beicon	🥓
+beisbol	⚾
+bemol	♭
+bengala	🎇
+berenjena	🍆
+beso	💏
+biberon	🍼
+biceps flexionado	💪
+bicho	🐛
+bicicleta	🚲
+bicicletas prohibidas	🚳
+bikini	👙
+billete con alas	💸
+billete de dolar	💵
+billete de euro	💶
+billete de libra	💷
+billete de yen	💴
+birrete	🎓
+bisonte	🦬
+bitcoin	₿
+bloc de notas de espiral	🗒
+boca	👄
+bocadillo de dialogo	💬
+bocadillo de dialogo por la izquierda	🗨
+bocadillo de enfado por la derecha	🗯
+bocadillo de pensamiento	💭
+bogavante	🦞
+bola de arroz	🍙
+bola de confeti	🎊
+bola de cristal	🔮
+bola de desplazamiento	🖲
+bola de espejos	🪩
+bola negra de billar	🎱
+boligrafo	🖊
+bolo	•
+bolo hueco	◦
+bolo inverso	◘
+bolos	🎳
+bolsa de dinero	💰
+bolsas de compras	🛍
+bolso	👜
+bolso de mano	👝
+bomba	💣
+bombera	👩‍🚒
+bombero	🧑‍🚒
+bombero hombre	👨‍🚒
+bombilla	💡
+borrar	🆑
+bota de mujer	👢
+bota de senderismo	🥾
+bote de crema	🧴
+botella descorchada	🍾
+boton con marca de cruz	❎
+boton cool	🆒
+boton cuadrado con borde blanco	🔳
+boton cuadrado con borde negro	🔲
+boton de marca de verificacion	✅
+boton de opcion	🔘
+boton free	🆓
+boton new	🆕
+boton ng	🆖
+boton ok	🆗
+boton up!	🆙
+boton vs	🆚
+brazo mecanico	🦾
+bretzel	🥨
+brillo alto	🔆
+brillo bajo	🔅
+brocheta	🍢
+brocoli	🥦
+brujula	🧭
+bruma	🌁
+bucle	➰
+bucle doble	➿
+buey	🐂
+bufalo de agua	🐃
+bufanda	🧣
+buho	🦉
+bumeran	🪃
+burbujas	🫧
+burrito	🌯
+burro	🫏
+busca	📟
+buzon	📮
+buzon abierto con la bandera bajada	📭
+buzon abierto con la bandera levantada	📬
+buzon cerrado con la bandera bajada	📪
+buzon cerrado con la bandera levantada	📫
+caballo	🐎
+caballo de tiovivo	🎠
+cabaña	🛖
+cabeza asintiendo	🙂‍↕
+cabeza explotando	🤯
+cabeza negando	🙂‍↔
+cabeza parlante	🗣
+cabra	🐐
+caca con ojos	💩
+cacahuetes	🥜
+cactus	🌵
+cadena rota	⛓‍💥
+cadenas	⛓
+cafe	☕
+caja de bento	🍱
+caja de herramientas	🧰
+caja para llevar	🥡
+calabaza de halloween	🎃
+calamar	🦑
+calavera	💀
+calavera y huesos cruzados	☠
+calcetines	🧦
+calendario	📅
+calendario de espiral	🗓
+calendario recortable	📆
+cama	🛏
+camara con flash	📸
+camara de cine	🎥
+camara de fotos	📷
+cambio de divisas	💱
+camello	🐫
+camion articulado	🚛
+camion de reparto	🚚
+camioneta	🛻
+camiseta	👕
+camiseta sin mangas	🎽
+campana	🔔
+campana con signo de cancelacion	🔕
+campanilla	🪻
+campanilla de viento	🎐
+camping	🏕
+cancer	♋
+candado abierto	🔓
+candado cerrado	🔒
+candado cerrado y llave	🔐
+candado con pluma estilografica	🔏
+cangrejo	🦀
+canguro	🦘
+caniche	🐩
+canoa	🛶
+cantante	🧑‍🎤
+cantante hombre	👨‍🎤
+cantante mujer	👩‍🎤
+caña de pescar	🎣
+cañon de confeti	🎉
+capricornio	♑
+cara agotada	😩
+cara aguantandose las lagrimas	🥹
+cara al reves	🙃
+cara angustiada	😧
+cara asombrada	😲
+cara asustada	😨
+cara babeando	🤤
+cara besando	😗
+cara besando con los ojos cerrados	😚
+cara besando con ojos sonrientes	😙
+cara cabreada	😡
+cara cansada	😫
+cara con ansiedad y sudor	😰
+cara con boca diagonal	🫤
+cara con calor	🥵
+cara con ceja alzada	🤨
+cara con el ceño fruncido	☹
+cara con el ceño fruncido y la boca abierta	😦
+cara con el ceño ligeramente fruncido	🙁
+cara con frio	🥶
+cara con la boca abierta	😮
+cara con la boca cerrada con cremallera	🤐
+cara con la cabeza vendada	🤕
+cara con lengua de dinero	🤑
+cara con linea de puntos	🫥
+cara con mano sobre la boca	🤭
+cara con manos abrazando	🤗
+cara con mascarilla medica	😷
+cara con monoculo	🧐
+cara con ojeras	🫩
+cara con ojos abiertos y boca tapada	🫢
+cara con ojos cerrados y lengua fuera	😝
+cara con ojos en blanco	🙄
+cara con ojos en espiral	😵‍💫
+cara con simbolos en la boca	🤬
+cara con sombrero de vaquero	🤠
+cara con sudor frio	😓
+cara con termometro	🤒
+cara de alivio	😌
+cara de bostezo	🥱
+cara de caballo	🐴
+cara de cerdo	🐷
+cara de conejo	🐰
+cara de confusion	😕
+cara de desaprobacion	😒
+cara de dragon	🐲
+cara de empollon	🤓
+cara de fiesta	🥳
+cara de frustracion	😖
+cara de gato	🐱
+cara de grogui	🥴
+cara de loco	🤪
+cara de mentiroso	🤥
+cara de mono	🐵
+cara de nauseas	🤢
+cara de payaso	🤡
+cara de perro	🐶
+cara de raton	🐭
+cara de sueño	😪
+cara de tigre	🐯
+cara de vaca	🐮
+cara de viento	🌬
+cara decepcionada	😞
+cara deformada	🫪
+cara derritiendose	🫠
+cara desanimada	😔
+cara desesperada	😣
+cara disfrazada	🥸
+cara durmiendo	😴
+cara enfadada	😠
+cara enfadada con cuernos	👿
+cara entre las nubes	😶‍🌫
+cara estornudando	🤧
+cara estupefacta	😯
+cara exhalando	😮‍💨
+cara feliz	🙂
+cara feliz con ojos sonrientes	😊
+cara gritando de miedo	😱
+cara guiñando el ojo	😉
+cara haciendo una mueca	😬
+cara lanzando un beso	😘
+cara llorando	😢
+cara llorando de risa	😂
+cara llorando fuerte	😭
+cara mareada	😵
+cara neutral	😐
+cara pensativa	🤔
+cara pidiendo silencio	🤫
+cara preocupada	😟
+cara radiante con ojos sonrientes	😁
+cara resoplando	😤
+cara resquebrajandose	🫫
+cara revolviendose de la risa	🤣
+cara saboreando comida	😋
+cara sacando la lengua	😛
+cara sacando la lengua y guiñando un ojo	😜
+cara saludando	🫡
+cara sin boca	😶
+cara sin expresion	😑
+cara sonriendo	😀
+cara sonriendo con aureola	😇
+cara sonriendo con corazones	🥰
+cara sonriendo con cuernos	😈
+cara sonriendo con estrellas	🤩
+cara sonriendo con gafas de sol	😎
+cara sonriendo con los ojos cerrados	😆
+cara sonriendo con ojos de corazon	😍
+cara sonriendo con ojos grandes	😃
+cara sonriendo con ojos sonrientes	😄
+cara sonriendo con sudor frio	😅
+cara sonriendo con superioridad	😏
+cara sonriendo ligeramente	🙂
+cara sonriente	☺
+cara sonriente con lagrima	🥲
+cara sonrojada	😳
+cara suplicante	🥺
+cara tapada con ojo espiando	🫣
+cara temblorosa	🫨
+cara triste	🙁
+cara triste pero aliviada	😥
+cara vomitando	🤮
+caracol	🐌
+caracola	🐚
+caramelo	🍬
+carcajada	🤣
+carita feliz	🙂
+carita triste	🙁
+carne con hueso	🍖
+carne de identidad	🪪
+carnero	🐏
+carpa de circo	🎪
+carpeta de archivos	📁
+carpeta de archivos abierta	📂
+carrera de caballos	🏇
+carrito de la compra	🛒
+carta de amor	💌
+cartas de flores	🎴
+casa	🏠
+casa abandonada	🏚
+casa con jardin	🏡
+casas	🏘
+casco con una cruz blanca	⛑
+casco militar	🪖
+casi igual	≈
+casilla con marca de verificacion	☑
+castaña	🌰
+castillo europeo	🏰
+castillo japones	🏯
+castor	🦫
+cebolla	🧅
+cebra	🦓
+cepillo de dientes	🪥
+cerdo	🐖
+cerebro	🧠
+ceremonia de contemplacion de la luna	🎑
+cerezas	🍒
+cesta	🧺
+chaleco de seguridad	🦺
+champiñon	🍄
+champiñon marron	🍄‍🟫
+chancla	🩴
+check	✅
+chef	🧑‍🍳
+chef hombre	👨‍🍳
+chef mujer	👩‍🍳
+chile picante	🌶
+chincheta	📌
+chincheta redonda	📍
+chispa	❇
+chispas	✨
+ciclon	🌀
+cien puntos	💯
+ciervo	🦌
+cigarrillo	🚬
+cinco y media	🕠
+cine	🎦
+cinta de video	📼
+circulo abierto con flecha en sentido antihorario	↺
+circulo abierto con flecha en sentido horario	↻
+circulo amarillo	🟡
+circulo azul	🔵
+circulo blanco	⚪
+circulo con el cuadrante superior derecho relleno	◔
+circulo con la mitad derecha rellena	◑
+circulo con la mitad inferior rellena	◒
+circulo con la mitad izquierda rellena	◐
+circulo con la mitad superior rellena	◓
+circulo con relleno vertical	◍
+circulo hueco	○
+circulo hueco con circulo relleno dentro	◉
+circulo hueco grande	◯
+circulo marron	🟤
+circulo morado	🟣
+circulo naranja	🟠
+circulo negro	⚫
+circulo punteado	◌
+circulo relleno	●
+circulo relleno excepto el cuadrante superior izquierdo	◕
+circulo rojo	🔴
+circulo rojo hueco	⭕
+circulo verde	🟢
+circulos concentricos	◎
+cisne	🦢
+ciudad al atardecer	🌆
+claqueta	🎬
+clip	📎
+clips unidos	🖇
+coche	🚗
+coche de bomberos	🚒
+coche de carreras	🏎
+coche de policia	🚓
+coche de policia proximo	🚔
+coche proximo	🚘
+cocinar	🍳
+coco	🥥
+cocodrilo	🐊
+cofre de tesoro	🪎
+cohete	🚀
+colegio	🏫
+colision	💥
+coma ideografica	、
+cometa	🪁
+cometa espacial	☄
+comida enlatada	🥫
+comillas dobles derechas	”
+comillas dobles derechas bajas	„
+comillas dobles izquierdas	“
+comodin	🃏
+conclusion	∴
+conejo	🐇
+conjunto vacio	∅
+consigna	🛅
+construccion	🏗
+contiene como miembro	∋
+control de pasaportes	🛂
+control de volumen	🎚
+copa de coctel	🍸
+copa de vino	🍷
+copas brindando	🥂
+copo de nieve	❄
+copyright de grabacion de sonido	℗
+coral	🪸
+corazon	❤️
+corazon amarillo	💛
+corazon azul	💙
+corazon azul claro	🩵
+corazon blanco	🤍
+corazon brillante	💖
+corazon con flecha	💘
+corazon con lazo	💝
+corazon creciente	💗
+corazon en llamas	❤‍🔥
+corazon gris	🩶
+corazon humano	🫀
+corazon latiendo	💓
+corazon marron	🤎
+corazon morado	💜
+corazon naranja	🧡
+corazon negro	🖤
+corazon rojo	❤️
+corazon rosa	🩷
+corazon roto	💔
+corazon vendado	❤‍🩹
+corazon verde	💚
+corazones giratorios	💞
+corbata	👔
+corchea	♪
+corchete angular de apertura	〈
+corchete angular de cierre	〉
+corchete angular doble de apertura	《
+corchete angular doble de cierre	》
+corchete caparazon tortuga de apertura	〔
+corchete caparazon tortuga de cierre	〕
+corchete esquinado de apertura	「
+corchete esquinado de apertura hueco	『
+corchete esquinado de cierre	」
+corchete esquinado de cierre hueco	』
+corchete lenticular de apertura	【
+corchete lenticular de apertura hueco	〖
+corchete lenticular de cierre	】
+corchete lenticular de cierre hueco	〗
+corneta de posta	📯
+corona	👑
+correo electronico	📧
+corte de carne	🥩
+criatura peluda	🫈
+criquet	🏏
+cronometro	⏱
+cruasan	🥐
+cruceiro	₢
+cruz latina	✝
+cruz ortodoxa	☦
+cuaderno	📓
+cuaderno con tapa decorativa	📔
+cuaderno de notas	📝
+cuadrado amarillo	🟨
+cuadrado azul	🟦
+cuadrado blanco grande	⬜
+cuadrado blanco mediano	◻
+cuadrado blanco mediano-pequeño	◽
+cuadrado blanco pequeño	▫
+cuadrado con relleno de cuadricula en diagonal	▩
+cuadrado con relleno de cuadricula ortogonal	▦
+cuadrado con relleno de rayas desde arriba a la derecha hasta abajo a la izquierda	▨
+cuadrado con relleno de rayas desde arriba a la izquierda hasta abajo a la derecha	▧
+cuadrado con relleno de rayas horizontales	▤
+cuadrado con relleno de rayas verticales	▥
+cuadrado hueco	□
+cuadrado hueco con cuadrado relleno dentro	▣
+cuadrado hueco con esquinas redondeadas	▢
+cuadrado marron	🟫
+cuadrado morado	🟪
+cuadrado naranja	🟧
+cuadrado negro grande	⬛
+cuadrado negro mediano	◼
+cuadrado negro mediano-pequeño	◾
+cuadrado negro pequeño	▪
+cuadrado relleno	■
+cuadrado relleno con circulo hueco dentro	◙
+cuadrado rojo	🟥
+cuadrado verde	🟩
+cuadrante superior derecho en circulo hueco	◷
+cuadrante superior derecho en cuadrado hueco	◳
+cuadro enmarcado	🖼
+cuatro y media	🕟
+cubito de hielo	🧊
+cubo	🪣
+cucaracha	🪳
+cuchara	🥄
+cuchilla de afeitar	🪒
+cuchillo de cocina	🔪
+cuchillo y tenedor con un plato	🍽
+cucurucho de helado	🍦
+cuenco con cuchara	🥣
+cuña de queso	🧀
+dado	🎲
+dango	🍡
+decoracion de pino	🎍
+dedo corazon hacia arriba	🖕
+dedo indice apuntandote a ti	🫵
+dedo indice hacia arriba	☝
+dedos cruzados	🤞
+dedos juntos apuntando hacia arriba	🤌
+delfin	🐬
+demonio japones oni	👹
+demonio japones tengu	👺
+derivada parcial	∂
+desatascador	🪠
+desierto	🏜
+desprendimiento	🛘
+destornillador	🪛
+detective	🕵
+detective hombre	🕵‍♂
+detective mujer	🕵‍♀
+detener	⏹
+diana	🎯
+diente	🦷
+diez y media	🕥
+direccion prohibida	⛔
+disco dvd	📀
+disco optico	💿
+disco volador	🥏
+disquete	💾
+divide	∣
+division	➗
+doble integral	∬
+doble interseccion	⋒
+doble linea sobre mayor que	⪚
+doble prima	″
+doce y media	🕧
+docente	🧑‍🏫
+docente hombre	👨‍🏫
+docente mujer	👩‍🏫
+dodo	🦤
+donut	🍩
+dorso de la mano	🤚
+dorso de mano con indice a la derecha	👉
+dorso de mano con indice a la izquierda	👈
+dorso de mano con indice hacia abajo	👇
+dorso de mano con indice hacia arriba	👆
+dos corazones	💕
+dos personas de la mano	🧑‍🤝‍🧑
+dos siluetas de bustos	👥
+dos y media	🕝
+dragon	🐉
+dragon rojo de mahjong	🀄
+dromedario	🐪
+ducha	🚿
+dumpling	🥟
+edificio clasico	🏛
+edificio de oficinas	🏢
+elefante	🐘
+elemento de	∈
+elfa	🧝‍♀
+elfo	🧝
+elfo hombre	🧝‍♂
+emblema de tridente	🔱
+empleada de mostrador de informacion	💁‍♀
+empleado de mostrador de informacion	💁‍♂
+enchufe electrico	🔌
+engranaje	⚙
+ensalada	🥗
+entradas	🎟
+entre	≬
+equipaje	🧳
+equis roja	❌
+equivalente a	≡
+equivalente mayor que	≳
+erizo	🦔
+escalera	🪜
+escarabajo	🪲
+escoba	🧹
+escorpio	♏
+escorpion	🦂
+escuadra	📐
+escudo	🛡
+eslabon	🔗
+espadas cruzadas	⚔
+espagueti	🍝
+espejo	🪞
+espiga de arroz	🌾
+espiga de maiz	🌽
+esponja	🧽
+esquis	🎿
+estacion de tren	🚉
+estadio	🏟
+estatua de la libertad	🗽
+estatua moai	🗿
+estetoscopio	🩺
+estilografica	🖋
+estrella	⭐
+estrella brillante	🌟
+estrella de david	✡
+estrella de ocho puntas	✴
+estrella de seis puntas	🔯
+estrella fugaz	🌠
+estrictamente equivalente	≣
+estudiante	🧑‍🎓
+estudiante hombre	👨‍🎓
+estudiante mujer	👩‍🎓
+etiqueta	🏷
+etiqueta identificativa	📛
+euro	€
+exclamacion blanca	❕
+exclamacion de corazon	❣
+exclamacion doble	‼
+exclamacion e interrogacion	⁉
+exclamacion roja	❗
+exclarrogativo	‽
+existe	∃
+expulsar	⏏
+extintor	🧯
+fabrica	🏭
+falafel	🧆
+familia	👪
+familia: adulto, adulto, niño	🧑‍🧑‍🧒
+familia: adulto, adulto, niño, niño	🧑‍🧑‍🧒‍🧒
+familia: adulto, niño	🧑‍🧒
+familia: adulto, niño, niño	🧑‍🧒‍🧒
+fantasma	👻
+faro	🛙
+fenix	🐦‍🔥
+ferri	⛴
+ferrocarril de montaña	🚞
+ferrocarril de suspension	🚟
+fiesta	🎉
+fin de la prueba	∎
+fiscal	🧑‍⚖
+fiscal hombre	👨‍⚖
+fiscal mujer	👩‍⚖
+flamenco	🦩
+flan	🍮
+flauta	🪈
+flecha apuntando hacia abajo	↓
+flecha apuntando hacia arriba	↑
+flecha apuntando hacia la derecha	→
+flecha apuntando hacia la izquierda	←
+flecha arriba abajo con base	↨
+flecha arriba y abajo	↕
+flecha back	🔙
+flecha de doble punta hacia abajo	↡
+flecha de doble punta hacia arriba	↟
+flecha de doble punta hacia la derecha	↠
+flecha de doble punta hacia la izquierda	↞
+flecha de onda hacia la derecha	↝
+flecha de onda hacia la izquierda	↜
+flecha de onda hacia la izquierda y la derecha	↭
+flecha derecha curvandose a la izquierda	↩
+flecha derecha curvandose hacia abajo	⤵
+flecha derecha curvandose hacia arriba	⤴
+flecha discontinua hacia abajo	⇣
+flecha discontinua hacia arriba	⇡
+flecha discontinua hacia la derecha	⇢
+flecha discontinua hacia la izquierda	⇠
+flecha doble hacia abajo	⇓
+flecha doble hacia arriba	⇑
+flecha doble hacia el nordeste	⇗
+flecha doble hacia el noroeste	⇖
+flecha doble hacia el sudoeste	⇙
+flecha doble hacia la derecha	⇒
+flecha doble hacia la derecha tachada	⇏
+flecha doble hacia la izquierda	⇐
+flecha doble hacia la izquierda tachada	⇍
+flecha doble hacia la izquierda y la derecha	⇔
+flecha doble hacia la izquierda y la derecha tachada	⇎
+flecha doble hacia sudeste	⇘
+flecha en semicirculo superior hacia la derecha	↷
+flecha en semicirculo superior hacia la izquierda	↶
+flecha en zigzag hacia abajo	↯
+flecha end	🔚
+flecha hacia abajo	⬇
+flecha hacia abajo a la izquierda de flecha hacia arriba	⇵
+flecha hacia abajo con angulo hacia la izquierda	↵
+flecha hacia abajo con doble tachado	⇟
+flecha hacia abajo con punta hacia la derecha	↳
+flecha hacia abajo con punta hacia la izquierda	↲
+flecha hacia abajo desde barra	↧
+flecha hacia arriba	⬆
+flecha hacia arriba con doble tachado	⇞
+flecha hacia arriba con punta hacia la derecha	↱
+flecha hacia arriba con punta hacia la izquierda	↰
+flecha hacia arriba desde barra	↥
+flecha hacia el noroeste con barra larga	↸
+flecha hacia la derecha	➡
+flecha hacia la derecha con angulo hacia abajo	↴
+flecha hacia la derecha con barra	⇥
+flecha hacia la derecha con bucle	↬
+flecha hacia la derecha con cola	↣
+flecha hacia la derecha desde barra	↦
+flecha hacia la derecha sobre flecha hacia la izquierda	⇄
+flecha hacia la derecha tachada	↛
+flecha hacia la esquina inferior derecha	↘
+flecha hacia la esquina inferior izquierda	↙
+flecha hacia la esquina superior derecha	↗
+flecha hacia la esquina superior izquierda	↖
+flecha hacia la izquierda	⬅
+flecha hacia la izquierda con barra	⇤
+flecha hacia la izquierda con barra sobre flecha hacia la derecha con barra	↹
+flecha hacia la izquierda con bucle	↫
+flecha hacia la izquierda con cola	↢
+flecha hacia la izquierda desde barra	↤
+flecha hacia la izquierda tachada	↚
+flecha hacia la izquierda y la derecha tachada	↮
+flecha hueca hacia abajo	⇩
+flecha hueca hacia arriba	⇧
+flecha hueca hacia arriba desde barra	⇪
+flecha hueca hacia la derecha	⇨
+flecha hueca hacia la izquierda	⇦
+flecha izquierda curvandose a la derecha	↪
+flecha izquierda y derecha	↔
+flecha on!	🔛
+flecha ondulada hacia la derecha	⇝
+flecha ondulada hacia la izquierda	⇜
+flecha soon	🔜
+flecha top	🔝
+flecha triple hacia la derecha	⇛
+flecha triple hacia la izquierda	⇚
+flechas apuntando arriba y abajo	⇅
+flechas apuntando izquierda sobre derecha	⇆
+flechas en sentido antihorario	🔄
+flechas verticales en sentido horario	🔃
+flor	🌼
+flor blanca	💮
+flor de cerezo	🌸
+flor de hibisco	🌺
+flor de lis	⚜
+flor marchita	🥀
+foca	🦭
+fondue	🫕
+fotograma de pelicula	🎞
+franco frances	₣
+fresa	🍓
+fuego	🔥
+fuegos artificiales	🎆
+fuente	⛲
+gafas	👓
+gafas de proteccion	🥽
+gafas de sol	🕶
+galleta	🍪
+galleta de arroz	🍘
+galleta de la fortuna	🥠
+gallina	🐔
+gallo	🐓
+gamba	🦐
+gamba frita	🍤
+gancho	🪝
+gato	🐈
+gato asustado	🙀
+gato besando	😽
+gato enfadado	😾
+gato haciendo una mueca	😼
+gato llorando	😿
+gato llorando de risa	😹
+gato negro	🐈‍⬛
+gato sonriendo	😺
+gato sonriendo con ojos de corazon	😻
+gato sonriendo con ojos sonrientes	😸
+geminis	♊
+genio	🧞
+genio hombre	🧞‍♂
+genio mujer	🧞‍♀
+gesto de te quiero	🤟
+girasol	🌻
+globo	🎈
+globo terraqueo con meridianos	🌐
+globo terraqueo mostrando america	🌎
+globo terraqueo mostrando asia y australia	🌏
+globo terraqueo mostrando europa y africa	🌍
+gofre	🧇
+goma de borrar	🪌
+gorila	🦍
+gorra con visera	🧢
+gota	💧
+gota de sangre	🩸
+gotas de sudor	💦
+grabar	⏺
+grafica de evolucion ascendente	📈
+grafica de evolucion descendente	📉
+grafico de barras	📊
+grandes almacenes	🏬
+granizado hawaiano	🍧
+grillo	🦗
+grupo sanguineo a	🅰
+grupo sanguineo ab	🆎
+grupo sanguineo b	🅱
+grupo sanguineo tipo o	🅾
+guante de boxeo	🥊
+guantes	🧤
+guardia	💂
+guardia hombre	💂‍♂
+guardia mujer	💂‍♀
+guiño	😉
+guion	‐
+guion corto	–
+guion ondulado	〰
+guitarra	🎸
+gusano	🪱
+hacha	🪓
+hada	🧚
+hada hombre	🧚‍♂
+hada mujer	🧚‍♀
+hamburguesa	🍔
+hamsa	🪬
+hamster	🐹
+helado	🍨
+helicoptero	🚁
+hierba	🌿
+hilo	🧵
+hipopotamo	🦛
+hockey sobre hielo	🏒
+hockey sobre hierba	🏑
+hoja de arce	🍁
+hojas caidas	🍂
+hojas revoloteando al viento	🍃
+hombre	👨
+hombre alimentando a bebe	👨‍🍼
+hombre bailando	🕺
+hombre botando un balon	⛹‍♂
+hombre caminando	🚶‍♂
+hombre con baston	👨‍🦯
+hombre con esmoquin	🤵‍♂
+hombre con la mano en la frente	🤦‍♂
+hombre con la mano levantada	🙋‍♂
+hombre con turbante	👳‍♂
+hombre con velo	👰‍♂
+hombre corriendo	🏃‍♂
+hombre cortandose el pelo	💇‍♂
+hombre dando una voltereta lateral	🤸‍♂
+hombre de pie	🧍‍♂
+hombre de rodillas	🧎‍♂
+hombre embarazado	🫃
+hombre en bicicleta	🚴‍♂
+hombre en bicicleta de montaña	🚵‍♂
+hombre en posicion de loto	🧘‍♂
+hombre en silla de ruedas electrica	👨‍🦼
+hombre en silla de ruedas manual	👨‍🦽
+hombre en una sauna	🧖‍♂
+hombre encogido de hombros	🤷‍♂
+hombre escalando	🧗‍♂
+hombre frunciendo el ceño	🙍‍♂
+hombre haciendo el gesto de &quot;de acuerdo&quot;	🙆‍♂
+hombre haciendo el gesto de &quot;no&quot;	🙅‍♂
+hombre haciendo malabares	🤹‍♂
+hombre haciendo pucheros	🙎‍♂
+hombre haciendo surf	🏄‍♂
+hombre haciendo una reverencia	🙇‍♂
+hombre jugando al balonmano	🤾‍♂
+hombre jugando al golf	🏌‍♂
+hombre jugando al waterpolo	🤽‍♂
+hombre levantando pesas	🏋‍♂
+hombre nadando	🏊‍♂
+hombre recibiendo masaje	💆‍♂
+hombre remando en un bote	🚣‍♂
+hombre rubio	👱‍♂
+hombre sordo	🧏‍♂
+hombre: barba	🧔‍♂
+hombres con orejas de conejo	👯‍♂
+hombres de la mano	👬
+hombres luchando	🤼‍♂
+hormiga	🐜
+hospital	🏥
+hotel	🏨
+hotel del amor	🏩
+huella dactilar	🫆
+huellas de pezuñas	🐾
+huellas de pies	👣
+hueso	🦴
+huevo	🥚
+ideograma japones para &quot;abierto&quot;	🈺
+ideograma japones para &quot;aceptable&quot;	🉑
+ideograma japones para &quot;aplicacion&quot;	🈸
+ideograma japones para &quot;aprobado&quot;	🈴
+ideograma japones para &quot;aqui&quot;	🈁
+ideograma japones para &quot;cantidad mensual&quot;	🈷
+ideograma japones para &quot;completo&quot;	🈵
+ideograma japones para &quot;de cortesia&quot;	🈂
+ideograma japones para &quot;de pago&quot;	🈶
+ideograma japones para &quot;descuento&quot;	🈹
+ideograma japones para &quot;enhorabuena&quot;	㊗
+ideograma japones para &quot;ganga&quot;	🉐
+ideograma japones para &quot;gratis&quot;	🈚
+ideograma japones para &quot;prohibido&quot;	🈲
+ideograma japones para &quot;reservado&quot;	🈯
+ideograma japones para &quot;secreto&quot;	㊙
+ideograma japones para &quot;vacante&quot;	🈳
+iglesia	⛪
+iglesia celebrando boda	💒
+iman	🧲
+imperdible	🧷
+impresora	🖨
+incremento	∆
+infante	🧒
+infinito	♾
+informacion	ℹ
+inodoro	🚽
+integral	∫
+integral de contorno	∮
+intercalacion	‸
+interrogacion blanca	❔
+interrogacion roja	❓
+interseccion	∩
+interseccion n-aria	⋂
+isla desierta	🏝
+jabali	🐗
+jabon	🧼
+jarra de cerveza	🍺
+jarras de cerveza brindando	🍻
+jeringuilla	💉
+jirafa	🦒
+joystick	🕹
+kaaba	🕋
+khanda	🪯
+kimono	👘
+kiwi	🥝
+koala	🐨
+labio mordido	🫦
+lacrosse	🥍
+lactancia materna	🤱
+ladrillo	🧱
+lagarto	🦎
+lampara de aceite	🪔
+lampara japonesa	🏮
+lancha motora	🚤
+lapida	🪦
+lapiz	✏
+lapiz de cera	🖍
+lazo	🎀
+lazo conmemorativo	🎗
+lengua	👅
+leo	♌
+leon	🦁
+leopardo	🐆
+letras latinas mayusculas	🔠
+letras latinas minusculas	🔡
+letrero	🪧
+libra	♎
+libra tornesa	₶
+libro abierto	📖
+libro azul	📘
+libro cerrado	📕
+libro de contabilidad	📒
+libro naranja	📙
+libro verde	📗
+libros	📚
+lima	🍋‍🟩
+limon	🍋
+linea superpuesta	‾
+linterna	🔦
+liquido derramandose	🫗
+lira	₤
+listo	✅
+llama	🦙
+llave	🔑
+llave antigua	🗝
+llave inglesa	🔧
+lobo	🐺
+locomotora de vapor	🚂
+logica o doble barra inferior	⩣
+loro	🦜
+loto	🪷
+luces de policia	🚨
+lugar de culto	🛐
+luna	🌙
+luna creciente	🌒
+luna de cuarto creciente con cara	🌛
+luna de cuarto menguante con cara	🌜
+luna en cuarto creciente	🌓
+luna en cuarto menguante	🌗
+luna gibosa creciente	🌔
+luna gibosa menguante	🌖
+luna llena	🌕
+luna llena con cara	🌝
+luna menguante	🌘
+luna nueva	🌑
+luna nueva con cara	🌚
+lupa orientada hacia la derecha	🔎
+lupa orientada hacia la izquierda	🔍
+m en circulo	Ⓜ
+madera	🪵
+maga	🧙‍♀
+magdalena	🧁
+mago	🧙‍♂
+maletin	💼
+mama noel	🤶
+mamut	🦣
+mandarina	🍊
+mando de videoconsola	🎮
+mango	🥭
+mano abierta	🖐
+mano con dedo indice y pulgar cruzados	🫰
+mano con la palma hacia abajo	🫳
+mano con la palma hacia arriba	🫴
+mano con señal de victoria	✌
+mano empujando hacia la derecha	🫸
+mano empujando hacia la izquierda	🫷
+mano escribiendo	✍
+mano hacia la derecha	🫱
+mano hacia la izquierda	🫲
+mano haciendo el gesto de llamar	🤙
+mano haciendo el signo de cuernos	🤘
+mano levantada	✋
+mano pellizcando	🤏
+mano saludando	👋
+manos abiertas	👐
+manos aplaudiendo	👏
+manos arriba	🙌
+manos en oracion	🙏
+manos formando un corazon	🫶
+manos levantadas celebrando	🙌
+mantequilla	🧈
+manzana roja	🍎
+manzana verde	🍏
+mapa de japon	🗾
+mapa mundial	🗺
+mapache	🦝
+maquina de fax	📠
+maquina tragaperras	🎰
+maracas	🪇
+marca de alternancia	〽
+marca de beso	💋
+marca de cruz	❌
+marca de referencia	※
+marca de verificacion	✔
+marcadores	📑
+marcapaginas	🔖
+mariposa	🦋
+mariposa monarca	🫌
+mariquita	🐞
+martillo	🔨
+martillo y llave inglesa	🛠
+martillo y pico	⚒
+mas	➕
+mas dentro de circulo	⊕
+mas dentro de cuadrado	⊞
+mas subindice dos	⨧
+mascara de buceo	🤿
+mascaras de teatro	🎭
+mate	🧉
+matriz conjugada hermitiana	⊹
+mayor que o igual	≥
+mayor que sobre igual	≧
+me gusta	👍
+medalla de bronce	🥉
+medalla de oro	🥇
+medalla de plata	🥈
+medalla deportiva	🏅
+medalla militar	🎖
+media luna y estrella	☪
+medusa	🪼
+megafono	📣
+melocoton	🍑
+melon	🍈
+menor que o igual	≤
+menor que o igual con barra inclinada	⩽
+menor que sobre igual	≦
+menor que sobre igual o similar	⪍
+menora	🕎
+menos	➖
+menos dentro de circulo	⊖
+menos dentro de cuadrado	⊟
+menos en superindice	⁻
+menos o mas	∓
+mercado al alza	💹
+meteorito	🪋
+metro	🚇
+mezquita	🕌
+microbio	🦠
+microfono	🎤
+microfono de estudio	🎙
+microscopio	🔬
+milesimo	₥
+minibus	🚐
+minidisc	💽
+mochila escolar	🎒
+modo vibracion	📳
+mofeta	🦨
+moneda	🪙
+monedero	👛
+mono	🐒
+mono con la boca tapada	🙊
+mono con los oidos tapados	🙉
+mono con los ojos tapados	🙈
+monopatin	🛹
+monorrail	🚝
+monstruo alienigena	👾
+montaña	⛰
+montaña con nieve	🏔
+montaña rusa	🎢
+monte fuji	🗻
+mosca	🪰
+mosquito	🦟
+moto	🏍
+mototaxi	🛺
+movil con una flecha	📲
+mucho mayor que	≫
+mucho menor que	≪
+mucho mucho mayor que	⋙
+mucho mucho menor que	⋘
+mujer	👩
+mujer alimentando a bebe	👩‍🍼
+mujer bailando	💃
+mujer botando un balon	⛹‍♀
+mujer caminando	🚶‍♀
+mujer con baston	👩‍🦯
+mujer con esmoquin	🤵‍♀
+mujer con hiyab	🧕
+mujer con la mano en la frente	🤦‍♀
+mujer con la mano levantada	🙋‍♀
+mujer con turbante	👳‍♀
+mujer con velo	👰‍♀
+mujer corriendo	🏃‍♀
+mujer cortandose el pelo	💇‍♀
+mujer dando una voltereta lateral	🤸‍♀
+mujer de pie	🧍‍♀
+mujer de rodillas	🧎‍♀
+mujer embarazada	🤰
+mujer en bicicleta	🚴‍♀
+mujer en bicicleta de montaña	🚵‍♀
+mujer en posicion de loto	🧘‍♀
+mujer en silla de ruedas electrica	👩‍🦼
+mujer en silla de ruedas manual	👩‍🦽
+mujer en una sauna	🧖‍♀
+mujer encogida de hombros	🤷‍♀
+mujer escalando	🧗‍♀
+mujer frunciendo el ceño	🙍‍♀
+mujer haciendo el gesto de &quot;de acuerdo&quot;	🙆‍♀
+mujer haciendo el gesto de &quot;no&quot;	🙅‍♀
+mujer haciendo malabares	🤹‍♀
+mujer haciendo pucheros	🙎‍♀
+mujer haciendo surf	🏄‍♀
+mujer haciendo una reverencia	🙇‍♀
+mujer jugando al balonmano	🤾‍♀
+mujer jugando al golf	🏌‍♀
+mujer jugando al waterpolo	🤽‍♀
+mujer levantando pesas	🏋‍♀
+mujer nadando	🏊‍♀
+mujer recibiendo masaje	💆‍♀
+mujer remando en un bote	🚣‍♀
+mujer rubia	👱‍♀
+mujer sorda	🧏‍♀
+mujer y hombre de la mano	👫
+mujer: barba	🧔‍♀
+mujeres con orejas de conejo	👯‍♀
+mujeres de la mano	👭
+mujeres luchando	🤼‍♀
+muleta	🩼
+multiplicacion	✖
+muñeca rusa	🪆
+muñecas japonesas	🎎
+muñeco de nieve	⛄
+muñeco de nieve con nieve	☃
+murcielago	🦇
+muslo de pollo	🍗
+nabla	∇
+nariz	👃
+nariz de cerdo	🐽
+nido con huevos	🪺
+nido vacio	🪹
+niebla	🌫
+ninja	🥷
+niña	👧
+niño	👦
+niños cruzando	🚸
+no contiene como subgrupo normal o igual a	⋭
+no es elemento	∉
+no fuerza	⊮
+no igual	≠
+no mayor que	≯
+no menor que	≮
+no sucede	⊁
+noche estrellada	🌃
+noel	🧑‍🎄
+noria de feria	🎡
+nota musical	🎵
+notas musicales	🎶
+nube	☁
+nube con lluvia	🌧
+nube con nieve	🌨
+nube con rayo	🌩
+nube con rayo y lluvia	⛈
+nube de pelea	🫯
+nudo	🪢
+nueve y media	🕤
+numeros	🔢
+nutria	🦦
+o logica n-aria	⋁
+obras	🚧
+oca	🪿
+ocho y media	🕣
+oficina de correos europea	🏤
+oficina de correos japonesa	🏣
+oficinista	🧑‍💼
+oficinista hombre	👨‍💼
+oficinista mujer	👩‍💼
+ofiuco	⛎
+ojo	👁
+ojo en bocadillo de texto	👁‍🗨
+ojo turco	🧿
+ojos	👀
+ola de mar	🌊
+olla de comida	🍲
+once y media	🕦
+operador de anillo	∘
+operador de anillo dentro de circulo	⊚
+operador de asterisco	∗
+operador de asterisco dentro de circulo	⊛
+operador de bolo	∙
+operador de estrella	⋆
+operador de punto	⋅
+operador de punto dentro de circulo	⊙
+operador de virgulilla	∼
+orangutan	🦧
+orca	🫍
+ordenador de sobremesa	🖥
+ordenador portatil	💻
+oreja	👂
+oreja con audifono	🦻
+organizador de fichas	📇
+original	⊶
+osito de peluche	🧸
+oso	🐻
+oso polar	🐻‍❄
+ostra	🦪
+oveja	🐑
+ovillo	🧶
+paella	🥘
+pagina doblada	📃
+pagina hacia arriba	📄
+paisaje urbano	🏙
+pajaro	🐦
+pajaro negro	🐦‍⬛
+pala	🪏
+paleta de pintor	🎨
+palillos	🥢
+palmas hacia arriba juntas	🤲
+palmera	🌴
+palo de corazones	♥
+palo de diamantes	♦
+palo de picas	♠
+palo de treboles	♣
+paloma	🕊
+palomitas	🍿
+pan de molde	🍞
+pan relleno	🥙
+pan sin levadura	🫓
+panda	🐼
+pantalones cortos	🩳
+papa noel	🎅
+papelera	🗑
+paquete	📦
+para todo	∀
+paracaidas	🪂
+parada de autobus	🚏
+paraguas	☂
+paraguas cerrado	🌂
+paraguas con gotas de lluvia	☔
+paralelo	∥
+paralelogramo relleno	▰
+pareja de flechas hacia abajo	⇊
+pareja de flechas hacia arriba	⇈
+pareja de flechas hacia la derecha	⇉
+pareja de flechas hacia la izquierda	⇇
+pareja enamorada	💑
+parque nacional	🏞
+pastel	🥧
+pastel de luna	🥮
+pastel de pescado japones	🍥
+patata	🥔
+patata asada	🍠
+patatas fritas	🍟
+patin de hielo	⛸
+patines	🛼
+patinete	🛴
+pato	🦆
+pausa	⏸
+pavo	🦃
+pavo real	🦚
+peineta	🪮
+pelo blanco	🦳
+pelo pelirrojo	🦰
+pelo rizado	🦱
+pelota de softball	🥎
+pelota de tenis	🎾
+pelota de voleibol	🏐
+penique aleman	₰
+pensando	🤔
+pentagrama	🎼
+peon de ajedrez	♟
+pepinillo	🫝
+pepino	🥒
+pera	🍐
+perezoso	🦥
+pergamino	📜
+periodico	📰
+periodico enrollado	🗞
+perrito caliente	🌭
+perro	🐕
+perro de servicio	🐕‍🦺
+perro guia	🦮
+persona adulta	🧑
+persona adulta rubia	👱
+persona alimentando a bebe	🧑‍🍼
+persona botando un balon	⛹
+persona caminando	🚶
+persona con barba	🧔
+persona con baston	🧑‍🦯
+persona con corona	🫅
+persona con esmoquin	🤵
+persona con gorro chino	👲
+persona con la mano en la frente	🤦
+persona con la mano levantada	🙋
+persona con turbante	👳
+persona con velo	👰
+persona corriendo	🏃
+persona cortandose el pelo	💇
+persona de mostrador de informacion	💁
+persona de pie	🧍
+persona de rodillas	🧎
+persona embarazada	🫄
+persona en bicicleta	🚴
+persona en bicicleta de montaña	🚵
+persona en la bañera	🛀
+persona en la cama	🛌
+persona en posicion de loto	🧘
+persona en silla de ruedas electrica	🧑‍🦼
+persona en silla de ruedas manual	🧑‍🦽
+persona en una sauna	🧖
+persona encogida de hombros	🤷
+persona escalando	🧗
+persona esquiando	⛷
+persona frunciendo el ceño	🙍
+persona haciendo el gesto de &quot;de acuerdo&quot;	🙆
+persona haciendo el gesto de &quot;no&quot;	🙅
+persona haciendo esgrima	🤺
+persona haciendo malabares	🤹
+persona haciendo pucheros	🙎
+persona haciendo surf	🏄
+persona haciendo una reverencia	🙇
+persona haciendo voltereta lateral	🤸
+persona jugando al balonmano	🤾
+persona jugando al golf	🏌
+persona jugando al waterpolo	🤽
+persona levantando pesas	🏋
+persona maga	🧙
+persona mayor	🧓
+persona nadando	🏊
+persona recibiendo masaje	💆
+persona remando en un bote	🚣
+persona sirena	🧜
+persona sorda	🧏
+persona trajeada levitando	🕴
+personaje de superheroe	🦸
+personaje de supervillano	🦹
+personas abrazandose	🫂
+personas con orejas de conejo	👯
+personas luchando	🤼
+peso	₱
+petardo	🧨
+pez	🐟
+pez globo	🐡
+pez tropical	🐠
+pico	⛏
+pie	🦶
+piedra	🪨
+piedra de curling	🥌
+piedra preciosa	💎
+pierna	🦵
+pierna mecanica	🦿
+pieza de puzle	🧩
+pila	🔋
+pildora	💊
+piloto	🧑‍✈
+piloto hombre	👨‍✈
+piloto mujer	👩‍✈
+pimiento	🫑
+pincel	🖌
+pinguino	🐧
+pintalabios	💄
+pintarse las uñas	💅
+piña	🍍
+piñata	🪅
+piruleta	🍭
+piscis	♓
+pista anterior	⏮
+pista siguiente	⏭
+pistola de agua	🔫
+pizza	🍕
+placa de petri	🧫
+planeta con anillos	🪐
+planta de maceta	🪴
+planta joven	🌱
+platano	🍌
+platillo volante	🛸
+playa y sombrilla	🏖
+pluma	🪶
+pluma negra	✒
+pollito	🐤
+pollito de frente	🐥
+pollito rompiendo el cascaron	🐣
+por dentro de circulo	⊗
+por mil	‰
+porque	∵
+portapapeles	📋
+porteria	🥅
+poste de barbero	💈
+practicante de snowboard	🏂
+precede	≺
+precede en relacion	⊰
+prima	′
+princesa	👸
+principe	🤴
+producto interior	⨼
+producto n-ario	∏
+profesional de la agricultura	🧑‍🌾
+profesional de la agricultura hombre	👨‍🌾
+profesional de la agricultura mujer	👩‍🌾
+profesional de la ciencia	🧑‍🔬
+profesional de la ciencia hombre	👨‍🔬
+profesional de la ciencia mujer	👩‍🔬
+profesional de la construccion	👷
+profesional de la construccion hombre	👷‍♂
+profesional de la construccion mujer	👷‍♀
+profesional de la mecanica	🧑‍🔧
+profesional de la mecanica hombre	👨‍🔧
+profesional de la mecanica mujer	👩‍🔧
+profesional de la tecnologia	🧑‍💻
+profesional de la tecnologia hombre	👨‍💻
+profesional de la tecnologia mujer	👩‍💻
+profesional industrial	🧑‍🏭
+profesional industrial hombre	👨‍🏭
+profesional industrial mujer	👩‍🏭
+profesional sanitario	🧑‍⚕
+profesional sanitario hombre	👨‍⚕
+profesional sanitario mujer	👩‍⚕
+prohibido	🚫
+prohibido el paso de peatones	🚷
+prohibido el uso de moviles	📵
+prohibido fumar	🚭
+prohibido para menos de 18 años	🔞
+prohibido tirar basura	🚯
+proporcion	∷
+proporcional	∝
+proyector de cine	📽
+puente de noche	🌉
+puerta	🚪
+puesta del sol	🌇
+pulgar abajo	👎
+pulgar arriba	👍
+pulgar hacia abajo	👎
+pulgar hacia arriba	👍
+pulgar hacia la derecha	🫺
+pulgar hacia la izquierda	🫹
+pulmones	🫁
+pulpo	🐙
+puntero hueco que apunta hacia la derecha	▻
+puntero hueco que apunta hacia la izquierda	◅
+puntero relleno que apunta hacia la derecha	►
+puntero relleno que apunta hacia la izquierda	◄
+punto de union con guion	‧
+punto ideografico	。
+punto medio katakana	・
+puntos suspensivos	…
+puntos suspensivos diagonales hacia abajo a la derecha	⋱
+puntos suspensivos diagonales hacia arriba a la derecha	⋰
+puntos suspensivos horizontales	⋯
+puntos suspensivos verticales	⋮
+puñal	🗡
+puño cerrado	👊
+puño en alto	✊
+puño hacia la derecha	🤜
+puño hacia la izquierda	🤛
+radiactivo	☢
+radio	📻
+radiografia	🩻
+raiz cuadrada	√
+raiz de jengibre	🫚
+ramo de flores	💐
+rana	🐸
+rata	🐀
+ratio	∶
+raton	🐁
+raton de ordenador	🖱
+raya	—
+recibo	🧾
+recogida de equipajes	🛄
+rectangulo hueco	▭
+rectangulo relleno	▬
+rectangulo vertical relleno	▮
+red con mango	🪍
+regalo	🎁
+regla	📏
+reloj	⌚
+reloj de arena con tiempo	⏳
+reloj de arena sin tiempo	⌛
+reloj de sobremesa	🕰
+reloj despertador	⏰
+repetir	🔁
+repetir una vez	🔂
+reproduccion aleatoria	🔀
+reproducir	▶
+reproducir o pausa	⏯
+retroceso	◀
+retroceso rapido	⏪
+rial	﷼
+riesgo biologico	☣
+rinoceronte	🦏
+risa	😂
+robot	🤖
+rollo de papel	🧻
+rombo	◊
+rombo azul grande	🔷
+rombo azul pequeño	🔹
+rombo con petalo	💠
+rombo hueco	◇
+rombo hueco con rombo relleno dentro	◈
+rombo naranja grande	🔶
+rombo naranja pequeño	🔸
+rombo relleno	◆
+ropa de mujer	👚
+ropa interior	🩲
+rosa	🌹
+rosario	📿
+roseta	🏵
+rublo	₽
+rueda	🛞
+rueda del dharma	☸
+ruedas de control	🎛
+rupia	₨
+rupia india	₹
+s invertida horizontal	∾
+sagitario	♐
+sake	🍶
+sal	🧂
+salir corriendo	💨
+salpicadura	🫟
+saludo vulcano	🖖
+salvavidas	🛟
+sandalia de mujer	👡
+sandia	🍉
+sandwich	🥪
+santuario sintoista	⛩
+sari	🥻
+satelite	🛰
+sauropodo	🦕
+saxofon	🎷
+scooter	🛵
+seis y media	🕡
+selfi	🤳
+semaforo	🚦
+semaforo horizontal	🚥
+semicirculo derecho relleno	◗
+semicirculo inferior	◡
+semicirculo izquierdo relleno	◖
+semicirculo superior	◠
+señal de aprobacion con la mano	👌
+señal de aseo para mujeres	🚺
+señal de aseos	🚻
+señal de bebe	🚼
+señal de cajero automatico	🏧
+señal de stop	🛑
+señal de usar papelera	🚮
+separador de fichas	🗂
+serpiente	🐍
+sierra de carpinteria	🪚
+siete y media	🕢
+signo de cruz	†
+signo de cruz doble	‡
+signo de infinito	∞
+signo femenino	♀
+signo igual grueso	🟰
+signo masculino	♂
+signo menos	−
+silla	🪑
+silla de ruedas electrica	🦼
+silla de ruedas manual	🦽
+silueta de busto	👤
+simbolo de atomo	⚛
+simbolo de dolar	💲
+simbolo de enfado	💢
+simbolo de identificacion	🆔
+simbolo de la paz	☮
+simbolo de marca comercial	™
+simbolo de mareo	💫
+simbolo de medicina	⚕
+simbolo de reciclaje	♻
+simbolo de silla de ruedas	♿
+simbolo de socorro	🆘
+simbolo de sueño	💤
+simbolo de transgenero	⚧
+simbolo japones para principiante	🔰
+simbolos	🔣
+sin pelo	🦲
+sinagoga	🕍
+sirena	🧜‍♀
+sirena hombre	🧜‍♂
+sobre	✉
+sobre con flecha	📩
+sobre entrante	📨
+sobre rojo	🧧
+sofa y lampara	🛋
+sol	☀
+sol con cara	🌞
+sol detras de una nube	⛅
+sol detras de una nube con lluvia	🌦
+sol detras de una nube grande	🌥
+sol detras de una nube pequeña	🌤
+sombrero de copa	🎩
+sombrero de mujer	👒
+sombrilla en la arena	⛱
+sostenido	♯
+spesmilo	₷
+subconjunto de	⊂
+subconjunto igual a	⊆
+sucede	≻
+sucede en relacion	⊱
+sucede sobre signo de no casi igual	⪺
+sumativa n-aria	∑
+superconjunto de	⊃
+superconjunto igual a	⊇
+superheroe	🦸‍♂
+superheroina	🦸‍♀
+supervillana	🦹‍♀
+supervillano	🦹‍♂
+surtidor de gasolina	⛽
+sushi	🍣
+t-rex	🦖
+tableta de chocolate	🍫
+tachuela hacia arriba	⊥
+taco	🌮
+tamal	🫔
+tambor	🥁
+tamboril	🪘
+tarjeta de credito	💳
+tarro	🫙
+tarro de miel	🍯
+tarta de cumpleaños	🎂
+tauro	♉
+taxi	🚕
+taxi proximo	🚖
+tazon de fideos	🍜
+tazon de te	🍵
+te de burbujas	🧋
+tecla: 0	0⃣
+tecla: 1	1⃣
+tecla: 2	2⃣
+tecla: 3	3⃣
+tecla: 4	4⃣
+tecla: 5	5⃣
+tecla: 6	6⃣
+tecla: 7	7⃣
+tecla: 8	8⃣
+tecla: 9	9⃣
+teclado	⌨
+teclado musical	🎹
+tejon	🦡
+tela de araña	🕸
+teleferico	🚡
+teleferico de montaña	🚠
+telefono	☎
+telefono movil	📱
+telefono movil apagado	📴
+telescopio	🔭
+television	📺
+templo hindu	🛕
+temporizador	⏲
+tenedor y cuchillo	🍴
+tenis de mesa	🏓
+termometro	🌡
+tetera	🫖
+tetrabrik	🧃
+tiburon	🦈
+tienda 24 horas	🏪
+tienda de campaña	⛺
+tigre	🐅
+tijeras	✂
+timbre de hotel	🛎
+tique	🎫
+tirita	🩹
+tobogan	🛝
+todo igual	≌
+tomate	🍅
+tornado	🌪
+tornillo de banco	🗜
+tornillo y tuerca	🔩
+torre de tokio	🗼
+tortitas	🥞
+tortuga	🐢
+tractor	🚜
+traje de baño de una pieza	🩱
+trampa de ratones	🪤
+tranvia	🚊
+trebol	☘
+trebol de cuatro hojas	🍀
+tren	🚆
+tren bala	🚅
+tren de alta velocidad	🚄
+tren ligero	🚈
+tres y media	🕞
+triangulo doble hacia abajo	⏬
+triangulo doble hacia arriba	⏫
+triangulo hacia abajo	🔽
+triangulo hacia arriba	🔼
+triangulo hueco pequeño que apunta hacia abajo	▿
+triangulo hueco pequeño que apunta hacia la izquierda	◃
+triangulo hueco que apunta hacia abajo	▽
+triangulo hueco que apunta hacia arriba	△
+triangulo hueco que apunta hacia la derecha	▷
+triangulo hueco que apunta hacia la izquierda	◁
+triangulo inferior derecho	◿
+triangulo inferior derecho relleno	◢
+triangulo inferior izquierdo relleno	◣
+triangulo pequeño hueco que apunta hacia arriba	▵
+triangulo pequeño hueco que apunta hacia la derecha	▹
+triangulo pequeño relleno que apunta hacia arriba	▴
+triangulo pequeño relleno que apunta hacia la derecha	▸
+triangulo rectangulo	⊿
+triangulo relleno apuntando hacia abajo	▼
+triangulo relleno apuntando hacia arriba	▲
+triangulo relleno pequeño que apunta hacia abajo	▾
+triangulo relleno pequeño que apunta hacia la izquierda	◂
+triangulo rojo hacia abajo	🔻
+triangulo rojo hacia arriba	🔺
+triangulo superior derecho relleno	◥
+triangulo superior izquierdo relleno	◤
+trineo	🛷
+triple prima	‴
+trofeo	🏆
+trol	🧌
+trolebus	🚎
+trombon	🪊
+trompeta	🎺
+trozo de tarta	🍰
+tuberculo comestible	🫜
+tubo de ensayo	🧪
+tulipan	🌷
+una y media	🕜
+unicornio	🦄
+uniforme de artes marciales	🥋
+union	∪
+union n-aria	⋃
+union natural	⋈
+urna con papeleta	🗳
+urna funeraria	⚱
+uvas	🍇
+vaca	🐄
+vagon	🚃
+vagon de tranvia	🚋
+vaina	🫛
+vampiresa	🧛‍♀
+vampiro	🧛
+vampiro hombre	🧛‍♂
+vaqueros	👖
+varita magica	🪄
+vaso con pajita	🥤
+vaso de leche	🥛
+vaso de whisky	🥃
+vector o producto cruzado	⨯
+vehiculo deportivo utilitario	🚙
+vela	🕯
+velero	⛵
+ventana	🪟
+verdura de hoja verde	🥬
+vestido	👗
+via de tren	🛤
+via lactea	🌌
+videocamara	📹
+violin	🎻
+virgo	♍
+virgulilla inversa	∽
+volcan	🌋
+wifi	🛜
+won	₩
+y logica	∧
+yin yang	☯
+yoyo	🪀
+zanahoria	🥕
+zapatilla deportiva	👟
+zapatillas de ballet	🩰
+zapato de hombre	👞
+zapato de tacon	👠
+zombi	🧟
+zombi hombre	🧟‍♂
+zombi mujer	🧟‍♀
+zorro	🦊

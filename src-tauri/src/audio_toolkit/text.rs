@@ -168,7 +168,7 @@ pub fn apply_custom_words(text: &str, custom_words: &[String], threshold: f64) -
 }
 
 /// Preserves the case pattern of the original word when applying a replacement
-fn preserve_case_pattern(original: &str, replacement: &str) -> String {
+pub(crate) fn preserve_case_pattern(original: &str, replacement: &str) -> String {
     if original.chars().all(|c| c.is_uppercase()) {
         replacement.to_uppercase()
     } else if original.chars().next().is_some_and(|c| c.is_uppercase()) {
