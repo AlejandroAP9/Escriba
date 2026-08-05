@@ -215,7 +215,54 @@ impl HistoryManager {
         // después de que exista.
         restrict_to_owner(&manager.db_path);
 
+        // Cifrado en reposo (PRP-006, Fase 7): el historial heredado en claro
+        // se cifra fila a fila. Idempotente (el prefijo esc1: es el marcador),
+        // así que un kill a mitad de camino se completa al siguiente arranque
+        // y nada se cifra dos veces. Si el llavero no está disponible, no se
+        // migra nada y se reintenta en el próximo arranque.
+        if let Err(e) = manager.migrate_plaintext_to_encrypted() {
+            error!("Migración de cifrado del historial incompleta: {}", e);
+        }
+
         Ok(manager)
+    }
+
+    /// Cifra en el lugar toda fila cuyo texto siga en claro. Fila a fila y
+    /// re-ejecutable: el prefijo `esc1:` marca lo ya migrado.
+    fn migrate_plaintext_to_encrypted(&self) -> Result<()> {
+        if !crate::history_crypto::cifrado_disponible() {
+            return Ok(());
+        }
+        let conn = self.get_connection()?;
+        let mut stmt = conn.prepare(
+            "SELECT id, transcription_text, post_processed_text FROM transcription_history
+             WHERE transcription_text NOT LIKE 'esc1:%'
+                OR (post_processed_text IS NOT NULL AND post_processed_text NOT LIKE 'esc1:%')",
+        )?;
+        let pendientes: Vec<(i64, String, Option<String>)> = stmt
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
+            .collect::<rusqlite::Result<_>>()?;
+        drop(stmt);
+        let total = pendientes.len();
+        for (id, texto, post) in pendientes {
+            conn.execute(
+                "UPDATE transcription_history
+                 SET transcription_text = ?1, post_processed_text = ?2
+                 WHERE id = ?3",
+                params![
+                    crate::history_crypto::cifrar_campo(&texto),
+                    post.as_deref().map(crate::history_crypto::cifrar_campo),
+                    id
+                ],
+            )?;
+        }
+        if total > 0 {
+            info!(
+                "Historial: {} entrada(s) migradas a cifrado en reposo",
+                total
+            );
+        }
+        Ok(())
     }
 
     fn init_database(&self) -> Result<()> {
@@ -351,14 +398,20 @@ impl HistoryManager {
     }
 
     fn map_history_entry(row: &rusqlite::Row<'_>) -> rusqlite::Result<HistoryEntry> {
+        // Frontera ÚNICA de descifrado (PRP-006, Fase 7): todo consumidor
+        // (UI, export Obsidian, MCP, estadísticas) recibe texto legible o el
+        // marcador de no descifrable, sin enterarse del cifrado.
+        let transcription_text: String = row.get("transcription_text")?;
+        let post_processed_text: Option<String> = row.get("post_processed_text")?;
         Ok(HistoryEntry {
             id: row.get("id")?,
             file_name: row.get("file_name")?,
             timestamp: row.get("timestamp")?,
             saved: row.get("saved")?,
             title: row.get("title")?,
-            transcription_text: row.get("transcription_text")?,
-            post_processed_text: row.get("post_processed_text")?,
+            transcription_text: crate::history_crypto::campo_para_ui(&transcription_text),
+            post_processed_text: post_processed_text
+                .map(|t| crate::history_crypto::campo_para_ui(&t)),
             post_process_prompt: row.get("post_process_prompt")?,
             post_process_requested: row.get("post_process_requested")?,
         })
@@ -415,6 +468,13 @@ impl HistoryManager {
         }
 
         let conn = self.get_connection()?;
+        // Cifrado en reposo DESPUÉS de redactar y de contar palabras (el
+        // conteo necesita el texto claro) y SOLO para lo que va al disco: la
+        // entrada que se devuelve y el evento al frontend llevan texto legible.
+        let transcription_cifrada = crate::history_crypto::cifrar_campo(&transcription_text);
+        let post_processed_cifrado = post_processed_text
+            .as_deref()
+            .map(crate::history_crypto::cifrar_campo);
         conn.execute(
             "INSERT INTO transcription_history (
                 file_name,
@@ -431,8 +491,8 @@ impl HistoryManager {
                 timestamp,
                 false,
                 &title,
-                &transcription_text,
-                &post_processed_text,
+                &transcription_cifrada,
+                &post_processed_cifrado,
                 &post_process_prompt,
                 post_process_requested,
             ],
@@ -482,8 +542,10 @@ impl HistoryManager {
                  post_process_prompt = ?3
              WHERE id = ?4",
             params![
-                transcription_text,
-                post_processed_text,
+                crate::history_crypto::cifrar_campo(&transcription_text),
+                post_processed_text
+                    .as_deref()
+                    .map(crate::history_crypto::cifrar_campo),
                 post_process_prompt,
                 id
             ],

@@ -85,6 +85,13 @@ sha2 = "0.10"
 # podía dejar un symlink en esa ruta y desviar la escritura.
 tempfile = "3"
 getrandom = "0.2"
+# Cifrado en reposo del historial (PRP-006, Fase 7). chacha20poly1305 es
+# RustCrypto puro: cero linkage C, sin riesgo de choque de símbolos con ggml.
+# La llave vive en el llavero del SO (keyring): macOS Keychain, Windows
+# Credential Manager, secret-service en Linux.
+chacha20poly1305 = "0.10"
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
+base64 = "0.22"
 # Whisper-family models run through transcribe-cpp (GGUF/ggml, native backends);
 # transcribe-rs is now ONNX-only (Parakeet, Moonshine, SenseVoice, GigaAM,
 # Canary, Cohere). Per-platform backend features are added in the target tables.

@@ -8,6 +8,7 @@ pub mod cli;
 mod clipboard;
 mod commands;
 mod helpers;
+mod history_crypto;
 mod input;
 mod llm_client;
 mod managers;

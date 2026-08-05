@@ -426,6 +426,22 @@ crash; borrar llave no mata la app; kill a mitad de migración es recuperable.
   deterministas; medico/llego intactos por diseño. "musica" y "publica"
   también quedan fuera (musicar y publicar existen).
 
+### 2026-08-05: alcance de la Fase 7 acotado con honestidad (texto sí, audio pendiente)
+
+- El cifrado en reposo quedó completo para el TEXTO (cifrar al guardar,
+  descifrar en la frontera única, migración idempotente por prefijo, llave en
+  el llavero, fail-open sin llave). El contenedor de AUDIO por frames AEAD
+  queda PENDIENTE a propósito: el guardado de audio viene APAGADO de fábrica
+  desde 2.2.4 (pocos usuarios afectados) y su reproducción en streaming exige
+  diseñar la integración con el asset scope del webview (2.2.3) con calma,
+  no a la carrera. El criterio "recordings no son WAV legibles" pasa a
+  pendiente declarado.
+- Los tests de cifrado JAMÁS tocan el llavero real: núcleos con llave
+  inyectada (`cifrar_con`/`leer_con`). Un test que cree la llave de
+  producción desde el binario de test siembra prompts de Keychain (la firma
+  del test no es la de la app): el premortem "llavero atado a la firma"
+  aplicaba a los tests mismos.
+
 ### 2026-08-05: build de audiopus_sys falla con install BSD (entorno sandbox)
 
 - **Error**: el `make install` vendored de `audiopus_sys` usa flags GNU de
