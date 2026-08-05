@@ -9,6 +9,58 @@ MIT). Esta historia arranca en el fork del 7 de julio de 2026 y recoge lo que
 la dupla **Alejandro & Flor** construyó encima para los Juegos Imperiales:
 convertir una app de dictado en un motor de IA **100% local y gratis**.
 
+## [Sin publicar]
+
+**La respuesta del escriba.** Ganado el hackathon, tomamos lo único que cada
+rival hacía mejor que nosotros y lo construimos a nuestra manera: ideas, no
+código, y con crédito. Es la primera entrega del plan post-hackathon.
+
+### Añadido
+
+- **Español profundo** (inspirado en lo que la dupla de **Abrax** demostró en
+  los Juegos Imperiales):
+  - **Restauración de tildes**: si el motor devuelve "el medico llego rapido y
+    pidio quedarse", en pantalla aparece "rápido" y "pidió" restaurados. Solo
+    pares inequívocos (157.895, derivados del diccionario RLA-ES): "esta",
+    "llego" (yo llego) o "medico" (yo medico) jamás se tocan, porque son
+    castellano válido. Corre siempre, en dictado, Sesiones, Estudio y CLI.
+  - **Emojis dictados**: di "emoji cara feliz" y aparece 🙂. Nombres en español
+    de Unicode CLDR más alias naturales ("pulgar arriba", "me gusta"). Nace
+    apagado: se enciende en General → Dictado en español.
+  - **Numerales hablados a cifras** (pedido por Juan Francisco Ceccarelli en la
+    comunidad): "tres millones y medio" → 3.500.000. Solo secuencias
+    inequívocas: "uno de los problemas", "hora y media" y "mil gracias" quedan
+    intactos. Con una planilla al frente (Excel, Numbers, LibreOffice Calc) y
+    el modo automático activo, hasta un número suelto se vuelve cifra.
+- **CLI universal con benchmarks** (el eje que **Dictum** hizo mejor que
+  nadie): `escriba --transcribe-file reunion.opus --json --repeat 3` acepta
+  ahora cualquier formato del Estudio (mp3, m4a, opus, ogg, flac, video), y
+  `--list-devices` habla JSON. La tabla completa de banderas está en el README:
+  benchmarks reproducibles por cualquiera.
+- **Batería de español difícil**: 40 audios congelados (7 voces es_CL/ES/MX)
+  que corren por el CLI contra el motor real; si una corrección cambia
+  cualquier salida, la batería falla. La disciplina de las plantillas de
+  2.2.2, aplicada al pipeline entero.
+- **Contexto en el Traductor y el Intérprete**: cada traducción ve los últimos
+  turnos de SU sesión, así "mañana tengo una prueba" en una conversación
+  escolar se traduce como *test* y no como *proof*. Vive solo en RAM, entra
+  vallado como referencia (nunca como instrucciones), y se limpia al apagar la
+  escucha o cambiar los idiomas. La detección de dirección sigue mirando solo
+  la frase nueva.
+- **Cifrado en reposo del historial**: los dictados guardados ya no viven en
+  claro en el disco. Cifrado por campo con la llave en el llavero del sistema;
+  el historial antiguo se migra solo al arrancar; sin llave disponible la app
+  funciona igual y lo ilegible se marca, no se pierde. Una versión anterior
+  puede abrir la misma base sin romperse.
+
+### Sabido y sin resolver
+
+- El audio guardado (apagado de fábrica desde 2.2.4) aún no se cifra: su
+  reproducción en streaming exige diseñar contra el permiso de lectura de
+  grabaciones de 2.2.3 con calma. Queda declarado y en el plan.
+- El caso escolar del Traductor, la batería de dirección de Flor y la
+  inyección turno a turno necesitan QA manual con el motor local vivo.
+
 ## [2.2.4] — 2026-07-30
 
 **Lo que encontró el QA de verdad.** Flor intentó romper la 2.2.3 y lo

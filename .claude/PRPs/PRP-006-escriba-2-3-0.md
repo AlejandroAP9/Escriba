@@ -369,6 +369,45 @@ crash; borrar llave no mata la app; kill a mitad de migración es recuperable.
 - [ ] **NO se corta release**: se avisa "listo para cortar cuando digas" y se
       espera el corte explícito de Alejandro
 
+## Estado de cierre (5-ago-2026)
+
+Implementación completa de las 8 fases en 6 commits (d5655012..HEAD). Evidencia
+por criterio:
+
+**Cumplidos con evidencia automatizada:**
+
+- Batería: 40 casos, 7 voces, sandbox portable con idioma pinneado; DOS
+  pasadas completas 40/40 idénticas (determinismo verificado).
+- Tildes: 157.895 pares; centinelas bloqueantes en el generador; tests de
+  pares ambiguos intactos; criterio ajustado con honestidad (medico/llego
+  fuera POR DISEÑO, ver Aprendizajes).
+- Emojis: "emoji cara feliz" → 🙂 y trampas intactas (tests); CLDR declarado
+  en THIRD_PARTY_NOTICES; apagado por defecto (decisión de Alejandro).
+- Numerales: caso Ceccarelli (3.500.000) + 10 frases trampa intactas (tests);
+  "mil gracias", "dos tres" y "ciento" huérfano cazados en el diseño.
+- CLI: m4a por decode universal validado contra el motor real; corrupto →
+  exit 2 sin panic; --list-devices --json; AGENTS.md y README con TODAS las
+  banderas; 3 fallas de gramática del parser encontradas y matadas en seco.
+- Cifrado texto: roundtrip, llave equivocada, cuerpo corrupto y prefijo
+  idempotente con llave inyectada (6 tests); migración idempotente por
+  prefijo; 171 tests del backend en verde; tsc + eslint + check:translations
+  (21 idiomas) en verde.
+
+**Pendiente de QA manual (necesitan GUI, motor LLM vivo o presencia):**
+
+- Planilla real al frente (Excel/Numbers) convirtiendo numerales al pegar.
+- Caso escolar del Traductor ("prueba" → *test*), batería de dirección de
+  Flor, e inyección turno 1 → turno 2, con el motor local corriendo.
+- `strings history.db` sin texto claro en una instalación real; abrir la base
+  cifrada con el binario 2.2.4 real; borrar la llave del llavero y verificar
+  el marcador en la UI.
+- Prueba reina con wifi apagado; `bun run tauri dev` ejercitando los flujos.
+
+**Aplazado declarado:** contenedor cifrado del audio (ver Aprendizajes).
+
+**Sin corte de release**: los 6 commits están en main; el corte lo decide
+Alejandro.
+
 ## Aprendizajes (Self-Annealing)
 
 ### 2026-08-05: bindings.ts editado a mano ocultaba un desfase real con Rust
