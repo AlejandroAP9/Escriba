@@ -13,9 +13,28 @@ convertir una app de dictado en un motor de IA **100% local y gratis**.
 
 **La respuesta del escriba.** Ganado el hackathon, tomamos lo único que cada
 rival hacía mejor que nosotros y lo construimos a nuestra manera: ideas, no
-código, y con crédito. Es la primera entrega del plan post-hackathon.
+código, y con crédito. Dos tandas del plan post-hackathon, ambas en esta
+entrega.
 
-### Añadido
+### Añadido (segunda tanda)
+
+- **Obsidian de verdad** (el eje que **Takhygraphe** hizo mejor en los Juegos
+  Imperiales, reimplementado desde cero): al exportar, las menciones que
+  coinciden con notas de tu vault se vuelven `[[enlaces]]` que revisas en la
+  vista previa antes de guardar (solo se leen NOMBRES de notas, jamás su
+  contenido); una nota índice `Escriba.md` mantiene el mapa de todo lo
+  exportado sin tocar lo que escribas fuera de su bloque; y una bandeja de
+  entrada diaria opcional manda dictados del historial a una nota Inbox con
+  su hora.
+- **Benchmark de motores en español, publicado gane o pierda**: medimos
+  Qwen3-ASR (0.6B y 1.7B, el motor que **Dictum** integró) contra Whisper
+  turbo y Parakeet V3 sobre los 40 audios congelados de la batería, con
+  script y JSON crudo committeados (`docs/benchmarks/qwen3-asr-es.md`).
+  Veredicto: no desplaza a ninguna recomendación; Parakeet V3 sigue reinando
+  en velocidad (11,8x tiempo real) y precisión combinada. Reproducible con
+  dos comandos.
+
+### Añadido (primera tanda)
 
 - **Español profundo** (inspirado en lo que la dupla de **Abrax** demostró en
   los Juegos Imperiales):

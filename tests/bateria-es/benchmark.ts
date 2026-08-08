@@ -93,9 +93,12 @@ for (const c of casos) {
 }
 {
   const r = spawnSync(BIN, ["--list-models", "--json"], { encoding: "utf8" });
+  // A diferencia del JSON de transcripción (una línea), el de --list-models
+  // es pretty-printed multilínea: se parsea el stdout COMPLETO (los logs van
+  // por stderr).
   const instalados = new Set(
     (
-      JSON.parse(r.stdout.trim().split("\n").at(-1) ?? "[]") as {
+      JSON.parse(r.stdout) as {
         id: string;
         is_downloaded: boolean;
       }[]
