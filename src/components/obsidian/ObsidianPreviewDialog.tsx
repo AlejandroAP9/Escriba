@@ -1,10 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { Textarea } from "../ui/Textarea";
 import { useObsidianStore } from "../../stores/obsidianStore";
 import { sendToObsidian } from "@/lib/obsidian";
+import { commands } from "@/bindings";
+import { useSettings } from "../../hooks/useSettings";
 
 /**
  * Revisar antes de que la nota toque el vault.
@@ -22,6 +24,36 @@ export const ObsidianPreviewDialog: React.FC = () => {
     useObsidianStore();
   const [saving, setSaving] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
+  const { getSetting } = useSettings();
+
+  // Enlaces [[...]] (PRP-007): al abrirse el diálogo, las menciones que
+  // coinciden con notas del vault llegan ya convertidas, y el usuario las ve
+  // y edita ANTES de que nada toque el disco. Una sola vez por apertura: el
+  // texto editado a mano no se vuelve a procesar.
+  const linkMentions = (getSetting("obsidian_link_mentions") ??
+    true) as boolean;
+  const [linkedCount, setLinkedCount] = useState<number | null>(null);
+  const linkedForOpen = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      linkedForOpen.current = false;
+      setLinkedCount(null);
+      return;
+    }
+    if (linkedForOpen.current || !linkMentions) return;
+    linkedForOpen.current = true;
+    commands
+      .linkObsidianMentions(useObsidianStore.getState().content)
+      .then((r) => {
+        if (r.status === "ok" && r.data.links > 0) {
+          setContent(r.data.content);
+          setLinkedCount(r.data.links);
+        }
+      })
+      .catch(() => {
+        // Sin enlaces no hay drama: el export sigue igual que siempre.
+      });
+  }, [open, linkMentions, setContent]);
 
   const save = async () => {
     setSaving(true);
@@ -106,6 +138,11 @@ export const ObsidianPreviewDialog: React.FC = () => {
             rows={12}
             className="font-mono text-2xs"
           />
+          {linkedCount !== null && (
+            <p className="text-3xs text-mid-gray">
+              {t("obsidian.linkedHint", { count: linkedCount })}
+            </p>
+          )}
         </div>
       </div>
     </Dialog>

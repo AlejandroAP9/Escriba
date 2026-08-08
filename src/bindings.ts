@@ -273,6 +273,45 @@ async exportToObsidian(title: string, content: string) : Promise<Result<string, 
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Convierte menciones del contenido en enlaces `[[Nota]]` usando SOLO los
+ * nombres de archivo del vault (jamás se leen contenidos: privacidad y
+ * velocidad). Corre detrás del diálogo de vista previa: el usuario ve y
+ * edita el resultado ANTES de que nada toque el vault.
+ * 
+ * Reglas del matcher (blindaje matcher-includes-substring):
+ * - límites de palabra Unicode: `Ana.md` no enlaza dentro de "Analía"
+ * - candidatos por longitud DESC: "Plan Premium" gana sobre "Plan"
+ * - mínimo 3 caracteres; insensible a mayúsculas (alias `[[Nota|mención]]`),
+ * SENSIBLE a tildes ("mas" no enlaza a `Más.md`)
+ * - zonas excluidas: front matter, código (bloques y spans), URLs y enlaces
+ * ya existentes
+ * 
+ * Sin vault configurado (o inválido) devuelve el contenido intacto: el
+ * enlazado es un extra del export, no una condición.
+ */
+async linkObsidianMentions(content: string) : Promise<Result<LinkedResult, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("link_obsidian_mentions", { content }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Bandeja de entrada diaria (PRP-007, Fase 3): agrega un dictado al final de
+ * `Inbox YYYY-MM-DD.md` como entrada con hora. Append puro: jamás reordena ni
+ * reescribe lo anterior. Misma disciplina de revalidación que el export (el
+ * vault se comprueba EN CADA operación, no solo al guardar el ajuste).
+ */
+async appendToObsidianInbox(content: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("append_to_obsidian_inbox", { content }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async mcpStart() : Promise<Result<McpStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("mcp_start") };
@@ -1513,7 +1552,7 @@ always_show_focus?: boolean;
 /**
  * Subcarpeta dentro del vault donde aterrizan las notas. Vacío = raíz.
  */
-obsidian_notes_folder?: string; 
+obsidian_notes_folder?: string; obsidian_link_mentions?: boolean; obsidian_index_note?: boolean; obsidian_daily_inbox?: boolean; 
 /**
  * Revisar antes de pegar: el dictado normal se muestra en el overlay
  * (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
@@ -1612,6 +1651,14 @@ export type InterpreterStatus = { running: boolean; listeners: number; active_la
 export type JobStatus = "pending" | "processing" | "done" | "error"
 export type KeyboardImplementation = "tauri" | "handy_keys"
 export type LLMPrompt = { id: string; name: string; prompt: string }
+/**
+ * Resultado de convertir menciones en enlaces `[[...]]`.
+ */
+export type LinkedResult = { content: string; 
+/**
+ * Cuántos enlaces se insertaron (para el hint del diálogo).
+ */
+links: number }
 export type LocalLlmStatus = { runtime_installed: boolean; model_installed: boolean; engine_running: boolean; setup_in_progress: boolean; model_file: string }
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error"
 /**

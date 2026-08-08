@@ -700,7 +700,8 @@
       "noResults": "No dictations match your search.",
       "storageTitle": "Storage & retention",
       "deleteConfirm": "This will permanently delete the text and its audio. This can't be undone.",
-      "noAudio": "No audio saved"
+      "noAudio": "No audio saved",
+      "sendToInbox": "Send to daily inbox"
     },
     "debug": {
       "title": "Debug",
@@ -1382,7 +1383,23 @@
     "folderLabel": "Folder inside the vault",
     "folderPlaceholder": "Escriba",
     "folderHint": "Notes go into “{{folder}}”. It gets created on first use.",
-    "folderHintRoot": "Empty: notes land loose in your vault root."
+    "folderHintRoot": "Empty: notes land loose in your vault root.",
+    "linkedHint": "{{count}} mention(s) linked to existing notes. Edit freely: nothing is written until you save.",
+    "linkMentions": {
+      "label": "Link mentions to existing notes",
+      "description": "When exporting, names that match notes in your vault become [[links]]. You always review them in the preview before saving. Only note names are read, never their contents."
+    },
+    "indexNote": {
+      "label": "Keep an index note",
+      "description": "Escriba maintains Escriba.md with links to every exported note. It only rewrites its own block: anything you write outside it survives."
+    },
+    "dailyInbox": {
+      "label": "Daily inbox",
+      "description": "Adds a \"Send to inbox\" action to history entries: the dictation lands in a daily Inbox note with its time, no dialog. The reviewed path is still the normal export."
+    },
+    "inboxSaved": "Sent to today's inbox in your vault.",
+    "inboxNoVault": "Choose your Obsidian vault first (Settings, Obsidian section).",
+    "inboxFailed": "Could not write to the inbox note."
   },
   "wizard": {
     "progress": "Step {{step}} of {{total}}",

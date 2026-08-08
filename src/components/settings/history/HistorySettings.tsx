@@ -28,6 +28,7 @@ import {
 } from "@/bindings";
 import { RetranscribeMenu } from "../../shared/RetranscribeMenu";
 import { useOsType } from "@/hooks/useOsType";
+import { useSettings } from "@/hooks/useSettings";
 import { AudioPlayer } from "../../ui/AudioPlayer";
 import { SettingsGroup } from "../../ui/SettingsGroup";
 import { SaveAudioRecordings } from "../SaveAudioRecordings";
@@ -75,6 +76,21 @@ function relativeTime(tsSeconds: number, locale: string): string {
 export const HistorySettings: React.FC = () => {
   const { t, i18n } = useTranslation();
   const osType = useOsType();
+  // Bandeja de entrada diaria (PRP-007): la acción por entrada solo existe
+  // con el ajuste encendido. Es la vía rápida a propósito (sin diálogo); la
+  // vía con revisión sigue siendo el export normal.
+  const { getSetting } = useSettings();
+  const inboxActivo = (getSetting("obsidian_daily_inbox") ?? false) as boolean;
+  const sendToInbox = async (texto: string) => {
+    const r = await commands.appendToObsidianInbox(texto);
+    if (r.status === "ok") {
+      toast.success(t("obsidian.inboxSaved"));
+    } else if (r.error === "SIN_VAULT") {
+      toast.warning(t("obsidian.inboxNoVault"));
+    } else {
+      toast.error(t("obsidian.inboxFailed"));
+    }
+  };
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -322,6 +338,11 @@ export const HistorySettings: React.FC = () => {
                   entry={entry}
                   onToggleSaved={() => toggleSaved(entry.id)}
                   onCopyText={() => copyToClipboard(entry.transcription_text)}
+                  onSendToInbox={
+                    inboxActivo
+                      ? () => sendToInbox(entry.transcription_text)
+                      : undefined
+                  }
                   getAudioUrl={getAudioUrl}
                   deleteAudio={deleteAudioEntry}
                   retryTranscription={retryHistoryEntry}
@@ -408,6 +429,8 @@ interface HistoryEntryProps {
   entry: HistoryEntry;
   onToggleSaved: () => void;
   onCopyText: () => void;
+  /** Presente solo con la bandeja de entrada diaria activada. */
+  onSendToInbox?: () => void;
   getAudioUrl: (fileName: string) => Promise<string | null>;
   deleteAudio: (id: number) => Promise<void>;
   retryTranscription: (id: number, modelId: string | null) => Promise<void>;
@@ -417,6 +440,7 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
   entry,
   onToggleSaved,
   onCopyText,
+  onSendToInbox,
   getAudioUrl,
   deleteAudio,
   retryTranscription,
@@ -494,6 +518,15 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
             <Copy width={15} height={15} />
           )}
         </IconButton>
+        {onSendToInbox && (
+          <IconButton
+            onClick={onSendToInbox}
+            disabled={!hasTranscription || retrying}
+            title={t("settings.history.sendToInbox")}
+          >
+            <Inbox width={15} height={15} />
+          </IconButton>
+        )}
         <IconButton
           onClick={onToggleSaved}
           disabled={retrying}

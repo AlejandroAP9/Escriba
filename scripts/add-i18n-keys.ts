@@ -51,6 +51,50 @@ const NUEVAS: Record<string, { en: string; es: string }> = {
     en: 'With Excel, Numbers or LibreOffice Calc in front, even single numbers become digits: say "cinco" and 5 is typed. Google Sheets in a browser can\'t be detected.',
     es: 'Con Excel, Numbers o LibreOffice Calc al frente, hasta un número suelto se vuelve cifra: dictas "cinco" y se escribe 5. Google Sheets en el navegador no se puede detectar.',
   },
+  "obsidian.linkedHint": {
+    en: "{{count}} mention(s) linked to existing notes. Edit freely: nothing is written until you save.",
+    es: "{{count}} mención(es) enlazadas a notas existentes. Edita con libertad: nada se escribe hasta que guardes.",
+  },
+  "obsidian.linkMentions.label": {
+    en: "Link mentions to existing notes",
+    es: "Enlazar menciones a notas existentes",
+  },
+  "obsidian.linkMentions.description": {
+    en: "When exporting, names that match notes in your vault become [[links]]. You always review them in the preview before saving. Only note names are read, never their contents.",
+    es: "Al exportar, los nombres que coinciden con notas de tu vault se vuelven [[enlaces]]. Siempre los revisas en la vista previa antes de guardar. Solo se leen nombres de notas, jamás su contenido.",
+  },
+  "obsidian.indexNote.label": {
+    en: "Keep an index note",
+    es: "Mantener una nota índice",
+  },
+  "obsidian.indexNote.description": {
+    en: "Escriba maintains Escriba.md with links to every exported note. It only rewrites its own block: anything you write outside it survives.",
+    es: "Escriba mantiene Escriba.md con enlaces a cada nota exportada. Solo reescribe su propio bloque: lo que escribas fuera de él sobrevive.",
+  },
+  "obsidian.dailyInbox.label": {
+    en: "Daily inbox",
+    es: "Bandeja de entrada diaria",
+  },
+  "obsidian.dailyInbox.description": {
+    en: 'Adds a "Send to inbox" action to history entries: the dictation lands in a daily Inbox note with its time, no dialog. The reviewed path is still the normal export.',
+    es: 'Agrega la acción "Enviar al inbox" en el historial: el dictado aterriza en una nota Inbox diaria con su hora, sin diálogo. La vía con revisión sigue siendo el export normal.',
+  },
+  "obsidian.inboxSaved": {
+    en: "Sent to today's inbox in your vault.",
+    es: "Enviado al inbox de hoy en tu vault.",
+  },
+  "obsidian.inboxNoVault": {
+    en: "Choose your Obsidian vault first (Settings, Obsidian section).",
+    es: "Primero elige tu vault de Obsidian (Ajustes, sección Obsidian).",
+  },
+  "obsidian.inboxFailed": {
+    en: "Could not write to the inbox note.",
+    es: "No se pudo escribir en la nota de inbox.",
+  },
+  "settings.history.sendToInbox": {
+    en: "Send to daily inbox",
+    es: "Enviar al inbox diario",
+  },
 };
 
 function poner(

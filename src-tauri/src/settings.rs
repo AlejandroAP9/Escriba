@@ -414,6 +414,15 @@ pub struct AppSettings {
     /// Subcarpeta dentro del vault donde aterrizan las notas. Vacío = raíz.
     #[serde(default = "default_obsidian_notes_folder")]
     pub obsidian_notes_folder: String,
+    // Obsidian enlazable (PRP-007). Enlaces e índice nacen ENCENDIDOS: ambos
+    // pasan por el diálogo de vista previa, así que nada aterriza sin verse.
+    // El inbox nace apagado (el plan lo define opcional).
+    #[serde(default = "default_true")]
+    pub obsidian_link_mentions: bool,
+    #[serde(default = "default_true")]
+    pub obsidian_index_note: bool,
+    #[serde(default)]
+    pub obsidian_daily_inbox: bool,
     /// Revisar antes de pegar: el dictado normal se muestra en el overlay
     /// (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
     #[serde(default)]
@@ -690,6 +699,10 @@ fn default_ui_theme() -> String {
 
 fn default_ui_scale() -> u32 {
     100
+}
+
+fn default_true() -> bool {
+    true
 }
 
 fn default_obsidian_notes_folder() -> String {
@@ -1075,6 +1088,9 @@ pub fn get_default_settings() -> AppSettings {
         calm_mode: false,
         always_show_focus: false,
         obsidian_notes_folder: default_obsidian_notes_folder(),
+        obsidian_link_mentions: true,
+        obsidian_index_note: true,
+        obsidian_daily_inbox: false,
         review_before_paste: false,
         dictated_emojis_enabled: false,
         spoken_numerals_enabled: false,

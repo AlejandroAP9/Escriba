@@ -710,6 +710,8 @@ pub fn run(cli_args: CliArgs) {
             commands::obsidian::get_obsidian_vault,
             commands::obsidian::set_obsidian_notes_folder,
             commands::obsidian::export_to_obsidian,
+            commands::obsidian::link_obsidian_mentions,
+            commands::obsidian::append_to_obsidian_inbox,
             commands::mcp::mcp_start,
             commands::mcp::mcp_stop,
             commands::mcp::mcp_status,

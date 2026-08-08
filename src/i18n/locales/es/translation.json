@@ -700,7 +700,8 @@
       "noResults": "Ningún dictado coincide con tu búsqueda.",
       "storageTitle": "Guardado y retención",
       "deleteConfirm": "Se borrará el texto y su audio para siempre. Esta acción no se puede deshacer.",
-      "noAudio": "Sin audio guardado"
+      "noAudio": "Sin audio guardado",
+      "sendToInbox": "Enviar al inbox diario"
     },
     "debug": {
       "title": "Depuración",
@@ -1382,7 +1383,23 @@
     "folderLabel": "Carpeta dentro del vault",
     "folderPlaceholder": "Escriba",
     "folderHint": "Las notas entran en «{{folder}}». Se crea sola la primera vez.",
-    "folderHintRoot": "Vacío: las notas caen sueltas en la raíz de tu vault."
+    "folderHintRoot": "Vacío: las notas caen sueltas en la raíz de tu vault.",
+    "linkedHint": "{{count}} mención(es) enlazadas a notas existentes. Edita con libertad: nada se escribe hasta que guardes.",
+    "linkMentions": {
+      "label": "Enlazar menciones a notas existentes",
+      "description": "Al exportar, los nombres que coinciden con notas de tu vault se vuelven [[enlaces]]. Siempre los revisas en la vista previa antes de guardar. Solo se leen nombres de notas, jamás su contenido."
+    },
+    "indexNote": {
+      "label": "Mantener una nota índice",
+      "description": "Escriba mantiene Escriba.md con enlaces a cada nota exportada. Solo reescribe su propio bloque: lo que escribas fuera de él sobrevive."
+    },
+    "dailyInbox": {
+      "label": "Bandeja de entrada diaria",
+      "description": "Agrega la acción \"Enviar al inbox\" en el historial: el dictado aterriza en una nota Inbox diaria con su hora, sin diálogo. La vía con revisión sigue siendo el export normal."
+    },
+    "inboxSaved": "Enviado al inbox de hoy en tu vault.",
+    "inboxNoVault": "Primero elige tu vault de Obsidian (Ajustes, sección Obsidian).",
+    "inboxFailed": "No se pudo escribir en la nota de inbox."
   },
   "wizard": {
     "progress": "Paso {{step}} de {{total}}",

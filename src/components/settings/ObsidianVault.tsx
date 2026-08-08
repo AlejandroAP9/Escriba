@@ -6,6 +6,7 @@ import { commands } from "@/bindings";
 import { SettingContainer } from "../ui/SettingContainer";
 import { useSettings } from "../../hooks/useSettings";
 import { Button } from "../ui/Button";
+import { ToggleSwitch } from "../ui/ToggleSwitch";
 
 interface ObsidianVaultProps {
   descriptionMode?: "inline" | "tooltip";
@@ -27,7 +28,7 @@ export const ObsidianVault: React.FC<ObsidianVaultProps> = React.memo(
     const [vault, setVault] = useState<string | null>(null);
     const [folder, setFolder] = useState("");
     const [busy, setBusy] = useState(false);
-    const { getSetting } = useSettings();
+    const { getSetting, updateSetting, isUpdating } = useSettings();
 
     const refresh = useCallback(async () => {
       const r = await commands.getObsidianVault();
@@ -146,6 +147,44 @@ export const ObsidianVault: React.FC<ObsidianVaultProps> = React.memo(
                   ? t("obsidian.folderHint", { folder: folder.trim() })
                   : t("obsidian.folderHintRoot")}
               </p>
+            </div>
+          )}
+
+          {/* Obsidian enlazable (PRP-007): enlaces e índice pasan por la
+              vista previa; el inbox es la vía rápida y nace apagado. */}
+          {configured && (
+            <div className="mt-2 flex flex-col gap-2">
+              <ToggleSwitch
+                checked={
+                  (getSetting("obsidian_link_mentions") ?? true) as boolean
+                }
+                onChange={(v) => updateSetting("obsidian_link_mentions", v)}
+                isUpdating={isUpdating("obsidian_link_mentions")}
+                label={t("obsidian.linkMentions.label")}
+                description={t("obsidian.linkMentions.description")}
+                descriptionMode="inline"
+                grouped
+              />
+              <ToggleSwitch
+                checked={(getSetting("obsidian_index_note") ?? true) as boolean}
+                onChange={(v) => updateSetting("obsidian_index_note", v)}
+                isUpdating={isUpdating("obsidian_index_note")}
+                label={t("obsidian.indexNote.label")}
+                description={t("obsidian.indexNote.description")}
+                descriptionMode="inline"
+                grouped
+              />
+              <ToggleSwitch
+                checked={
+                  (getSetting("obsidian_daily_inbox") ?? false) as boolean
+                }
+                onChange={(v) => updateSetting("obsidian_daily_inbox", v)}
+                isUpdating={isUpdating("obsidian_daily_inbox")}
+                label={t("obsidian.dailyInbox.label")}
+                description={t("obsidian.dailyInbox.description")}
+                descriptionMode="inline"
+                grouped
+              />
             </div>
           )}
         </div>
