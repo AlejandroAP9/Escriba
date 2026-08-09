@@ -2875,9 +2875,15 @@ async fn translate_with_timeout(
             )
         })
         .unwrap_or_default();
+    // Valla y preámbulo (PRP-008, Fase 4): esta ruta sirve al Intérprete, cuya
+    // salida se PUBLICA a otros oyentes, y a la herramienta MCP. Era la de
+    // mayor radio de explosión y la única sin vallar el texto del usuario.
     let prompt = format!(
-        "Traduce el siguiente texto al idioma con código ISO '{}'. Responde ÚNICAMENTE con la traducción, sin comillas ni explicaciones. Conserva el tono y la naturalidad de un hablante nativo.\n\n{}Texto:\n{}",
-        target_lang, bloque_contexto, text
+        "{}\n\nTraduce el siguiente texto al idioma con código ISO '{}'. Responde ÚNICAMENTE con la traducción, sin comillas ni explicaciones. Conserva el tono y la naturalidad de un hablante nativo.\n\n{}Texto:\n{}",
+        injection_guard(),
+        target_lang,
+        bloque_contexto,
+        fence(text)
     );
 
     match crate::llm_client::send_chat_completion(
@@ -2894,6 +2900,18 @@ async fn translate_with_timeout(
     {
         Ok(Some(content)) => {
             let cleaned = strip_invisible_chars(&content);
+            // Gate de salida (PRP-008, Fase 4): si el modelo obedeció una orden
+            // incrustada en vez de traducir, se descarta. En el Intérprete eso
+            // cierra la línea con el ORIGINAL, camino que ya existía para el
+            // motor caído: mejor oír la frase en el idioma del guía que oír una
+            // respuesta secuestrada publicada a toda la sala.
+            if !cleaned.trim().is_empty()
+                && (leaks_system_prompt(cleaned.trim())
+                    || looks_hijacked(text, cleaned.trim(), TranscribeMode::Translate))
+            {
+                warn!("traducción descartada: la salida parece secuestrada");
+                return None;
+            }
             if cleaned.trim().is_empty() {
                 None
             } else {
@@ -3205,11 +3223,15 @@ pub async fn converse_translate(
             )
         })
         .unwrap_or_default();
+    let guard = injection_guard();
+    let texto_vallado = fence(text);
     let prompt = format!(
-        "Traduce el siguiente texto al idioma con codigo ISO '{target}'. Conserva significado y tono; redaccion natural de hablante nativo. Responde UNICAMENTE con la traduccion, sin explicaciones.
+        "{guard}
+
+Traduce el siguiente texto al idioma con codigo ISO '{target}'. Conserva significado y tono; redaccion natural de hablante nativo. Responde UNICAMENTE con la traduccion, sin explicaciones.
 
 {contexto}Texto:
-{text}"
+{texto_vallado}"
     );
 
     let content = match crate::llm_client::send_chat_completion(
@@ -3230,6 +3252,15 @@ pub async fn converse_translate(
 
     let trimmed = content.trim().to_string();
     if trimmed.is_empty() {
+        return None;
+    }
+    // Gate de salida (PRP-008, Fase 4): el Traductor cara a cara muestra su
+    // resultado en pantalla grande y lo lee en voz alta, así que una salida
+    // secuestrada se vuelve la voz de la app. Si el modelo obedeció en vez de
+    // traducir, no se muestra nada: la pantalla se queda con el turno
+    // anterior, que es honesto, en vez de dar por buena una orden ajena.
+    if leaks_system_prompt(&trimmed) || looks_hijacked(text, &trimmed, TranscribeMode::Translate) {
+        warn!("Traductor: turno descartado, la salida parece secuestrada");
         return None;
     }
     // Red de seguridad: si la salida sigue en el idioma de origen (el modelo
