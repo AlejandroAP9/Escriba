@@ -11,6 +11,8 @@ convertir una app de dictado en un motor de IA **100% local y gratis**.
 
 ## [Sin publicar]
 
+## [2.3.0] — 2026-08-09
+
 **La respuesta del escriba.** Ganado el hackathon, tomamos lo único que cada
 rival hacía mejor que nosotros y lo construimos a nuestra manera: ideas, no
 código, y con crédito. Dos tandas del plan post-hackathon, ambas en esta

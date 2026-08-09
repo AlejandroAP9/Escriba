@@ -44,9 +44,13 @@ jobs:
     needs: create-release
     strategy:
       fail-fast: false
+      # tauri-action merges each target into latest.json. Serializing the jobs
+      # prevents concurrent uploads from replacing that file with only one OS.
+      max-parallel: 1
       matrix:
         include:
-          # Escriba: matriz reducida al alcance del hackathon (macOS + Windows).
+          # Public release matrix: both macOS architectures, Windows x64 and
+          # the two Linux x64 packages listed in README.md.
           # macos-26 para el runner con Xcode completo (Apple Intelligence real;
           # en toolchains sin el plugin de macros compila con stub, ver build.rs).
           - platform: "macos-26" # Apple Silicon (M1+)
@@ -58,6 +62,12 @@ jobs:
           - platform: "windows-latest"
             args: ""
             target: "x86_64-pc-windows-msvc"
+          - platform: "ubuntu-24.04"
+            args: "--bundles appimage"
+            target: "x86_64-unknown-linux-gnu"
+          - platform: "ubuntu-22.04"
+            args: "--bundles deb"
+            target: "x86_64-unknown-linux-gnu"
 
     uses: ./.github/workflows/build.yml
     with:

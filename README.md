@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.2.4-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
-  <img src="https://img.shields.io/badge/macOS%20%7C%20Windows-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS y Windows" />
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.3.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS, Windows y Linux" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
 </p>
@@ -34,12 +34,10 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | Sistema                                    | Archivo a descargar            |
 | ------------------------------------------ | ------------------------------ |
 | 🍎 **macOS** (Apple Silicon · M1/M2/M3/M4) | `Escriba_x.y.z_aarch64.dmg`    |
+| 🍎 **macOS** (Intel)                       | `Escriba_x.y.z_x64.dmg`        |
 | 🪟 **Windows** 10/11                       | `Escriba_x.y.z_x64-setup.exe`  |
 | 🐧 **Linux** (Debian/Ubuntu)               | `Escriba_x.y.z_amd64.deb`      |
 | 🐧 **Linux** (cualquier distro)            | `Escriba_x.y.z_amd64.AppImage` |
-
-> **macOS Intel todavía no tiene build.** Escriba se compila para Apple Silicon.
-> Si tienes un Mac Intel, por ahora toca compilarla tú siguiendo [BUILD.md](./BUILD.md).
 
 > ### ⚠️ macOS te va a bloquear el archivo la primera vez. Es normal.
 >
@@ -80,6 +78,7 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 |                                  |                                                                                                                                                                                                                                                                                             |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🎙️ **Dictado con IA**            | Atajo global, hablas, y el texto aparece donde estés. Filtrado de silencios (VAD) + Whisper/Parakeet locales con aceleración por GPU.                                                                                                                                                       |
+| 🇪🇸 **Español profundo**          | Restaura tildes inequívocas, convierte nombres de emojis y numerales hablados a cifras sin tocar expresiones como “mil gracias” u “hora y media”.                                                                                                                                           |
 | 🗽 **Dictado libre**             | Cero atajos: actívalo y habla. Cada frase se escribe sola donde esté tu cursor, cortada por el detector de voz. Con indicador siempre visible.                                                                                                                                              |
 | 👁️ **Revisar antes de pegar**    | Opcional: el dictado se muestra en pantalla antes de escribirse — pégalo, descártalo o dicta una corrección con tu atajo. Para correos delicados.                                                                                                                                           |
 | 💬 **Sesiones**                  | Habla una hora y llévate un documento listo: conversa con la IA local (te responde con voz) o deja que solo escuche tu reunión, entrevista o clase. Al terminar: acta, apuntes o nota, redactados por el motor local.                                                                       |
@@ -87,8 +86,8 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | 🎙️ **Intérprete de reuniones**   | Interpretación en vivo de tus videollamadas, ida y vuelta: lo que suena llega en tu idioma; lo que dictas sale traducido y hablado _dentro_ de la llamada por un micrófono virtual integrado (1 clic). Hablas español, el otro escucha inglés. 100% local. (idea de John Walter, macOS 13+) |
 | 🔊 **Tu tinta en voz**           | Selecciona texto en cualquier app y ⌥⇧R: Escriba lo lee en voz alta con la mejor voz de tu equipo. Revisa tus borradores con los oídos.                                                                                                                                                     |
 | 👓 **Para todos los ojos**       | Tema Día/Noche/Sistema, tamaño de texto ajustable (90-130%), **alto contraste**, **asistencia para daltonismo**, **Modo Calma** (quietud total, más aire, superficies planas) y foco siempre visible. Nacida de la comunidad.                                                               |
-| 🪶 **Plumín te recibe**          | Asistente de primera vez donde Plumín te acompaña paso a paso y termina pidiéndote que le hables: dictas, ves tus palabras aparecer, y le pides que las traduzca. Terminas la instalación habiendo usado la app, no mirando capturas.                                                       |
-| 📝 **Enviar a Obsidian**         | El acta de Sesiones y las transcripciones del Estudio entran a tu vault como notas Markdown, en su propia carpeta y tras dejarte revisarlas. La exportación no toca la red.                                                                                                                 |
+| 🪶 **Plumín te ayuda**           | Además de acompañar la primera instalación, responde dudas sobre Escriba desde una guía local, comprueba tu configuración, abre la sección correcta y puede leer la respuesta en voz alta.                                                                                                  |
+| 📝 **Obsidian enlazable**        | Exporta notas Markdown con `[[enlaces]]` revisables, mantiene un índice `Escriba.md` y puede enviar dictados a una bandeja diaria. Solo lee nombres de notas; nunca su contenido ni la red.                                                                                                 |
 | ⌨️ **Escribir en vez de dictar** | Corrige o **traduce** un texto escrito con el mismo motor local, sin usar la voz. Para el aula compartida, la afonía o quien no puede hablar en ese momento.                                                                                                                                |
 | ✨ **Corrección con IA**         | Limpia muletillas y repeticiones, ordena listas y ajusta el tono según la app (WhatsApp casual, Mail formal, prompts para Cursor…).                                                                                                                                                         |
 | 🗣️ **Edición por voz**           | Selecciona texto en cualquier app, mantén el atajo y dile qué hacer: _"hazlo más formal"_, _"resúmelo en 3 líneas"_, _"tradúcelo al portugués"_.                                                                                                                                            |
@@ -184,6 +183,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                                                                                                          |
 | ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 2.3.0   | 09-ago | 🪶 Plumín ayuda de verdad + 🇪🇸 español profundo + 🔐 historial cifrado + 📝 Obsidian enlazable + CLI y benchmarks                  |
 | 2.2.4   | 30-jul | 🐛 Lo que encontró el QA: historial y estadísticas ya no quedan en cero + diccionario que funciona sin comerse palabras            |
 | 2.2.3   | 30-jul | 🔐 Ronda de auditoría externa: las claves fuera del alcance de la interfaz + confirmación al borrar + asistente que exige modelo   |
 | 2.2.2   | 30-jul | 🧹 **La casa ordenada**: cada ajuste donde lo buscarías + actas de sesiones de una hora + plantillas probadas contra el motor real |
