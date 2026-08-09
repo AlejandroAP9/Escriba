@@ -13,6 +13,35 @@ fn format_timestamp(seconds: f64, decimal_sep: char) -> String {
     format!("{:02}:{:02}:{:02}{}{:03}", h, m, s, decimal_sep, ms)
 }
 
+/// Vista compacta para leer la transcripción dentro del Estudio. A diferencia
+/// de SRT/VTT no muestra el final de cada segmento: conserva el formato humano
+/// `[M:SS]` y pasa a `[H:MM:SS]` solo cuando el audio supera una hora.
+pub fn to_timestamped_lines(segments: &[Segment]) -> Vec<String> {
+    segments
+        .iter()
+        .filter_map(|seg| {
+            let text = seg.text.trim();
+            if text.is_empty() {
+                return None;
+            }
+            let total_s = seg.start_s.max(0.0).floor() as u64;
+            let seconds = total_s % 60;
+            let total_minutes = total_s / 60;
+            let stamp = if total_minutes >= 60 {
+                format!(
+                    "{}:{:02}:{:02}",
+                    total_minutes / 60,
+                    total_minutes % 60,
+                    seconds
+                )
+            } else {
+                format!("{}:{:02}", total_minutes, seconds)
+            };
+            Some(format!("[{}] {}", stamp, text))
+        })
+        .collect()
+}
+
 /// SubRip: bloques numerados, timestamps con coma decimal.
 pub fn to_srt(segments: &[Segment]) -> String {
     let mut out = String::new();
@@ -118,5 +147,23 @@ mod tests {
     fn json_roundtrips() {
         let json = to_json(&[seg(1.0, 2.0, "a")]).unwrap();
         assert!(json.contains("\"start_s\": 1.0"));
+    }
+
+    #[test]
+    fn compact_timestamps_are_readable_and_handle_hours() {
+        let lines = to_timestamped_lines(&[
+            seg(5.9, 7.0, " Hola "),
+            seg(65.0, 66.0, "mundo"),
+            seg(3661.0, 3662.0, "largo"),
+        ]);
+        assert_eq!(
+            lines,
+            vec!["[0:05] Hola", "[1:05] mundo", "[1:01:01] largo"]
+        );
+    }
+
+    #[test]
+    fn compact_timestamps_skip_empty_segments() {
+        assert!(to_timestamped_lines(&[seg(0.0, 1.0, "   ")]).is_empty());
     }
 }

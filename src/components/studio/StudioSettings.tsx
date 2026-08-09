@@ -12,9 +12,22 @@ import { commands, type StudioJob } from "@/bindings";
 import { requestObsidianExport } from "@/stores/obsidianStore";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
+import { AudioPlayer } from "../ui/AudioPlayer";
 import { RetranscribeMenu } from "../shared/RetranscribeMenu";
 
-const SUPPORTED_FORMATS = ["MP3", "WAV", "M4A", "MP4", "MOV", "FLAC"];
+const SUPPORTED_FORMATS = [
+  "MP3",
+  "WAV",
+  "M4A",
+  "MP4",
+  "MOV",
+  "FLAC",
+  "OPUS",
+  "OGG",
+  "AAC",
+  "AIFF",
+  "CAF",
+];
 
 type Progress = {
   id: number;
@@ -30,6 +43,9 @@ export const StudioSettings: React.FC = () => {
   const [jobs, setJobs] = useState<StudioJob[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [summarizing, setSummarizing] = useState<number | null>(null);
+  const [timestampedJobs, setTimestampedJobs] = useState<Set<number>>(
+    () => new Set(),
+  );
 
   const refresh = useCallback(async () => {
     setJobs(await commands.studioJobs());
@@ -70,11 +86,15 @@ export const StudioSettings: React.FC = () => {
             "m4a",
             "opus",
             "ogg",
+            "oga",
             "mp4",
             "mov",
             "aac",
             "flac",
             "wav",
+            "aiff",
+            "aif",
+            "caf",
           ],
         },
       ],
@@ -123,6 +143,11 @@ export const StudioSettings: React.FC = () => {
     }
   };
 
+  const getPlaybackUrl = async (id: number) => {
+    const result = await commands.studioPlaybackUrl(id);
+    return result.status === "ok" ? result.data : null;
+  };
+
   const summarize = async (job: StudioJob) => {
     setSummarizing(job.id);
     const result = await commands.studioSummarize(job.id);
@@ -149,6 +174,24 @@ export const StudioSettings: React.FC = () => {
     { icon: Globe, label: t("studio.capabilities.languages") },
     { icon: Cpu, label: t("studio.capabilities.engine") },
   ];
+
+  const completedCount = jobs.filter((job) => job.status === "done").length;
+
+  const toggleTimestamps = (id: number) => {
+    setTimestampedJobs((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const statusClasses: Record<StudioJob["status"], string> = {
+    pending: "border-mid-gray/25 bg-mid-gray/10 text-mid-gray",
+    processing: "border-logo-primary/30 bg-logo-primary/10 text-gold-text",
+    done: "border-success/25 bg-success/10 text-success",
+    error: "border-lacre/25 bg-lacre/10 text-lacre",
+  };
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
@@ -216,9 +259,15 @@ export const StudioSettings: React.FC = () => {
       )}
 
       {jobs.length > 0 && (
-        <p className="px-1 font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
-          {t("studio.recent")}
-        </p>
+        <div className="flex items-center justify-between gap-3 px-1 font-mono text-3xs font-semibold uppercase tracking-[0.14em] text-mid-gray">
+          <p>{t("studio.recent")}</p>
+          <p aria-live="polite">
+            {t("studio.queueSummary", {
+              done: completedCount,
+              total: jobs.length,
+            })}
+          </p>
+        </div>
       )}
 
       {jobs.map((job) => (
@@ -226,9 +275,19 @@ export const StudioSettings: React.FC = () => {
           key={job.id}
           className="rounded-lg border border-mid-gray/30 p-4 space-y-3"
         >
-          <div className="flex items-center justify-between gap-2">
-            <span className="font-medium text-text truncate">
+          <div className="flex items-center justify-between gap-3">
+            <span className="min-w-0 flex-1 truncate font-medium text-text">
               {job.file_name}
+            </span>
+            <span
+              className={`shrink-0 rounded-full border px-2 py-0.5 text-2xs font-medium ${statusClasses[job.status]}`}
+              aria-live="polite"
+            >
+              {job.status === "processing"
+                ? t("studio.status.processingProgress", {
+                    progress: Math.round(job.progress * 100),
+                  })
+                : t(`studio.status.${job.status}`)}
             </span>
             <button
               type="button"
@@ -240,7 +299,14 @@ export const StudioSettings: React.FC = () => {
           </div>
 
           {job.status === "processing" || job.status === "pending" ? (
-            <div className="h-2 w-full rounded-full bg-mid-gray/30 overflow-hidden">
+            <div
+              className="h-2 w-full overflow-hidden rounded-full bg-mid-gray/30"
+              role="progressbar"
+              aria-label={t("studio.progress")}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(job.progress * 100)}
+            >
               <div
                 className="h-full rounded-full bg-logo-primary transition-all"
                 style={{ width: `${Math.round(job.progress * 100)}%` }}
@@ -267,17 +333,44 @@ export const StudioSettings: React.FC = () => {
                   {t("studio.lowConfidence")}
                 </Alert>
               )}
-              <div className="max-h-40 overflow-y-auto text-sm text-text/90 whitespace-pre-wrap bg-mid-gray/10 rounded p-2">
-                {job.paragraphs.join("\n\n")}
+              <AudioPlayer
+                compact
+                className="rounded-lg border border-mid-gray/20 bg-background px-3 py-2"
+                onLoadRequest={() => getPlaybackUrl(job.id)}
+              />
+              <div className="max-h-40 overflow-y-auto whitespace-pre-wrap rounded bg-mid-gray/10 p-2 text-sm text-text/90">
+                {timestampedJobs.has(job.id)
+                  ? job.timestamped_text.join("\n")
+                  : job.paragraphs.join("\n\n")}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => copyText(job.paragraphs.join("\n\n"))}
+                  onClick={() =>
+                    copyText(
+                      timestampedJobs.has(job.id)
+                        ? job.timestamped_text.join("\n")
+                        : job.paragraphs.join("\n\n"),
+                    )
+                  }
                 >
                   {t("studio.copy")}
                 </Button>
+                {job.timestamped_text.length > 0 && (
+                  <Button
+                    variant={
+                      timestampedJobs.has(job.id) ? "primary-soft" : "secondary"
+                    }
+                    size="sm"
+                    aria-pressed={timestampedJobs.has(job.id)}
+                    onClick={() => toggleTimestamps(job.id)}
+                  >
+                    {timestampedJobs.has(job.id)
+                      ? t("studio.hideTimestamps")
+                      : t("studio.showTimestamps")}
+                  </Button>
+                )}
                 {EXPORT_FORMATS.map((fmt) => (
                   <Button
                     key={fmt}

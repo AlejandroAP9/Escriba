@@ -51,6 +51,10 @@ pub enum LlmError {
     Other(String),
 }
 
+fn should_retry_managed_request(uses_managed_sidecar: bool, timed_out: bool) -> bool {
+    uses_managed_sidecar && !timed_out
+}
+
 impl std::fmt::Display for LlmError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -248,6 +252,20 @@ pub async fn send_chat_completion_with_schema(
     let base_url = provider.base_url.trim_end_matches('/');
     let url = format!("{}/chat/completions", base_url);
 
+    // El sidecar se descarga tras unos minutos sin uso para liberar RAM. Una
+    // generación larga (acta, resumen) también puede durar varios minutos y
+    // antes el watcher la confundía con inactividad, matando llama-server a
+    // mitad de respuesta. El lease vive hasta que termina este future.
+    // `local_llm` también puede degradar a Ollama. Solo el puerto efímero que
+    // administra Escriba debe adquirir lease o reiniciarse automáticamente;
+    // nunca se toma control de un servidor Ollama del usuario.
+    let local_manager = crate::managers::local_llm::global();
+    let uses_managed_sidecar = provider.id == crate::settings::LOCAL_LLM_PROVIDER_ID
+        && local_manager.is_some_and(|manager| manager.owns_base_url(base_url));
+    let _local_request_lease = uses_managed_sidecar
+        .then(|| local_manager.map(|manager| manager.begin_request()))
+        .flatten();
+
     debug!("Sending chat completion request to: {}", url);
 
     let client = create_client(
@@ -292,18 +310,45 @@ pub async fn send_chat_completion_with_schema(
         reasoning,
     };
 
-    let response = client
-        .post(&url)
-        .json(&request_body)
-        .send()
-        .await
-        .map_err(|e| {
-            if e.is_timeout() {
+    let response = match client.post(&url).json(&request_body).send().await {
+        Ok(response) => response,
+        // Si el proceso local murió por presión de memoria o por la carrera
+        // entre ensure_running y el inicio de la petición, se reinicia y se
+        // reintenta UNA vez. Un timeout no se repite: podría duplicar cinco
+        // minutos de cómputo con un servidor que sí sigue trabajando.
+        Err(first_error)
+            if should_retry_managed_request(uses_managed_sidecar, first_error.is_timeout()) =>
+        {
+            warn!(
+                "Petición al motor local interrumpida; reiniciando y reintentando una vez: {}",
+                first_error
+            );
+            let manager = crate::managers::local_llm::global()
+                .ok_or_else(|| "Motor local no inicializado para reintento".to_string())?;
+            let retry_base = manager.recover_after_request_failure(model).await?;
+            let retry_url = format!("{}/chat/completions", retry_base.trim_end_matches('/'));
+            client
+                .post(&retry_url)
+                .json(&request_body)
+                .send()
+                .await
+                .map_err(|e| {
+                    if e.is_timeout() {
+                        LlmError::Timeout.to_string()
+                    } else {
+                        LlmError::Other(format!("HTTP request failed after local retry: {}", e))
+                            .to_string()
+                    }
+                })?
+        }
+        Err(error) => {
+            return Err(if error.is_timeout() {
                 LlmError::Timeout.to_string()
             } else {
-                LlmError::Other(format!("HTTP request failed: {}", e)).to_string()
-            }
-        })?;
+                LlmError::Other(format!("HTTP request failed: {}", error)).to_string()
+            });
+        }
+    };
 
     let status = response.status();
 
@@ -402,4 +447,16 @@ pub async fn fetch_models(
     }
 
     Ok(models)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::should_retry_managed_request;
+
+    #[test]
+    fn only_non_timeout_local_failures_are_retried() {
+        assert!(should_retry_managed_request(true, false));
+        assert!(!should_retry_managed_request(true, true));
+        assert!(!should_retry_managed_request(false, false));
+    }
 }

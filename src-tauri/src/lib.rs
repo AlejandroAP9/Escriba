@@ -688,6 +688,7 @@ pub fn run(cli_args: CliArgs) {
             commands::free_dictation::free_dictation_status,
             commands::studio::studio_enqueue,
             commands::studio::studio_jobs,
+            commands::studio::studio_playback_url,
             commands::studio::studio_retranscribe,
             commands::studio::studio_remove_job,
             commands::studio::studio_export,
@@ -703,6 +704,7 @@ pub fn run(cli_args: CliArgs) {
             shortcut::change_audio_feedback_volume_setting,
             shortcut::change_sound_theme_setting,
             shortcut::change_review_before_paste_setting,
+            shortcut::change_faithful_mode_setting,
             shortcut::change_ui_theme_setting,
             shortcut::change_ui_scale_setting,
             shortcut::change_high_contrast_setting,
@@ -854,6 +856,15 @@ pub fn run(cli_args: CliArgs) {
         // rutas ni permisos para leer `recordings/` directamente.
         .register_uri_scheme_protocol("escriba-audio", |context, request| {
             crate::recording_crypto::protocol_response(
+                context.app_handle(),
+                context.webview_label(),
+                request,
+            )
+        })
+        // El Estudio sirve únicamente el medio asociado a un job ya validado.
+        // Igual que el historial, responde por rangos y nunca entrega rutas.
+        .register_uri_scheme_protocol("escriba-studio", |context, request| {
+            crate::studio::playback::protocol_response(
                 context.app_handle(),
                 context.webview_label(),
                 request,

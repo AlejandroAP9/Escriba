@@ -436,6 +436,12 @@ pub struct AppSettings {
     /// (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
     #[serde(default)]
     pub review_before_paste: bool,
+    /// Dictado normal sin transformaciones: conserva el texto que entrega el
+    /// motor y omite diccionario difuso, limpieza lingüística, tonos por app,
+    /// numerales, emojis y reemplazos. Los atajos explícitos de Escritura
+    /// Inteligente, traducción y edición conservan su comportamiento.
+    #[serde(default)]
+    pub faithful_mode_enabled: bool,
     #[serde(default = "default_start_hidden")]
     pub start_hidden: bool,
     #[serde(default = "default_autostart_enabled")]
@@ -1108,6 +1114,7 @@ pub fn get_default_settings() -> AppSettings {
         obsidian_index_note: true,
         obsidian_daily_inbox: false,
         review_before_paste: false,
+        faithful_mode_enabled: false,
         dictated_emojis_enabled: false,
         spoken_numerals_enabled: false,
         numerals_spreadsheet_auto: false,

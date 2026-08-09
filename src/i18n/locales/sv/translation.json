@@ -298,6 +298,10 @@
           "description": "Lets Sessions capture system audio (the screen itself is not recorded)."
         }
       },
+      "faithfulMode": {
+        "label": "Faithful mode: don't change my words",
+        "description": "The normal shortcut pastes the model's text as-is: no filler or repetition removal, custom dictionary, restored accents, emojis, numerals, automatic translation, per-app tone, AI, or replacements. Smart Writing, translate, and edit shortcuts still transform text when you use them."
+      },
       "reviewBeforePaste": {
         "label": "Review before pasting",
         "description": "The dictation shows on screen before it is typed: paste it, discard it, or dictate a correction with your shortcut. For delicate emails and formal documents."
@@ -701,6 +705,9 @@
       "filterSaved": "Favorites",
       "showMore": "Show more",
       "showLess": "Show less",
+      "showOriginal": "Show original text",
+      "hideOriginal": "Hide original text",
+      "originalLabel": "Original model text",
       "noResults": "No dictations match your search.",
       "storageTitle": "Storage & retention",
       "deleteConfirm": "This will permanently delete the text and its audio. This can't be undone.",
@@ -1006,6 +1013,17 @@
     "heroSubtitle": "Everything runs locally on your computer. Nothing is uploaded to the internet.",
     "dropZoneClick": "or click to choose files",
     "recent": "Recent",
+    "queueSummary": "{{done}} of {{total}} completed",
+    "progress": "Transcription progress",
+    "showTimestamps": "Show timestamps",
+    "hideTimestamps": "Hide timestamps",
+    "status": {
+      "pending": "Queued",
+      "processing": "Transcribing",
+      "processingProgress": "Transcribing {{progress}}%",
+      "done": "Completed",
+      "error": "Error"
+    },
     "capabilities": {
       "local": "100% Local",
       "languages": "100+ languages",
@@ -1230,7 +1248,7 @@
     "copied": "Copied",
     "newSession": "New session",
     "replyFailed": "We couldn’t reply. Check the local engine in Post Process.",
-    "docError": "We couldn’t create the document. Check the local engine and try again.",
+    "docError": "We couldn’t create the document. Your transcription is still here; try again without restarting the session.",
     "emptyFinish": "The session is empty: nothing to convert.",
     "localNote": "Local by default: your voice is always transcribed on your machine. Text only leaves if you turn on a remote provider.",
     "afterStart": "Then every phrase joins the session by holding",

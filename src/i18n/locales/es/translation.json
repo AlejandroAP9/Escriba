@@ -316,6 +316,10 @@
           "description": "Permite capturar el audio del sistema en Sesiones (la pantalla no se graba)."
         }
       },
+      "faithfulMode": {
+        "label": "Modo fiel: no cambiar mis palabras",
+        "description": "El atajo normal pega el texto tal como lo entrega el modelo: sin quitar muletillas o repeticiones y sin diccionario, tildes restauradas, emojis, numerales, traducción automática, tonos por app, IA ni reemplazos. Los atajos de Escritura Inteligente, traducir y editar siguen transformando cuando los usas."
+      },
       "reviewBeforePaste": {
         "label": "Revisar antes de pegar",
         "description": "El dictado se muestra en pantalla antes de escribirse: pégalo, descártalo o dicta una corrección con tu atajo. Para correos delicados y documentos formales."
@@ -701,6 +705,9 @@
       "filterSaved": "Favoritos",
       "showMore": "Ver más",
       "showLess": "Ver menos",
+      "showOriginal": "Ver texto original",
+      "hideOriginal": "Ocultar texto original",
+      "originalLabel": "Texto original del motor",
       "noResults": "Ningún dictado coincide con tu búsqueda.",
       "storageTitle": "Guardado y retención",
       "deleteConfirm": "Se borrará el texto y su audio para siempre. Esta acción no se puede deshacer.",
@@ -734,7 +741,7 @@
         "empty": "Esperando registros… Las entradas aparecerán aquí a medida que la aplicación las emita."
       },
       "updateChecks": {
-        "label": "Buscar actualizaciones",
+        "label": "Buscar actualizaciones automáticamente",
         "description": "Buscar automáticamente nuevas versiones de Escriba"
       },
       "soundTheme": {
@@ -1006,6 +1013,17 @@
     "heroSubtitle": "Todo ocurre localmente en tu computador. Nada se sube a internet.",
     "dropZoneClick": "o haz clic para elegir archivos",
     "recent": "Recientes",
+    "queueSummary": "{{done}} de {{total}} completadas",
+    "progress": "Progreso de la transcripción",
+    "showTimestamps": "Mostrar marcas de tiempo",
+    "hideTimestamps": "Ocultar marcas de tiempo",
+    "status": {
+      "pending": "En cola",
+      "processing": "Transcribiendo",
+      "processingProgress": "Transcribiendo {{progress}}%",
+      "done": "Completada",
+      "error": "Error"
+    },
     "capabilities": {
       "local": "100% Local",
       "languages": "100+ idiomas",
@@ -1230,7 +1248,7 @@
     "copied": "Copiado",
     "newSession": "Nueva sesión",
     "replyFailed": "No pudimos responder. Revisa el motor local en Escritura Inteligente.",
-    "docError": "No pudimos crear el documento. Revisa el motor local e inténtalo de nuevo.",
+    "docError": "No pudimos crear el documento. Tu transcripción sigue aquí; inténtalo de nuevo sin reiniciar la sesión.",
     "emptyFinish": "La sesión está vacía: no hay nada que convertir.",
     "localNote": "Local por defecto: tu voz siempre se transcribe en tu equipo. El texto solo sale si activas un proveedor remoto.",
     "afterStart": "Después, cada frase entra manteniendo",
@@ -1515,7 +1533,7 @@
       "translator": "Traductor gestiona turnos entre dos idiomas y conserva contexto breve. Intérprete sirve para una sala en vivo; Sesiones puede convertir una conversación larga en documento.",
       "writing": "Escritura inteligente puede corregir, traducir o cambiar el tono de un dictado con el motor local. Configura sus plantillas y su atajo en Escritura inteligente.",
       "obsidian": "Elige tu vault en General. Escriba puede exportar notas revisadas, mantener un índice, enlazar menciones y añadir dictados a un inbox diario.",
-      "updates": "Encontrar una actualización nunca la instala sola: debes pulsar explícitamente «Actualización disponible». Las instalaciones portables muestran la vía manual.",
+      "updates": "El botón «Buscar actualizaciones» funciona siempre. El ajuste de Depuración controla solo las búsquedas automáticas. Encontrar una actualización nunca la instala sola: debes pulsar explícitamente «Actualización disponible». Las instalaciones portables muestran la vía manual.",
       "overview": "Puedo ayudarte con dictado y permisos, atajos, modelos, privacidad, Historial, Estudio, Traductor, Escritura inteligente, Obsidian y actualizaciones. Pregunta por uno y te llevaré al lugar correcto."
     }
   }

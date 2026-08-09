@@ -32,6 +32,7 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
 
   const upToDateTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const isManualCheckRef = useRef(false);
+  const isCheckingRef = useRef(false);
   const downloadedBytesRef = useRef(0);
   const contentLengthRef = useRef(0);
 
@@ -39,17 +40,12 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
     // Wait for settings to load before doing anything
     if (!settingsLoaded) return;
 
-    if (!updateChecksEnabled) {
-      if (upToDateTimeoutRef.current) {
-        clearTimeout(upToDateTimeoutRef.current);
-      }
-      setIsChecking(false);
-      setUpdateAvailable(false);
-      setShowUpToDate(false);
-      return;
+    // Este ajuste controla solo la comprobación AUTOMÁTICA. La búsqueda manual
+    // debe seguir disponible: antes apagar el chequeo de fondo inutilizaba
+    // también el botón y la opción del menú de bandeja.
+    if (updateChecksEnabled) {
+      void checkForUpdates(false);
     }
-
-    checkForUpdates();
 
     // Listen for update check events
     const updateUnlisten = listen("check-for-updates", () => {
@@ -65,16 +61,25 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
   }, [settingsLoaded, updateChecksEnabled]);
 
   // Update checking functions
-  const checkForUpdates = async () => {
-    if (!updateChecksEnabled || isChecking) return;
+  const checkForUpdates = async (manual: boolean) => {
+    if ((!manual && !updateChecksEnabled) || isCheckingRef.current) return;
 
     try {
+      isManualCheckRef.current = manual;
+      isCheckingRef.current = true;
       setIsChecking(true);
       const update = await check();
 
       if (update) {
         setUpdateAvailable(true);
         setShowUpToDate(false);
+        // Solo conservamos el metadato. `installUpdate` vuelve a comprobar para
+        // descargar el artefacto correcto y este recurso nativo ya no hace falta.
+        await update.close().catch((error) => {
+          // El resultado ya es útil; fallar al liberar el handle no convierte
+          // una comprobación correcta en un error de red para la persona.
+          console.warn("Failed to close updater metadata resource:", error);
+        });
       } else {
         setUpdateAvailable(false);
 
@@ -95,35 +100,35 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
         toast.error(t("footer.updateCheckFailed"));
       }
     } finally {
+      isCheckingRef.current = false;
       setIsChecking(false);
       isManualCheckRef.current = false;
     }
   };
 
   const handleManualUpdateCheck = () => {
-    if (!updateChecksEnabled) return;
-    isManualCheckRef.current = true;
-    checkForUpdates();
+    void checkForUpdates(true);
   };
 
   const installUpdate = async () => {
-    if (!updateChecksEnabled) return;
-
-    const portable = await commands.isPortable();
-    if (portable) {
-      setShowPortableUpdateDialog(true);
-      return;
-    }
-
+    let update: Awaited<ReturnType<typeof check>> = null;
     try {
+      const portable = await commands.isPortable();
+      if (portable) {
+        setShowPortableUpdateDialog(true);
+        return;
+      }
+
       setIsInstalling(true);
       setDownloadProgress(0);
       downloadedBytesRef.current = 0;
       contentLengthRef.current = 0;
-      const update = await check();
+      update = await check();
 
       if (!update) {
         console.log("No update available during install attempt");
+        setUpdateAvailable(false);
+        setShowUpToDate(true);
         return;
       }
 
@@ -151,6 +156,11 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
       console.error("Failed to install update:", error);
       toast.error(t("footer.updateInstallFailed"));
     } finally {
+      if (update) {
+        await update.close().catch((error) => {
+          console.warn("Failed to close updater resource:", error);
+        });
+      }
       setIsInstalling(false);
       setDownloadProgress(0);
       downloadedBytesRef.current = 0;
@@ -160,9 +170,6 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
 
   // Update status functions
   const getUpdateStatusText = () => {
-    if (!updateChecksEnabled) {
-      return t("footer.updateCheckingDisabled");
-    }
     if (isInstalling) {
       return downloadProgress > 0 && downloadProgress < 100
         ? t("footer.downloading", {
@@ -179,14 +186,13 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
   };
 
   const getUpdateStatusAction = () => {
-    if (!updateChecksEnabled) return undefined;
     if (updateAvailable && !isInstalling) return installUpdate;
     if (!isChecking && !isInstalling && !updateAvailable)
       return handleManualUpdateCheck;
     return undefined;
   };
 
-  const isUpdateDisabled = !updateChecksEnabled || isChecking || isInstalling;
+  const isUpdateDisabled = isChecking || isInstalling;
   const isUpdateClickable =
     !isUpdateDisabled && (updateAvailable || (!isChecking && !showUpToDate));
 
@@ -229,17 +235,16 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
       </Dialog>
       <div className={`flex items-center gap-3 ${className}`}>
         {isUpdateClickable ? (
-          <button
+          <Button
+            type="button"
+            variant={updateAvailable ? "primary" : "secondary"}
+            size="sm"
             onClick={getUpdateStatusAction()}
             disabled={isUpdateDisabled}
-            className={`transition-colors disabled:opacity-50 tabular-nums ${
-              updateAvailable
-                ? "text-gold-text hover:text-gold-text/80 font-medium"
-                : "text-text/60 hover:text-text/80"
-            }`}
+            className="tabular-nums"
           >
             {getUpdateStatusText()}
-          </button>
+          </Button>
         ) : (
           <span className="text-text/60 tabular-nums">
             {getUpdateStatusText()}

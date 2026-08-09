@@ -95,7 +95,7 @@ impl HelpTopic {
                 "El vault y sus opciones se configuran en General. Escriba puede exportar notas, mantener un índice, enlazar menciones con notas existentes y añadir dictados a un inbox diario. La vista previa permite revisar antes de escribir."
             }
             Self::Updates => {
-                "Escriba busca actualizaciones solo si la opción está activa. Encontrar una actualización no la instala: la persona debe pulsar explícitamente 'Actualización disponible'. Las instalaciones portables muestran instrucciones de actualización manual."
+                "El botón 'Buscar actualizaciones' funciona siempre. La opción de Depuración controla solo la búsqueda automática en segundo plano. Encontrar una versión nueva no la instala: la persona debe pulsar explícitamente 'Actualización disponible'. Las instalaciones portables muestran instrucciones de actualización manual."
             }
             Self::Overview => {
                 "Plumín ayuda exclusivamente con Escriba: dictado y permisos, atajos, modelos, privacidad, historial, Estudio, Traductor, Escritura inteligente, Obsidian y actualizaciones. Para actuar, abre la sección recomendada de la app."

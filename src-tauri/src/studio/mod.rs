@@ -4,4 +4,5 @@
 pub mod decode;
 pub mod export;
 pub mod pipeline;
+pub mod playback;
 pub mod segments;

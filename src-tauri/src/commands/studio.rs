@@ -41,6 +41,8 @@ pub enum JobStatus {
 pub struct StudioJob {
     pub id: u64,
     pub file_name: String,
+    #[specta(skip)]
+    #[serde(skip)]
     pub path: String,
     pub status: JobStatus,
     pub progress: f32,
@@ -50,6 +52,9 @@ pub struct StudioJob {
     #[serde(skip)]
     pub segments: Vec<Segment>,
     pub paragraphs: Vec<String>,
+    /// Líneas listas para la vista humana `[M:SS] texto`. Los segmentos crudos
+    /// siguen privados: la UI recibe solo lo que necesita para alternar la vista.
+    pub timestamped_text: Vec<String>,
     pub summary: Option<String>,
     /// Modelo con el que se produjo esta transcripción (para mostrar el recibo
     /// "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
@@ -133,6 +138,7 @@ pub fn studio_enqueue(app: AppHandle, paths: Vec<String>) -> Result<Vec<u64>, St
             duration_s: 0.0,
             segments: Vec::new(),
             paragraphs: Vec::new(),
+            timestamped_text: Vec::new(),
             summary: None,
             model_id: None,
             low_confidence: false,
@@ -186,6 +192,7 @@ fn spawn_job(app: AppHandle, id: u64, path: PathBuf, model_id: Option<String>) {
         match result {
             Ok((segments, duration_s)) => {
                 let paragraphs = crate::studio::segments::group_paragraphs(&segments);
+                let timestamped_text = export::to_timestamped_lines(&segments);
                 // Basta con que un solo tramo venga dudoso para avisar: el
                 // usuario tiene que releer antes de exportar un subtítulo.
                 let low_confidence = segments.iter().any(|s| s.is_low_confidence());
@@ -195,6 +202,7 @@ fn spawn_job(app: AppHandle, id: u64, path: PathBuf, model_id: Option<String>) {
                     job.duration_s = duration_s;
                     job.segments = segments;
                     job.paragraphs = paragraphs;
+                    job.timestamped_text = timestamped_text;
                     job.model_id = model_id.clone();
                     job.low_confidence = low_confidence;
                 }
@@ -222,6 +230,35 @@ fn set_status(state: &Arc<StudioState>, id: u64, status: JobStatus) {
 #[specta::specta]
 pub fn studio_jobs(app: AppHandle) -> Vec<StudioJob> {
     app.state::<Arc<StudioState>>().jobs.lock().unwrap().clone()
+}
+
+/// Devuelve una URL privada y efímera para reproducir el medio de un job. La
+/// ruta no cruza a JavaScript y el protocolo vuelve a validar id, estado y ruta
+/// en cada petición/rango.
+#[tauri::command]
+#[specta::specta]
+pub fn studio_playback_url(app: AppHandle, id: u64) -> Result<String, String> {
+    let raw_path = {
+        let state = app.state::<Arc<StudioState>>();
+        let jobs = state.jobs.lock().unwrap_or_else(|error| error.into_inner());
+        let job = jobs
+            .iter()
+            .find(|job| job.id == id && job.status == JobStatus::Done)
+            .ok_or("Job no encontrado o todavía no terminado")?;
+        PathBuf::from(&job.path)
+    };
+    if !decode::supported_extension(&raw_path) {
+        return Err("Formato no soportado".to_string());
+    }
+    let path = crate::path_guard::contain_media_path(
+        &app,
+        &raw_path,
+        "El archivo original ya no está disponible",
+    )?;
+    if !path.is_file() {
+        return Err("El archivo original ya no está disponible".to_string());
+    }
+    Ok(crate::studio::playback::playback_url(id))
 }
 
 /// Re-transcribe un job ya terminado con OTRO modelo. Re-decodifica el archivo
@@ -259,6 +296,7 @@ pub fn studio_retranscribe(
         job.error = None;
         job.segments = Vec::new();
         job.paragraphs = Vec::new();
+        job.timestamped_text = Vec::new();
         job.summary = None;
         job.low_confidence = false;
     }

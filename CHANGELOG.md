@@ -11,6 +11,53 @@ convertir una app de dictado en un motor de IA **100% local y gratis**.
 
 ## [Sin publicar]
 
+## [2.3.1] — 2026-08-09
+
+**Fiel a tu voz.** Esta versión responde directamente a las primeras pruebas
+reales de la comunidad: quien necesita transcripción literal puede impedir que
+Escriba interprete sus palabras, y quien trabaja con sesiones largas puede
+terminar el documento sin que el motor local desaparezca a mitad del proceso.
+
+### Añadido
+
+- **Modo fiel**: el dictado normal puede pegar exactamente la salida del motor,
+  sin quitar muletillas o repeticiones y sin aplicar diccionario, tildes,
+  emojis, numerales, traducción automática, tonos por aplicación, IA ni
+  reemplazos. Los atajos explícitos para escribir, traducir o editar siguen
+  transformando el texto cuando el usuario los elige.
+- **Actualización desde Escriba**: el botón «Buscar actualizaciones» funciona
+  siempre, aunque la comprobación automática esté apagada. Cuando existe una
+  versión firmada, la app puede descargarla, instalarla y reiniciarse sin que
+  el usuario vuelva a descargar todo el repositorio.
+- **Reproductor de Estudio**: audio y video pueden revisarse dentro de la app
+  mediante un protocolo local acotado a los archivos elegidos, sin ampliar el
+  acceso general del frontend al disco.
+- **Cola y progreso de Estudio**: cada archivo muestra si está esperando,
+  transcribiendo, terminado o fallido; también se puede seguir el porcentaje y
+  mostrar u ocultar las marcas de tiempo.
+
+### Cambiado
+
+- **Historial verificable**: conserva el texto final realmente pegado y permite
+  desplegar la salida original del motor para comparar qué cambió el
+  postproceso.
+- **Más formatos en Estudio**: el selector y el reproductor reconocen los
+  formatos de audio y video admitidos por el pipeline local.
+- **Mensajes de actualización y ayuda** más precisos sobre las comprobaciones
+  manuales, automáticas y el estado real de la configuración.
+
+### Corregido
+
+- **Las actas largas ya no pierden el motor local a mitad de generación**: el
+  supervisor confundía una petición que llevaba más de cinco minutos trabajando
+  con inactividad y cerraba `llama-server`, normalmente durante la segunda
+  parte del documento. Ahora cada petición mantiene un lease activo hasta
+  terminar y una caída real de transporte permite un único reinicio y
+  reintento seguro.
+- **La transcripción de una sesión se conserva tras un error al crear el
+  documento**, y el mensaje indica que se puede reintentar sin reiniciar la
+  sesión.
+
 ## [2.3.0] — 2026-08-09
 
 **La respuesta del escriba.** Ganado el hackathon, tomamos lo único que cada

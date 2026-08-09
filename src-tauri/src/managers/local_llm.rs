@@ -3,7 +3,7 @@ use std::fs;
 use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::sync::atomic::{AtomicU16, Ordering};
+use std::sync::atomic::{AtomicU16, AtomicUsize, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
@@ -23,6 +23,7 @@ pub struct LocalLlmManager {
     child: Mutex<Option<Child>>,
     port: AtomicU16,
     last_used: Mutex<Instant>,
+    active_requests: AtomicUsize,
     runtime_dir: PathBuf,
     models_dir: PathBuf,
     pid_file: PathBuf,
@@ -40,6 +41,7 @@ pub fn init(app_data_dir: &Path) {
         child: Mutex::new(None),
         port: AtomicU16::new(0),
         last_used: Mutex::new(Instant::now()),
+        active_requests: AtomicUsize::new(0),
         pid_file: runtime_dir.join("llama-server.pid"),
         runtime_dir,
         models_dir,
@@ -60,7 +62,8 @@ pub fn init(app_data_dir: &Path) {
                 .lock()
                 .map(|t| t.elapsed().as_secs())
                 .unwrap_or(0);
-            if idle > IDLE_UNLOAD_SECS && mgr.is_running() {
+            let active = mgr.active_requests.load(Ordering::Acquire);
+            if should_idle_unload(idle, active, mgr.is_running()) {
                 info!("Local LLM idle for {}s, unloading sidecar", idle);
                 mgr.shutdown();
             }
@@ -72,7 +75,31 @@ pub fn global() -> Option<&'static LocalLlmManager> {
     MANAGER.get()
 }
 
+/// Una generación puede tardar más que el umbral de descarga en reposo. El
+/// guard mantiene vivo llama-server durante toda la petición y reinicia el
+/// reloj al terminar, también ante error o cancelación del future.
+pub struct RequestLease<'a> {
+    manager: &'a LocalLlmManager,
+}
+
+impl Drop for RequestLease<'_> {
+    fn drop(&mut self) {
+        self.manager.active_requests.fetch_sub(1, Ordering::AcqRel);
+        self.manager.touch();
+    }
+}
+
+fn should_idle_unload(idle_secs: u64, active_requests: usize, running: bool) -> bool {
+    running && active_requests == 0 && idle_secs > IDLE_UNLOAD_SECS
+}
+
 impl LocalLlmManager {
+    pub fn begin_request(&self) -> RequestLease<'_> {
+        self.touch();
+        self.active_requests.fetch_add(1, Ordering::AcqRel);
+        RequestLease { manager: self }
+    }
+
     pub fn models_dir(&self) -> &Path {
         &self.models_dir
     }
@@ -108,6 +135,11 @@ impl LocalLlmManager {
 
     fn base_url(&self) -> String {
         format!("http://127.0.0.1:{}/v1", self.port.load(Ordering::Relaxed))
+    }
+
+    pub fn owns_base_url(&self, url: &str) -> bool {
+        self.port.load(Ordering::Relaxed) != 0
+            && url.trim_end_matches('/') == self.base_url().trim_end_matches('/')
     }
 
     fn touch(&self) {
@@ -176,8 +208,16 @@ impl LocalLlmManager {
     pub async fn ensure_running(&self, model: &str) -> Result<String, String> {
         self.touch();
 
-        if self.is_running() && health_ok(&self.base_url(), 1500).await {
-            return Ok(self.base_url());
+        if self.is_running() {
+            // Con una generación en curso, /health puede tardar detrás del
+            // trabajo del modelo. Tratar ese retraso como proceso enfermo y
+            // llamar shutdown cortaría la petición activa. El lease ya prueba
+            // que hay un consumidor legítimo y el proceso sigue vivo.
+            if self.active_requests.load(Ordering::Acquire) > 0
+                || health_ok(&self.base_url(), 1500).await
+            {
+                return Ok(self.base_url());
+            }
         }
 
         // Not healthy: clean slate before respawn.
@@ -248,6 +288,17 @@ impl LocalLlmManager {
         }
     }
 
+    /// Recupera una petición administrada que falló por transporte. Si era la
+    /// única petición activa, fuerza un proceso limpio; con otras peticiones
+    /// en curso solo reinicia cuando el hijo realmente murió, para no cortar
+    /// trabajo sano por un fallo aislado de conexión.
+    pub async fn recover_after_request_failure(&self, model: &str) -> Result<String, String> {
+        if self.active_requests.load(Ordering::Acquire) <= 1 {
+            self.shutdown();
+        }
+        self.ensure_running(model).await
+    }
+
     /// Kill the sidecar (idempotent). Called on idle timeout, respawn and app exit.
     pub fn shutdown(&self) {
         if let Ok(mut guard) = self.child.lock() {
@@ -316,6 +367,7 @@ async fn health_ok(base_url: &str, timeout_ms: u64) -> bool {
 /// a cold Metal pipeline). Fire-and-forget from app startup.
 pub async fn warmup(model: &str) {
     let Some(mgr) = MANAGER.get() else { return };
+    let _lease = mgr.begin_request();
     let base_url = match mgr.ensure_running(model).await {
         Ok(url) => url,
         Err(err) => {
@@ -340,12 +392,55 @@ pub async fn warmup(model: &str) {
         Ok(_) => info!("Local LLM warmed up and ready"),
         Err(err) => warn!("Local LLM warmup request failed: {}", err),
     }
-    mgr.touch();
 }
 
 /// Kill the sidecar on app exit. Wired into RunEvent::Exit in lib.rs.
 pub fn shutdown_on_exit() {
     if let Some(mgr) = MANAGER.get() {
         mgr.shutdown();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn active_request_prevents_idle_unload() {
+        assert!(!should_idle_unload(IDLE_UNLOAD_SECS + 30, 1, true));
+        assert!(!should_idle_unload(IDLE_UNLOAD_SECS + 30, 3, true));
+    }
+
+    #[test]
+    fn idle_unload_requires_running_server_and_elapsed_limit() {
+        assert!(should_idle_unload(IDLE_UNLOAD_SECS + 1, 0, true));
+        assert!(!should_idle_unload(IDLE_UNLOAD_SECS, 0, true));
+        assert!(!should_idle_unload(IDLE_UNLOAD_SECS + 1, 0, false));
+    }
+
+    #[test]
+    fn request_lease_tracks_active_work_and_releases_on_drop() {
+        let base = std::env::temp_dir().join("escriba-local-llm-lease-test");
+        let manager = LocalLlmManager {
+            child: Mutex::new(None),
+            port: AtomicU16::new(0),
+            last_used: Mutex::new(Instant::now()),
+            active_requests: AtomicUsize::new(0),
+            runtime_dir: base.clone(),
+            models_dir: base.clone(),
+            pid_file: base.join("llama-server.pid"),
+        };
+
+        {
+            let _lease = manager.begin_request();
+            assert_eq!(manager.active_requests.load(Ordering::Acquire), 1);
+            assert!(!should_idle_unload(
+                IDLE_UNLOAD_SECS + 60,
+                manager.active_requests.load(Ordering::Acquire),
+                true,
+            ));
+        }
+
+        assert_eq!(manager.active_requests.load(Ordering::Acquire), 0);
     }
 }

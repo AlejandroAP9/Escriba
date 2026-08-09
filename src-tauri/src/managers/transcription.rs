@@ -806,7 +806,7 @@ impl TranscriptionManager {
     /// model can't stream, the worker idles until finalize/cancel and reports
     /// `None` so the caller falls back to batch transcription. Frames sent
     /// before the stream begins queue on the channel and are not lost.
-    pub fn start_stream(&self) {
+    pub fn start_stream(&self, faithful: bool) {
         if self.router.is_open() || self.active_stream_worker.load(Ordering::Acquire) != 0 {
             warn!("start_stream called while a stream worker is already active");
             return;
@@ -824,10 +824,10 @@ impl TranscriptionManager {
         self.stream_active.store(false, Ordering::Release);
 
         let manager = self.clone();
-        thread::spawn(move || manager.run_stream_worker(rx, worker_id));
+        thread::spawn(move || manager.run_stream_worker(rx, worker_id, faithful));
     }
 
-    fn run_stream_worker(&self, rx: mpsc::Receiver<StreamCmd>, worker_id: u64) {
+    fn run_stream_worker(&self, rx: mpsc::Receiver<StreamCmd>, worker_id: u64, faithful: bool) {
         let _worker = StreamWorkerGuard {
             worker_id,
             active_stream_worker: Arc::clone(&self.active_stream_worker),
@@ -926,7 +926,7 @@ impl TranscriptionManager {
         let effective_language =
             effective_language_for_model(&settings, self.model_manager.as_ref(), &model_id);
         let run_plan = transcribe_cpp_run_plan(
-            settings.translate_to_english,
+            settings.translate_to_english && !faithful,
             &effective_language,
             &languages,
             supports_translate,
@@ -1085,7 +1085,7 @@ impl TranscriptionManager {
     /// to batch transcription. `Err` means finalize itself failed or timed out.
     /// A timeout may still leave the worker holding the engine, so callers
     /// should surface it instead of immediately starting a batch fallback.
-    pub fn finalize_stream(&self) -> Result<Option<String>> {
+    pub fn finalize_stream(&self, faithful: bool) -> Result<Option<String>> {
         let Some(tx) = self.router.take() else {
             return Ok(None);
         };
@@ -1109,7 +1109,7 @@ impl TranscriptionManager {
         let settings = get_settings(&self.app_handle);
         // Streaming models do not receive a decode prompt, so custom words
         // always go through the shared fuzzy post-correction path.
-        let filtered = post_process_transcription_text(raw, &settings, false);
+        let filtered = post_process_transcription_text(raw, &settings, false, faithful);
 
         self.maybe_unload_immediately("streaming transcription");
         Ok(Some(filtered))
@@ -1261,7 +1261,7 @@ impl TranscriptionManager {
             // todos por aquí. `false` porque esta rama no pasa las palabras del
             // diccionario como initial prompt del modelo.
             let clean = |raw: &str| {
-                post_process_transcription_text(raw.trim().to_string(), &settings, false)
+                post_process_transcription_text(raw.trim().to_string(), &settings, false, false)
             };
             let mut segments: Vec<StudioSegment> = transcript
                 .segments
@@ -1319,6 +1319,18 @@ impl TranscriptionManager {
     }
 
     pub fn transcribe(&self, audio: Vec<f32>) -> Result<String> {
+        self.transcribe_with_fidelity(audio, false)
+    }
+
+    /// Transcribe sin alterar las palabras entregadas por el motor. Se usa
+    /// únicamente desde el dictado normal cuando el usuario activa Modo fiel;
+    /// Estudio, re-transcripción y los atajos de transformación conservan el
+    /// pipeline habitual.
+    pub fn transcribe_faithful(&self, audio: Vec<f32>) -> Result<String> {
+        self.transcribe_with_fidelity(audio, true)
+    }
+
+    fn transcribe_with_fidelity(&self, audio: Vec<f32>, faithful: bool) -> Result<String> {
         #[cfg(debug_assertions)]
         if std::env::var("HANDY_FORCE_TRANSCRIPTION_FAILURE").is_ok() {
             return Err(anyhow::anyhow!(
@@ -1445,17 +1457,18 @@ impl TranscriptionManager {
                         // whisper run extension to a non-whisper arch is rejected
                         // with INVALID_ARG, so skip it there and let the fuzzy
                         // post-correction handle custom words instead.
-                        let family = if settings.custom_words.is_empty() || !model_is_whisper {
-                            None
-                        } else {
-                            Some(RunExtension::Whisper(WhisperRunOptions {
-                                initial_prompt: Some(settings.custom_words.join(", ")),
-                                ..Default::default()
-                            }))
-                        };
+                        let family =
+                            if faithful || settings.custom_words.is_empty() || !model_is_whisper {
+                                None
+                            } else {
+                                Some(RunExtension::Whisper(WhisperRunOptions {
+                                    initial_prompt: Some(settings.custom_words.join(", ")),
+                                    ..Default::default()
+                                }))
+                            };
 
                         let run_plan = transcribe_cpp_run_plan(
-                            settings.translate_to_english,
+                            settings.translate_to_english && !faithful,
                             &validated_language,
                             &model_languages,
                             model_supports_translate,
@@ -1514,7 +1527,9 @@ impl TranscriptionManager {
                         };
                         let params = SenseVoiceParams {
                             language,
-                            use_itn: Some(true),
+                            // ITN convierte palabras numéricas a cifras. En
+                            // Modo fiel se deja la forma verbal del motor.
+                            use_itn: Some(!faithful),
                         };
                         sense_voice_engine
                             .transcribe_with(&audio, &params)
@@ -1533,7 +1548,7 @@ impl TranscriptionManager {
                         };
                         let options = TranscribeOptions {
                             language: lang,
-                            translate: settings.translate_to_english,
+                            translate: settings.translate_to_english && !faithful,
                             ..Default::default()
                         };
                         canary_engine
@@ -1626,10 +1641,10 @@ impl TranscriptionManager {
         // porque no estorba. Va de la mano del tope al impulso fonético en
         // `apply_custom_words`, sin el cual esto habría corrompido castellano
         // corriente.
-        let filtered_result = post_process_transcription_text(result, &settings, false);
+        let filtered_result = post_process_transcription_text(result, &settings, false, faithful);
 
         let et = std::time::Instant::now();
-        let translation_note = if settings.translate_to_english {
+        let translation_note = if settings.translate_to_english && !faithful {
             " (translated)"
         } else {
             ""
@@ -1844,7 +1859,15 @@ fn post_process_transcription_text(
     raw: String,
     settings: &AppSettings,
     custom_words_already_prompted: bool,
+    faithful: bool,
 ) -> String {
+    // El trim elimina solo el espacio de envoltura que agregan algunos
+    // backends. No se quitan muletillas ni repeticiones, no se corrigen
+    // palabras y no se reescribe puntuación: esta es la salida del motor.
+    if faithful {
+        return raw.trim().to_string();
+    }
+
     let corrected = if !settings.custom_words.is_empty() && !custom_words_already_prompted {
         apply_custom_words(
             &raw,
@@ -2226,6 +2249,41 @@ mod tests {
         assert!(matches!(plan.task, Task::Transcribe));
         assert_eq!(plan.language.as_deref(), Some("es"));
         assert_eq!(plan.target_language, None);
+    }
+
+    #[test]
+    fn faithful_mode_preserves_engine_words() {
+        let mut settings = crate::settings::get_default_settings();
+        settings.app_language = "es".to_string();
+        settings.selected_language = "es".to_string();
+        settings.custom_words = vec!["Escriba".to_string()];
+        settings.dictated_emojis_enabled = true;
+        settings.spoken_numerals_enabled = true;
+        let raw = "  ehm escriba escriba escriba emoji cara feliz tres millones y medio  ";
+
+        assert_eq!(
+            post_process_transcription_text(raw.to_string(), &settings, false, true),
+            "ehm escriba escriba escriba emoji cara feliz tres millones y medio"
+        );
+    }
+
+    #[test]
+    fn regular_mode_keeps_existing_transformations() {
+        let mut settings = crate::settings::get_default_settings();
+        settings.app_language = "es".to_string();
+        settings.selected_language = "es".to_string();
+        settings.dictated_emojis_enabled = true;
+        settings.spoken_numerals_enabled = true;
+
+        assert_eq!(
+            post_process_transcription_text(
+                "emoji cara feliz tres millones y medio".to_string(),
+                &settings,
+                false,
+                false,
+            ),
+            "🙂 3.500.000"
+        );
     }
 }
 

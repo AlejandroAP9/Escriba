@@ -1013,6 +1013,10 @@ pub(crate) async fn process_transcription_output(
     mode: TranscribeMode,
 ) -> ProcessedTranscription {
     let settings = get_settings(app);
+    // Modo fiel gobierna solo el atajo de dictado normal. Traducir, editar y
+    // Escritura Inteligente son transformaciones pedidas explícitamente y no
+    // deben quedar anuladas por este ajuste.
+    let faithful = settings.faithful_mode_enabled && mode == TranscribeMode::Standard;
     let mut final_text = transcription.to_string();
     let mut post_processed_text: Option<String> = None;
     let mut post_process_prompt: Option<String> = None;
@@ -1021,10 +1025,12 @@ pub(crate) async fn process_transcription_output(
     // intent coerced against the loaded model's capabilities) so OpenCC keys off
     // the effective language rather than a possibly-stale intent.
     let effective_language = resolve_effective_language(app, &settings);
-    if let Some(converted_text) =
-        maybe_convert_chinese_variant(&effective_language, transcription).await
-    {
-        final_text = converted_text;
+    if !faithful {
+        if let Some(converted_text) =
+            maybe_convert_chinese_variant(&effective_language, transcription).await
+        {
+            final_text = converted_text;
+        }
     }
 
     // Dictado en un campo de la app (botón de micrófono): el texto va al campo
@@ -1123,7 +1129,8 @@ pub(crate) async fn process_transcription_output(
     // agresivo ("cinco" → 5) aunque el interruptor global esté apagado. Vive
     // AQUÍ y no en el pipeline compartido a propósito: el Estudio y el CLI no
     // pegan en la app activa, así que la app al frente no les incumbe.
-    if settings.numerals_spreadsheet_auto
+    if !faithful
+        && settings.numerals_spreadsheet_auto
         && frontmost_es_planilla()
         && crate::audio_toolkit::spanish::aplica_espanol(&settings.selected_language, &final_text)
     {
@@ -1136,7 +1143,7 @@ pub(crate) async fn process_transcription_output(
     // Tonos por app: un dictado NORMAL en una app con regla se post-procesa
     // solo con la plantilla de esa app (magia sin atajo). El resto del dictado
     // normal sigue siendo transcripción textual.
-    let ctx_prompt_id = if mode == TranscribeMode::Standard {
+    let ctx_prompt_id = if mode == TranscribeMode::Standard && !faithful {
         app_context_prompt(&settings)
     } else {
         None
@@ -1174,7 +1181,7 @@ pub(crate) async fn process_transcription_output(
 
     // Reglas deterministas de buscar/reemplazar sobre el texto final (antes de
     // pegar). Se aplican después del post-proceso con IA.
-    if !settings.text_replacements.is_empty() {
+    if !faithful && !settings.text_replacements.is_empty() {
         let replaced = apply_text_replacements(&final_text, &settings.text_replacements);
         if replaced != final_text {
             final_text = replaced;
@@ -1260,7 +1267,8 @@ impl ShortcutAction for TranscribeAction {
             VadPolicy::Offline
         };
         if model_supports_streaming {
-            tm.start_stream();
+            let faithful = self.mode == TranscribeMode::Standard && settings.faithful_mode_enabled;
+            tm.start_stream(faithful);
         }
         let plan_elapsed = plan_started.elapsed();
 
@@ -1428,6 +1436,7 @@ impl ShortcutAction for TranscribeAction {
         let binding_id = binding_id.to_string(); // Clone binding_id for the async task
         let mode = self.mode;
         let post_process = mode != TranscribeMode::Standard;
+        let faithful = mode == TranscribeMode::Standard && get_settings(app).faithful_mode_enabled;
         let cancel_generation = rm.cancel_generation();
 
         tauri::async_runtime::spawn(async move {
@@ -1529,7 +1538,7 @@ impl ShortcutAction for TranscribeAction {
                     // running, finalize it and use its text (all audio was already
                     // fed to the stream); otherwise batch-transcribe the samples.
                     let transcription_time = Instant::now();
-                    let transcription_result = match tm.finalize_stream() {
+                    let transcription_result = match tm.finalize_stream(faithful) {
                         // A finalized stream with usable text wins. An empty result
                         // (no active stream, produced nothing, or a finalize error
                         // after the engine was returned) falls back to a full batch
@@ -1537,7 +1546,13 @@ impl ShortcutAction for TranscribeAction {
                         // surfaced instead — the worker may still hold the engine,
                         // so a batch fallback would contend with it.
                         Ok(Some(text)) if !text.trim().is_empty() => Ok(text),
-                        Ok(_) => tm.transcribe(samples),
+                        Ok(_) => {
+                            if faithful {
+                                tm.transcribe_faithful(samples)
+                            } else {
+                                tm.transcribe(samples)
+                            }
+                        }
                         Err(err) => Err(err),
                     };
 

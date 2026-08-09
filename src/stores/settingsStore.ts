@@ -110,6 +110,8 @@ const settingUpdaters: {
     ),
   review_before_paste: (value) =>
     commands.changeReviewBeforePasteSetting(value as boolean),
+  faithful_mode_enabled: (value) =>
+    commands.changeFaithfulModeSetting(value as boolean),
   dictated_emojis_enabled: (value) =>
     commands.changeDictatedEmojisSetting(value as boolean),
   spoken_numerals_enabled: (value) =>

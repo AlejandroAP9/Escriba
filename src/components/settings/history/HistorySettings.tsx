@@ -59,6 +59,13 @@ const PAGE_SIZE = 30;
 // Umbral de recorte: sobre esto, la tarjeta muestra 3 líneas + "Ver más".
 const PREVIEW_CHAR_LIMIT = 280;
 
+/** Texto que Escriba realmente pegó. El original se conserva aparte para
+ * auditoría y comparación cuando hubo una transformación. */
+const finalEntryText = (entry: HistoryEntry) =>
+  entry.post_processed_text?.trim()
+    ? entry.post_processed_text
+    : entry.transcription_text;
+
 // Tiempo relativo localizado ("hace 14 minutos") sin cadenas por idioma.
 function relativeTime(tsSeconds: number, locale: string): string {
   const diffSec = Math.round((tsSeconds * 1000 - Date.now()) / 1000);
@@ -260,7 +267,12 @@ export const HistorySettings: React.FC = () => {
     const q = searchQuery.trim().toLowerCase();
     return entries.filter((e) => {
       if (filter === "saved" && !e.saved) return false;
-      if (q && !e.transcription_text.toLowerCase().includes(q)) return false;
+      if (
+        q &&
+        !e.transcription_text.toLowerCase().includes(q) &&
+        !finalEntryText(e).toLowerCase().includes(q)
+      )
+        return false;
       return true;
     });
   }, [entries, searchQuery, filter]);
@@ -327,10 +339,10 @@ export const HistorySettings: React.FC = () => {
                   key={entry.id}
                   entry={entry}
                   onToggleSaved={() => toggleSaved(entry.id)}
-                  onCopyText={() => copyToClipboard(entry.transcription_text)}
+                  onCopyText={() => copyToClipboard(finalEntryText(entry))}
                   onSendToInbox={
                     inboxActivo
-                      ? () => sendToInbox(entry.transcription_text)
+                      ? () => sendToInbox(finalEntryText(entry))
                       : undefined
                   }
                   getAudioUrl={getAudioUrl}
@@ -439,9 +451,14 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
   const [showCopied, setShowCopied] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
 
-  const hasTranscription = entry.transcription_text.trim().length > 0;
-  const isLong = entry.transcription_text.length > PREVIEW_CHAR_LIMIT;
+  const displayText = finalEntryText(entry);
+  const hasTranscription = displayText.trim().length > 0;
+  const isLong = displayText.length > PREVIEW_CHAR_LIMIT;
+  const hasDifferentOriginal =
+    Boolean(entry.post_processed_text?.trim()) &&
+    entry.post_processed_text !== entry.transcription_text;
 
   const handleLoadAudio = useCallback(
     () => getAudioUrl(entry.file_name),
@@ -573,7 +590,7 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
         {retrying
           ? t("settings.history.transcribing")
           : hasTranscription
-            ? entry.transcription_text
+            ? displayText
             : t("settings.history.transcriptionFailed")}
       </p>
       {isLong && !retrying && (
@@ -585,6 +602,30 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
             ? t("settings.history.showLess")
             : t("settings.history.showMore")}
         </button>
+      )}
+      {hasDifferentOriginal && !retrying && (
+        <div className="mt-2">
+          <button
+            type="button"
+            onClick={() => setShowOriginal((value) => !value)}
+            aria-expanded={showOriginal}
+            className="text-xs font-medium text-gold-text hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
+          >
+            {showOriginal
+              ? t("settings.history.hideOriginal")
+              : t("settings.history.showOriginal")}
+          </button>
+          {showOriginal && (
+            <div className="mt-2 rounded-lg border border-line bg-surface/55 px-3 py-2">
+              <p className="text-3xs font-semibold uppercase tracking-[0.12em] text-mid-gray">
+                {t("settings.history.originalLabel")}
+              </p>
+              <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm leading-relaxed text-text/75">
+                {entry.transcription_text}
+              </p>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Metadatos: hora + tiempo relativo + audio de respaldo, en una línea. */}

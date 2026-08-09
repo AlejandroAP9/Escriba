@@ -372,6 +372,19 @@ async studioJobs() : Promise<StudioJob[]> {
     return await TAURI_INVOKE("studio_jobs");
 },
 /**
+ * Devuelve una URL privada y efímera para reproducir el medio de un job. La
+ * ruta no cruza a JavaScript y el protocolo vuelve a validar id, estado y ruta
+ * en cada petición/rango.
+ */
+async studioPlaybackUrl(id: number) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("studio_playback_url", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Re-transcribe un job ya terminado con OTRO modelo. Re-decodifica el archivo
  * original (nunca se copió a la app, así que debe seguir en su ruta) y corre la
  * transcripción de nuevo. `model_id = None` usa el modelo por defecto.
@@ -502,6 +515,14 @@ async changeSoundThemeSetting(theme: string) : Promise<Result<null, string>> {
 async changeReviewBeforePasteSetting(on: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_review_before_paste_setting", { on }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeFaithfulModeSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_faithful_mode_setting", { enabled }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -1608,7 +1629,7 @@ obsidian_notes_folder?: string; obsidian_link_mentions?: boolean; obsidian_index
  * Revisar antes de pegar: el dictado normal se muestra en el overlay
  * (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
  */
-review_before_paste?: boolean; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; show_whats_new_on_update?: boolean; 
+review_before_paste?: boolean; faithful_mode_enabled?: boolean; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; show_whats_new_on_update?: boolean;
 /**
  * The app version whose What's New the user has already seen. Fresh installs
  * default to the current version (nothing is "new" to them). Existing users
@@ -1815,7 +1836,7 @@ export type StreamTextEvent = { committed: string; tentative: string }
  * Semantic kind of "working" phase, used to localize the spinner label.
  */
 export type StreamWorkKind = "transcribing" | "polishing"
-export type StudioJob = { id: number; file_name: string; path: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; summary: string | null; 
+export type StudioJob = { id: number; file_name: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; timestamped_text: string[]; summary: string | null;
 /**
  * Modelo con el que se produjo esta transcripción (para mostrar el recibo
  * "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
