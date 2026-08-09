@@ -9,6 +9,7 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Textarea } from "@/components/ui/Textarea";
 import { MicButton } from "@/components/shared/MicButton";
 import { Plumin } from "@/components/shared/Plumin";
+import { useSettings } from "@/hooks/useSettings";
 
 const VALID_SECTIONS = new Set<SidebarSection>([
   "home",
@@ -31,6 +32,7 @@ const isSidebarSection = (value: string): value is SidebarSection =>
 
 export const PluminHelp: React.FC = () => {
   const { t } = useTranslation();
+  const { getSetting } = useSettings();
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState<PluminHelpResponse | null>(null);
@@ -79,13 +81,35 @@ export const PluminHelp: React.FC = () => {
   const speak = async () => {
     if (!answer || speaking) return;
     setSpeaking(true);
-    const handled = await commands.conversationSpeak(answer, "auto");
-    if (!handled && "speechSynthesis" in window) {
+    // El motor de voz sale de los ajustes, igual que en el resto de la app:
+    // antes iba "auto" a fuego, así que quien eligió la voz del sistema
+    // recibía la neural de todos modos. Se reusa el de "Tu tinta en voz" por
+    // ser el mismo gesto: leer en voz alta un texto que está en pantalla.
+    const engine =
+      (getSetting("read_selection_voice_engine") as string | undefined) ??
+      "system";
+    let handled = false;
+    try {
+      handled = await commands.conversationSpeak(answer, engine);
+    } catch {
+      handled = false;
+    }
+    if (handled) {
+      // La ruta nativa vuelve del await con la lectura ya terminada. Sin este
+      // apagado, "Detener lectura" quedaba encendido para siempre: era el
+      // único camino donde setSpeaking(true) no se revertía nunca.
+      setSpeaking(false);
+      return;
+    }
+    if ("speechSynthesis" in window) {
       const utterance = new SpeechSynthesisUtterance(answer);
       utterance.onend = () => setSpeaking(false);
       utterance.onerror = () => setSpeaking(false);
       window.speechSynthesis.speak(utterance);
+      return;
     }
+    // Sin ninguna ruta de voz disponible no hay lectura que detener.
+    setSpeaking(false);
   };
 
   const stopSpeaking = () => {

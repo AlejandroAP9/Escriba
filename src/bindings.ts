@@ -528,30 +528,6 @@ async changeFaithfulModeSetting(enabled: boolean) : Promise<Result<null, string>
     else return { status: "error", error: e  as any };
 }
 },
-async changeDictatedEmojisSetting(enabled: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("change_dictated_emojis_setting", { enabled }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async changeSpokenNumeralsSetting(enabled: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("change_spoken_numerals_setting", { enabled }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async changeNumeralsSpreadsheetAutoSetting(enabled: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("change_numerals_spreadsheet_auto_setting", { enabled }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async changeUiThemeSetting(theme: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_ui_theme_setting", { theme }) };
@@ -937,6 +913,30 @@ async changeVadEnabledSetting(enabled: boolean) : Promise<Result<null, string>> 
 async changeAppLanguageSetting(language: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_app_language_setting", { language }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeDictatedEmojisSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_dictated_emojis_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeSpokenNumeralsSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_spoken_numerals_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeNumeralsSpreadsheetAutoSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_numerals_spreadsheet_auto_setting", { enabled }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -1620,7 +1620,7 @@ always_show_focus?: boolean;
  * inicial porque ganó la prueba A/B; la incluida sigue disponible como
  * alternativa explícita y local.
  */
-conversation_voice_engine?: string; interpreter_voice_engine?: string; read_selection_voice_engine?: string;
+conversation_voice_engine?: string; interpreter_voice_engine?: string; read_selection_voice_engine?: string; 
 /**
  * Subcarpeta dentro del vault donde aterrizan las notas. Vacío = raíz.
  */
@@ -1629,7 +1629,14 @@ obsidian_notes_folder?: string; obsidian_link_mentions?: boolean; obsidian_index
  * Revisar antes de pegar: el dictado normal se muestra en el overlay
  * (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
  */
-review_before_paste?: boolean; faithful_mode_enabled?: boolean; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; show_whats_new_on_update?: boolean;
+review_before_paste?: boolean; 
+/**
+ * Dictado normal sin transformaciones: conserva el texto que entrega el
+ * motor y omite diccionario difuso, limpieza lingüística, tonos por app,
+ * numerales, emojis y reemplazos. Los atajos explícitos de Escritura
+ * Inteligente, traducción y edición conservan su comportamiento.
+ */
+faithful_mode_enabled?: boolean; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; show_whats_new_on_update?: boolean; 
 /**
  * The app version whose What's New the user has already seen. Fresh installs
  * default to the current version (nothing is "new" to them). Existing users
@@ -1785,7 +1792,7 @@ export type OverlayStyle = "none" | "minimal" | "live"
 export type PaginatedHistory = { entries: HistoryEntry[]; has_more: boolean }
 export type PasteMethod = "ctrl_v" | "direct" | "none" | "shift_insert" | "ctrl_shift_v" | "external_script"
 export type PermissionAccess = "allowed" | "denied" | "unknown"
-export type PluminHelpResponse = { topic: string; section: string;
+export type PluminHelpResponse = { topic: string; section: string; 
 /**
  * `None` indica que la UI debe usar su respuesta i18n congelada.
  */
@@ -1836,7 +1843,12 @@ export type StreamTextEvent = { committed: string; tentative: string }
  * Semantic kind of "working" phase, used to localize the spinner label.
  */
 export type StreamWorkKind = "transcribing" | "polishing"
-export type StudioJob = { id: number; file_name: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; timestamped_text: string[]; summary: string | null;
+export type StudioJob = { id: number; file_name: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; 
+/**
+ * Líneas listas para la vista humana `[M:SS] texto`. Los segmentos crudos
+ * siguen privados: la UI recibe solo lo que necesita para alternar la vista.
+ */
+timestamped_text: string[]; summary: string | null; 
 /**
  * Modelo con el que se produjo esta transcripción (para mostrar el recibo
  * "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
