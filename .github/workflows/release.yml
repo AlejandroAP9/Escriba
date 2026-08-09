@@ -56,7 +56,7 @@ jobs:
           - platform: "macos-26" # Apple Silicon (M1+)
             args: "--target aarch64-apple-darwin"
             target: "aarch64-apple-darwin"
-          - platform: "macos-latest" # Macs Intel
+          - platform: "macos-26-intel" # Macs Intel
             args: "--target x86_64-apple-darwin"
             target: "x86_64-apple-darwin"
           - platform: "windows-latest"
