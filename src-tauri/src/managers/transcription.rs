@@ -1873,14 +1873,18 @@ fn post_process_transcription_text(
     } else {
         filtered
     };
-    let con_emojis = if es_espanol && settings.dictated_emojis_enabled {
+    // En "auto", los disparadores exactos siguen siendo seguros aunque una
+    // frase breve no alcance las dos palabras de evidencia de idioma.
+    let permite_funciones_es =
+        crate::audio_toolkit::spanish::permite_funciones_espanolas(&settings.selected_language);
+    let con_emojis = if permite_funciones_es && settings.dictated_emojis_enabled {
         crate::audio_toolkit::spanish::apply_dictated_emojis(&con_tildes)
     } else {
         con_tildes
     };
     // Numerales en modo ESTRICTO (solo secuencias con evidencia fuerte). El
     // modo planilla vive en actions.rs, junto a la detección de app al frente.
-    let con_numerales = if es_espanol && settings.spoken_numerals_enabled {
+    let con_numerales = if permite_funciones_es && settings.spoken_numerals_enabled {
         crate::audio_toolkit::spanish::spoken_numbers_to_digits(
             &con_emojis,
             crate::audio_toolkit::spanish::ModoNumerales::Estricto,

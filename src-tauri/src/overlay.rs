@@ -48,10 +48,13 @@ const OVERLAY_HEIGHT: f64 = 46.0;
 // Actual is 394x118, just a little extra
 const OVERLAY_STREAM_WIDTH: f64 = 400.0;
 const OVERLAY_STREAM_HEIGHT: f64 = 120.0;
+const OVERLAY_REVIEW_HEIGHT: f64 = 132.0;
 
 /// Overlay window size (logical) for a given UI state.
 fn overlay_dimensions(state: &str) -> (f64, f64) {
-    if state == "streaming" || state == "review" {
+    if state == "review" {
+        (OVERLAY_STREAM_WIDTH, OVERLAY_REVIEW_HEIGHT)
+    } else if state == "streaming" {
         (OVERLAY_STREAM_WIDTH, OVERLAY_STREAM_HEIGHT)
     } else {
         (OVERLAY_WIDTH, OVERLAY_HEIGHT)

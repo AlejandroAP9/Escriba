@@ -48,9 +48,9 @@ Español profundo (Fase 1 del plan):
       Aprendizajes 5-ago), en dictado, Sesiones y Estudio.
 - [ ] Los pares ambiguos quedan intactos: "esta casa esta aqui" no cambia
       ninguna "esta"; "si", "mas", "aun", "practico", "hacia" tampoco.
-- [ ] "emoji cara feliz" → 🙂 con el interruptor activo; "me mandó un emoji"
+- [x] "emoji cara feliz" → 🙂 con el interruptor activo; "me mandó un emoji"
       queda intacto.
-- [ ] "tres millones y medio" → 3.500.000 con numerales activos; "uno de los
+- [x] "tres millones y medio" → 3.500.000 con numerales activos; "uno de los
       problemas" y "hora y media" quedan intactos.
 - [ ] Con Excel/Numbers/LibreOffice Calc al frente y el auto-planilla activo,
       "cuarenta y dos coma cinco" → 42,5 sin encender nada a mano.
@@ -80,7 +80,7 @@ Contexto conversacional (Fase 0.1):
 
 Cifrado en reposo (Fase 0.2):
 
-- [ ] `strings history.db` no revela el texto de ningún dictado nuevo; las
+- [x] `strings history.db` no revela el texto de ningún dictado nuevo; las
       grabaciones nuevas en `recordings/` tampoco son WAV legibles.
 - [ ] La 2.2.4 abre esa misma base sin crash (tolerancia de downgrade intacta,
       el incidente e59158d3 no se repite).
@@ -91,7 +91,7 @@ Cifrado en reposo (Fase 0.2):
 
 Transversales:
 
-- [ ] `bun run check:translations` pasa con las claves nuevas en los 21 idiomas.
+- [x] `bun run check:translations` pasa con las claves nuevas en los 21 idiomas.
 - [ ] `cargo build` + `tsc` pasan; prueba reina: todo lo anterior con wifi
       apagado.
 
@@ -357,22 +357,23 @@ crash; borrar llave no mata la app; kill a mitad de migración es recuperable.
 
 ### Fase 8: Validación Final
 
-- [ ] `cargo build` + `tsc` pasan
+- [x] `cargo build` + `tsc` pasan
 - [ ] `bun run tauri dev` y ejercitar el flujo real (no solo compilar)
 - [ ] Prueba reina: dictado + Traductor + CLI + historial con wifi apagado
 - [ ] Criterios de éxito cumplidos, uno por uno, con evidencia
 - [ ] Premortem re-verificado con evidencia (comando/test por fila)
-- [ ] `bun run check:translations` + lint + format en verde
+- [x] `bun run check:translations` + lint + format en verde
 - [ ] Blindajes nuevos capturados (`raiz blindar`)
-- [ ] CHANGELOG con créditos: features inspiradas en rivales lo dicen
+- [x] CHANGELOG con créditos: features inspiradas en rivales lo dicen
       (cultura de transparencia del plan post-hackathon)
-- [ ] **NO se corta release**: se avisa "listo para cortar cuando digas" y se
+- [x] **NO se corta release**: se avisa "listo para cortar cuando digas" y se
       espera el corte explícito de Alejandro
 
 ## Estado de cierre (5-ago-2026)
 
-Implementación completa de las 8 fases en 6 commits (d5655012..HEAD). Evidencia
-por criterio:
+Implementación de las fases funcionales en 6 commits (d5655012..HEAD), con el
+contenedor de audio cerrado en la continuación del 8-ago-2026. Evidencia por
+criterio:
 
 **Cumplidos con evidencia automatizada:**
 
@@ -388,25 +389,51 @@ por criterio:
 - CLI: m4a por decode universal validado contra el motor real; corrupto →
   exit 2 sin panic; --list-devices --json; AGENTS.md y README con TODAS las
   banderas; 3 fallas de gramática del parser encontradas y matadas en seco.
-- Cifrado texto: roundtrip, llave equivocada, cuerpo corrupto y prefijo
-  idempotente con llave inyectada (6 tests); migración idempotente por
-  prefijo; 171 tests del backend en verde; tsc + eslint + check:translations
-  (21 idiomas) en verde.
+- Cifrado de texto y audio: texto con roundtrip, llave equivocada, cuerpo
+  corrupto y prefijo idempotente; audio ESCAUD1 con XChaCha20-Poly1305 en
+  frames de 64 KiB, autenticación de corrupción, lectura cruzando frames,
+  Range acotado, traversal bloqueado y recuperación de migración interrumpida
+  (6 tests de audio). Suite completa: 184 tests del backend en verde; build
+  frontend + eslint + check:translations (21 idiomas) en verde.
 
 **Pendiente de QA manual (necesitan GUI, motor LLM vivo o presencia):**
 
 - Planilla real al frente (Excel/Numbers) convirtiendo numerales al pegar.
-- Caso escolar del Traductor ("prueba" → *test*), batería de dirección de
+- Caso escolar del Traductor ("prueba" → _test_), batería de dirección de
   Flor, e inyección turno 1 → turno 2, con el motor local corriendo.
-- `strings history.db` sin texto claro en una instalación real; abrir la base
-  cifrada con el binario 2.2.4 real; borrar la llave del llavero y verificar
-  el marcador en la UI.
+- Repetir `strings history.db` sobre una instalación personal real (el sandbox
+  portable ya pasó); abrir la base cifrada con el binario 2.2.4 real; borrar la
+  llave del llavero y verificar el marcador en la UI.
+- Matar el proceso real a mitad de una migración grande de texto. El estado
+  intermedio equivalente está cubierto por prefijo y por test, pero aún no se
+  hizo el kill manual del proceso.
 - Prueba reina con wifi apagado; `bun run tauri dev` ejercitando los flujos.
-
-**Aplazado declarado:** contenedor cifrado del audio (ver Aprendizajes).
 
 **Sin corte de release**: los 6 commits están en main; el corte lo decide
 Alejandro.
+
+## Continuación (8-ago-2026): audio cifrado cerrado
+
+- Contenedor `ESCAUD1`: magic + largo claro + nonce aleatorio; XChaCha20-
+  Poly1305 con subllave derivada y un tag por frame de 64 KiB.
+- Escritura directa WAV→AEAD: no existe un WAV temporal claro. Publicación con
+  tempfile en la misma carpeta + rename atómico + permisos 0600.
+- Reproducción mediante protocolo privado `escriba-audio`, con HTTP Range y
+  respuesta máxima de 512 KiB. React ya no recibe rutas ni tiene permiso de
+  filesystem; se retiraron `plugin-fs`, asset protocol y su scope. El handler
+  solo acepta la webview principal y archivos referenciados por una fila viva
+  del historial, además de rechazar traversal y nombres no canónicos.
+- Migración por archivo reanudable: valida el destino completo antes de borrar
+  el WAV, recupera el estado "cifrado publicado / DB aún vieja" y cambia la
+  fila a `.escaudio` sin migración de esquema.
+- Re-transcripción consume un lector descifrado streaming; llave ausente o tag
+  corrupto fallan cerrados y la UI muestra "Audio no disponible".
+- Evidencia real en sandbox portable con `bun x tauri dev`:
+  `escriba-1.wav` → `escriba-1.escaudio`, magic `ESCAUD1`, texto fixture
+  ausente de `strings history.db`, WAV claro ausente. Segundo arranque:
+  SHA-256 idéntico `9fa8a3e4…80692500f`, una sola fila cifrada.
+- Validación: 184/184 tests Rust, `cargo check --tests`, `cargo clippy
+--all-targets`, `bun run build`, eslint, Prettier y 21 locales en verde.
 
 ## Aprendizajes (Self-Annealing)
 
@@ -481,6 +508,19 @@ Alejandro.
   del test no es la de la app): el premortem "llavero atado a la firma"
   aplicaba a los tests mismos.
 
+### 2026-08-08: el asset protocol no era la frontera correcta para audio cifrado
+
+- **Problema**: `convertFileSrc` y el fallback `readFile` de Linux entregaban a
+  la webview una ruta o el archivo completo. Lo primero no puede descifrar un
+  contenedor; lo segundo duplica en RAM una sesión larga y exigía permiso de
+  filesystem sobre `recordings/`.
+- **Fix**: protocolo Tauri dedicado con Range, frames AEAD direccionables y
+  tope de 512 KiB por respuesta. El mismo cambio elimina el permiso fs de la
+  webview, así que una inyección ya no puede leer grabaciones directamente.
+- **Aplicar en**: cualquier asset sensible grande debe cruzar una API de rango
+  y propósito único; nunca ampliar el scope general de archivos para que un
+  control HTML pueda abrirlo.
+
 ### 2026-08-05: build de audiopus_sys falla con install BSD (entorno sandbox)
 
 - **Error**: el `make install` vendored de `audiopus_sys` usa flags GNU de
@@ -523,4 +563,5 @@ Alejandro.
 - NO declarar "listo" sin correr la verificación real (blindaje
   verificar-antes-de-listo)
 
-_PRP pendiente de aprobación. No se ha modificado código._
+_PRP implementado y continuado sin cortar release. El corte sigue requiriendo
+la orden explícita de Alejandro._

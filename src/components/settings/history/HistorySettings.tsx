@@ -5,8 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { convertFileSrc } from "@tauri-apps/api/core";
-import { readFile } from "@tauri-apps/plugin-fs";
 import { confirm as confirmDialog } from "@tauri-apps/plugin-dialog";
 import {
   Check,
@@ -27,7 +25,6 @@ import {
   type HistoryUpdatePayload,
 } from "@/bindings";
 import { RetranscribeMenu } from "../../shared/RetranscribeMenu";
-import { useOsType } from "@/hooks/useOsType";
 import { useSettings } from "@/hooks/useSettings";
 import { AudioPlayer } from "../../ui/AudioPlayer";
 import { SettingsGroup } from "../../ui/SettingsGroup";
@@ -75,7 +72,6 @@ function relativeTime(tsSeconds: number, locale: string): string {
 
 export const HistorySettings: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const osType = useOsType();
   // Bandeja de entrada diaria (PRP-007): la acción por entrada solo existe
   // con el ajuste encendido. Es la vía rápida a propósito (sin diálogo); la
   // vía con revisión sigue siendo el export normal.
@@ -211,26 +207,20 @@ export const HistorySettings: React.FC = () => {
     }
   };
 
-  const getAudioUrl = useCallback(
-    async (fileName: string) => {
-      try {
-        const result = await commands.getAudioFilePath(fileName);
-        if (result.status === "ok") {
-          if (osType === "linux") {
-            const fileData = await readFile(result.data);
-            const blob = new Blob([fileData], { type: "audio/wav" });
-            return URL.createObjectURL(blob);
-          }
-          return convertFileSrc(result.data, "asset");
-        }
-        return null;
-      } catch (error) {
-        console.error("Failed to get audio file path:", error);
-        return null;
+  const getAudioUrl = useCallback(async (fileName: string) => {
+    try {
+      const result = await commands.getAudioFilePath(fileName);
+      if (result.status === "ok") {
+        // El backend devuelve un protocolo privado, no una ruta de disco.
+        // El elemento <audio> pide rangos y Rust descifra solo esos frames.
+        return result.data;
       }
-    },
-    [osType],
-  );
+      return null;
+    } catch (error) {
+      console.error("Failed to get audio file path:", error);
+      return null;
+    }
+  }, []);
 
   const deleteAudioEntry = async (id: number) => {
     // Optimistically remove

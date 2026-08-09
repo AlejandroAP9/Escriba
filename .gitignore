@@ -30,6 +30,7 @@ dist-ssr
 
 /target/
 recording_*
+!src-tauri/src/recording_crypto.rs
 .crush/
 
 # Playwright

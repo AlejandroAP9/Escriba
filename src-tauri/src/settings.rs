@@ -411,6 +411,15 @@ pub struct AppSettings {
     /// Para quien pierde de vista dónde está parado dentro de la interfaz.
     #[serde(default)]
     pub always_show_focus: bool,
+    /// Motor de lectura por herramienta. La voz del sistema es el valor
+    /// inicial porque ganó la prueba A/B; la incluida sigue disponible como
+    /// alternativa explícita y local.
+    #[serde(default = "default_voice_engine")]
+    pub conversation_voice_engine: String,
+    #[serde(default = "default_voice_engine")]
+    pub interpreter_voice_engine: String,
+    #[serde(default = "default_voice_engine")]
+    pub read_selection_voice_engine: String,
     /// Subcarpeta dentro del vault donde aterrizan las notas. Vacío = raíz.
     #[serde(default = "default_obsidian_notes_folder")]
     pub obsidian_notes_folder: String,
@@ -699,6 +708,10 @@ fn default_ui_theme() -> String {
 
 fn default_ui_scale() -> u32 {
     100
+}
+
+fn default_voice_engine() -> String {
+    "system".to_string()
 }
 
 fn default_true() -> bool {
@@ -1087,6 +1100,9 @@ pub fn get_default_settings() -> AppSettings {
         colorblind_assist: false,
         calm_mode: false,
         always_show_focus: false,
+        conversation_voice_engine: default_voice_engine(),
+        interpreter_voice_engine: default_voice_engine(),
+        read_selection_voice_engine: default_voice_engine(),
         obsidian_notes_folder: default_obsidian_notes_folder(),
         obsidian_link_mentions: true,
         obsidian_index_note: true,

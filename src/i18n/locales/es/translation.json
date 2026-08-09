@@ -335,6 +335,10 @@
       "numeralsSpreadsheet": {
         "label": "Números agresivos en planillas",
         "description": "Con Excel, Numbers o LibreOffice Calc al frente, hasta un número suelto se vuelve cifra: dictas \"cinco\" y se escribe 5. Google Sheets en el navegador no se puede detectar."
+      },
+      "readSelectionVoice": {
+        "title": "Voz de lectura",
+        "description": "Elige la voz del sistema o la voz local incluida de Escriba para Leer selección."
       }
     },
     "sound": {
@@ -701,6 +705,11 @@
       "storageTitle": "Guardado y retención",
       "deleteConfirm": "Se borrará el texto y su audio para siempre. Esta acción no se puede deshacer.",
       "noAudio": "Sin audio guardado",
+      "playAudio": "Reproducir grabación",
+      "pauseAudio": "Pausar grabación",
+      "seekAudio": "Desplazarse por la grabación",
+      "loadingAudio": "Cargando grabación",
+      "audioUnavailable": "Audio no disponible",
       "sendToInbox": "Enviar al inbox diario"
     },
     "debug": {
@@ -1332,7 +1341,8 @@
       "vmUninstallFailed": "No se pudo desinstalar. Intenta de nuevo.",
       "vmDownloadFailed": "No se pudo descargar el micrófono virtual.",
       "vmShaFailed": "La descarga no pasó la verificación de integridad. Se descartó.",
-      "vmOnlyMacos": "Disponible solo en macOS."
+      "vmOnlyMacos": "Disponible solo en macOS.",
+      "voiceEngineHint": "Motor de voz del intérprete de reuniones"
     }
   },
   "engine": {
@@ -1477,6 +1487,36 @@
     "errors": {
       "checkStatus": "No se pudo comprobar el estado del modelo.",
       "switch": "No se pudo cambiar de modelo."
+    }
+  },
+  "pluminHelp": {
+    "open": "Pregúntale a Plumín",
+    "title": "Pregúntale a Plumín",
+    "description": "Ayuda local y acotada a Escriba y a tu configuración actual.",
+    "intro": "Cuéntame qué te está frenando. Puedo explicártelo y llevarte a la sección correcta.",
+    "questionLabel": "¿Con qué necesitas ayuda?",
+    "placeholder": "Por ejemplo: ¿Por qué no escribe? ¿Cómo cambio el atajo? ¿Mi voz sale de mi computador?",
+    "dictate": "Dictar la pregunta",
+    "ask": "Preguntar",
+    "thinking": "Buscando…",
+    "localAnswer": "Respondido por el motor local desde la guía interna de Escriba.",
+    "guideFallback": "Respuesta verificada de la guía incorporada de Escriba.",
+    "openSection": "Abrir la sección recomendada",
+    "speak": "Leer en voz alta",
+    "stopSpeaking": "Detener lectura",
+    "answers": {
+      "troubleshooting": "Comprueba que haya un modelo seleccionado, que el micrófono correcto esté activo, que estén concedidos los permisos de Micrófono y Accesibilidad y que otra app no use el mismo atajo. Abre General para revisar esos controles.",
+      "shortcut": "Abre General y selecciona el atajo que quieres cambiar. Introduce una combinación que no esté reservada por el sistema ni por otra app.",
+      "privacy": "La transcripción y el motor local de escritura funcionan en tu computador. Los proveedores cloud son opcionales y solo se usan si los configuras; el historial se cifra y guardar audio viene apagado.",
+      "microphone": "Elige el micrófono en General. Si no aparece, actualiza la lista de dispositivos y comprueba el permiso de micrófono del sistema.",
+      "models": "Modelos permite descargar, seleccionar y borrar motores de transcripción. Parakeet V3 es la recomendación equilibrada; Whisper large-v3-turbo prioriza la ortografía.",
+      "history": "Historial conserva el texto para buscarlo, copiarlo, guardarlo o reintentar. Guardar grabaciones es opcional y viene apagado; al activarlo, texto y audio quedan cifrados.",
+      "studio": "Usa Estudio para transcribir un archivo de audio o video sin micrófono. Puedes revisar sus segmentos y exportar TXT, JSON, SRT o VTT.",
+      "translator": "Traductor gestiona turnos entre dos idiomas y conserva contexto breve. Intérprete sirve para una sala en vivo; Sesiones puede convertir una conversación larga en documento.",
+      "writing": "Escritura inteligente puede corregir, traducir o cambiar el tono de un dictado con el motor local. Configura sus plantillas y su atajo en Escritura inteligente.",
+      "obsidian": "Elige tu vault en General. Escriba puede exportar notas revisadas, mantener un índice, enlazar menciones y añadir dictados a un inbox diario.",
+      "updates": "Encontrar una actualización nunca la instala sola: debes pulsar explícitamente «Actualización disponible». Las instalaciones portables muestran la vía manual.",
+      "overview": "Puedo ayudarte con dictado y permisos, atajos, modelos, privacidad, Historial, Estudio, Traductor, Escritura inteligente, Obsidian y actualizaciones. Pregunta por uno y te llevaré al lugar correcto."
     }
   }
 }

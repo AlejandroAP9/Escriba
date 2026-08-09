@@ -1,8 +1,8 @@
 //! Enviar a Obsidian: escribe un documento (acta de sesión, transcripción del
 //! Estudio) como nota Markdown en la carpeta del vault que elija el usuario.
 //! Todo local: es una escritura de archivo, nada sale del equipo. El backend
-//! escribe directo (no el webview), así que el `fs:scope` acotado a $APPDATA
-//! no aplica; la ruta la consiente el usuario con el selector de carpeta.
+//! escribe directo (no el webview), que deliberadamente no tiene permisos de
+//! filesystem; la ruta la consiente el usuario con el selector de carpeta.
 
 use crate::settings::{get_settings, write_settings};
 use std::path::{Path, PathBuf};

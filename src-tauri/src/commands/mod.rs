@@ -8,6 +8,7 @@ pub mod local_llm;
 pub mod mcp;
 pub mod models;
 pub mod obsidian;
+pub mod plumin_help;
 pub mod review;
 pub mod studio;
 pub mod transcription;

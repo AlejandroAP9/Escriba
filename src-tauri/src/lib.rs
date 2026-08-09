@@ -16,6 +16,7 @@ mod media;
 mod overlay;
 mod path_guard;
 pub mod portable;
+mod recording_crypto;
 mod redaction;
 mod settings;
 mod shortcut;
@@ -152,40 +153,7 @@ fn should_force_show_permissions_window(app: &AppHandle) -> bool {
     false
 }
 
-/// Abre a la webview la carpeta REAL de grabaciones, y solo esa.
-///
-/// Los scopes de `capabilities/default.json` y del protocolo de assets son
-/// cadenas estáticas (`$APPDATA/recordings/*`) que asumen la instalación
-/// normal. En **modo portable** los datos viven junto al ejecutable, así que
-/// esa ruta no existe y el reproductor del historial se quedaba mudo sin decir
-/// por qué (auditoría externa, 30-jul-2026).
-///
-/// Se resuelve en arranque porque solo aquí se sabe dónde están de verdad. Y se
-/// concede la carpeta EXACTA en vez de ensanchar el scope estático: cuando ese
-/// scope era `$APPDATA/**/*`, `settings_store.json` —con las API keys en claro y
-/// el token del MCP— quedaba al alcance de un `readFile` desde la webview, lo
-/// que anulaba en la práctica el haber quitado `store:default`.
-fn allow_recordings_dir(app_handle: &AppHandle) {
-    use tauri_plugin_fs::FsExt;
-
-    let Ok(dir) = crate::portable::app_data_dir(app_handle).map(|d| d.join("recordings")) else {
-        log::warn!("No se pudo resolver la carpeta de grabaciones para el scope de archivos");
-        return;
-    };
-    if let Err(e) = app_handle.fs_scope().allow_directory(&dir, false) {
-        log::warn!("No se pudo abrir {:?} al scope de fs: {}", dir, e);
-    }
-    if let Err(e) = app_handle
-        .asset_protocol_scope()
-        .allow_directory(&dir, false)
-    {
-        log::warn!("No se pudo abrir {:?} al scope de assets: {}", dir, e);
-    }
-}
-
 fn initialize_core_logic(app_handle: &AppHandle) {
-    allow_recordings_dir(app_handle);
-
     // Note: Enigo (keyboard/mouse simulation) is NOT initialized here.
     // The frontend is responsible for calling the `initialize_enigo` command
     // after onboarding completes. This avoids triggering permission dialogs
@@ -727,6 +695,7 @@ pub fn run(cli_args: CliArgs) {
             commands::studio::studio_summarize,
             commands::local_llm::get_local_llm_status,
             commands::local_llm::setup_local_llm,
+            commands::plumin_help::ask_plumin,
             shortcut::change_binding,
             shortcut::reset_binding,
             shortcut::change_ptt_setting,
@@ -782,8 +751,12 @@ pub fn run(cli_args: CliArgs) {
             shortcut::change_lazy_stream_close_setting,
             shortcut::change_vad_enabled_setting,
             shortcut::change_app_language_setting,
+            shortcut::change_dictated_emojis_setting,
+            shortcut::change_spoken_numerals_setting,
+            shortcut::change_numerals_spreadsheet_auto_setting,
             shortcut::change_update_checks_setting,
             shortcut::change_show_whats_new_on_update_setting,
+            shortcut::change_voice_engine_setting,
             shortcut::change_whats_new_last_seen_version_setting,
             shortcut::change_keyboard_implementation_setting,
             shortcut::get_keyboard_implementation,
@@ -876,6 +849,16 @@ pub fn run(cli_args: CliArgs) {
     #[allow(unused_mut)]
     let mut builder = tauri::Builder::default()
         .device_event_filter(tauri::DeviceEventFilter::Always)
+        // Única frontera de reproducción del historial. Responde por rangos
+        // descifrando como máximo 512 KiB por petición; la webview no obtiene
+        // rutas ni permisos para leer `recordings/` directamente.
+        .register_uri_scheme_protocol("escriba-audio", |context, request| {
+            crate::recording_crypto::protocol_response(
+                context.app_handle(),
+                context.webview_label(),
+                request,
+            )
+        })
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             LogBuilder::new()
@@ -950,7 +933,6 @@ pub fn run(cli_args: CliArgs) {
     }
 
     builder
-        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())

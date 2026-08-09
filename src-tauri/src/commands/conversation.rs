@@ -790,18 +790,19 @@ pub async fn conversation_speak_via(
     lang: String,
     device: String,
     gender: String,
+    engine: String,
 ) -> bool {
     #[cfg(target_os = "macos")]
     {
         tauri::async_runtime::spawn_blocking(move || {
-            speak_via_blocking(&app, &text, &lang, &device, &gender)
+            speak_via_blocking(&app, &text, &lang, &device, &gender, &engine)
         })
         .await
         .unwrap_or(false)
     }
     #[cfg(not(target_os = "macos"))]
     {
-        let _ = (app, text, lang, device, gender);
+        let _ = (app, text, lang, device, gender, engine);
         false
     }
 }
@@ -911,6 +912,7 @@ fn speak_via_blocking(
     lang: &str,
     device: &str,
     gender: &str,
+    engine: &str,
 ) -> bool {
     use std::process::{Command, Stdio};
     // Archivo temporal ÚNICO por locución (auditoría #7): en manos libres dos
@@ -939,7 +941,7 @@ fn speak_via_blocking(
 
     // Motor #1: voz neural incluida (natural, "todo incorporado"). Solo para
     // voz femenina, porque la voz Piper incluida es femenina.
-    if gender != "m" && crate::managers::tts::installed_lang(app, lang) {
+    if engine == "included" && gender != "m" && crate::managers::tts::installed_lang(app, lang) {
         let _ = std::fs::remove_file(&wav);
         if crate::managers::tts::synth_to_wav(app, text, lang, &wav).is_ok() {
             log::info!("interpreter voice: neural incluida ({})", lang);

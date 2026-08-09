@@ -106,6 +106,14 @@ pub fn aplica_espanol(selected_language: &str, texto: &str) -> bool {
     }
 }
 
+/// Las funciones con un disparador inequívoco ("emoji <nombre>" y numerales
+/// españoles estrictos) también se pueden ejecutar con idioma automático. A
+/// diferencia de la restauración general de tildes, sus parsers exactos no
+/// modifican texto de otros idiomas cuando no reconocen la construcción.
+pub fn permite_funciones_espanolas(selected_language: &str) -> bool {
+    matches!(selected_language, "es" | "auto")
+}
+
 /// Tabla de emojis dictados (nombre normalizado → emoji), ordenada por clave.
 /// Viene de CLDR es (nombres canónicos tts) + alias curados; ~1.900 entradas,
 /// ~40 KB embebidos. Ver scripts/gen-emojis.ts.
@@ -512,10 +520,54 @@ fn formatear_numero(n: &NumeroParseado) -> String {
     }
 }
 
+/// El ASR a veces ya convierte la cantidad base pero deja el multiplicador en
+/// palabras ("3 millones y medio"). El parser alfabético de abajo no puede
+/// ver ese 3, así que resolvemos únicamente esta construcción inequívoca antes
+/// de procesar los numerales completamente hablados.
+fn mixed_millions_to_digits(texto: &str) -> String {
+    static MIXED_MILLIONS: OnceLock<regex::Regex> = OnceLock::new();
+    let pattern = MIXED_MILLIONS.get_or_init(|| {
+        regex::Regex::new(
+            r"(?iu)\b(?P<num>[0-9]+(?:\.[0-9]{3})*)\s+mill[oó]n(?:es)?(?P<half>\s+y\s+medi[oa])?\b",
+        )
+        .expect("regex estática de millones mixtos")
+    });
+
+    pattern
+        .replace_all(texto, |caps: &regex::Captures<'_>| {
+            let original = caps.get(0).map_or("", |m| m.as_str());
+            let Some(base) = caps
+                .name("num")
+                .and_then(|m| m.as_str().replace('.', "").parse::<u64>().ok())
+            else {
+                return original.to_string();
+            };
+            let Some(mut valor) = base.checked_mul(1_000_000) else {
+                return original.to_string();
+            };
+            if caps.name("half").is_some() {
+                let Some(con_medio) = valor.checked_add(500_000) else {
+                    return original.to_string();
+                };
+                valor = con_medio;
+            }
+            formatear_numero(&NumeroParseado {
+                valor,
+                decimales: None,
+                evidencia: true,
+                tokens: 0,
+            })
+        })
+        .into_owned()
+}
+
 /// Convierte numerales hablados a cifras. En `Estricto` solo secuencias con
 /// evidencia fuerte; en `Planilla` también numerales sueltos. Reconstruye el
 /// texto por segmentos: para entradas sin conversión, salida idéntica.
 pub fn spoken_numbers_to_digits(texto: &str, modo: ModoNumerales) -> String {
+    let texto_preparado = mixed_millions_to_digits(texto);
+    let texto = texto_preparado.as_str();
+
     // Spans de tokens alfabéticos.
     let mut tokens: Vec<(usize, usize)> = Vec::new();
     let mut inicio: Option<usize> = None;
@@ -671,6 +723,10 @@ mod tests {
             apply_dictated_emojis("emoji corazón rojo para ti"),
             "❤️ para ti"
         );
+        assert_eq!(
+            apply_dictated_emojis("emoji cara feliz, emoji pulgar arriba"),
+            "🙂, 👍"
+        );
     }
 
     #[test]
@@ -697,6 +753,9 @@ mod tests {
         use ModoNumerales::Estricto;
         let casos = [
             ("tres millones y medio", "3.500.000"),
+            ("3 millones y medio", "3.500.000"),
+            ("Tengo 3 millones y medio.", "Tengo 3.500.000."),
+            ("3 millones", "3.000.000"),
             ("ciento un mil trescientos cincuenta y nueve", "101.359"),
             ("cuarenta y dos coma cinco", "42,5"),
             ("doscientos treinta y cuatro mil quinientos", "234.500"),
@@ -762,6 +821,9 @@ mod tests {
         assert!(!parece_espanol("one two three four five"));
         assert!(aplica_espanol("es", "whatever"));
         assert!(!aplica_espanol("en", "que donde cuando"));
+        assert!(permite_funciones_espanolas("auto"));
+        assert!(permite_funciones_espanolas("es"));
+        assert!(!permite_funciones_espanolas("en"));
         assert!(aplica_espanol(
             "auto",
             "no se donde queda, pero vamos cuando quieras"

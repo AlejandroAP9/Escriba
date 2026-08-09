@@ -317,6 +317,10 @@
       "numeralsSpreadsheet": {
         "label": "Aggressive numbers in spreadsheets",
         "description": "With Excel, Numbers or LibreOffice Calc in front, even single numbers become digits: say \"cinco\" and 5 is typed. Google Sheets in a browser can't be detected."
+      },
+      "readSelectionVoice": {
+        "title": "Reading voice",
+        "description": "Choose the system voice or Escriba's included local voice for Read Selection."
       }
     },
     "models": {
@@ -701,6 +705,11 @@
       "storageTitle": "Storage & retention",
       "deleteConfirm": "This will permanently delete the text and its audio. This can't be undone.",
       "noAudio": "No audio saved",
+      "playAudio": "Play recording",
+      "pauseAudio": "Pause recording",
+      "seekAudio": "Seek recording",
+      "loadingAudio": "Loading recording",
+      "audioUnavailable": "Audio unavailable",
       "sendToInbox": "Send to daily inbox"
     },
     "debug": {
@@ -1332,7 +1341,8 @@
       "vmUninstallFailed": "Couldn't uninstall. Try again.",
       "vmDownloadFailed": "Couldn't download the virtual microphone.",
       "vmShaFailed": "The download failed the integrity check. Discarded.",
-      "vmOnlyMacos": "Available on macOS only."
+      "vmOnlyMacos": "Available on macOS only.",
+      "voiceEngineHint": "Voice engine for the meeting interpreter"
     }
   },
   "engine": {
@@ -1477,6 +1487,36 @@
     "errors": {
       "checkStatus": "Couldn't check the model status.",
       "switch": "Couldn't switch models."
+    }
+  },
+  "pluminHelp": {
+    "open": "Ask Plumín",
+    "title": "Ask Plumín",
+    "description": "Local, focused help about Escriba and your current setup.",
+    "intro": "Tell me what is getting in your way. I can explain it and take you to the right section.",
+    "questionLabel": "What do you need help with?",
+    "placeholder": "For example: Why isn't it writing? How do I change the shortcut? Does my voice leave my computer?",
+    "dictate": "Dictate your question",
+    "ask": "Ask",
+    "thinking": "Looking it up…",
+    "localAnswer": "Answered by the local engine from Escriba's built-in guide.",
+    "guideFallback": "Verified answer from Escriba's built-in guide.",
+    "openSection": "Open the recommended section",
+    "speak": "Read aloud",
+    "stopSpeaking": "Stop reading",
+    "answers": {
+      "troubleshooting": "Check that a transcription model is selected, the correct microphone is active, microphone and Accessibility permissions are granted, and the shortcut is not used by another app. Open General to review those controls.",
+      "shortcut": "Open General and select the shortcut you want to change. Enter a new combination that is not already reserved by the system or another app.",
+      "privacy": "Transcription and the local writing engine run on your computer. Cloud providers are optional and only run if you configure them; saved history is encrypted and saving audio is off by default.",
+      "microphone": "Choose the microphone in General. If it is missing, refresh the device list and verify the operating system's microphone permission.",
+      "models": "Models lets you download, select and remove transcription engines. Parakeet V3 is the balanced recommendation; Whisper large-v3-turbo prioritizes spelling quality.",
+      "history": "History keeps your dictation text so you can search, copy, save or retry it. Saving recordings is optional and off by default; when enabled, text and audio are encrypted at rest.",
+      "studio": "Use Studio to transcribe an audio or video file without the microphone. You can review its segments and export TXT, JSON, SRT or VTT.",
+      "translator": "Translator handles turns between two languages and keeps brief context. Interpreter is for a live room, while Sessions can turn a longer conversation into a document.",
+      "writing": "Smart Writing can correct, translate or change the tone of a dictation with the local engine. Configure its templates and shortcut in Smart Writing.",
+      "obsidian": "Choose your vault in General. Escriba can export reviewed notes, maintain an index, link mentions and append dictations to a daily inbox.",
+      "updates": "Finding an update never installs it automatically: you must explicitly select “Update available”. Portable installations show the manual update path instead.",
+      "overview": "I can help with dictation and permissions, shortcuts, models, privacy, History, Studio, Translator, Smart Writing, Obsidian and updates. Ask about one of those and I will take you to the right place."
     }
   }
 }

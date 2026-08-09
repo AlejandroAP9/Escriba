@@ -13,14 +13,7 @@
     "macOSPrivateApi": true,
     "windows": [],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost; media-src 'self' blob: asset: http://asset.localhost; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost asset: http://asset.localhost; object-src 'none'; frame-src 'none'; base-uri 'self'",
-      "assetProtocol": {
-        "enable": true,
-        "scope": {
-          "allow": ["$APPDATA/recordings/*", "$APPLOCALDATA/recordings/*"],
-          "requireLiteralLeadingDot": false
-        }
-      }
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost; media-src 'self' blob: escriba-audio: http://escriba-audio.localhost; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'; base-uri 'self'"
     }
   },
   "bundle": {

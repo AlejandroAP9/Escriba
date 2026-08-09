@@ -34,7 +34,9 @@ const LARGO_NONCE: usize = 12;
 /// se degrada a texto claro (nuevo) y marcador (viejo cifrado), sin crash.
 static LLAVE: OnceLock<Option<[u8; 32]>> = OnceLock::new();
 
-fn llave() -> Option<&'static [u8; 32]> {
+/// Llave maestra del historial. Solo los módulos de cifrado pueden verla;
+/// nunca cruza a comandos, frontend ni logs.
+pub(crate) fn llave() -> Option<&'static [u8; 32]> {
     LLAVE
         .get_or_init(|| {
             let entrada = match keyring::Entry::new(SERVICIO_LLAVERO, CUENTA_LLAVERO) {

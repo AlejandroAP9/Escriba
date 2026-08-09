@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Play, Pause } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface AudioPlayerProps {
   /** Audio source URL. If not provided, onLoadRequest must be provided. */
@@ -20,12 +21,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   autoPlay = false,
   compact = false,
 }) => {
+  const { t } = useTranslation();
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [loadedSrc, setLoadedSrc] = useState<string | null>(initialSrc ?? null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const src = loadedSrc;
@@ -86,6 +89,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     if (!audio) return;
 
     const handleLoadedMetadata = () => {
+      setLoadFailed(false);
       setDuration(audio.duration || 0);
       setCurrentTime(0);
     };
@@ -97,17 +101,24 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
+    const handleError = () => {
+      setIsPlaying(false);
+      setIsLoading(false);
+      setLoadFailed(true);
+    };
 
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
+    audio.addEventListener("error", handleError);
 
     return () => {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
+      audio.removeEventListener("error", handleError);
     };
   }, []);
 
@@ -176,18 +187,23 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       } else {
         // If no src loaded yet, request it
         if (!src && onLoadRequest) {
+          setLoadFailed(false);
           setIsLoading(true);
           const newSrc = await onLoadRequest();
           setIsLoading(false);
           if (newSrc) {
             setLoadedSrc(newSrc);
             // Playback will be triggered by the useEffect watching loadedSrc
+          } else {
+            setLoadFailed(true);
           }
         } else if (src) {
           await audio.play();
         }
       }
     } catch (error) {
+      setIsLoading(false);
+      setLoadFailed(true);
       console.error("Playback failed:", error);
     }
   };
@@ -241,7 +257,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         onClick={togglePlay}
         disabled={isLoading}
         className="transition-colors cursor-pointer text-text hover:text-gold-text disabled:opacity-50"
-        aria-label={isPlaying ? "Pause" : "Play"}
+        aria-label={
+          isLoading
+            ? t("settings.history.loadingAudio")
+            : isPlaying
+              ? t("settings.history.pauseAudio")
+              : t("settings.history.playAudio")
+        }
       >
         {isPlaying ? (
           <Pause
@@ -266,32 +288,42 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         del historial (176px de ancho total) el slider se negaba a encoger y
         empujaba la duración FUERA de la tarjeta, donde se veía cortada.
       */}
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        {!compact && (
-          <span className="min-w-[30px] shrink-0 text-xs tabular-nums text-text/60">
-            {formatTime(currentTime)}
-          </span>
-        )}
-
-        <input
-          type="range"
-          min="0"
-          max={duration || 0}
-          step="0.01"
-          value={currentTime}
-          onChange={handleSeek}
-          onMouseDown={handleSliderMouseDown}
-          onTouchStart={handleSliderTouchStart}
-          className={`h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-lg focus:outline-none focus:ring-1 focus:ring-logo-primary ${progressPercent >= 99.5 ? "[&::-webkit-slider-thumb]:translate-x-0.5 [&::-moz-range-thumb]:translate-x-0.5" : ""}`}
-          style={{
-            background: `linear-gradient(to right, var(--color-logo-primary) 0%, var(--color-logo-primary) ${progressPercent}%, rgba(128, 128, 128, 0.2) ${progressPercent}%, rgba(128, 128, 128, 0.2) 100%)`,
-          }}
-        />
-
-        <span className="min-w-[30px] shrink-0 text-xs tabular-nums text-text/60">
-          {formatTime(duration)}
+      {loadFailed ? (
+        <span
+          role="status"
+          className="min-w-0 flex-1 truncate text-2xs text-mid-gray"
+        >
+          {t("settings.history.audioUnavailable")}
         </span>
-      </div>
+      ) : (
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {!compact && (
+            <span className="min-w-[30px] shrink-0 text-xs tabular-nums text-text/60">
+              {formatTime(currentTime)}
+            </span>
+          )}
+
+          <input
+            type="range"
+            min="0"
+            max={duration || 0}
+            step="0.01"
+            value={currentTime}
+            onChange={handleSeek}
+            onMouseDown={handleSliderMouseDown}
+            onTouchStart={handleSliderTouchStart}
+            aria-label={t("settings.history.seekAudio")}
+            className={`h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-lg focus:outline-none focus:ring-1 focus:ring-logo-primary ${progressPercent >= 99.5 ? "[&::-webkit-slider-thumb]:translate-x-0.5 [&::-moz-range-thumb]:translate-x-0.5" : ""}`}
+            style={{
+              background: `linear-gradient(to right, var(--color-logo-primary) 0%, var(--color-logo-primary) ${progressPercent}%, rgba(128, 128, 128, 0.2) ${progressPercent}%, rgba(128, 128, 128, 0.2) 100%)`,
+            }}
+          />
+
+          <span className="min-w-[30px] shrink-0 text-xs tabular-nums text-text/60">
+            {formatTime(duration)}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

@@ -18,6 +18,17 @@ entrega.
 
 ### Añadido (segunda tanda)
 
+- **Voz elegible por herramienta**: Sesiones, el Intérprete de reuniones y
+  «Tu tinta en voz» guardan cada uno su propia elección entre la voz del
+  sistema y la voz local incluida. La del sistema sigue siendo la opción
+  inicial porque ganó el A/B; cambiar una herramienta ya no altera las otras.
+- **Pregúntale a Plumín** (inspirado en la ayuda acotada que **Fuwa** mostró en
+  los Juegos Imperiales): puedes escribir o dictar una duda sobre Escriba;
+  Plumín responde desde una guía interna y tu configuración, abre la sección
+  correcta y, solo si lo pides, lee la respuesta en voz alta. No es un chatbot
+  general: la pregunta se clasifica antes y nunca entra al prompt del motor,
+  así una instrucción hostil no puede cambiarle la tarea. Sin motor local
+  instalado conserva respuestas seguras y traducibles incorporadas.
 - **Obsidian de verdad** (el eje que **Takhygraphe** hizo mejor en los Juegos
   Imperiales, reimplementado desde cero): al exportar, las menciones que
   coinciden con notas de tu vault se vuelven `[[enlaces]]` que revisas en la
@@ -62,21 +73,29 @@ entrega.
   2.2.2, aplicada al pipeline entero.
 - **Contexto en el Traductor y el Intérprete**: cada traducción ve los últimos
   turnos de SU sesión, así "mañana tengo una prueba" en una conversación
-  escolar se traduce como *test* y no como *proof*. Vive solo en RAM, entra
+  escolar se traduce como _test_ y no como _proof_. Vive solo en RAM, entra
   vallado como referencia (nunca como instrucciones), y se limpia al apagar la
   escucha o cambiar los idiomas. La detección de dirección sigue mirando solo
   la frase nueva.
-- **Cifrado en reposo del historial**: los dictados guardados ya no viven en
-  claro en el disco. Cifrado por campo con la llave en el llavero del sistema;
-  el historial antiguo se migra solo al arrancar; sin llave disponible la app
-  funciona igual y lo ilegible se marca, no se pierde. Una versión anterior
-  puede abrir la misma base sin romperse.
+- **Cifrado en reposo del historial**: texto y voz guardados ya no viven en
+  claro en el disco. El texto se cifra por campo; el audio usa un contenedor
+  autenticado por tramos de 64 KiB que permite reproducir y buscar sin cargar
+  la grabación completa en RAM. La llave vive en el llavero del sistema y el
+  historial antiguo se migra solo, de forma reanudable. Sin llave disponible la
+  app sigue arrancando y dictando; lo ilegible se marca, no se inventa ni se
+  pierde. Una versión anterior aún abre la misma base sin romperse.
+
+### Corregido
+
+- **El postproceso ya no obedece el secuestro conocido y pega una respuesta
+  ajena**: si el dictado contiene marcadores como «ignora las instrucciones» y
+  la salida pierde la mayoría de su contenido, se descarta y se conserva lo
+  dicho. También se deja de pegar el JSON crudo cuando un proveedor incumple el
+  esquema. Traducción y Edición quedan fuera de la heurística porque cambiar
+  todo el vocabulario es su función.
 
 ### Sabido y sin resolver
 
-- El audio guardado (apagado de fábrica desde 2.2.4) aún no se cifra: su
-  reproducción en streaming exige diseñar contra el permiso de lectura de
-  grabaciones de 2.2.3 con calma. Queda declarado y en el plan.
 - El caso escolar del Traductor, la batería de dirección de Flor y la
   inyección turno a turno necesitan QA manual con el motor local vivo.
 

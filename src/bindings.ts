@@ -184,8 +184,8 @@ async conversationSystemTranslate(on: boolean, foreign: string) : Promise<boolea
  * (BlackHole) elegido aquí y como micrófono de la reunión, la otra persona
  * escucha tu dictado ya traducido. Solo macOS (como el audio del sistema).
  */
-async conversationSpeakVia(text: string, lang: string, device: string, gender: string) : Promise<boolean> {
-    return await TAURI_INVOKE("conversation_speak_via", { text, lang, device, gender });
+async conversationSpeakVia(text: string, lang: string, device: string, gender: string, engine: string) : Promise<boolean> {
+    return await TAURI_INVOKE("conversation_speak_via", { text, lang, device, gender, engine });
 },
 /**
  * ¿Está el micrófono virtual instalado? (aparece como dispositivo de salida).
@@ -443,6 +443,14 @@ async setupLocalLlm() : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async askPlumin(question: string) : Promise<Result<PluminHelpResponse, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("ask_plumin", { question }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changeBinding(id: string, binding: string) : Promise<Result<BindingResponse, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_binding", { id, binding }) };
@@ -494,6 +502,30 @@ async changeSoundThemeSetting(theme: string) : Promise<Result<null, string>> {
 async changeReviewBeforePasteSetting(on: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_review_before_paste_setting", { on }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeDictatedEmojisSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_dictated_emojis_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeSpokenNumeralsSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_spoken_numerals_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeNumeralsSpreadsheetAutoSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_numerals_spreadsheet_auto_setting", { enabled }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -900,6 +932,19 @@ async changeUpdateChecksSetting(enabled: boolean) : Promise<Result<null, string>
 async changeShowWhatsNewOnUpdateSetting(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_show_whats_new_on_update_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Persiste el motor de lectura de una herramienta. El nombre del ajuste está
+ * cerrado a esta lista para que el comando no se convierta en un escritor
+ * genérico de configuración.
+ */
+async changeVoiceEngineSetting(setting: string, engine: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_voice_engine_setting", { setting, engine }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -1550,6 +1595,12 @@ calm_mode?: boolean;
  */
 always_show_focus?: boolean; 
 /**
+ * Motor de lectura por herramienta. La voz del sistema es el valor
+ * inicial porque ganó la prueba A/B; la incluida sigue disponible como
+ * alternativa explícita y local.
+ */
+conversation_voice_engine?: string; interpreter_voice_engine?: string; read_selection_voice_engine?: string;
+/**
  * Subcarpeta dentro del vault donde aterrizan las notas. Vacío = raíz.
  */
 obsidian_notes_folder?: string; obsidian_link_mentions?: boolean; obsidian_index_note?: boolean; obsidian_daily_inbox?: boolean; 
@@ -1713,6 +1764,11 @@ export type OverlayStyle = "none" | "minimal" | "live"
 export type PaginatedHistory = { entries: HistoryEntry[]; has_more: boolean }
 export type PasteMethod = "ctrl_v" | "direct" | "none" | "shift_insert" | "ctrl_shift_v" | "external_script"
 export type PermissionAccess = "allowed" | "denied" | "unknown"
+export type PluminHelpResponse = { topic: string; section: string;
+/**
+ * `None` indica que la UI debe usar su respuesta i18n congelada.
+ */
+answer: string | null; used_local_engine: boolean }
 export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null; supports_structured_output?: boolean }
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
 export type SecretMap = Partial<{ [key in string]: string }>

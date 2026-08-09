@@ -93,8 +93,29 @@ const settingUpdaters: {
   calm_mode: (value) => commands.changeCalmModeSetting(value as boolean),
   always_show_focus: (value) =>
     commands.changeAlwaysShowFocusSetting(value as boolean),
+  conversation_voice_engine: (value) =>
+    commands.changeVoiceEngineSetting(
+      "conversation_voice_engine",
+      value as string,
+    ),
+  interpreter_voice_engine: (value) =>
+    commands.changeVoiceEngineSetting(
+      "interpreter_voice_engine",
+      value as string,
+    ),
+  read_selection_voice_engine: (value) =>
+    commands.changeVoiceEngineSetting(
+      "read_selection_voice_engine",
+      value as string,
+    ),
   review_before_paste: (value) =>
     commands.changeReviewBeforePasteSetting(value as boolean),
+  dictated_emojis_enabled: (value) =>
+    commands.changeDictatedEmojisSetting(value as boolean),
+  spoken_numerals_enabled: (value) =>
+    commands.changeSpokenNumeralsSetting(value as boolean),
+  numerals_spreadsheet_auto: (value) =>
+    commands.changeNumeralsSpreadsheetAutoSetting(value as boolean),
   start_hidden: (value) => commands.changeStartHiddenSetting(value as boolean),
   autostart_enabled: (value) =>
     commands.changeAutostartSetting(value as boolean),

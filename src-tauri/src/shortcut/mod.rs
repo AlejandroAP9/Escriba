@@ -605,6 +605,36 @@ pub fn change_selected_language_setting(app: AppHandle, language: String) -> Res
 
 #[tauri::command]
 #[specta::specta]
+pub fn change_dictated_emojis_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.dictated_emojis_enabled = enabled;
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_spoken_numerals_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.spoken_numerals_enabled = enabled;
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_numerals_spreadsheet_auto_setting(
+    app: AppHandle,
+    enabled: bool,
+) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.numerals_spreadsheet_auto = enabled;
+    settings::write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn change_overlay_position_setting(app: AppHandle, position: String) -> Result<(), String> {
     let mut settings = settings::get_settings(&app);
     let parsed = match position.as_str() {
@@ -759,6 +789,36 @@ pub fn change_show_whats_new_on_update_setting(
         }),
     );
 
+    Ok(())
+}
+
+/// Persiste el motor de lectura de una herramienta. El nombre del ajuste está
+/// cerrado a esta lista para que el comando no se convierta en un escritor
+/// genérico de configuración.
+#[tauri::command]
+#[specta::specta]
+pub fn change_voice_engine_setting(
+    app: AppHandle,
+    setting: String,
+    engine: String,
+) -> Result<(), String> {
+    if engine != "system" && engine != "included" {
+        return Err("Motor de voz no válido".to_string());
+    }
+
+    let mut settings = settings::get_settings(&app);
+    match setting.as_str() {
+        "conversation_voice_engine" => settings.conversation_voice_engine = engine.clone(),
+        "interpreter_voice_engine" => settings.interpreter_voice_engine = engine.clone(),
+        "read_selection_voice_engine" => settings.read_selection_voice_engine = engine.clone(),
+        _ => return Err("Ajuste de voz no válido".to_string()),
+    }
+    settings::write_settings(&app, settings);
+
+    let _ = app.emit(
+        "settings-changed",
+        serde_json::json!({ "setting": setting, "value": engine }),
+    );
     Ok(())
 }
 

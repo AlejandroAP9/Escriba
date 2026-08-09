@@ -25,6 +25,7 @@ import { ObsidianVault } from "../ObsidianVault";
 import { AutostartToggle } from "../AutostartToggle";
 import { StartHidden } from "../StartHidden";
 import { ShowTrayIcon } from "../ShowTrayIcon";
+import { VoiceEngineSelector } from "../VoiceEngineSelector";
 import { ModelSettingsCard } from "./ModelSettingsCard";
 
 export const GeneralSettings: React.FC = () => {
@@ -160,6 +161,11 @@ export const GeneralSettings: React.FC = () => {
           shortcutId="read_selection"
           descriptionMode="inline"
           grouped={true}
+        />
+        <VoiceEngineSelector
+          setting="read_selection_voice_engine"
+          titleKey="settings.general.readSelectionVoice.title"
+          descriptionKey="settings.general.readSelectionVoice.description"
         />
       </SettingsGroup>
 

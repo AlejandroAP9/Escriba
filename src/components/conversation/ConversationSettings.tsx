@@ -106,7 +106,7 @@ function formatKeys(binding: string | undefined): string[] {
 
 export const ConversationSettings: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const { getSetting } = useSettings();
+  const { getSetting, updateSetting } = useSettings();
   const [phase, setPhase] = useState<Phase>("idle");
   const [mode, setMode] = useState<Mode>("converse");
   const [variant, setVariant] = useState<Variant>("listen");
@@ -127,17 +127,21 @@ export const ConversationSettings: React.FC = () => {
   // Motor de voz elegido por el usuario (persistente). Default: la voz del
   // sistema (ganó el A/B contra la incluida); la incluida queda para equipos
   // sin voces Premium/Mejorada.
-  const [voiceEngine, setVoiceEngine] = useState<"included" | "system">(() =>
-    localStorage.getItem("escriba.voiceEngine") === "included"
+  const voiceEngine =
+    getSetting("conversation_voice_engine") === "included"
       ? "included"
-      : "system",
-  );
+      : "system";
   const voiceEngineRef = useRef(voiceEngine);
   voiceEngineRef.current = voiceEngine;
   const pickEngine = (e: "included" | "system") => {
-    setVoiceEngine(e);
-    localStorage.setItem("escriba.voiceEngine", e);
+    void updateSetting("conversation_voice_engine", e);
   };
+  const interpreterVoiceEngine =
+    getSetting("interpreter_voice_engine") === "included"
+      ? "included"
+      : "system";
+  const interpreterVoiceEngineRef = useRef(interpreterVoiceEngine);
+  interpreterVoiceEngineRef.current = interpreterVoiceEngine;
 
   // Voces del sistema (getVoices llega vacío hasta el evento voiceschanged).
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
@@ -297,22 +301,20 @@ export const ConversationSettings: React.FC = () => {
       }
       // Con dispositivo elegido, la voz sale por ahí (micrófono virtual = la
       // escucha la otra persona de la llamada); si falla, parlantes.
-      const device = voiceOutRef.current;
-      if (device) {
-        commands
-          .conversationSpeakVia(
-            e.payload.text,
-            e.payload.lang,
-            device,
-            voiceGenderRef.current,
-          )
-          .then((ok) => {
-            if (!ok) speakIn(e.payload.lang, e.payload.text);
-          })
-          .catch(() => speakIn(e.payload.lang, e.payload.text));
-      } else {
-        speakIn(e.payload.lang, e.payload.text);
-      }
+      commands
+        .conversationSpeakVia(
+          e.payload.text,
+          e.payload.lang,
+          voiceOutRef.current,
+          interpreterVoiceEngineRef.current === "included"
+            ? "f"
+            : voiceGenderRef.current,
+          interpreterVoiceEngineRef.current,
+        )
+        .then((ok) => {
+          if (!ok) speakIn(e.payload.lang, e.payload.text);
+        })
+        .catch(() => speakIn(e.payload.lang, e.payload.text));
     });
     return () => {
       unReply.then((fn) => fn());
@@ -1062,23 +1064,53 @@ export const ConversationSettings: React.FC = () => {
                         </select>
                       )}
                       <select
-                        value={voiceGender}
-                        onChange={(e) => pickVoiceGender(e.target.value)}
+                        value={interpreterVoiceEngine}
+                        onChange={(e) =>
+                          void updateSetting(
+                            "interpreter_voice_engine",
+                            e.target.value,
+                          )
+                        }
                         title={t(
-                          "conversation.systemTranslate.voiceGenderHint",
+                          "conversation.systemTranslate.voiceEngineHint",
+                        )}
+                        aria-label={t(
+                          "conversation.systemTranslate.voiceEngineHint",
                         )}
                         className="cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
                       >
-                        <option value="f">
-                          {"♀ " + t("conversation.systemTranslate.voiceFemale")}
+                        <option value="system">
+                          {t("conversation.voiceEngine.system")}
                         </option>
-                        <option value="m">
-                          {"♂ " + t("conversation.systemTranslate.voiceMale")}
+                        <option value="included">
+                          {t("conversation.voiceEngine.included")}
                         </option>
                       </select>
+                      {interpreterVoiceEngine === "system" && (
+                        <select
+                          value={voiceGender}
+                          onChange={(e) => pickVoiceGender(e.target.value)}
+                          title={t(
+                            "conversation.systemTranslate.voiceGenderHint",
+                          )}
+                          aria-label={t(
+                            "conversation.systemTranslate.voiceGenderHint",
+                          )}
+                          className="cursor-pointer appearance-none bg-transparent px-2.5 py-1 text-xs text-text transition-colors hover:bg-logo-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
+                        >
+                          <option value="f">
+                            {"♀ " +
+                              t("conversation.systemTranslate.voiceFemale")}
+                          </option>
+                          <option value="m">
+                            {"♂ " + t("conversation.systemTranslate.voiceMale")}
+                          </option>
+                        </select>
+                      )}
                     </div>
                   )}
                   {sysTranslate &&
+                    interpreterVoiceEngine === "included" &&
                     NEURAL_VOICE_LANGS.includes(sysTranslateLang) &&
                     !neuralReady && (
                       <Button

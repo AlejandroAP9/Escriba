@@ -195,10 +195,8 @@ impl HistoryManager {
 
         // Grabaciones e historial solo para el dueño de la cuenta.
         //
-        // No sustituye al cifrado en reposo, que sigue pendiente: un proceso que
-        // corra COMO este usuario los sigue leyendo. Lo que sí cierra es el caso
-        // del equipo compartido, donde otra cuenta del mismo Mac o del mismo
-        // Linux podía entrar a leer el historial de dictados por defecto.
+        // Defensa adicional al cifrado en reposo: otra cuenta del mismo equipo
+        // tampoco debe poder listar metadatos ni reemplazar contenedores.
         restrict_to_owner(&app_data_dir);
         restrict_to_owner(&recordings_dir);
 
@@ -222,6 +220,9 @@ impl HistoryManager {
         // migra nada y se reintenta en el próximo arranque.
         if let Err(e) = manager.migrate_plaintext_to_encrypted() {
             error!("Migración de cifrado del historial incompleta: {}", e);
+        }
+        if let Err(e) = manager.migrate_recordings_to_encrypted() {
+            error!("Migración de cifrado de grabaciones incompleta: {}", e);
         }
 
         Ok(manager)
@@ -261,6 +262,64 @@ impl HistoryManager {
                 "Historial: {} entrada(s) migradas a cifrado en reposo",
                 total
             );
+        }
+        Ok(())
+    }
+
+    /// Migra cada WAV heredado a un contenedor ESCAUD1 independiente.
+    ///
+    /// El orden hace recuperable un kill en cualquier punto:
+    /// 1. se publica el contenedor cifrado con rename atómico;
+    /// 2. se borra el WAV claro;
+    /// 3. se actualiza el nombre en SQLite.
+    ///
+    /// Si el proceso muere entre 2 y 3, el próximo arranque ve el destino ya
+    /// cifrado, actualiza la fila y continúa. Nunca borra la única copia.
+    fn migrate_recordings_to_encrypted(&self) -> Result<()> {
+        if !crate::history_crypto::cifrado_disponible() {
+            return Ok(());
+        }
+        let conn = self.get_connection()?;
+        let mut stmt =
+            conn.prepare("SELECT id, file_name FROM transcription_history WHERE file_name != ''")?;
+        let recordings: Vec<(i64, String)> = stmt
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
+            .collect::<rusqlite::Result<_>>()?;
+        drop(stmt);
+
+        let mut migrated = 0usize;
+        for (id, legacy_name) in recordings {
+            if legacy_name.ends_with(".escaudio") {
+                continue;
+            }
+            let Some(encrypted_name) = crate::recording_crypto::encrypted_file_name(&legacy_name)
+            else {
+                warn!(
+                    "Historial: nombre de grabación heredada inválido; no se migra: {:?}",
+                    legacy_name
+                );
+                continue;
+            };
+            let source = self.recordings_dir.join(&legacy_name);
+            let destination = self.recordings_dir.join(&encrypted_name);
+
+            if !source.is_file() && !destination.is_file() {
+                // La retención o el usuario pudo borrar el archivo; la fila
+                // conserva el texto y simplemente no ofrece audio.
+                continue;
+            }
+            if let Err(e) = crate::recording_crypto::migrate_legacy_wav(&source, &destination) {
+                warn!("Historial: no se pudo cifrar {:?}: {}", legacy_name, e);
+                continue;
+            }
+            conn.execute(
+                "UPDATE transcription_history SET file_name = ?1 WHERE id = ?2",
+                params![encrypted_name, id],
+            )?;
+            migrated += 1;
+        }
+        if migrated > 0 {
+            info!("Historial: {} grabación(es) migradas a ESCAUD1", migrated);
         }
         Ok(())
     }
@@ -422,7 +481,7 @@ impl HistoryManager {
     }
 
     /// Save a new history entry to the database.
-    /// The WAV file should already have been written to the recordings directory.
+    /// El contenedor de audio, si existe, ya debe estar escrito en recordings/.
     pub fn save_entry(
         &self,
         file_name: String,
@@ -655,13 +714,22 @@ impl HistoryManager {
                 params![id],
             )?;
 
-            // Delete WAV file
-            let file_path = self.recordings_dir.join(file_name);
+            if file_name.is_empty() {
+                continue;
+            }
+            // Delete the encrypted recording (or a legacy WAV).
+            let Ok(file_path) = self.get_audio_file_path(file_name) else {
+                error!(
+                    "Refusing to delete recording with invalid name: {:?}",
+                    file_name
+                );
+                continue;
+            };
             if file_path.exists() {
                 if let Err(e) = fs::remove_file(&file_path) {
-                    error!("Failed to delete WAV file {}: {}", file_name, e);
+                    error!("Failed to delete recording {}: {}", file_name, e);
                 } else {
-                    debug!("Deleted old WAV file: {}", file_name);
+                    debug!("Deleted old recording: {}", file_name);
                     deleted_count += 1;
                 }
             }
@@ -874,8 +942,28 @@ impl HistoryManager {
         Ok(())
     }
 
-    pub fn get_audio_file_path(&self, file_name: &str) -> PathBuf {
-        self.recordings_dir.join(file_name)
+    pub fn get_audio_file_path(&self, file_name: &str) -> Result<PathBuf> {
+        if !crate::recording_crypto::is_safe_file_name(file_name) {
+            return Err(anyhow!("Invalid recording file name: {:?}", file_name));
+        }
+        Ok(self.recordings_dir.join(file_name))
+    }
+
+    /// El protocolo de audio no sirve archivos huérfanos ni nombres
+    /// adivinados: solo lo que una fila vigente del historial referencia.
+    pub fn contains_audio_file(&self, file_name: &str) -> Result<bool> {
+        if !crate::recording_crypto::is_safe_file_name(file_name) {
+            return Ok(false);
+        }
+        let conn = self.get_connection()?;
+        conn.query_row(
+            "SELECT EXISTS(
+                SELECT 1 FROM transcription_history WHERE file_name = ?1
+             )",
+            params![file_name],
+            |row| row.get(0),
+        )
+        .map_err(Into::into)
     }
 
     pub async fn get_entry_by_id(&self, id: i64) -> Result<Option<HistoryEntry>> {
@@ -906,11 +994,16 @@ impl HistoryManager {
         // Get the entry to find the file name
         if let Some(entry) = self.get_entry_by_id(id).await? {
             // Delete the audio file first
-            let file_path = self.get_audio_file_path(&entry.file_name);
-            if file_path.exists() {
-                if let Err(e) = fs::remove_file(&file_path) {
-                    error!("Failed to delete audio file {}: {}", entry.file_name, e);
-                    // Continue with database deletion even if file deletion fails
+            if !entry.file_name.is_empty() {
+                match self.get_audio_file_path(&entry.file_name) {
+                    Ok(file_path) if file_path.exists() => {
+                        if let Err(e) = fs::remove_file(&file_path) {
+                            error!("Failed to delete audio file {}: {}", entry.file_name, e);
+                            // Continue with database deletion even if file deletion fails
+                        }
+                    }
+                    Ok(_) => {}
+                    Err(e) => error!("Invalid audio path in history entry {}: {}", id, e),
                 }
             }
             self.discount_from_usage(&conn, &entry);
