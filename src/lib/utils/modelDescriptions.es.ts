@@ -10,6 +10,13 @@ export const MODEL_DESCRIPTIONS_ES: Record<string, string> = {
     "Transcripción en vivo rápida y precisa, SOLO inglés",
   "Live multilingual transcription across 28 languages":
     "Transcripción multilingüe en vivo, 28 idiomas (incluye español)",
+  // Descripciones nuevas de la curación del 9-ago (ver gen_catalog.py): el
+  // recomendado dice que es bueno EN ESPAÑOL, y Nemotron dice lo que de
+  // verdad aporta, que es ver el texto en vivo, no acertar más.
+  "Fast and accurate in Spanish and 24 other European languages":
+    "Rápido y preciso en español y otros 24 idiomas europeos",
+  "See your words appear as you speak, in 28 languages":
+    "Mira tus palabras aparecer mientras hablas, en 28 idiomas",
   "Tiny and instant, runs well on any hardware":
     "Diminuto e instantáneo, corre bien en cualquier equipo",
   "Highest accuracy, 14 languages, slower":

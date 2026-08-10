@@ -179,7 +179,8 @@
       "bestQuality": "Best quality",
       "fastest": "Fastest",
       "live": "Live",
-      "mostLanguages": "Most languages"
+      "mostLanguages": "Most languages",
+      "balanced": "Best all-round"
     }
   },
   "settings": {

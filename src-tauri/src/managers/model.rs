@@ -73,9 +73,14 @@ pub struct ModelInfo {
     pub speed_score: f32,           // 0.0 to 1.0, higher is faster
     pub supports_translation: bool, // Whether the model supports translating to English
     pub is_recommended: bool,       // Whether this is the recommended model for new users
+    /// Editorial position within the recommended set (1 = the default we put
+    /// in front of a new user). The UI needs it to badge the top pick: without
+    /// it, our #1 fell through every "why does this stand out" rule and showed
+    /// nothing, while a slower model wore "best quality".
+    pub recommended_rank: Option<u32>,
     pub supported_languages: Vec<String>, // Languages this model can transcribe
     pub supports_language_selection: bool, // Whether the user can explicitly pick a language
-    pub is_custom: bool,            // Whether this is a user-provided custom model
+    pub is_custom: bool,                  // Whether this is a user-provided custom model
     pub supports_streaming: bool, // Whether this model supports live streaming preview (transcribe-cpp)
     pub supports_language_detection: bool, // Whether the model can auto-detect language (gates the "Auto" option)
 }
@@ -203,6 +208,7 @@ impl ModelDescriptor {
             speed_score: self.speed_score,
             supports_translation: self.caps.supports_translation.unwrap_or(false),
             is_recommended: self.recommended,
+            recommended_rank: self.recommended_rank,
             supports_language_selection: languages.len() > 1,
             supported_languages: languages,
             // Catalog models are always HF-sourced downloads, never user-dropped
@@ -506,6 +512,7 @@ impl ModelManager {
                 speed_score: 0.85,
                 supports_translation: true,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: whisper_languages.clone(),
                 supports_language_selection: true,
                 is_custom: false,
@@ -539,6 +546,7 @@ impl ModelManager {
                 speed_score: 0.60,
                 supports_translation: true,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: whisper_languages.clone(),
                 supports_language_selection: true,
                 is_custom: false,
@@ -571,6 +579,7 @@ impl ModelManager {
                 speed_score: 0.40,
                 supports_translation: false, // Turbo doesn't support translation
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: whisper_languages.clone(),
                 supports_language_selection: true,
                 is_custom: false,
@@ -603,6 +612,7 @@ impl ModelManager {
                 speed_score: 0.30,
                 supports_translation: true,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: whisper_languages.clone(),
                 supports_language_selection: true,
                 is_custom: false,
@@ -636,6 +646,7 @@ impl ModelManager {
                 speed_score: 0.35,
                 supports_translation: false,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: whisper_languages,
                 supports_language_selection: true,
                 is_custom: false,
@@ -669,6 +680,7 @@ impl ModelManager {
                 speed_score: 0.85,
                 supports_translation: false,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: vec!["en".to_string()],
                 supports_language_selection: false,
                 is_custom: false,
@@ -711,6 +723,13 @@ impl ModelManager {
                 speed_score: 0.85,
                 supports_translation: false,
                 is_recommended: true,
+                // Sin rank a propósito: esta es la entrada HEREDADA de
+                // Parakeet V3 (ONNX int8 de blob.handy.computer) y convive en
+                // la lista con la del catálogo (GGUF Q8_0), que es la que
+                // medimos en el benchmark. Si las dos llevaran rank 1, el
+                // usuario vería dos tarjetas con la misma insignia y sin saber
+                // cuál elegir. La insignia va a la que tiene los números.
+                recommended_rank: None,
                 supported_languages: parakeet_v3_languages,
                 supports_language_selection: false,
                 is_custom: false,
@@ -743,6 +762,7 @@ impl ModelManager {
                 speed_score: 0.90,
                 supports_translation: false,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: vec!["en".to_string()],
                 supports_language_selection: false,
                 is_custom: false,
@@ -776,6 +796,7 @@ impl ModelManager {
                 speed_score: 0.95,
                 supports_translation: false,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: vec!["en".to_string()],
                 supports_language_selection: false,
                 is_custom: false,
@@ -809,6 +830,7 @@ impl ModelManager {
                 speed_score: 0.90,
                 supports_translation: false,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: vec!["en".to_string()],
                 supports_language_selection: false,
                 is_custom: false,
@@ -842,6 +864,7 @@ impl ModelManager {
                 speed_score: 0.80,
                 supports_translation: false,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: vec!["en".to_string()],
                 supports_language_selection: false,
                 is_custom: false,
@@ -881,6 +904,7 @@ impl ModelManager {
                 speed_score: 0.95,
                 supports_translation: false,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: sense_voice_languages,
                 supports_language_selection: true,
                 is_custom: false,
@@ -916,6 +940,7 @@ impl ModelManager {
                 speed_score: 0.75,
                 supports_translation: false,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: gigaam_languages,
                 supports_language_selection: false,
                 is_custom: false,
@@ -955,6 +980,7 @@ impl ModelManager {
                 speed_score: 0.85,
                 supports_translation: true,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: canary_flash_languages,
                 supports_language_selection: true,
                 is_custom: false,
@@ -998,6 +1024,7 @@ impl ModelManager {
                 speed_score: 0.70,
                 supports_translation: true,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: canary_1b_languages,
                 supports_language_selection: true,
                 is_custom: false,
@@ -1038,6 +1065,7 @@ impl ModelManager {
                 speed_score: 0.60,
                 supports_translation: false,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: cohere_languages,
                 supports_language_selection: true,
                 is_custom: false,
@@ -1539,6 +1567,7 @@ impl ModelManager {
                     speed_score: 0.0,
                     supports_translation: caps.supports_translation,
                     is_recommended: false,
+                    recommended_rank: None,
                     supported_languages: caps.supported_languages,
                     supports_language_selection: caps.supports_language_selection,
                     is_custom: true,
@@ -1661,6 +1690,7 @@ impl ModelManager {
                         speed_score: 0.0,
                         supports_translation: caps.supports_translation,
                         is_recommended: false,
+                        recommended_rank: None,
                         supported_languages: caps.supported_languages,
                         supports_language_selection: caps.supports_language_selection,
                         is_custom: false,
@@ -2483,6 +2513,7 @@ mod tests {
                 speed_score: 0.5,
                 supports_translation: true,
                 is_recommended: false,
+                recommended_rank: None,
                 supported_languages: vec!["en".to_string()],
                 supports_language_selection: true,
                 is_custom: false,

@@ -211,6 +211,10 @@ const NUEVAS: Record<string, { en: string; es: string }> = {
     en: "I can help with dictation and permissions, shortcuts, models, privacy, History, Studio, Translator, Smart Writing, Obsidian and updates. Ask about one of those and I will take you to the right place.",
     es: "Puedo ayudarte con dictado y permisos, atajos, modelos, privacidad, Historial, Estudio, Traductor, Escritura inteligente, Obsidian y actualizaciones. Pregunta por uno y te llevaré al lugar correcto.",
   },
+  "modelSelector.why.balanced": {
+    en: "Best all-round",
+    es: "Mejor equilibrio",
+  },
 };
 
 function poner(

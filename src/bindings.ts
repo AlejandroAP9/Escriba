@@ -1753,7 +1753,14 @@ export type McpStatus = { running: boolean; port: number; url: string | null; up
  * Conteo de llamadas por tool.
  */
 export type McpToolCount = { name: string; count: number }
-export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean; supported_languages: string[]; supports_language_selection: boolean; is_custom: boolean; supports_streaming: boolean; supports_language_detection: boolean }
+export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean; 
+/**
+ * Editorial position within the recommended set (1 = the default we put
+ * in front of a new user). The UI needs it to badge the top pick: without
+ * it, our #1 fell through every "why does this stand out" rule and showed
+ * nothing, while a slower model wore "best quality".
+ */
+recommended_rank: number | null; supported_languages: string[]; supports_language_selection: boolean; is_custom: boolean; supports_streaming: boolean; supports_language_detection: boolean }
 export type ModelLoadStatus = { is_loaded: boolean; current_model: string | null }
 /**
  * Where a model comes from and how Handy obtains it — the routing discriminant

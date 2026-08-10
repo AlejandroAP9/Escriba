@@ -8,6 +8,7 @@ import {
   HardDrive,
   Languages,
   Loader2,
+  Sparkles,
   Star,
   Trash2,
   Zap,
@@ -145,6 +146,16 @@ const ModelCard: React.FC<ModelCardProps> = ({
   } | null => {
     if (!showRecommended || !model.is_recommended) return null;
     const iconCls = "w-3 h-3 mr-1";
+    // El #1 de la curación va PRIMERO y con insignia propia. Sin esto caía por
+    // todas las reglas de "por qué destaca" (no es el más preciso en bruto, ni
+    // el más rápido, ni hace streaming, ni el que más idiomas tiene) y salía
+    // sin nada, mientras un modelo más lento lucía "Mejor calidad": el que más
+    // queremos que elijan era el único sin distintivo.
+    if (model.recommended_rank === 1)
+      return {
+        icon: <Sparkles className={iconCls} />,
+        label: t("modelSelector.why.balanced"),
+      };
     // "Mejor calidad" solo si el modelo habla el idioma de la interfaz. Los
     // puntajes de precisión salen de evaluaciones en inglés, así que un modelo
     // SOLO INGLÉS lucía la mejor insignia en una app en español y se llevaba a
