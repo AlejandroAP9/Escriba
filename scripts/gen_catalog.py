@@ -35,15 +35,27 @@ def acc_from_wer(wer):
 # rank = editorial sort position (broad ordering). rec = the small "Recommended"
 # badge / onboarding subset — independent of rank, so a model can rank high
 # without carrying the recommended tag.
+# Curación reordenada el 9-ago-2026 con los números de
+# `docs/benchmarks/qwen3-asr-es.md`, no con los de las fichas de los modelos.
+#
+# La lista venía de Handy y era anglocéntrica: el rank 1 era un modelo SOLO
+# INGLÉS y el rank 2 (Nemotron streaming) era el que acababa instalando quien
+# dicta en español. Medido sobre 40 audios reales en español, Nemotron pierde
+# contra Parakeet V3 en TODAS las categorías de reconocimiento (33,3% de error
+# en frases cortas y comunes contra 0,0%) y además es más lento (17,9x contra
+# 29,0x tiempo real). Su ventaja real es el streaming, no la precisión.
+#
+# Origen: reporte de un usuario andaluz al que la app le devolvía "fe" por
+# "sí" y "hecha" por "esta" con el modelo recomendado puesto.
 CURATION = {
-    "parakeet-unified-en-0.6b":        {"rank": 1, "rec": True, "desc": "Fast, accurate live English transcription"},
-    "nemotron-3.5-asr-streaming-0.6b": {"rank": 2, "rec": True, "desc": "Live multilingual transcription across 28 languages"},
-    "canary-180m-flash":               {"rank": 3, "rec": True, "desc": "Tiny and instant, runs well on any hardware"},
-    "cohere-transcribe-03-2026":       {"rank": 4, "rec": True, "desc": "Highest accuracy, 14 languages, slower"},
-    "whisper-medium":                  {"rank": 5, "rec": True, "desc": "Broadest language, but may run a bit slow"},
+    "parakeet-tdt-0.6b-v3":            {"rank": 1, "rec": True, "desc": "Fast and accurate in Spanish and 24 other European languages"},
+    "nemotron-3.5-asr-streaming-0.6b": {"rank": 2, "rec": True, "desc": "See your words appear as you speak, in 28 languages"},
+    "parakeet-unified-en-0.6b":        {"rank": 3, "rec": True, "desc": "Fast, accurate live English transcription"},
+    "canary-180m-flash":               {"rank": 4, "rec": True, "desc": "Tiny and instant, runs well on any hardware"},
+    "cohere-transcribe-03-2026":       {"rank": 5, "rec": True, "desc": "Highest accuracy, 14 languages, slower"},
+    "whisper-medium":                  {"rank": 6, "rec": True, "desc": "Broadest language, but may run a bit slow"},
     # ranked (sorted high) but NOT tagged recommended
-    "Voxtral-Mini-4B-Realtime-2602":   {"rank": 6, "desc": "Live multilingual, excellent on powerful machines"},
-    "parakeet-tdt-0.6b-v3":            {"rank": 7, "desc": "Fast and accurate. Supports 25 European languages"},
+    "Voxtral-Mini-4B-Realtime-2602":   {"rank": 7, "desc": "Live multilingual, excellent on powerful machines"},
     "parakeet-tdt-0.6b-v2":            {"rank": 8, "desc": "English only. The best model for English speakers"},
     "Qwen3-ASR-0.6B":                  {"rank": 9, "desc": "Excellent multilingual model"},
     "Fun-ASR-MLT-Nano-2512":           {"rank": 10, "desc": "A tiny multilingual model"},

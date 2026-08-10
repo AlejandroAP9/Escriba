@@ -39,6 +39,21 @@ que el motor local obedeciera. Al trazarlo aparecieron cinco huecos, no uno.
   el Traductor no muestra ese turno.
 - Cuando el guard duda, **pega tu dictado tal cual**: nunca se pierde texto.
 
+### Cambiado
+
+- **El modelo recomendado ahora es Parakeet V3.** La lista de recomendados se
+  heredó de Handy y estaba pensada para el inglés: quien dictaba en español
+  terminaba en Nemotron Streaming, que medido sobre 40 audios reales comete
+  33,3% de error en frases cortas y comunes (donde Parakeet marca 0,0%), y
+  encima es más lento. Nemotron sigue recomendado, pero como lo que de verdad
+  es: la opción para ver el texto aparecer mientras hablas. Gracias a Antonio
+  Bocanet, que reportó desde Andalucía que la app le devolvía "fe" por "sí" y
+  "hecha" por "esta".
+- **La insignia "Mejor calidad" ya no aparece en modelos que no hablan tu
+  idioma.** Los puntajes de precisión salen de evaluaciones en inglés, así que
+  un modelo solo-inglés lucía la mejor insignia en la app en español y se
+  llevaba a quien buscaba el mejor motor para dictar.
+
 ### Corregido
 
 - **Plumín ya no se queda "leyendo" para siempre**: al escuchar una respuesta

@@ -92,7 +92,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
   downloadSpeed,
   showRecommended = true,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isFeatured = variant === "featured";
   const isClickable =
     status === "available" || status === "active" || status === "downloadable";
@@ -145,7 +145,16 @@ const ModelCard: React.FC<ModelCardProps> = ({
   } | null => {
     if (!showRecommended || !model.is_recommended) return null;
     const iconCls = "w-3 h-3 mr-1";
-    if (model.accuracy_score >= 0.9)
+    // "Mejor calidad" solo si el modelo habla el idioma de la interfaz. Los
+    // puntajes de precisión salen de evaluaciones en inglés, así que un modelo
+    // SOLO INGLÉS lucía la mejor insignia en una app en español y se llevaba a
+    // quien buscaba el mejor motor para dictar (reporte real, 9-ago). Un
+    // modelo sin idiomas declarados se considera universal y no se penaliza.
+    const uiLang = (i18n.language || "en").split("-")[0];
+    const hablaElIdioma =
+      model.supported_languages.length === 0 ||
+      model.supported_languages.some((l) => l.split("-")[0] === uiLang);
+    if (model.accuracy_score >= 0.9 && hablaElIdioma)
       return {
         icon: <Star className={iconCls} />,
         label: t("modelSelector.why.bestQuality"),
