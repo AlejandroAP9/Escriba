@@ -39,6 +39,14 @@ const SALIDA_DIR =
 
 const MODELOS: { clave: string; id: string }[] = [
   {
+    // EL QUE LE TOCA A LA GENTE: es el recomendado del catálogo, así que es el
+    // que corre en las instalaciones reales. Faltaba en la primera corrida del
+    // benchmark, que midió los otros: medíamos todo menos el que usa el
+    // usuario (reporte de Antonio Bocanet, 9-ago).
+    clave: "nemotron-3.5-asr-streaming Q8_0 (recomendado)",
+    id: "handy-computer/nemotron-3.5-asr-streaming-0.6b-gguf/nemotron-3.5-asr-streaming-0.6b-Q8_0.gguf",
+  },
+  {
     clave: "whisper-large-v3-turbo Q8_0",
     id: "handy-computer/whisper-large-v3-turbo-gguf/whisper-large-v3-turbo-Q8_0.gguf",
   },
