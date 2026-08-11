@@ -181,44 +181,71 @@ Interfaz **completa en español e inglés**. Otros 19 idiomas están **en progre
 
 Toda la evolución de Escriba, versión por versión (fechas reales de la dupla en los Juegos Imperiales):
 
-| Versión | Fecha  | Novedades                                                                                                                          |
-| ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 2.4.0   | 10-ago | 🛡️ Secuestro por dictado cerrado en los 4 modos + 🎯 Parakeet V3 como modelo recomendado + 🪟 Windows dice la verdad cuando bloquea el motor de IA                  |
-| 2.3.1   | 09-ago | 🎙️ Modo fiel + 🔄 actualización desde la app + 🎬 Estudio renovado + 📝 actas largas confiables                                    |
-| 2.3.0   | 09-ago | 🪶 Plumín ayuda de verdad + 🇪🇸 español profundo + 🔐 historial cifrado + 📝 Obsidian enlazable + CLI y benchmarks                  |
-| 2.2.4   | 30-jul | 🐛 Lo que encontró el QA: historial y estadísticas ya no quedan en cero + diccionario que funciona sin comerse palabras            |
-| 2.2.3   | 30-jul | 🔐 Ronda de auditoría externa: las claves fuera del alcance de la interfaz + confirmación al borrar + asistente que exige modelo   |
-| 2.2.2   | 30-jul | 🧹 **La casa ordenada**: cada ajuste donde lo buscarías + actas de sesiones de una hora + plantillas probadas contra el motor real |
-| 2.2.1   | 28-jul | 🔁 Actualizar con marcha atrás (fin del bucle de cierres) + ⚡ Intérprete sin espera: la frase sale ya y cada idioma llega después |
-| 2.2.0   | 28-jul | 🪶 **Plumín te recibe**: asistente de bienvenida que termina con tu primera dictada + notas de Obsidian en su propia carpeta       |
-| 2.1.1   | 28-jul | 🔧 Ocho arreglos salidos de probar la app: documento de sesión, "¿" del dictado, alto contraste real y ajustes de Obsidian         |
-| 2.1.0   | 26-jul | 🛡️ **La ronda del blindaje**: 5 auditorías aplicadas + 📝 Enviar a **Obsidian** + ♿ Modo Calma, alto contraste y daltonismo       |
-| 2.0.0   | 21-jul | 🎙️ **Intérprete de reuniones** en vivo, ida y vuelta (idea de John Walter) + micrófono virtual integrado                           |
-| 1.9.1   | 18-jul | 🐧 Motor local en **Linux** + fixes del Traductor (QA Flor)                                                                        |
-| 1.9.0   | 17-jul | **Revisar antes de pegar** + fixes del QA Windows de la dupla                                                                      |
-| 1.8.0   | 16-jul | 🤝 Tanda comunidad: sugerencias de diccionario + Plumín empático                                                                   |
-| 1.7.0   | 15-jul | 🪶 Nace **Plumín** (mascota) + onda de voz viva                                                                                    |
-| 1.6.0   | 15-jul | **Dictado libre** (cero teclas) + bandeja con acciones                                                                             |
-| 1.5.0   | 15-jul | Panel de **Permisos** + estado real + ventana con memoria                                                                          |
-| 1.4.0   | 15-jul | 👓 Tema Día/Noche + tamaño de texto (idea de la comunidad)                                                                         |
-| 1.3.2   | 15-jul | La pluma llega a la barra de menú                                                                                                  |
-| 1.3.1   | 15-jul | QA de la dupla: aviso de motor faltante + indicador de modo activo                                                                 |
-| 1.3.0   | 15-jul | 🖥️ **Audio del sistema** + **Tu tinta en voz** + **Tonos por app**                                                                 |
-| 1.2.0   | 12-jul | 🎨 Rework de las 11 pantallas + Design System                                                                                      |
-| 1.1.0   | 11-jul | 🔒 Auditoría de seguridad (MCP + privacidad)                                                                                       |
-| 1.0.0   | 11-jul | Rebrand visual + español total                                                                                                     |
-| 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono                                                                                     |
-| 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                                                                       |
-| 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                                                                                                        |
-| 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar                                                                                         |
-| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`) + onboarding es-first + estadísticas                                                          |
-| 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)                                                                                        |
-| 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar                                                                                          |
-| 0.2.0   | 07-jul | Rebrand + **motor de IA local**                                                                                                    |
+| Versión | Fecha  | Novedades                                                                                                                                          |
+| ------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.4.0   | 10-ago | 🛡️ Secuestro por dictado cerrado en los 4 modos + 🎯 Parakeet V3 como modelo recomendado + 🪟 Windows dice la verdad cuando bloquea el motor de IA |
+| 2.3.1   | 09-ago | 🎙️ Modo fiel + 🔄 actualización desde la app + 🎬 Estudio renovado + 📝 actas largas confiables                                                    |
+| 2.3.0   | 09-ago | 🪶 Plumín ayuda de verdad + 🇪🇸 español profundo + 🔐 historial cifrado + 📝 Obsidian enlazable + CLI y benchmarks                                  |
+| 2.2.4   | 30-jul | 🐛 Lo que encontró el QA: historial y estadísticas ya no quedan en cero + diccionario que funciona sin comerse palabras                            |
+| 2.2.3   | 30-jul | 🔐 Ronda de auditoría externa: las claves fuera del alcance de la interfaz + confirmación al borrar + asistente que exige modelo                   |
+| 2.2.2   | 30-jul | 🧹 **La casa ordenada**: cada ajuste donde lo buscarías + actas de sesiones de una hora + plantillas probadas contra el motor real                 |
+| 2.2.1   | 28-jul | 🔁 Actualizar con marcha atrás (fin del bucle de cierres) + ⚡ Intérprete sin espera: la frase sale ya y cada idioma llega después                 |
+| 2.2.0   | 28-jul | 🪶 **Plumín te recibe**: asistente de bienvenida que termina con tu primera dictada + notas de Obsidian en su propia carpeta                       |
+| 2.1.1   | 28-jul | 🔧 Ocho arreglos salidos de probar la app: documento de sesión, "¿" del dictado, alto contraste real y ajustes de Obsidian                         |
+| 2.1.0   | 26-jul | 🛡️ **La ronda del blindaje**: 5 auditorías aplicadas + 📝 Enviar a **Obsidian** + ♿ Modo Calma, alto contraste y daltonismo                       |
+| 2.0.0   | 21-jul | 🎙️ **Intérprete de reuniones** en vivo, ida y vuelta (idea de John Walter) + micrófono virtual integrado                                           |
+| 1.9.1   | 18-jul | 🐧 Motor local en **Linux** + fixes del Traductor (QA Flor)                                                                                        |
+| 1.9.0   | 17-jul | **Revisar antes de pegar** + fixes del QA Windows de la dupla                                                                                      |
+| 1.8.0   | 16-jul | 🤝 Tanda comunidad: sugerencias de diccionario + Plumín empático                                                                                   |
+| 1.7.0   | 15-jul | 🪶 Nace **Plumín** (mascota) + onda de voz viva                                                                                                    |
+| 1.6.0   | 15-jul | **Dictado libre** (cero teclas) + bandeja con acciones                                                                                             |
+| 1.5.0   | 15-jul | Panel de **Permisos** + estado real + ventana con memoria                                                                                          |
+| 1.4.0   | 15-jul | 👓 Tema Día/Noche + tamaño de texto (idea de la comunidad)                                                                                         |
+| 1.3.2   | 15-jul | La pluma llega a la barra de menú                                                                                                                  |
+| 1.3.1   | 15-jul | QA de la dupla: aviso de motor faltante + indicador de modo activo                                                                                 |
+| 1.3.0   | 15-jul | 🖥️ **Audio del sistema** + **Tu tinta en voz** + **Tonos por app**                                                                                 |
+| 1.2.0   | 12-jul | 🎨 Rework de las 11 pantallas + Design System                                                                                                      |
+| 1.1.0   | 11-jul | 🔒 Auditoría de seguridad (MCP + privacidad)                                                                                                       |
+| 1.0.0   | 11-jul | Rebrand visual + español total                                                                                                                     |
+| 0.10.0  | 11-jul | **Agentes (MCP)** + re-transcribir + micrófono                                                                                                     |
+| 0.9.0   | 11-jul | **Traductor** cara a cara + lituano + copiar                                                                                                       |
+| 0.8.5   | 11-jul | **Intérprete en vivo** (QR)                                                                                                                        |
+| 0.8.0   | 10-jul | **Supresión de ruido** + buscar/reemplazar                                                                                                         |
+| 0.5.0   | 09-jul | **Estudio** (SRT + resumen, `.opus`) + onboarding es-first + estadísticas                                                                          |
+| 0.4.0   | 08-jul | Háblale a cualquier texto (edición por voz)                                                                                                        |
+| 0.3.0   | 08-jul | Poderes de dictado + traducción al dictar                                                                                                          |
+| 0.2.0   | 07-jul | Rebrand + **motor de IA local**                                                                                                                    |
 
 ## 🙏 Construido sobre Handy
 
 Escriba es un _rework_ de **[Handy](https://github.com/cjpais/handy)**, la excelente app de dictado open source de **[CJ Pais](https://github.com/cjpais)**, publicada bajo licencia MIT. Gracias a CJ y a la comunidad de Handy por sentar unas bases tan sólidas y forkables. Escriba conserva esa filosofía —libre, privada, local— y le suma una capa de IA local (corrección, traducción, Estudio, Intérprete, Traductor y Agentes).
+
+## 🙌 Gracias
+
+Escriba tiene features que no se nos ocurrieron a nosotros. Cada una lleva el crédito dentro de la propia app, en la pantalla donde se usa y en **Acerca de → Gracias**. Aquí está la lista completa.
+
+**De la comunidad**
+
+| Quién                         | Qué aportó                                                                                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pedro Sánchez**             | Toda la tanda de inclusión visual (Modo Calma, alto contraste, daltonismo, tamaño de texto), el respaldo de Apple Intelligence y que Plumín perciba el ánimo de la sesión |
+| **John Walter**               | El Intérprete de reuniones, que traduce una llamada en las dos direcciones                                                                                                |
+| **Juan Francisco Ceccarelli** | Los numerales hablados a cifras, para dictar en planillas                                                                                                                 |
+| **Antonio Bocanet**           | Reportó que el modelo recomendado destrozaba palabras cortas en español. Lo medimos, tenía razón, y la recomendación cambió para todos                                    |
+| **Alexa Sánchez**             | Descubrió que en Windows la instalación decía que el motor de IA estaba listo cuando el sistema lo había bloqueado                                                        |
+| **Flor Vallejo**              | La otra mitad de la dupla: identidad visual, video y landing                                                                                                              |
+
+**Duplas de los Juegos Imperiales 2026**
+
+Compitieron contra nosotros y aun así nos enseñaron algo. Lo tomamos, y lo decimos.
+
+| Dupla           | Qué nos enseñó                                                                                                                                                 |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Takhygraphe** | Los modos visuales de accesibilidad, y un export a Obsidian con nota índice y menciones enlazables que era mejor que el nuestro                                |
+| **Abrax**       | Que el dictado en español merecía trabajo lingüístico de verdad, que aquí se volvió tildes, emojis dictados y numerales                                        |
+| **Dictum**      | La línea de comandos headless con benchmarks reproducibles, gracias a la cual hoy publicamos nuestras propias mediciones                                       |
+| **Fuwa**        | La ayuda dentro de la app que solo responde sobre la app, que aquí se volvió Pregúntale a Plumín                                                               |
+| **Diapasón**    | Publicaron una medición que encontró un fallo nuestro: el diccionario personal se comía palabras en castellano. Que te corrijan en público también se agradece |
 
 ## 📄 Licencia
 
