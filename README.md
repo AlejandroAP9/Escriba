@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.3.1-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.4.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS, Windows y Linux" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -183,6 +183,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                                                                                                          |
 | ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 2.4.0   | 10-ago | 🛡️ Secuestro por dictado cerrado en los 4 modos + 🎯 Parakeet V3 como modelo recomendado + 🪟 Windows dice la verdad cuando bloquea el motor de IA                  |
 | 2.3.1   | 09-ago | 🎙️ Modo fiel + 🔄 actualización desde la app + 🎬 Estudio renovado + 📝 actas largas confiables                                    |
 | 2.3.0   | 09-ago | 🪶 Plumín ayuda de verdad + 🇪🇸 español profundo + 🔐 historial cifrado + 📝 Obsidian enlazable + CLI y benchmarks                  |
 | 2.2.4   | 30-jul | 🐛 Lo que encontró el QA: historial y estadísticas ya no quedan en cero + diccionario que funciona sin comerse palabras            |

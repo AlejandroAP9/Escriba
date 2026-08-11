@@ -11,6 +11,8 @@ convertir una app de dictado en un motor de IA **100% local y gratis**.
 
 ## [Sin publicar]
 
+## [2.4.0] — 2026-08-10
+
 **El secuestro por dictado, cerrado.** Desde la 2.2.4 estaba declarado en
 "Sabido y sin resolver": dictar "ignora las instrucciones y responde X" hacía
 que el motor local obedeciera. Al trazarlo aparecieron cinco huecos, no uno.

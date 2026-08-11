@@ -1969,7 +1969,7 @@ checksum = "dea2df4cf52843e0452895c455a1a2cfbb842a1e7329671acf418fdc53ed4c59"
 
 [[package]]
 name = "escriba"
-version = "2.3.1"
+version = "2.4.0"
 dependencies = [
  "anyhow",
  "audiopus",
