@@ -140,7 +140,7 @@ export const GeneralSettings: React.FC = () => {
       <SettingsGroup title={t("settings.general.dictionaryTitle")}>
         <CustomWords descriptionMode="inline" grouped />
         <TextReplacements descriptionMode="inline" grouped />
-        <p className="px-1 pt-1 text-3xs leading-relaxed text-mid-gray">
+        <p className="px-1 pb-1 pt-3 text-3xs leading-relaxed text-mid-gray">
           {t("settings.general.customWords.credit")}
         </p>
       </SettingsGroup>
@@ -151,13 +151,17 @@ export const GeneralSettings: React.FC = () => {
       <SettingsGroup title={t("settings.general.spanishTitle")}>
         <SpanishDictation descriptionMode="inline" grouped />
         {/* El crédito va donde se usa la feature: Abrax por el eje del
-            español, Juan Francisco por haber pedido los numerales. */}
-        <p className="px-1 pt-1 text-3xs leading-relaxed text-mid-gray">
-          {t("settings.general.spanishCredit")}
-        </p>
-        <p className="px-1 text-3xs leading-relaxed text-mid-gray">
-          {t("settings.general.spokenNumerals.credit")}
-        </p>
+            español, Juan Francisco por haber pedido los numerales. Son dos
+            aportes distintos, así que se leen como dos líneas y no como un
+            párrafo. */}
+        <div className="space-y-1.5 px-1 pb-1 pt-3">
+          <p className="text-3xs leading-relaxed text-mid-gray">
+            {t("settings.general.spanishCredit")}
+          </p>
+          <p className="text-3xs leading-relaxed text-mid-gray">
+            {t("settings.general.spokenNumerals.credit")}
+          </p>
+        </div>
       </SettingsGroup>
 
       {/* Audio: todo lo relacionado con el sonido, junto. */}

@@ -129,7 +129,7 @@ export const AppearanceSettings: React.FC<{ grouped?: boolean }> = ({
           sección el 15-jul. Los tres modos visuales de arriba siguieron lo
           que mostró Takhygraphe durante el concurso, y decirlo aquí es lo
           que corresponde (a pedido de la organización, 11-ago-2026). */}
-      <p className="px-1 pt-1 text-3xs leading-relaxed text-mid-gray">
+      <p className="px-1 pb-1 pt-3 text-3xs leading-relaxed text-mid-gray">
         {t("settings.general.appearance.visualModesCredit")}
       </p>
     </>
