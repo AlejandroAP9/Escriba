@@ -188,6 +188,47 @@ export const AboutSettings: React.FC = () => {
         </Button>
       </div>
 
+      {/* Gracias: las personas y las duplas cuyas ideas están dentro de la
+          app. Cada una está además acreditada donde vive su feature; esta
+          pantalla es el lugar donde caben todas, incluidas las que no tienen
+          una pantalla propia donde ir. Nace del pedido de la organización de
+          los Juegos Imperiales (11-ago-2026) y se extendió a todos, no solo a
+          quien lo reclamó. */}
+      <SettingsGroup title={t("settings.about.thanks.title")}>
+        <SettingContainer
+          title={t("settings.about.thanks.communityTitle")}
+          description={t("settings.about.thanks.intro")}
+          grouped={true}
+          layout="stacked"
+        >
+          <ul className="flex list-none flex-col gap-2 text-sm text-mid-gray">
+            {["pedro", "john", "juanfran", "antonio", "alexa", "flor"].map(
+              (quien) => (
+                <li key={quien}>{t(`settings.about.thanks.${quien}`)}</li>
+              ),
+            )}
+          </ul>
+        </SettingContainer>
+
+        <SettingContainer
+          title={t("settings.about.thanks.rivalsTitle")}
+          description={t("settings.about.thanks.rivalsIntro")}
+          grouped={true}
+          layout="stacked"
+        >
+          <ul className="flex list-none flex-col gap-2 text-sm text-mid-gray">
+            {["takhygraphe", "abrax", "dictum", "fuwa", "diapason"].map(
+              (dupla) => (
+                <li key={dupla}>{t(`settings.about.thanks.${dupla}`)}</li>
+              ),
+            )}
+          </ul>
+          <p className="mt-3 text-sm text-mid-gray">
+            {t("settings.about.thanks.upstream")}
+          </p>
+        </SettingContainer>
+      </SettingsGroup>
+
       {/* Reconocimientos: tecnologías reales + crédito a la base (Handy). */}
       <SettingsGroup title={t("settings.about.acknowledgments.title")}>
         <SettingContainer

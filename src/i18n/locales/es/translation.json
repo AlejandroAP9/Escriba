@@ -181,7 +181,8 @@
       "live": "En vivo",
       "mostLanguages": "Más idiomas",
       "balanced": "Mejor equilibrio"
-    }
+    },
+    "credit": "La recomendación cambió tras el reporte de Antonio Bocanet (comunidad, 9-ago-2026): lo medimos y tenía razón."
   },
   "settings": {
     "modelSettings": {
@@ -297,7 +298,8 @@
         "colorblindTitle": "Asistencia para daltonismo",
         "colorblindDescription": "Los estados de éxito y grabación pasan a un par seguro cian/violeta en vez de verde y rojo.",
         "alwaysFocusTitle": "Foco siempre visible",
-        "alwaysFocusDescription": "Mantiene visible el anillo de foco también con el ratón, no solo al navegar con el teclado."
+        "alwaysFocusDescription": "Mantiene visible el anillo de foco también con el ratón, no solo al navegar con el teclado.",
+        "visualModesCredit": "Crédito a Takhygraphe (Juegos Imperiales 2026): el Modo Calma, el alto contraste y la asistencia para daltonismo siguen lo que mostró su dupla durante el concurso."
       },
       "permissions": {
         "title": "Permisos",
@@ -335,7 +337,8 @@
       },
       "spokenNumerals": {
         "label": "Numerales hablados a cifras",
-        "description": "Las cantidades largas se vuelven cifras: \"tres millones y medio\" se escribe 3.500.000. Solo convierte secuencias inequívocas; \"uno de los problemas\" queda intacto."
+        "description": "Las cantidades largas se vuelven cifras: \"tres millones y medio\" se escribe 3.500.000. Solo convierte secuencias inequívocas; \"uno de los problemas\" queda intacto.",
+        "credit": "Pedido por Juan Francisco Ceccarelli (comunidad, 5-ago-2026), para dictar datos en planillas."
       },
       "numeralsSpreadsheet": {
         "label": "Números agresivos en planillas",
@@ -344,6 +347,10 @@
       "readSelectionVoice": {
         "title": "Voz de lectura",
         "description": "Elige la voz del sistema o la voz local incluida de Escriba para Leer selección."
+      },
+      "spanishCredit": "Crédito a Abrax (Juegos Imperiales 2026): su dupla demostró que el dictado en español merecía trabajo lingüístico propio.",
+      "customWords": {
+        "credit": "Crédito a Diapasón (Juegos Imperiales 2026): su medición pública detectó que esta función se comía palabras en castellano. Arreglado, con un test para que no vuelva."
       }
     },
     "sound": {
@@ -882,7 +889,26 @@
         "licenses": "Licencias de terceros",
         "licensesButton": "Ver avisos"
       },
-      "closing": "Tu voz nunca abandona tu computador."
+      "closing": "Tu voz nunca abandona tu computador.",
+      "thanks": {
+        "title": "Gracias",
+        "intro": "Escriba es lo que es porque hubo gente que nos dijo qué faltaba. Cada uno está acreditado donde vive su idea, y todos están aquí.",
+        "communityTitle": "Comunidad",
+        "pedro": "Pedro Sánchez: toda la tanda de inclusión visual (Apariencia), el respaldo de Apple Intelligence y que Plumín perciba el ánimo de la sesión.",
+        "john": "John Walter: el Intérprete de reuniones, que traduce una llamada en las dos direcciones.",
+        "juanfran": "Juan Francisco Ceccarelli: los numerales hablados a cifras, para dictar en planillas.",
+        "antonio": "Antonio Bocanet: reportó que el modelo recomendado destrozaba palabras cortas en español. Lo medimos, tenía razón, y la recomendación cambió para todos.",
+        "alexa": "Alexa Sánchez: descubrió que en Windows la instalación decía que el motor de IA estaba listo cuando el sistema lo había bloqueado. Ahora dice lo que de verdad pasa.",
+        "flor": "Flor Vallejo: la otra mitad de la dupla. La identidad visual, el video y la landing son suyos.",
+        "rivalsTitle": "Duplas de los Juegos Imperiales 2026",
+        "rivalsIntro": "Competimos contra siete proyectos construidos sobre la misma base. Varios hicieron algo mejor que nosotros y corresponde decirlo con nombre. Ideas, nunca código: todo esto se reescribió desde cero.",
+        "takhygraphe": "Takhygraphe: los modos visuales de accesibilidad, y un export a Obsidian con nota índice y menciones enlazables que era mejor que el nuestro.",
+        "abrax": "Abrax: demostraron que el dictado en español merecía trabajo lingüístico de verdad, que aquí se volvió tildes, emojis dictados y numerales.",
+        "dictum": "Dictum: la línea de comandos headless con benchmarks reproducibles, gracias a la cual hoy publicamos nuestras propias mediciones.",
+        "fuwa": "Fuwa: la ayuda dentro de la app que solo responde sobre la app, que aquí se volvió Pregúntale a Plumín.",
+        "diapason": "Diapasón: publicaron una medición que encontró un fallo nuestro, el diccionario personal comiéndose palabras en castellano. Que te corrijan en público también se agradece.",
+        "upstream": "Y CJ Pais, cuyo Handy es la base sobre la que está construido todo esto."
+      }
     },
     "transcription": {
       "title": "Transcripción"
@@ -1432,7 +1458,8 @@
     },
     "inboxSaved": "Enviado al inbox de hoy en tu vault.",
     "inboxNoVault": "Primero elige tu vault de Obsidian (Ajustes, sección Obsidian).",
-    "inboxFailed": "No se pudo escribir en la nota de inbox."
+    "inboxFailed": "No se pudo escribir en la nota de inbox.",
+    "credit": "Crédito a Takhygraphe (Juegos Imperiales 2026): la nota índice y las menciones enlazables siguen lo que su dupla hizo mejor que nosotros durante el concurso."
   },
   "wizard": {
     "progress": "Paso {{step}} de {{total}}",
@@ -1540,6 +1567,7 @@
       "obsidian": "Elige tu vault en General. Escriba puede exportar notas revisadas, mantener un índice, enlazar menciones y añadir dictados a un inbox diario.",
       "updates": "El botón «Buscar actualizaciones» funciona siempre. El ajuste de Depuración controla solo las búsquedas automáticas. Encontrar una actualización nunca la instala sola: debes pulsar explícitamente «Actualización disponible». Las instalaciones portables muestran la vía manual.",
       "overview": "Puedo ayudarte con dictado y permisos, atajos, modelos, privacidad, Historial, Estudio, Traductor, Escritura inteligente, Obsidian y actualizaciones. Pregunta por uno y te llevaré al lugar correcto."
-    }
+    },
+    "credit": "Crédito a Fuwa (Juegos Imperiales 2026): suya fue la idea de una ayuda dentro de la app que solo responde sobre la app."
   }
 }

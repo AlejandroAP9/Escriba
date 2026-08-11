@@ -181,7 +181,8 @@
       "live": "Live",
       "mostLanguages": "Most languages",
       "balanced": "Best all-round"
-    }
+    },
+    "credit": "Recommendation changed after Antonio Bocanet's report (community, 9 Aug 2026): we measured it and he was right."
   },
   "settings": {
     "modelSettings": {
@@ -279,7 +280,8 @@
         "colorblindTitle": "Color blindness assist",
         "colorblindDescription": "Success and recording states switch to a safe cyan/violet pair instead of green and red.",
         "alwaysFocusTitle": "Always show focus",
-        "alwaysFocusDescription": "Keeps the focus ring visible with the mouse too, not only when navigating by keyboard."
+        "alwaysFocusDescription": "Keeps the focus ring visible with the mouse too, not only when navigating by keyboard.",
+        "visualModesCredit": "Credit to Takhygraphe (Juegos Imperiales 2026): calm mode, high contrast and colorblind assistance follow what their team showed during the contest."
       },
       "permissions": {
         "title": "Permissions",
@@ -317,7 +319,8 @@
       },
       "spokenNumerals": {
         "label": "Spoken numbers as digits",
-        "description": "Long number phrases become digits: \"tres millones y medio\" turns into 3.500.000. Only unambiguous sequences convert; \"uno de los problemas\" stays untouched."
+        "description": "Long number phrases become digits: \"tres millones y medio\" turns into 3.500.000. Only unambiguous sequences convert; \"uno de los problemas\" stays untouched.",
+        "credit": "Asked for by Juan Francisco Ceccarelli (community, 5 Aug 2026), for dictating data into spreadsheets."
       },
       "numeralsSpreadsheet": {
         "label": "Aggressive numbers in spreadsheets",
@@ -326,6 +329,10 @@
       "readSelectionVoice": {
         "title": "Reading voice",
         "description": "Choose the system voice or Escriba's included local voice for Read Selection."
+      },
+      "spanishCredit": "Credit to Abrax (Juegos Imperiales 2026): they showed that dictation in Spanish deserved its own linguistic work.",
+      "customWords": {
+        "credit": "Credit to Diapasón (Juegos Imperiales 2026): their public measurement found that this feature was eating Spanish words. Fixed, with a test so it cannot come back."
       }
     },
     "sound": {
@@ -882,7 +889,26 @@
         "licenses": "Third-party licenses",
         "licensesButton": "View notices"
       },
-      "closing": "Your voice never leaves your computer."
+      "closing": "Your voice never leaves your computer.",
+      "thanks": {
+        "title": "Thanks",
+        "intro": "Escriba is what it is because people told us what was missing. Each one is credited where their idea lives, and all of them are here.",
+        "communityTitle": "Community",
+        "pedro": "Pedro Sánchez: the whole visual inclusion push (Appearance), the Apple Intelligence fallback and Plumín reading the mood of a session.",
+        "john": "John Walter: the Meeting Interpreter, translating a call in both directions.",
+        "juanfran": "Juan Francisco Ceccarelli: spoken numbers as digits, for dictating into spreadsheets.",
+        "antonio": "Antonio Bocanet: he reported that the recommended model was mangling short Spanish words. We measured it, he was right, and the recommendation changed for everyone.",
+        "alexa": "Alexa Sánchez: she found that on Windows the install said the AI engine was ready when the system had blocked it. Now it says what really happened.",
+        "flor": "Flor Vallejo: the other half of the pair. The visual identity, the video and the landing page are hers.",
+        "rivalsTitle": "Juegos Imperiales 2026 teams",
+        "rivalsIntro": "We competed against seven projects built on the same base. Several did something better than us, and it is only fair to say so by name. Ideas, never code: everything here was rewritten from scratch.",
+        "takhygraphe": "Takhygraphe: the visual accessibility modes, and an Obsidian export with an index note and linkable mentions that was better than ours.",
+        "abrax": "Abrax: they showed that dictation in Spanish deserved real linguistic work, which became accents, dictated emojis and numbers.",
+        "dictum": "Dictum: the headless command line with reproducible benchmarks, which is why our own measurements are now public.",
+        "fuwa": "Fuwa: in-app help that answers only about the app, which here became Ask Plumín.",
+        "diapason": "Diapasón: they published a measurement that found a bug of ours, the personal dictionary eating Spanish words. Being corrected in public is also a gift.",
+        "upstream": "And CJ Pais, whose Handy is the base all of this is built on."
+      }
     },
     "transcription": {
       "title": "Transcription"
@@ -1432,7 +1458,8 @@
     },
     "inboxSaved": "Sent to today's inbox in your vault.",
     "inboxNoVault": "Choose your Obsidian vault first (Settings, Obsidian section).",
-    "inboxFailed": "Could not write to the inbox note."
+    "inboxFailed": "Could not write to the inbox note.",
+    "credit": "Credit to Takhygraphe (Juegos Imperiales 2026): the index note and linkable mentions follow what their team did better than us during the contest."
   },
   "wizard": {
     "progress": "Step {{step}} of {{total}}",
@@ -1540,6 +1567,7 @@
       "obsidian": "Choose your vault in General. Escriba can export reviewed notes, maintain an index, link mentions and append dictations to a daily inbox.",
       "updates": "Finding an update never installs it automatically: you must explicitly select “Update available”. Portable installations show the manual update path instead.",
       "overview": "I can help with dictation and permissions, shortcuts, models, privacy, History, Studio, Translator, Smart Writing, Obsidian and updates. Ask about one of those and I will take you to the right place."
-    }
+    },
+    "credit": "Credit to Fuwa (Juegos Imperiales 2026): theirs was the idea of in-app help that answers only about the app."
   }
 }
