@@ -258,7 +258,7 @@ impl LocalLlmManager {
 
         let child = cmd
             .spawn()
-            .map_err(|e| format!("No se pudo iniciar llama-server: {}", e))?;
+            .map_err(|e| format!("{LAUNCH_FAILURE}No se pudo iniciar llama-server: {}", e))?;
         let pid = child.id();
         let _ = fs::write(&self.pid_file, pid.to_string());
         if let Ok(mut guard) = self.child.lock() {
@@ -275,6 +275,10 @@ impl LocalLlmManager {
                 return Ok(url);
             }
             if !self.is_running() {
+                // SIN el prefijo de lanzamiento a propósito: el proceso SÍ se
+                // creó y murió después, que es la firma de un modelo corrupto
+                // o de falta de RAM, no la de un bloqueo del sistema (ese
+                // impide crear el proceso y falla en spawn).
                 return Err("llama-server terminó antes de estar listo (¿modelo corrupto o RAM insuficiente?)".to_string());
             }
             if Instant::now() > deadline {
@@ -365,6 +369,33 @@ async fn health_ok(base_url: &str, timeout_ms: u64) -> bool {
 /// Pre-warm the sidecar: spawn it and run a 1-token completion so the first
 /// real dictation doesn't pay the cold-load + first-inference cost (~60s on
 /// a cold Metal pipeline). Fire-and-forget from app startup.
+/// Igual que [`warmup`], pero devolviendo el fallo en vez de tragárselo.
+///
+/// La instalación lo necesita: antes decía "Motor local listo" aunque el motor
+/// no hubiera podido arrancar nunca, porque el precalentado solo escribía un
+/// warning en el log. En Windows con Control de aplicaciones inteligentes eso
+/// dejaba al usuario con una instalación "correcta" y todas las funciones de
+/// IA muertas, sin una sola pista de por qué (reporte de Alexa Sánchez,
+/// 10-ago).
+/// Prefijo estable que marca un fallo de LANZAMIENTO del proceso (no arrancó,
+/// o murió al instante) frente a uno de arranque lento. Es un contrato entre
+/// este manager y sus consumidores: sin él habría que adivinar la causa
+/// comparando textos de error, que cambian.
+pub const LAUNCH_FAILURE: &str = "[launch] ";
+
+/// ¿El error viene de que el proceso no pudo siquiera ejecutarse?
+pub fn is_launch_failure(err: &str) -> bool {
+    err.starts_with(LAUNCH_FAILURE)
+}
+
+pub async fn warmup_checked(model: &str) -> Result<(), String> {
+    let Some(mgr) = MANAGER.get() else {
+        return Err("Motor local no inicializado".to_string());
+    };
+    let _lease = mgr.begin_request();
+    mgr.ensure_running(model).await.map(|_| ())
+}
+
 pub async fn warmup(model: &str) {
     let Some(mgr) = MANAGER.get() else { return };
     let _lease = mgr.begin_request();
@@ -404,6 +435,24 @@ pub fn shutdown_on_exit() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn solo_el_fallo_de_creacion_del_proceso_cuenta_como_lanzamiento() {
+        // Windows bloqueando el binario impide CREAR el proceso: eso sí.
+        let bloqueado = format!("{LAUNCH_FAILURE}No se pudo iniciar llama-server: acceso denegado");
+        assert!(is_launch_failure(&bloqueado));
+
+        // Un proceso que arrancó y murió después NO es un bloqueo: es modelo
+        // corrupto o falta de RAM, y acusar al sistema operativo sería mentir.
+        assert!(!is_launch_failure(
+            "llama-server terminó antes de estar listo (¿modelo corrupto o RAM insuficiente?)"
+        ));
+        // Un arranque lento tampoco.
+        assert!(!is_launch_failure(
+            "llama-server no respondió /health en 60s"
+        ));
+        assert!(!is_launch_failure(""));
+    }
 
     #[test]
     fn active_request_prevents_idle_unload() {

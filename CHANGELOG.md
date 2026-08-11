@@ -56,6 +56,15 @@ que el motor local obedeciera. Al trazarlo aparecieron cinco huecos, no uno.
 
 ### Corregido
 
+- **En Windows, la instalación del motor de IA ya no miente.** Si el sistema
+  bloquea el motor local (el Control de aplicaciones inteligentes impide
+  ejecutar programas sin firma), la instalación decía "Motor local listo" y
+  luego no funcionaba nada de IA, sin una sola pista de por qué. Ahora la
+  instalación falla diciendo exactamente qué pasó, aclara que el dictado sigue
+  funcionando, y ofrece la salida gratuita: instalar Ollama, que sí está
+  firmado, y que Escriba detecta y usa sola. Solo se culpa al sistema cuando
+  el programa no pudo ni ejecutarse; un arranque lento en un equipo modesto
+  recibe otro mensaje. Gracias a Alexa Sánchez por el reporte.
 - **Plumín ya no se queda "leyendo" para siempre**: al escuchar una respuesta
   con la voz nativa, el botón de detener quedaba encendido hasta reabrir la
   ventana. Y ahora respeta el motor de voz que elegiste en Ajustes, en vez de

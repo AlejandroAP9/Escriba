@@ -215,6 +215,14 @@ const NUEVAS: Record<string, { en: string; es: string }> = {
     en: "Best all-round",
     es: "Mejor equilibrio",
   },
+  "settings.postProcessing.localLlm.errors.ENGINE_BLOCKED_WINDOWS": {
+    en: "Windows blocked the local AI engine because it is not signed (Smart App Control). Dictation keeps working; the features that need AI (Smart Writing, Sessions, Translator, Interpreter) do not. Free workaround: install Ollama, which is signed and Windows allows, download any model in it, and Escriba will use it automatically.",
+    es: "Windows bloqueó el motor de IA local porque no está firmado (Control de aplicaciones inteligentes). El dictado sigue funcionando; lo que necesita IA (Escritura Inteligente, Sesiones, Traductor, Intérprete) no. Solución gratuita: instala Ollama, que sí está firmado y Windows permite, descarga cualquier modelo en él, y Escriba lo usará automáticamente.",
+  },
+  "settings.postProcessing.localLlm.errors.ENGINE_WONT_START": {
+    en: "The local engine downloaded correctly but could not start. Check the log for details. As an alternative you can install Ollama: Escriba detects it and uses it automatically.",
+    es: "El motor local se descargó bien pero no pudo arrancar. El detalle está en el registro. Como alternativa puedes instalar Ollama: Escriba lo detecta y lo usa automáticamente.",
+  },
 };
 
 function poner(

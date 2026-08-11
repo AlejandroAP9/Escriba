@@ -593,7 +593,11 @@
         "installHint": "One-time download. Verified with SHA256.",
         "downloadingRuntime": "Downloading engine...",
         "downloadingModel": "Downloading AI model...",
-        "progressLine": " {{percent}}% ({{downloaded}} / {{total}} GB)"
+        "progressLine": " {{percent}}% ({{downloaded}} / {{total}} GB)",
+        "errors": {
+          "ENGINE_BLOCKED_WINDOWS": "Windows blocked the local AI engine because it is not signed (Smart App Control). Dictation keeps working; the features that need AI (Smart Writing, Sessions, Translator, Interpreter) do not. Free workaround: install Ollama, which is signed and Windows allows, download any model in it, and Escriba will use it automatically.",
+          "ENGINE_WONT_START": "The local engine downloaded correctly but could not start. Check the log for details. As an alternative you can install Ollama: Escriba detects it and uses it automatically."
+        }
       },
       "enable": {
         "title": "AI cleanup"

@@ -166,7 +166,25 @@ async fn do_setup(app: &AppHandle) -> Result<(), String> {
         MODEL_SIZE,
         "Preparando el motor...",
     );
-    local_llm::warmup(LOCAL_LLM_DEFAULT_MODEL_ID).await;
+    // El precalentado ahora SÍ decide el resultado de la instalación: si el
+    // motor no arranca, decir "listo" es mentir, y el usuario se queda con
+    // todas las funciones de IA muertas sin saber por qué.
+    if let Err(err) = local_llm::warmup_checked(LOCAL_LLM_DEFAULT_MODEL_ID).await {
+        log::error!("El motor local no pudo arrancar tras instalarse: {}", err);
+        // Clave estable: el frontend la traduce (auditoría #14). El detalle
+        // técnico queda en el log, no en la cara del usuario.
+        //
+        // Solo se culpa a Windows cuando el proceso NO PUDO EJECUTARSE, que es
+        // la firma del bloqueo del sistema. Un arranque lento en un equipo
+        // modesto no es lo mismo y no merece un mensaje que acuse al sistema
+        // operativo de algo que no hizo.
+        let bloqueado_por_windows = cfg!(windows) && local_llm::is_launch_failure(&err);
+        return Err(if bloqueado_por_windows {
+            "ENGINE_BLOCKED_WINDOWS".to_string()
+        } else {
+            "ENGINE_WONT_START".to_string()
+        });
+    }
 
     emit_progress(app, "done", 0, 0, "Motor local listo");
     Ok(())

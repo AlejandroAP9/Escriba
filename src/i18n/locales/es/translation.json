@@ -614,7 +614,11 @@
         "installHint": "Descarga única. Verificada con SHA256.",
         "downloadingRuntime": "Descargando el motor...",
         "downloadingModel": "Descargando el modelo de IA...",
-        "progressLine": " {{percent}}% ({{downloaded}} / {{total}} GB)"
+        "progressLine": " {{percent}}% ({{downloaded}} / {{total}} GB)",
+        "errors": {
+          "ENGINE_BLOCKED_WINDOWS": "Windows bloqueó el motor de IA local porque no está firmado (Control de aplicaciones inteligentes). El dictado sigue funcionando; lo que necesita IA (Escritura Inteligente, Sesiones, Traductor, Intérprete) no. Solución gratuita: instala Ollama, que sí está firmado y Windows permite, descarga cualquier modelo en él, y Escriba lo usará automáticamente.",
+          "ENGINE_WONT_START": "El motor local se descargó bien pero no pudo arrancar. El detalle está en el registro. Como alternativa puedes instalar Ollama: Escriba lo detecta y lo usa automáticamente."
+        }
       },
       "enable": {
         "title": "Corrección con IA"

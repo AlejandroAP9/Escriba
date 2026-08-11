@@ -118,7 +118,11 @@ export const LocalLlmSetup: React.FC = () => {
         )}
         {error && (
           <Alert variant="error" contained>
-            {error}
+            {/* Las claves estables se traducen; cualquier otro texto del
+                backend se muestra tal cual (auditoría #14). */}
+            {error === "ENGINE_BLOCKED_WINDOWS" || error === "ENGINE_WONT_START"
+              ? t(`settings.postProcessing.localLlm.errors.${error}`)
+              : error}
           </Alert>
         )}
       </div>
