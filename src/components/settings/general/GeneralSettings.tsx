@@ -140,6 +140,9 @@ export const GeneralSettings: React.FC = () => {
       <SettingsGroup title={t("settings.general.dictionaryTitle")}>
         <CustomWords descriptionMode="inline" grouped />
         <TextReplacements descriptionMode="inline" grouped />
+        <p className="px-1 pt-1 text-3xs leading-relaxed text-mid-gray">
+          {t("settings.general.customWords.credit")}
+        </p>
       </SettingsGroup>
 
       {/* Español profundo: correcciones deterministas del dictado en español.
@@ -147,6 +150,14 @@ export const GeneralSettings: React.FC = () => {
           lo que sí se elige. */}
       <SettingsGroup title={t("settings.general.spanishTitle")}>
         <SpanishDictation descriptionMode="inline" grouped />
+        {/* El crédito va donde se usa la feature: Abrax por el eje del
+            español, Juan Francisco por haber pedido los numerales. */}
+        <p className="px-1 pt-1 text-3xs leading-relaxed text-mid-gray">
+          {t("settings.general.spanishCredit")}
+        </p>
+        <p className="px-1 text-3xs leading-relaxed text-mid-gray">
+          {t("settings.general.spokenNumerals.credit")}
+        </p>
       </SettingsGroup>
 
       {/* Audio: todo lo relacionado con el sonido, junto. */}

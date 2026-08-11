@@ -235,6 +235,12 @@ export const PluminHelp: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* La idea de una ayuda que solo responde sobre la app es de Fuwa:
+              el crédito va donde se usa, no en un changelog. */}
+          <p className="pt-1 text-3xs leading-relaxed text-mid-gray">
+            {t("pluminHelp.credit")}
+          </p>
         </div>
       </Dialog>
     </>

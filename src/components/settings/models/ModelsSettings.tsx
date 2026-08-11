@@ -414,6 +414,12 @@ export const ModelsSettings: React.FC = () => {
           {t("settings.models.noModelsMatch")}
         </div>
       )}
+
+      {/* La recomendación de esta pantalla cambió por un reporte de la
+          comunidad, así que el crédito vive aquí y no en un changelog. */}
+      <p className="px-1 pt-2 text-3xs leading-relaxed text-mid-gray">
+        {t("modelSelector.credit")}
+      </p>
     </div>
   );
 };

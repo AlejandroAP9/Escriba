@@ -185,6 +185,12 @@ export const ObsidianVault: React.FC<ObsidianVaultProps> = React.memo(
                 descriptionMode="inline"
                 grouped
               />
+              {/* El índice y las menciones enlazables siguen lo que
+                  Takhygraphe hizo mejor que nosotros durante el concurso: el
+                  crédito va aquí, donde se usa. */}
+              <p className="pt-1 text-3xs leading-relaxed text-mid-gray">
+                {t("obsidian.credit")}
+              </p>
             </div>
           )}
         </div>
