@@ -11,6 +11,35 @@ convertir una app de dictado en un motor de IA **100% local y gratis**.
 
 ## [Sin publicar]
 
+## [2.4.1] — 2026-08-11
+
+**El crédito, donde se usa la feature.** Escriba tiene funciones que no se nos
+ocurrieron a nosotros: salieron de mensajes de la comunidad y de mirar lo que
+otras duplas de los Juegos Imperiales hicieron mejor. Eso estaba dicho en este
+changelog, que es justamente el sitio que nadie abre. Ahora está dentro de la
+app, en la pantalla donde cada función se usa.
+
+### Añadido
+
+- **Créditos en la propia pantalla.** Siete líneas, cada una donde vive su
+  función: Apariencia y Obsidian (Takhygraphe), Dictado en español (Abrax),
+  numerales hablados (Juan Francisco Ceccarelli), Modelos (Antonio Bocanet),
+  Diccionario personal (Diapasón) y Pregúntale a Plumín (Fuwa). Quien abre
+  Apariencia lee de dónde salieron los modos visuales sin buscarlo.
+- **Acerca de → Gracias.** La lista completa en un solo lugar, con qué aportó
+  cada persona y cada dupla en una línea. Encabezada por CJ Pais, cuyo Handy es
+  la base sobre la que está construido todo esto.
+- **La misma lista en el README**, que es lo que ve quien llega al repositorio
+  sin instalar nada.
+
+Se distinguen dos formas, porque no son lo mismo: **"Crédito a X (Juegos
+Imperiales 2026)"** para las duplas que compitieron contra nosotros, y **"Idea
+de X"** o **"Pedido por X"**, con fecha, para la comunidad. Todo traducido a
+los 21 idiomas de la app.
+
+Nada de lo que ya estaba se quitó: los créditos del changelog siguen donde
+estaban y esto se suma.
+
 ## [2.4.0] — 2026-08-10
 
 **El secuestro por dictado, cerrado.** Desde la 2.2.4 estaba declarado en
