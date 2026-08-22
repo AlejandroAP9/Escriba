@@ -356,13 +356,59 @@ fn emit_juglar_phase(app: Option<&tauri::AppHandle>, phase: &str) {
     }
 }
 
+/// URL local de Juglar. Las pruebas apuntan el núcleo a un servidor falso.
+const JUGLAR_BASE_URL: &str = "http://127.0.0.1:17493";
+
 async fn speak_with_juglar(app: Option<&tauri::AppHandle>, text: &str, app_lang: &str) -> bool {
+    let handle = app.cloned();
+    juglar_read(
+        JUGLAR_BASE_URL,
+        text,
+        app_lang,
+        std::sync::Arc::new(move |phase: &str| emit_juglar_phase(handle.as_ref(), phase)),
+        JUGLAR_DEADLINE_SECS,
+        std::time::Duration::from_secs(1),
+    )
+    .await
+}
+
+/// Cierra la fase "playing" cuando el audio ya habría terminado de sonar.
+///
+/// Reproduce Juglar, no Escriba, así que no llega ningún aviso de fin: sin
+/// esto la interfaz se quedaría en "Reproduciendo" para siempre. Se usa la
+/// duración del audio que informa la propia generación.
+fn schedule_idle_after_playback(
+    phase: std::sync::Arc<dyn Fn(&str) + Send + Sync>,
+    secs: f64,
+    my_epoch: u64,
+) {
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_secs_f64(secs)).await;
+        // Una lectura posterior ya habrá puesto su propia fase: cerrarla
+        // aquí la borraría de la pantalla.
+        if JUGLAR_EPOCH.load(Ordering::SeqCst) == my_epoch {
+            phase("idle");
+        }
+    });
+}
+
+/// Núcleo de la lectura con Juglar, con las dependencias inyectadas para
+/// poder probarlo: a dónde hablar, cómo publicar las fases y con qué
+/// tiempos. `speak_with_juglar` le pasa los valores reales.
+async fn juglar_read(
+    base_url: &str,
+    text: &str,
+    app_lang: &str,
+    phase: std::sync::Arc<dyn Fn(&str) + Send + Sync>,
+    deadline_secs: u64,
+    poll_interval: std::time::Duration,
+) -> bool {
     let my_epoch = JUGLAR_EPOCH.fetch_add(1, Ordering::SeqCst) + 1;
     let superseded = || JUGLAR_EPOCH.load(Ordering::SeqCst) != my_epoch;
     // Cierra la fase pase lo que pase: si se sale por error o por respaldo,
     // la interfaz no puede quedarse con "Generando…" para siempre.
-    let finish = |app: Option<&tauri::AppHandle>, phase: &str, value: bool| {
-        emit_juglar_phase(app, phase);
+    let finish = |value: bool| {
+        phase("idle");
         value
     };
 
@@ -376,13 +422,13 @@ async fn speak_with_juglar(app: Option<&tauri::AppHandle>, text: &str, app_lang:
     };
     let language = app_lang.split(['-', '_']).next().unwrap_or("es");
 
-    emit_juglar_phase(app, "requesting");
+    phase("requesting");
 
     // /speak encola y responde en milisegundos con status "generating"; el
     // audio existe recién cuando la generación termina. Dar por hablado el
     // texto con el 200 del POST producía 90 s de silencio y ningún respaldo.
     let generation_id = match client
-        .post("http://127.0.0.1:17493/speak")
+        .post(format!("{base_url}/speak"))
         .header("X-Juglar-Client-Id", "escriba")
         .json(&serde_json::json!({ "text": text, "language": language }))
         .send()
@@ -392,25 +438,25 @@ async fn speak_with_juglar(app: Option<&tauri::AppHandle>, text: &str, app_lang:
             match response.json::<serde_json::Value>().await {
                 Ok(body) => match body.get("id").and_then(|v| v.as_str()) {
                     Some(id) => id.to_string(),
-                    None => return finish(app, "idle", false),
+                    None => return finish(false),
                 },
-                Err(_) => return finish(app, "idle", false),
+                Err(_) => return finish(false),
             }
         }
         Ok(response) => {
             log::warn!("Juglar rechazó la lectura: HTTP {}", response.status());
-            return finish(app, "idle", false);
+            return finish(false);
         }
         Err(error) => {
             log::debug!("Juglar no está disponible; se usará la voz incluida: {error}");
-            return finish(app, "idle", false);
+            return finish(false);
         }
     };
 
-    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(JUGLAR_DEADLINE_SECS);
-    let status_url = format!("http://127.0.0.1:17493/generate/{generation_id}");
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(deadline_secs);
+    let status_url = format!("{base_url}/generate/{generation_id}");
     let mut poll_failures = 0u8;
-    let cancel_url = format!("http://127.0.0.1:17493/generate/{generation_id}/cancel");
+    let cancel_url = format!("{base_url}/generate/{generation_id}/cancel");
     let cancel_in_juglar = |client: reqwest::Client, url: String| async move {
         let _ = client
             .post(url)
@@ -419,7 +465,7 @@ async fn speak_with_juglar(app: Option<&tauri::AppHandle>, text: &str, app_lang:
             .await;
     };
     loop {
-        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        tokio::time::sleep(poll_interval).await;
 
         // Llegó una lectura más nueva (o el usuario paró): esta ya no manda.
         // Devuelve true para que el respaldo no lea un texto viejo encima de
@@ -427,7 +473,7 @@ async fn speak_with_juglar(app: Option<&tauri::AppHandle>, text: &str, app_lang:
         if superseded() {
             log::debug!("Lectura en Juglar superada por una más reciente; se cancela");
             cancel_in_juglar(client.clone(), cancel_url.clone()).await;
-            return finish(app, "idle", true);
+            return finish(true);
         }
 
         let snapshot = match client
@@ -445,7 +491,12 @@ async fn speak_with_juglar(app: Option<&tauri::AppHandle>, text: &str, app_lang:
             poll_failures += 1;
             if poll_failures >= 3 {
                 log::warn!("Juglar dejó de responder durante la generación; respaldo local");
-                return finish(app, "idle", false);
+                // El corte pudo ser pasajero: sin cancelar, Juglar terminaría
+                // la generación y la reproduciría encima de la voz incluida
+                // que está por sonar. Es de mejor esfuerzo, como en el resto
+                // de las salidas.
+                cancel_in_juglar(client.clone(), cancel_url.clone()).await;
+                return finish(false);
             }
             continue;
         };
@@ -454,30 +505,44 @@ async fn speak_with_juglar(app: Option<&tauri::AppHandle>, text: &str, app_lang:
         match snapshot.get("status").and_then(|v| v.as_str()) {
             // Al completarse, la burbuja de Juglar reproduce el audio
             // (fuente "rest"): recién aquí la lectura está de verdad hecha.
-            Some("completed") => return finish(app, "playing", true),
+            Some("completed") => {
+                // Quien reproduce es Juglar, así que Escriba no recibe aviso
+                // del final; sin esto la interfaz se quedaría en
+                // "Reproduciendo" para siempre. La duración del audio viene en
+                // la propia instantánea: se programa el cierre y se devuelve
+                // el control enseguida.
+                let secs = snapshot
+                    .get("duration")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0)
+                    .clamp(0.0, 600.0);
+                phase("playing");
+                schedule_idle_after_playback(phase.clone(), secs, my_epoch);
+                return true;
+            }
             // Juglar distingue la carga del modelo de la síntesis; la
             // primera es la lenta cuando el modelo está frío.
-            Some("loading_model") => emit_juglar_phase(app, "loading_model"),
-            Some("generating") => emit_juglar_phase(app, "generating"),
+            Some("loading_model") => phase("loading_model"),
+            Some("generating") => phase("generating"),
             Some("failed") => {
                 let error = snapshot
                     .get("error")
                     .and_then(|v| v.as_str())
                     .unwrap_or("?");
                 log::warn!("Juglar no pudo generar la lectura: {error}");
-                return finish(app, "idle", false);
+                return finish(false);
             }
             _ => {}
         }
 
         if std::time::Instant::now() >= deadline {
             log::warn!(
-                "Juglar superó el umbral de {JUGLAR_DEADLINE_SECS} s; se cancela y se usa la voz incluida"
+                "Juglar superó el umbral de {deadline_secs} s; se cancela y se usa la voz incluida"
             );
             // Libera la cola de Juglar; si la cancelación falla no cambia
             // la decisión de caer al respaldo.
             cancel_in_juglar(client.clone(), cancel_url.clone()).await;
-            return false;
+            return finish(false);
         }
     }
 }
@@ -1270,4 +1335,253 @@ pub async fn conversation_finish(app: tauri::AppHandle) -> Result<SessionDoc, St
         text: lines.join("\n").trim().to_string(),
         mood,
     })
+}
+
+#[cfg(test)]
+mod juglar_read_tests {
+    //! Camino crítico de la lectura con Juglar contra un servidor falso.
+    //!
+    //! Lo que se protege aquí es la corrección que motivó todo: `/speak`
+    //! responde en milisegundos pero el audio tarda minutos, así que el
+    //! éxito solo puede declararse con la generación terminada, y toda
+    //! salida tiene que cerrar la fase y soltar la cola de Juglar.
+
+    use super::*;
+    use std::io::{BufRead, BufReader, Write};
+    use std::net::{TcpListener, TcpStream};
+    use std::sync::{Arc, Mutex};
+
+    /// JUGLAR_EPOCH es global: dos pruebas en paralelo se supersederían
+    /// entre sí. Se serializan.
+    static EPOCH_GUARD: Mutex<()> = Mutex::new(());
+
+    /// Toma el turno serializado ignorando el envenenamiento: si una prueba
+    /// falla, las demás deben seguir informando lo suyo en vez de caer todas
+    /// con un pánico prestado.
+    fn epoch_guard() -> std::sync::MutexGuard<'static, ()> {
+        EPOCH_GUARD.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// Qué responde el Juglar falso a cada `GET /generate/{id}`, en orden.
+    /// `None` = responder 500, para simular un corte.
+    struct Script {
+        statuses: Vec<Option<&'static str>>,
+    }
+
+    struct FakeJuglar {
+        base_url: String,
+        hits: Arc<Mutex<Vec<String>>>,
+    }
+
+    impl FakeJuglar {
+        fn start(script: Script) -> Self {
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let base_url = format!("http://{}", listener.local_addr().unwrap());
+            let hits = Arc::new(Mutex::new(Vec::new()));
+            let hits_thread = hits.clone();
+
+            std::thread::spawn(move || {
+                let mut step = 0usize;
+                for stream in listener.incoming() {
+                    let Ok(mut stream) = stream else { break };
+                    let Some(request_line) = read_request_line(&mut stream) else {
+                        continue;
+                    };
+                    hits_thread.lock().unwrap().push(request_line.clone());
+
+                    if request_line.contains("/speak") {
+                        respond(&mut stream, 200, r#"{"id":"gen-1","status":"generating"}"#);
+                    } else if request_line.contains("/cancel") {
+                        respond(&mut stream, 200, r#"{"message":"cancelled"}"#);
+                    } else {
+                        let status = script.statuses.get(step).copied().flatten();
+                        step += 1;
+                        match status {
+                            Some(s) => respond(
+                                &mut stream,
+                                200,
+                                &format!(
+                                    r#"{{"id":"gen-1","status":"{s}","duration":0.01,"error":null}}"#
+                                ),
+                            ),
+                            // Sin entrada en el guion: sigue "generating"
+                            // para que la prueba de timeout pueda vencer.
+                            None if step > script.statuses.len() => respond(
+                                &mut stream,
+                                200,
+                                r#"{"id":"gen-1","status":"generating","duration":null}"#,
+                            ),
+                            None => respond(&mut stream, 500, r#"{"detail":"boom"}"#),
+                        }
+                    }
+                }
+            });
+
+            FakeJuglar { base_url, hits }
+        }
+
+        fn cancelled(&self) -> bool {
+            self.hits
+                .lock()
+                .unwrap()
+                .iter()
+                .any(|h| h.contains("/cancel"))
+        }
+    }
+
+    fn read_request_line(stream: &mut TcpStream) -> Option<String> {
+        let mut reader = BufReader::new(stream.try_clone().ok()?);
+        let mut line = String::new();
+        reader.read_line(&mut line).ok()?;
+        Some(line.trim().to_string())
+    }
+
+    fn respond(stream: &mut TcpStream, code: u16, body: &str) {
+        let _ = write!(
+            stream,
+            "HTTP/1.1 {code} OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+            body.len()
+        );
+        let _ = stream.flush();
+    }
+
+    /// Corre el núcleo contra el servidor falso y devuelve
+    /// (resultado, fases emitidas).
+    async fn run(fake: &FakeJuglar, deadline_secs: u64) -> (bool, Vec<String>) {
+        let phases = Arc::new(Mutex::new(Vec::new()));
+        let sink = phases.clone();
+        let ok = juglar_read(
+            &fake.base_url,
+            "hola",
+            "es",
+            Arc::new(move |p: &str| sink.lock().unwrap().push(p.to_string())),
+            deadline_secs,
+            std::time::Duration::from_millis(20),
+        )
+        .await;
+        let seen = phases.lock().unwrap().clone();
+        (ok, seen)
+    }
+
+    #[tokio::test]
+    async fn completa_y_recorre_las_fases() {
+        let _guard = epoch_guard();
+        let fake = FakeJuglar::start(Script {
+            statuses: vec![Some("loading_model"), Some("generating"), Some("completed")],
+        });
+        let (ok, phases) = run(&fake, 30).await;
+        assert!(ok, "una generación completada es una lectura exitosa");
+        assert_eq!(
+            phases,
+            vec!["requesting", "loading_model", "generating", "playing"],
+            "la interfaz debe poder distinguir carga de síntesis"
+        );
+    }
+
+    #[tokio::test]
+    async fn generacion_fallida_cae_al_respaldo_y_cierra_la_fase() {
+        let _guard = epoch_guard();
+        let fake = FakeJuglar::start(Script {
+            statuses: vec![Some("generating"), Some("failed")],
+        });
+        let (ok, phases) = run(&fake, 30).await;
+        assert!(!ok, "si Juglar falla debe hablar la voz incluida");
+        assert_eq!(
+            phases.last().unwrap(),
+            "idle",
+            "la fase no puede quedar viva"
+        );
+    }
+
+    #[tokio::test]
+    async fn el_umbral_cancela_y_cierra_la_fase() {
+        let _guard = epoch_guard();
+        // Nunca completa: el guion se agota y sigue "generating".
+        let fake = FakeJuglar::start(Script {
+            statuses: vec![Some("generating"); 2],
+        });
+        let (ok, phases) = run(&fake, 0).await;
+        assert!(!ok, "pasado el umbral responde la voz incluida");
+        assert_eq!(phases.last().unwrap(), "idle");
+        assert!(fake.cancelled(), "hay que soltar la cola de Juglar");
+    }
+
+    #[tokio::test]
+    async fn tres_consultas_fallidas_cancelan_antes_del_respaldo() {
+        let _guard = epoch_guard();
+        // Tres 500 seguidos: el servidor se cayó a mitad de la generación.
+        let fake = FakeJuglar::start(Script {
+            statuses: vec![None, None, None],
+        });
+        let (ok, phases) = run(&fake, 30).await;
+        assert!(!ok);
+        assert_eq!(phases.last().unwrap(), "idle");
+        assert!(
+            fake.cancelled(),
+            "si el corte fue pasajero, sin cancelar Juglar hablaría encima del respaldo"
+        );
+    }
+
+    #[tokio::test]
+    async fn una_lectura_mas_nueva_descarta_la_anterior() {
+        let _guard = epoch_guard();
+        let fake = FakeJuglar::start(Script {
+            statuses: vec![Some("generating"); 50],
+        });
+        let phases = Arc::new(Mutex::new(Vec::new()));
+        let sink = phases.clone();
+        let url = fake.base_url.clone();
+        let vieja = tokio::spawn(async move {
+            juglar_read(
+                &url,
+                "texto viejo",
+                "es",
+                Arc::new(move |p: &str| sink.lock().unwrap().push(p.to_string())),
+                30,
+                std::time::Duration::from_millis(20),
+            )
+            .await
+        });
+        tokio::time::sleep(std::time::Duration::from_millis(60)).await;
+        cancel_pending_juglar_read(); // llega una lectura más nueva
+
+        let ok = vieja.await.unwrap();
+        assert!(
+            ok,
+            "devuelve éxito para que el respaldo no lea el texto viejo encima del nuevo"
+        );
+        assert_eq!(phases.lock().unwrap().last().unwrap(), "idle");
+        assert!(fake.cancelled(), "la lectura descartada libera la cola");
+    }
+
+    #[tokio::test]
+    async fn parar_a_mano_detiene_una_lectura_que_aun_no_suena() {
+        let _guard = epoch_guard();
+        let fake = FakeJuglar::start(Script {
+            statuses: vec![Some("loading_model"); 50],
+        });
+        let phases = Arc::new(Mutex::new(Vec::new()));
+        let sink = phases.clone();
+        let url = fake.base_url.clone();
+        let lectura = tokio::spawn(async move {
+            juglar_read(
+                &url,
+                "texto",
+                "es",
+                Arc::new(move |p: &str| sink.lock().unwrap().push(p.to_string())),
+                30,
+                std::time::Duration::from_millis(20),
+            )
+            .await
+        });
+        tokio::time::sleep(std::time::Duration::from_millis(60)).await;
+        // Lo que hace conversation_speak_stop: descartar el turno vigente.
+        cancel_pending_juglar_read();
+
+        assert!(lectura.await.unwrap());
+        assert!(
+            fake.cancelled(),
+            "parar debe cancelar también lo que se está generando en silencio"
+        );
+    }
 }
