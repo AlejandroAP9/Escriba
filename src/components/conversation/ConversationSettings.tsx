@@ -127,8 +127,12 @@ export const ConversationSettings: React.FC = () => {
   // Motor de voz elegido por el usuario (persistente). Default: la voz del
   // sistema (ganó el A/B contra la incluida); la incluida queda para equipos
   // sin voces Premium/Mejorada.
+  const storedVoiceEngine = getSetting("conversation_voice_engine");
+  // "juglar" almacenado de versiones previas cae a la voz incluida: la voz
+  // clonada tarda minutos por frase y no sirve para conversar. Juglar solo
+  // participa en lecturas deliberadas (leer selección).
   const voiceEngine =
-    getSetting("conversation_voice_engine") === "included"
+    storedVoiceEngine === "included" || storedVoiceEngine === "juglar"
       ? "included"
       : "system";
   const voiceEngineRef = useRef(voiceEngine);
@@ -1294,17 +1298,18 @@ export const ConversationSettings: React.FC = () => {
               />
               {/* Selector de motor: la voz del sistema (ganadora del A/B) vs
                   la incluida (para equipos sin voces Premium). */}
-              {voiceOn && ttsReady === true && (
+              {voiceOn && (
                 <div className="flex items-center gap-1.5 border-t border-line py-2.5">
                   {(["system", "included"] as const).map((e) => (
                     <button
                       key={e}
                       type="button"
                       onClick={() => pickEngine(e)}
+                      disabled={e === "included" && ttsReady !== true}
                       className={`rounded-full border px-3 py-1 text-2xs font-medium transition-colors ${
                         voiceEngine === e
                           ? "border-logo-primary bg-logo-primary/15 text-text"
-                          : "border-line text-mid-gray hover:border-mid-gray/40"
+                          : "border-line text-mid-gray hover:border-mid-gray/40 disabled:cursor-not-allowed disabled:opacity-40"
                       }`}
                     >
                       {t(`conversation.voiceEngine.${e}`)}

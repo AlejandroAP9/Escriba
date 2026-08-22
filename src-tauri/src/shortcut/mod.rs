@@ -811,8 +811,13 @@ pub fn change_voice_engine_setting(
     setting: String,
     engine: String,
 ) -> Result<(), String> {
-    if engine != "system" && engine != "included" {
+    if engine != "system" && engine != "included" && engine != "juglar" {
         return Err("Motor de voz no válido".to_string());
+    }
+    // Juglar genera con la voz clonada y tarda minutos por lectura: solo
+    // tiene sentido en lecturas deliberadas, nunca en conversación.
+    if engine == "juglar" && setting != "read_selection_voice_engine" {
+        return Err("Juglar solo está disponible para lecturas deliberadas".to_string());
     }
 
     let mut settings = settings::get_settings(&app);

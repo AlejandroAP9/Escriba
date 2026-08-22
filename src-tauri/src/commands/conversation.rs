@@ -257,13 +257,28 @@ pub async fn conversation_speak(app: tauri::AppHandle, text: String, engine: Str
     speak_native(&app, &text, &engine).await
 }
 
-/// Cascada nativa reutilizable (Sesiones y "Tu tinta en voz"): voz incluida →
-/// `say` del sistema → false (que el llamador decida su respaldo).
+/// Cascada nativa reutilizable. Juglar solo participa en lecturas
+/// deliberadas ("Tu tinta en voz", leer selección): genera con la voz
+/// clonada y tarda minutos en equipos de 16 GB, así que las Sesiones
+/// conversacionales nunca lo usan. Si Juglar falla o excede el umbral, el
+/// respaldo es la voz incluida; `say` queda como último recurso.
 pub async fn speak_native(app: &tauri::AppHandle, text: &str, engine: &str) -> bool {
-    // Motor #1: voz neural incluida (salvo que el usuario prefiera la del
-    // sistema con el selector de la pantalla).
     let app_lang = crate::settings::get_settings(app).app_language;
-    if engine != "system" && app_lang.starts_with("es") && crate::managers::tts::installed(app) {
+
+    // Juglar expone una API local. La identidad `escriba` permite asignarle
+    // una voz desde Juglar sin compartir datos ni credenciales en la nube.
+    // speak_with_juglar solo devuelve éxito con el audio ya generado y
+    // sonando en Juglar; cualquier otro resultado sigue la cascada normal.
+    if engine == "juglar" && speak_with_juglar(text, &app_lang).await {
+        return true;
+    }
+
+    // Motor incluido: elegido directamente, o como respaldo cuando Juglar
+    // no respondió a tiempo.
+    if (engine == "included" || engine == "juglar")
+        && app_lang.starts_with("es")
+        && crate::managers::tts::installed(app)
+    {
         let app2 = app.clone();
         let text2 = text.to_string();
         let ok = tauri::async_runtime::spawn_blocking(move || {
@@ -308,6 +323,112 @@ pub async fn speak_native(app: &tauri::AppHandle, text: &str, engine: &str) -> b
     {
         let _ = text;
         false
+    }
+}
+
+/// Tope de espera para que Juglar tenga el audio listo. En el hardware de
+/// referencia (M4 Air 16 GB) una frase corta tarda ~90 s de generación, y
+/// una lectura deliberada de varios párrafos puede multiplicarlo; pasado
+/// este umbral la voz incluida responde mejor que seguir en silencio.
+const JUGLAR_DEADLINE_SECS: u64 = 300;
+
+async fn speak_with_juglar(text: &str, app_lang: &str) -> bool {
+    let client = match reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_millis(600))
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+    {
+        Ok(client) => client,
+        Err(_) => return false,
+    };
+    let language = app_lang.split(['-', '_']).next().unwrap_or("es");
+
+    // /speak encola y responde en milisegundos con status "generating"; el
+    // audio existe recién cuando la generación termina. Dar por hablado el
+    // texto con el 200 del POST producía 90 s de silencio y ningún respaldo.
+    let generation_id = match client
+        .post("http://127.0.0.1:17493/speak")
+        .header("X-Juglar-Client-Id", "escriba")
+        .json(&serde_json::json!({ "text": text, "language": language }))
+        .send()
+        .await
+    {
+        Ok(response) if response.status().is_success() => {
+            match response.json::<serde_json::Value>().await {
+                Ok(body) => match body.get("id").and_then(|v| v.as_str()) {
+                    Some(id) => id.to_string(),
+                    None => return false,
+                },
+                Err(_) => return false,
+            }
+        }
+        Ok(response) => {
+            log::warn!("Juglar rechazó la lectura: HTTP {}", response.status());
+            return false;
+        }
+        Err(error) => {
+            log::debug!("Juglar no está disponible; se usará la voz incluida: {error}");
+            return false;
+        }
+    };
+
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(JUGLAR_DEADLINE_SECS);
+    let status_url = format!("http://127.0.0.1:17493/generate/{generation_id}");
+    let mut poll_failures = 0u8;
+    loop {
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
+        let snapshot = match client
+            .get(&status_url)
+            .header("X-Juglar-Client-Id", "escriba")
+            .send()
+            .await
+        {
+            Ok(r) if r.status().is_success() => r.json::<serde_json::Value>().await.ok(),
+            _ => None,
+        };
+        let Some(snapshot) = snapshot else {
+            // Tres fallos seguidos = el servidor se cayó a mitad de la
+            // generación; un fallo aislado puede ser solo carga.
+            poll_failures += 1;
+            if poll_failures >= 3 {
+                log::warn!("Juglar dejó de responder durante la generación; respaldo local");
+                return false;
+            }
+            continue;
+        };
+        poll_failures = 0;
+
+        match snapshot.get("status").and_then(|v| v.as_str()) {
+            // Al completarse, la burbuja de Juglar reproduce el audio
+            // (fuente "rest"): recién aquí la lectura está de verdad hecha.
+            Some("completed") => return true,
+            Some("failed") => {
+                let error = snapshot
+                    .get("error")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("?");
+                log::warn!("Juglar no pudo generar la lectura: {error}");
+                return false;
+            }
+            _ => {}
+        }
+
+        if std::time::Instant::now() >= deadline {
+            log::warn!(
+                "Juglar superó el umbral de {JUGLAR_DEADLINE_SECS} s; se cancela y se usa la voz incluida"
+            );
+            // Libera la cola de Juglar; si la cancelación falla no cambia
+            // la decisión de caer al respaldo.
+            let _ = client
+                .post(format!(
+                    "http://127.0.0.1:17493/generate/{generation_id}/cancel"
+                ))
+                .header("X-Juglar-Client-Id", "escriba")
+                .send()
+                .await;
+            return false;
+        }
     }
 }
 
