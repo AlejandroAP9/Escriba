@@ -16,7 +16,7 @@ interface VoiceEngineSelectorProps {
   grouped?: boolean;
 }
 
-const ENGINES = ["system", "included"] as const;
+const ENGINES = ["system", "included", "juglar"] as const;
 
 export const VoiceEngineSelector: React.FC<VoiceEngineSelectorProps> = ({
   setting,
@@ -26,7 +26,11 @@ export const VoiceEngineSelector: React.FC<VoiceEngineSelectorProps> = ({
 }) => {
   const { t } = useTranslation();
   const { getSetting, updateSetting, isUpdating } = useSettings();
-  const selected = getSetting(setting) === "included" ? "included" : "system";
+  const storedEngine = getSetting(setting);
+  const selected =
+    storedEngine === "included" || storedEngine === "juglar"
+      ? storedEngine
+      : "system";
 
   return (
     <SettingContainer

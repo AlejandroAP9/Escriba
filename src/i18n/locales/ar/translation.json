@@ -1345,7 +1345,8 @@
     },
     "voiceEngine": {
       "included": "Bundled voice",
-      "system": "System voice"
+      "system": "System voice",
+      "juglar": "Juglar"
     },
     "handsFree": {
       "label": "Hands-free",

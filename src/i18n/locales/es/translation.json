@@ -1345,7 +1345,8 @@
     },
     "voiceEngine": {
       "included": "Voz incluida",
-      "system": "Voz del sistema"
+      "system": "Voz del sistema",
+      "juglar": "Juglar"
     },
     "handsFree": {
       "label": "Manos libres",
