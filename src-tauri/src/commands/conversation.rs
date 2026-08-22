@@ -269,7 +269,7 @@ pub async fn speak_native(app: &tauri::AppHandle, text: &str, engine: &str) -> b
     // una voz desde Juglar sin compartir datos ni credenciales en la nube.
     // speak_with_juglar solo devuelve éxito con el audio ya generado y
     // sonando en Juglar; cualquier otro resultado sigue la cascada normal.
-    if engine == "juglar" && speak_with_juglar(text, &app_lang).await {
+    if engine == "juglar" && speak_with_juglar(Some(app), text, &app_lang).await {
         return true;
     }
 
@@ -332,7 +332,40 @@ pub async fn speak_native(app: &tauri::AppHandle, text: &str, engine: &str) -> b
 /// este umbral la voz incluida responde mejor que seguir en silencio.
 const JUGLAR_DEADLINE_SECS: u64 = 300;
 
-async fn speak_with_juglar(text: &str, app_lang: &str) -> bool {
+/// Turno de lectura vigente. Como esperar a Juglar dura minutos, dos
+/// peticiones seguidas se solapan: sin esto, la primera terminaría de
+/// generar y empezaría a sonar encima (o después) de la segunda. Cada
+/// petición toma un turno; la que descubre que ya no es la vigente cancela
+/// su generación y se retira. Pararla a mano también avanza el contador.
+static JUGLAR_EPOCH: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Descarta la lectura de Juglar en curso: la próxima vuelta del sondeo la
+/// verá superada, cancelará en Juglar y no reproducirá nada.
+pub fn cancel_pending_juglar_read() {
+    JUGLAR_EPOCH.fetch_add(1, Ordering::SeqCst);
+}
+
+/// Fases que la interfaz muestra mientras Juglar trabaja. Una espera de
+/// minutos sin señal se lee como que la app se colgó; con la fase a la
+/// vista el usuario sabe si está descargando/cargando el modelo (lento la
+/// primera vez) o ya generando, y puede decidir cancelar.
+fn emit_juglar_phase(app: Option<&tauri::AppHandle>, phase: &str) {
+    use tauri::Emitter;
+    if let Some(app) = app {
+        let _ = app.emit("juglar-read-phase", phase.to_string());
+    }
+}
+
+async fn speak_with_juglar(app: Option<&tauri::AppHandle>, text: &str, app_lang: &str) -> bool {
+    let my_epoch = JUGLAR_EPOCH.fetch_add(1, Ordering::SeqCst) + 1;
+    let superseded = || JUGLAR_EPOCH.load(Ordering::SeqCst) != my_epoch;
+    // Cierra la fase pase lo que pase: si se sale por error o por respaldo,
+    // la interfaz no puede quedarse con "Generando…" para siempre.
+    let finish = |app: Option<&tauri::AppHandle>, phase: &str, value: bool| {
+        emit_juglar_phase(app, phase);
+        value
+    };
+
     let client = match reqwest::Client::builder()
         .connect_timeout(std::time::Duration::from_millis(600))
         .timeout(std::time::Duration::from_secs(10))
@@ -342,6 +375,8 @@ async fn speak_with_juglar(text: &str, app_lang: &str) -> bool {
         Err(_) => return false,
     };
     let language = app_lang.split(['-', '_']).next().unwrap_or("es");
+
+    emit_juglar_phase(app, "requesting");
 
     // /speak encola y responde en milisegundos con status "generating"; el
     // audio existe recién cuando la generación termina. Dar por hablado el
@@ -357,26 +392,43 @@ async fn speak_with_juglar(text: &str, app_lang: &str) -> bool {
             match response.json::<serde_json::Value>().await {
                 Ok(body) => match body.get("id").and_then(|v| v.as_str()) {
                     Some(id) => id.to_string(),
-                    None => return false,
+                    None => return finish(app, "idle", false),
                 },
-                Err(_) => return false,
+                Err(_) => return finish(app, "idle", false),
             }
         }
         Ok(response) => {
             log::warn!("Juglar rechazó la lectura: HTTP {}", response.status());
-            return false;
+            return finish(app, "idle", false);
         }
         Err(error) => {
             log::debug!("Juglar no está disponible; se usará la voz incluida: {error}");
-            return false;
+            return finish(app, "idle", false);
         }
     };
 
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(JUGLAR_DEADLINE_SECS);
     let status_url = format!("http://127.0.0.1:17493/generate/{generation_id}");
     let mut poll_failures = 0u8;
+    let cancel_url = format!("http://127.0.0.1:17493/generate/{generation_id}/cancel");
+    let cancel_in_juglar = |client: reqwest::Client, url: String| async move {
+        let _ = client
+            .post(url)
+            .header("X-Juglar-Client-Id", "escriba")
+            .send()
+            .await;
+    };
     loop {
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
+        // Llegó una lectura más nueva (o el usuario paró): esta ya no manda.
+        // Devuelve true para que el respaldo no lea un texto viejo encima de
+        // lo que el usuario acaba de pedir.
+        if superseded() {
+            log::debug!("Lectura en Juglar superada por una más reciente; se cancela");
+            cancel_in_juglar(client.clone(), cancel_url.clone()).await;
+            return finish(app, "idle", true);
+        }
 
         let snapshot = match client
             .get(&status_url)
@@ -393,7 +445,7 @@ async fn speak_with_juglar(text: &str, app_lang: &str) -> bool {
             poll_failures += 1;
             if poll_failures >= 3 {
                 log::warn!("Juglar dejó de responder durante la generación; respaldo local");
-                return false;
+                return finish(app, "idle", false);
             }
             continue;
         };
@@ -402,14 +454,18 @@ async fn speak_with_juglar(text: &str, app_lang: &str) -> bool {
         match snapshot.get("status").and_then(|v| v.as_str()) {
             // Al completarse, la burbuja de Juglar reproduce el audio
             // (fuente "rest"): recién aquí la lectura está de verdad hecha.
-            Some("completed") => return true,
+            Some("completed") => return finish(app, "playing", true),
+            // Juglar distingue la carga del modelo de la síntesis; la
+            // primera es la lenta cuando el modelo está frío.
+            Some("loading_model") => emit_juglar_phase(app, "loading_model"),
+            Some("generating") => emit_juglar_phase(app, "generating"),
             Some("failed") => {
                 let error = snapshot
                     .get("error")
                     .and_then(|v| v.as_str())
                     .unwrap_or("?");
                 log::warn!("Juglar no pudo generar la lectura: {error}");
-                return false;
+                return finish(app, "idle", false);
             }
             _ => {}
         }
@@ -420,13 +476,7 @@ async fn speak_with_juglar(text: &str, app_lang: &str) -> bool {
             );
             // Libera la cola de Juglar; si la cancelación falla no cambia
             // la decisión de caer al respaldo.
-            let _ = client
-                .post(format!(
-                    "http://127.0.0.1:17493/generate/{generation_id}/cancel"
-                ))
-                .header("X-Juglar-Client-Id", "escriba")
-                .send()
-                .await;
+            cancel_in_juglar(client.clone(), cancel_url.clone()).await;
             return false;
         }
     }
@@ -474,6 +524,9 @@ pub fn stop_speaking_native() {
 #[tauri::command]
 #[specta::specta]
 pub fn conversation_speak_stop() {
+    // Una lectura de Juglar puede estar generándose sin sonar todavía:
+    // pararla es descartar ese turno, no solo callar lo que ya suena.
+    cancel_pending_juglar_read();
     stop_speaking_native();
     // Corta también la voz del Intérprete que esté sonando hacia la llamada
     // (auditoría #18): Pausar/Descartar la frenan de inmediato.
