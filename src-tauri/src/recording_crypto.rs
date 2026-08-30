@@ -795,23 +795,15 @@ pub fn protocol_response(
 // ESCAUD1 queda intacto: las grabaciones del historial se siguen escribiendo
 // y leyendo exactamente igual.
 
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 const MAGIC2: &[u8; 8] = b"ESCAUD2\0";
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 const HEADER2_LEN: u64 = 8 + 4 + 16;
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 const FOOTER2_MAGIC: &[u8; 8] = b"ESCFIN2\0";
 /// magic(8) + ciframiento de total u64 (8) + tag(16)
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 const FOOTER2_LEN: u64 = 8 + 8 + TAG_LEN;
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 const ROL_FRAME: u8 = 0;
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 const ROL_FOOTER: u8 = 1;
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 const FOOTER2_NONCE_INDEX: u64 = u64::MAX;
 
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 fn aad2(frame_index: u64, plain_len: u32, rol: u8) -> [u8; 21] {
     let mut aad = [0u8; 21];
     aad[..8].copy_from_slice(MAGIC2);
@@ -822,7 +814,7 @@ fn aad2(frame_index: u64, plain_len: u32, rol: u8) -> [u8; 21] {
 }
 
 /// ¿El archivo empieza con la cabecera ESCAUD2?
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+#[allow(dead_code)] // PRP-009 Fase 5+: lectura/reproceso de pistas; quitar al cablear.
 pub fn is_escaud2(path: &Path) -> Result<bool> {
     let mut file = File::open(path)?;
     let mut magic = [0u8; 8];
@@ -836,7 +828,6 @@ pub fn is_escaud2(path: &Path) -> Result<bool> {
 /// Escritor incremental. La pista crece frame a frame con fsync; `finalize`
 /// añade el footer. Soltarlo sin finalize (crash) deja un archivo que la
 /// recuperación entiende: los frames sellados son la verdad.
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 pub struct Escaud2Writer {
     file: File,
     cipher: XChaCha20Poly1305,
@@ -846,7 +837,6 @@ pub struct Escaud2Writer {
     total_plain: u64,
 }
 
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 impl Escaud2Writer {
     /// Crea el contenedor. Falla si el archivo ya existe: una pista de sesión
     /// nunca se reabre para escribir, se recupera y se sigue en otra.
@@ -855,7 +845,7 @@ impl Escaud2Writer {
         Self::create_with_key(path, &key)
     }
 
-    fn create_with_key(path: &Path, key: &[u8; 32]) -> Result<Self> {
+    pub(crate) fn create_with_key(path: &Path, key: &[u8; 32]) -> Result<Self> {
         let mut nonce_prefix = [0u8; NONCE_PREFIX_LEN];
         getrandom::getrandom(&mut nonce_prefix)
             .map_err(|e| anyhow!("sin CSPRNG para la pista: {e}"))?;
@@ -963,7 +953,6 @@ impl Escaud2Writer {
 }
 
 /// Resultado del recorrido de un contenedor ESCAUD2.
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 struct Escaud2Scan {
     /// Claro reconstruido, frame a frame verificado.
     plaintext: Vec<u8>,
@@ -975,7 +964,6 @@ struct Escaud2Scan {
 
 /// Recorre verificando tags. Se detiene en el primer tramo ilegible: lo que
 /// siga es inatribuible y no se inventa (misma regla que el journal).
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 fn escaud2_scan(path: &Path, key: &[u8; 32]) -> Result<Escaud2Scan> {
     let datos = fs::read(path)?;
     if datos.len() < HEADER2_LEN as usize || &datos[0..8] != MAGIC2 {
@@ -1068,13 +1056,11 @@ fn escaud2_scan(path: &Path, key: &[u8; 32]) -> Result<Escaud2Scan> {
 /// Recupera un contenedor tras un kill: verifica frame a frame y TRUNCA la
 /// cola ilegible, sin reescribir nada sellado. Idempotente: sobre un archivo
 /// sano (con o sin footer) no toca un byte. Devuelve los bytes claros.
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 pub fn escaud2_recover(path: &Path) -> Result<u64> {
     let key = audio_key().ok_or_else(|| anyhow!("llave del historial no disponible"))?;
     escaud2_recover_with_key(path, &key)
 }
 
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
 fn escaud2_recover_with_key(path: &Path, key: &[u8; 32]) -> Result<u64> {
     let scan = escaud2_scan(path, key)?;
     let en_disco = fs::metadata(path)?.len();
@@ -1093,14 +1079,14 @@ fn escaud2_recover_with_key(path: &Path, key: &[u8; 32]) -> Result<u64> {
 
 /// Muestras f32 de una pista (para re-transcribir). Acepta contenedores con
 /// cola rota: entrega hasta el último frame válido.
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+#[allow(dead_code)] // PRP-009 Fase 5+: lectura/reproceso de pistas; quitar al cablear.
 pub fn escaud2_read_samples(path: &Path) -> Result<Vec<f32>> {
     let key = audio_key().ok_or_else(|| anyhow!("llave del historial no disponible"))?;
     escaud2_read_samples_with_key(path, &key)
 }
 
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
-fn escaud2_read_samples_with_key(path: &Path, key: &[u8; 32]) -> Result<Vec<f32>> {
+#[allow(dead_code)] // PRP-009 Fase 5+: lectura/reproceso de pistas; quitar al cablear.
+pub(crate) fn escaud2_read_samples_with_key(path: &Path, key: &[u8; 32]) -> Result<Vec<f32>> {
     let scan = escaud2_scan(path, key)?;
     Ok(scan
         .plaintext
@@ -1111,13 +1097,13 @@ fn escaud2_read_samples_with_key(path: &Path, key: &[u8; 32]) -> Result<Vec<f32>
 
 /// WAV completo sintetizado en memoria (cabecera + PCM16 del contenedor):
 /// dentro del archivo jamás existió un WAV.
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+#[allow(dead_code)] // PRP-009 Fase 5+: lectura/reproceso de pistas; quitar al cablear.
 pub fn escaud2_wav_bytes(path: &Path) -> Result<Vec<u8>> {
     let key = audio_key().ok_or_else(|| anyhow!("llave del historial no disponible"))?;
     escaud2_wav_bytes_with_key(path, &key)
 }
 
-#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+#[allow(dead_code)] // PRP-009 Fase 5+: lectura/reproceso de pistas; quitar al cablear.
 fn escaud2_wav_bytes_with_key(path: &Path, key: &[u8; 32]) -> Result<Vec<u8>> {
     let scan = escaud2_scan(path, key)?;
     let muestras = scan.plaintext.len() / 2;

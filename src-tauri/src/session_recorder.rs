@@ -59,6 +59,16 @@ pub enum EventoSesion {
         animo: String,
         at_ms: u64,
     },
+    /// Vida de una pista de audio: `inicio` al armarse, `hueco` cuando el
+    /// canal descartó muestras (el tiempo NO se comprime: el worker rellena
+    /// silencio), `corte` si la pista murió por error, `fin` al cierre limpio.
+    Pista {
+        pista: String,
+        evento: String,
+        at_ms: u64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        muestras_perdidas: Option<u64>,
+    },
     Cierre {
         motivo: String,
     },
@@ -307,6 +317,7 @@ pub fn documento(doc: &str, animo: &str, at_ms: u64) {
 /// journals con `documento` y sin `cierre` son exactamente lo que la
 /// recuperación ofrece.
 pub fn cierre_documento() {
+    pistas_desarmar_todas();
     apendear(&EventoSesion::Cierre {
         motivo: "documento".to_string(),
     });
@@ -316,6 +327,7 @@ pub fn cierre_documento() {
 /// Descarte explícito del usuario (reset): el journal y el directorio se
 /// eliminan ya. No es la retención de la Fase 5: es la voluntad del usuario.
 pub fn cierre_descarte() {
+    pistas_desarmar_todas();
     let dir = {
         let mut guard = match ACTIVO.lock() {
             Ok(g) => g,
@@ -333,6 +345,214 @@ pub fn cierre_descarte() {
     }
 }
 
+// ──────────────────────── Pistas de audio (Fase 4) ────────────────────────
+//
+// Fronteras acordadas (revisión del 30-ago):
+// - el camino de captura SOLO hace try_send: jamás lee, recupera ni
+//   finaliza contenedores, y jamás espera al disco;
+// - un error del worker corta ESA pista y lo deja escrito; el journal sigue;
+// - el contador de muestras avanza también al descartar: un descarte es un
+//   hueco de silencio en la pista, nunca tiempo comprimido.
+
+const MUESTRAS_POR_SEGUNDO: u64 = 16_000;
+/// Tope del canal: ~32 trozos en vuelo. Lleno → se descarta (y queda hueco).
+const CAPACIDAD_CANAL: usize = 32;
+
+struct Trozo {
+    /// Offset (en muestras desde el inicio de la pista) de la primera muestra.
+    inicio: u64,
+    muestras: Vec<f32>,
+}
+
+struct ProductorPista {
+    tx: std::sync::mpsc::SyncSender<Trozo>,
+    /// Avanza SIEMPRE, se envíe o se descarte: es el reloj de la pista.
+    offset: u64,
+    worker: Option<std::thread::JoinHandle<()>>,
+}
+
+static PISTA_MIC: Mutex<Option<ProductorPista>> = Mutex::new(None);
+static PISTA_SYS: Mutex<Option<ProductorPista>> = Mutex::new(None);
+
+fn slot_de(pista: &str) -> &'static Mutex<Option<ProductorPista>> {
+    if pista == "mic" {
+        &PISTA_MIC
+    } else {
+        &PISTA_SYS
+    }
+}
+
+/// Núcleo del empuje (testeable): avanza el offset pase lo que pase y jamás
+/// bloquea. `Disconnected` = worker muerto: la pista queda desarmada.
+fn empujar_en(guard: &mut Option<ProductorPista>, samples: &[f32]) {
+    let Some(p) = guard.as_mut() else { return };
+    let inicio = p.offset;
+    p.offset += samples.len() as u64;
+    match p.tx.try_send(Trozo {
+        inicio,
+        muestras: samples.to_vec(),
+    }) {
+        Ok(()) => {}
+        Err(std::sync::mpsc::TrySendError::Full(_)) => {} // hueco: lo ve el worker
+        Err(std::sync::mpsc::TrySendError::Disconnected(_)) => {
+            *guard = None;
+        }
+    }
+}
+
+/// Tap del micrófono (lo instala managers/audio como raw tap del recorder).
+/// Sin pista armada es un no-op de un lock corto: el dictado normal pasa por
+/// aquí y no debe pagar nada.
+pub fn pista_mic(samples: &[f32]) {
+    if let Ok(mut g) = PISTA_MIC.lock() {
+        empujar_en(&mut g, samples);
+    }
+}
+
+/// Tap del audio del sistema (lo llama el worker de Sesiones tras el read).
+pub fn pista_sys(samples: &[f32]) {
+    if let Ok(mut g) = PISTA_SYS.lock() {
+        empujar_en(&mut g, samples);
+    }
+}
+
+/// Siguiente nombre de segmento libre: una sesión recuperada no reabre su
+/// contenedor (create_new), sigue en `mic-1`, `mic-2`…
+fn siguiente_segmento(dir: &Path, pista: &str) -> PathBuf {
+    for n in 0u32.. {
+        let ruta = dir.join(format!("{pista}-{n}.escaud2"));
+        if !ruta.exists() {
+            return ruta;
+        }
+    }
+    unreachable!("u32 agotado buscando segmento")
+}
+
+/// Núcleo del worker (testeable con writer y registro inyectados): rellena
+/// huecos con silencio para que el tiempo jamás se comprima, y muere cortando
+/// SU pista si el disco falla; el journal sigue por su lado.
+fn correr_pista_nucleo(
+    pista: &str,
+    rx: std::sync::mpsc::Receiver<Trozo>,
+    mut writer: crate::recording_crypto::Escaud2Writer,
+    at_ms_base: u64,
+    registrar: &dyn Fn(EventoSesion),
+) {
+    let at_de = |muestras: u64| at_ms_base + muestras * 1000 / MUESTRAS_POR_SEGUNDO;
+    let mut escritas: u64 = 0;
+    let corte = |escritas: u64, e: &dyn std::fmt::Display| {
+        warn!("Pista {pista} cortada: {e}");
+        registrar(EventoSesion::Pista {
+            pista: pista.to_string(),
+            evento: "corte".to_string(),
+            at_ms: at_de(escritas),
+            muestras_perdidas: None,
+        });
+    };
+    for trozo in rx {
+        if trozo.inicio > escritas {
+            let hueco = trozo.inicio - escritas;
+            let silencio = vec![0f32; 16_384];
+            let mut faltan = hueco;
+            while faltan > 0 {
+                let n = faltan.min(silencio.len() as u64) as usize;
+                if let Err(e) = writer.append_samples(&silencio[..n]) {
+                    corte(escritas, &e);
+                    return;
+                }
+                faltan -= n as u64;
+            }
+            registrar(EventoSesion::Pista {
+                pista: pista.to_string(),
+                evento: "hueco".to_string(),
+                at_ms: at_de(escritas),
+                muestras_perdidas: Some(hueco),
+            });
+            escritas = trozo.inicio;
+        }
+        if let Err(e) = writer.append_samples(&trozo.muestras) {
+            corte(escritas, &e);
+            return;
+        }
+        escritas += trozo.muestras.len() as u64;
+    }
+    // Canal cerrado: cierre limpio con footer.
+    let final_at = at_de(escritas);
+    if let Err(e) = writer.finalize() {
+        corte(escritas, &e);
+        return;
+    }
+    registrar(EventoSesion::Pista {
+        pista: pista.to_string(),
+        evento: "fin".to_string(),
+        at_ms: final_at,
+        muestras_perdidas: None,
+    });
+}
+
+/// Arma una pista si hay journal activo y no estaba armada. `at_ms_base` es
+/// el reloj de sesión en el momento del armado.
+pub fn pista_armar(pista: &'static str, at_ms_base: u64) {
+    let dir = {
+        let Ok(guard) = ACTIVO.lock() else { return };
+        let Some(g) = guard.as_ref() else { return };
+        g.dir.clone()
+    };
+    let Ok(mut slot) = slot_de(pista).lock() else {
+        return;
+    };
+    if slot.is_some() {
+        return;
+    }
+    let ruta = siguiente_segmento(&dir, pista);
+    let writer = match crate::recording_crypto::Escaud2Writer::create(&ruta) {
+        Ok(w) => w,
+        Err(e) => {
+            // Fail-closed de la pista, no de la sesión: el journal sigue.
+            warn!("Pista {pista} no pudo armarse: {e}");
+            return;
+        }
+    };
+    let (tx, rx) = std::sync::mpsc::sync_channel::<Trozo>(CAPACIDAD_CANAL);
+    let handle = std::thread::Builder::new()
+        .name(format!("escriba-pista-{pista}"))
+        .spawn(move || correr_pista_nucleo(pista, rx, writer, at_ms_base, &|e| apendear(&e)))
+        .ok();
+    apendear(&EventoSesion::Pista {
+        pista: pista.to_string(),
+        evento: "inicio".to_string(),
+        at_ms: at_ms_base,
+        muestras_perdidas: None,
+    });
+    *slot = Some(ProductorPista {
+        tx,
+        offset: 0,
+        worker: handle,
+    });
+}
+
+/// Desarma una pista: cierra el canal y espera al worker (drena, finaliza y
+/// deja el `fin` en el journal). Idempotente.
+pub fn pista_desarmar(pista: &str) {
+    let productor = {
+        let Ok(mut slot) = slot_de(pista).lock() else {
+            return;
+        };
+        slot.take()
+    };
+    if let Some(p) = productor {
+        drop(p.tx);
+        if let Some(h) = p.worker {
+            let _ = h.join();
+        }
+    }
+}
+
+fn pistas_desarmar_todas() {
+    pista_desarmar("mic");
+    pista_desarmar("sys");
+}
+
 // ─────────────────────────── Recuperación (Fase 2) ───────────────────────────
 
 /// Resumen de una sesión pendiente (journal sin `cierre`) para el diálogo de
@@ -347,6 +567,8 @@ pub struct ResumenPendiente {
     pub tiene_documento: bool,
     /// El kill rompió la última línea: se recuperó todo lo anterior.
     pub cola_rota: bool,
+    /// Hay al menos un segmento de audio (mic-N/sys-N) para reprocesar.
+    pub tiene_audio: bool,
 }
 
 /// Descifrador real (llave del llavero). `None` = línea ilegible.
@@ -436,6 +658,7 @@ fn resumen_de_eventos(eventos: &[EventoSesion], cola_rota: bool) -> Option<Resum
         duracion_ms,
         tiene_documento,
         cola_rota,
+        tiene_audio: false, // lo pone el escaneo, que ve el directorio
     })
 }
 
@@ -468,6 +691,12 @@ pub fn listar_pendientes() -> Vec<ResumenPendiente> {
         };
         let (eventos, cola_rota) = parsear_journal(&contenido, &descifrador_real);
         if let Some(mut resumen) = resumen_de_eventos(&eventos, cola_rota) {
+            resumen.tiene_audio = fs::read_dir(entrada.path())
+                .map(|d| {
+                    d.flatten()
+                        .any(|f| f.file_name().to_string_lossy().ends_with(".escaud2"))
+                })
+                .unwrap_or(false);
             resumen.id = nombre;
             pendientes.push(resumen);
         }
@@ -480,6 +709,23 @@ pub fn listar_pendientes() -> Vec<ResumenPendiente> {
 /// Carga los eventos de una sesión pendiente para recuperarla (solo lectura).
 pub fn cargar_pendiente(id: &str) -> Result<(Vec<EventoSesion>, bool), String> {
     cargar(id)
+}
+
+/// Sana las pistas de una sesión pendiente: trunca colas rotas por el kill.
+/// Se llama desde el comando de recuperación, JAMÁS desde la captura.
+pub fn sanar_pistas(id: &str) {
+    let Ok(dir) = dir_validada(id) else { return };
+    let Ok(entradas) = fs::read_dir(&dir) else {
+        return;
+    };
+    for f in entradas.flatten() {
+        let nombre = f.file_name().to_string_lossy().to_string();
+        if nombre.ends_with(".escaud2") {
+            if let Err(e) = crate::recording_crypto::escaud2_recover(&f.path()) {
+                warn!("Pista {nombre} no recuperable: {e}");
+            }
+        }
+    }
 }
 
 /// Reengancha el journal de una sesión recuperada: los turnos nuevos siguen
@@ -878,6 +1124,106 @@ mod tests {
         let contenido2 = std::fs::read_to_string(raiz.join(id).join("journal.jsonl")).unwrap();
         assert_eq!(contenido2.lines().count(), lineas_tras_primera);
         let _ = std::fs::remove_dir_all(&raiz);
+    }
+
+    #[test]
+    fn el_offset_avanza_tambien_al_descartar() {
+        // Canal de capacidad 1 y nadie drenando: el segundo y tercer empuje
+        // se descartan, pero el reloj de la pista sigue avanzando. Ese es el
+        // contrato que impide comprimir el tiempo.
+        let (tx, _rx) = std::sync::mpsc::sync_channel::<Trozo>(1);
+        let mut slot = Some(ProductorPista {
+            tx,
+            offset: 0,
+            worker: None,
+        });
+        for _ in 0..3 {
+            empujar_en(&mut slot, &[0.5f32; 1000]);
+        }
+        assert_eq!(slot.as_ref().unwrap().offset, 3000);
+    }
+
+    #[test]
+    fn el_worker_muerto_desarma_la_pista_sin_bloquear() {
+        let (tx, rx) = std::sync::mpsc::sync_channel::<Trozo>(1);
+        drop(rx); // el worker murió
+        let mut slot = Some(ProductorPista {
+            tx,
+            offset: 0,
+            worker: None,
+        });
+        empujar_en(&mut slot, &[0.1f32; 10]);
+        assert!(slot.is_none(), "Disconnected desarma el productor");
+    }
+
+    #[test]
+    fn el_worker_rellena_huecos_con_silencio_y_los_deja_escritos() {
+        let dir = std::env::temp_dir().join(format!("escriba-pista-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let ruta = dir.join("mic-0.escaud2");
+        let writer =
+            crate::recording_crypto::Escaud2Writer::create_with_key(&ruta, &LLAVE).unwrap();
+
+        let eventos = Mutex::new(Vec::new());
+        let (tx, rx) = std::sync::mpsc::sync_channel::<Trozo>(8);
+        // Trozo en 0, HUECO de 2000 muestras (descartadas), trozo en 3000.
+        tx.send(Trozo {
+            inicio: 0,
+            muestras: vec![0.25f32; 1000],
+        })
+        .unwrap();
+        tx.send(Trozo {
+            inicio: 3000,
+            muestras: vec![-0.25f32; 500],
+        })
+        .unwrap();
+        drop(tx);
+        correr_pista_nucleo("mic", rx, writer, 10_000, &|e| {
+            eventos.lock().unwrap().push(e);
+        });
+
+        let leidas = crate::recording_crypto::escaud2_read_samples_with_key(&ruta, &LLAVE).unwrap();
+        assert_eq!(leidas.len(), 3500, "1000 + 2000 de silencio + 500");
+        assert!(leidas[..1000].iter().all(|s| *s > 0.2));
+        assert!(
+            leidas[1000..3000].iter().all(|s| *s == 0.0),
+            "el hueco es silencio, no tiempo comprimido"
+        );
+        assert!(leidas[3000..].iter().all(|s| *s < -0.2));
+
+        let ev = eventos.lock().unwrap();
+        let hueco = ev.iter().find_map(|e| match e {
+            EventoSesion::Pista {
+                evento,
+                muestras_perdidas,
+                at_ms,
+                ..
+            } if evento == "hueco" => Some((*muestras_perdidas, *at_ms)),
+            _ => None,
+        });
+        // El hueco arranca en la muestra 1000: 10_000 ms de base + 62 ms.
+        assert_eq!(hueco, Some((Some(2000), 10_062)));
+        assert!(ev
+            .iter()
+            .any(|e| matches!(e, EventoSesion::Pista { evento, .. } if evento == "fin")));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn los_segmentos_no_pisan_al_anterior() {
+        let dir = std::env::temp_dir().join(format!("escriba-seg-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        assert!(siguiente_segmento(&dir, "mic").ends_with("mic-0.escaud2"));
+        std::fs::write(dir.join("mic-0.escaud2"), b"x").unwrap();
+        std::fs::write(dir.join("mic-1.escaud2"), b"x").unwrap();
+        assert!(
+            siguiente_segmento(&dir, "mic").ends_with("mic-2.escaud2"),
+            "una sesión recuperada sigue en el segmento libre"
+        );
+        assert!(siguiente_segmento(&dir, "sys").ends_with("sys-0.escaud2"));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

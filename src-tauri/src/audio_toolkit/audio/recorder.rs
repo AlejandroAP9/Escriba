@@ -85,6 +85,9 @@ pub struct AudioRecorder {
     vad: Option<VadConfig>,
     level_cb: Option<Arc<dyn Fn(Vec<f32>) + Send + Sync + 'static>>,
     audio_cb: Option<AudioFrameCallback>,
+    /// Tap PRE-VAD (PRP-009): ve cada frame de 16 kHz mientras se graba,
+    /// ANTES del filtro de voz. `audio_cb` es post-VAD por contrato; este no.
+    raw_tap: Option<AudioFrameCallback>,
     /// Preferred stream config cached per device name. The two HAL property
     /// queries in `get_preferred_config` cost ~40-85ms per open (worse on
     /// USB/Bluetooth), which lands on the keypress->capture path in on-demand
@@ -103,6 +106,7 @@ impl AudioRecorder {
             vad: None,
             level_cb: None,
             audio_cb: None,
+            raw_tap: None,
             config_cache: Arc::new(Mutex::new(None)),
         })
     }
@@ -138,6 +142,14 @@ impl AudioRecorder {
     /// VAD policy has been applied. Frames arrive in real time, in order, on the
     /// recorder's consumer thread — keep the callback cheap (e.g. forward to a
     /// channel) so it never stalls capture.
+    pub fn with_raw_tap<F>(mut self, cb: F) -> Self
+    where
+        F: Fn(&[f32]) + Send + Sync + 'static,
+    {
+        self.raw_tap = Some(Arc::new(cb));
+        self
+    }
+
     pub fn with_audio_callback<F>(mut self, cb: F) -> Self
     where
         F: Fn(&[f32]) + Send + Sync + 'static,
@@ -198,6 +210,7 @@ impl AudioRecorder {
         let level_cb = self.level_cb.clone();
         // Move the optional real-time audio frame callback into the worker thread
         let audio_cb = self.audio_cb.clone();
+        let raw_tap = self.raw_tap.clone();
         let config_cache = Arc::clone(&self.config_cache);
 
         let worker = std::thread::spawn(move || {
@@ -314,6 +327,7 @@ impl AudioRecorder {
                         cmd_rx,
                         level_cb,
                         audio_cb,
+                        raw_tap,
                         stop_flag,
                         stream_running_at,
                     );
@@ -560,6 +574,7 @@ fn run_consumer(
     cmd_rx: mpsc::Receiver<Cmd>,
     level_cb: Option<Arc<dyn Fn(Vec<f32>) + Send + Sync + 'static>>,
     audio_cb: Option<AudioFrameCallback>,
+    raw_tap: Option<AudioFrameCallback>,
     stop_flag: Arc<AtomicBool>,
     stream_running_at: Instant,
 ) {
@@ -607,10 +622,16 @@ fn run_consumer(
         vad_policy: VadPolicy,
         vad: &Option<VadConfig>,
         audio_cb: &Option<AudioFrameCallback>,
+        raw_tap: &Option<AudioFrameCallback>,
         out_buf: &mut Vec<f32>,
     ) {
         if !recording {
             return;
+        }
+        // PRP-009: la señal cruda (post-resample, PRE-VAD) para la pista de
+        // sesión. Solo try_send del otro lado: jamás espera al disco.
+        if let Some(tap) = raw_tap {
+            tap(samples);
         }
 
         let mut emit = |buf: &[f32]| {
@@ -681,6 +702,7 @@ fn run_consumer(
                                 vad_policy,
                                 &vad,
                                 &audio_cb,
+                                &raw_tap,
                                 &mut processed_samples,
                             )
                         });
@@ -700,6 +722,7 @@ fn run_consumer(
                                         vad_policy,
                                         &vad,
                                         &audio_cb,
+                                        &raw_tap,
                                         &mut processed_samples,
                                     )
                                 });
@@ -719,6 +742,7 @@ fn run_consumer(
                             vad_policy,
                             &vad,
                             &audio_cb,
+                            &raw_tap,
                             &mut processed_samples,
                         )
                     });
@@ -767,6 +791,7 @@ fn run_consumer(
                 vad_policy,
                 &vad,
                 &audio_cb,
+                &raw_tap,
                 &mut processed_samples,
             )
         });

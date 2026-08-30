@@ -1871,7 +1871,7 @@ export type RecoveredSession = { mode: string; turns: Turn[]; doc: SessionDoc | 
  * Resumen de una sesión pendiente (journal sin `cierre`) para el diálogo de
  * recuperación. Nunca lleva rutas: el id es el único mango que ve la webview.
  */
-export type ResumenPendiente = { id: string; wall_ms: number; modo: string; turnos: number; duracion_ms: number; tiene_documento: boolean; 
+export type ResumenPendiente = { id: string; wall_ms: number; modo: string; turnos: number; duracion_ms: number; tiene_documento: boolean; tiene_audio: boolean; 
 /**
  * El kill rompió la última línea: se recuperó todo lo anterior.
  */

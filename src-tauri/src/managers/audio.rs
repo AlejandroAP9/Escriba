@@ -167,7 +167,10 @@ fn create_audio_recorder(
             move |frame| {
                 router.feed(frame);
             }
-        });
+        })
+        // PRP-009: señal cruda PRE-VAD para la pista de sesión. Sin pista
+        // armada es un no-op; el dictado normal no paga nada.
+        .with_raw_tap(crate::session_recorder::pista_mic);
 
     Ok(recorder)
 }

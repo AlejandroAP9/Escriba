@@ -165,6 +165,23 @@ fn journal_asegurar() {
         })
         .unwrap_or_default();
     crate::session_recorder::arrancar(&mode(), wall_inicio, &turnos);
+    pistas_rearmar();
+}
+
+/// PRP-009 Fase 4: arma las pistas de los canales YA encendidos. Los
+/// apagados van por sus embudos (`hands_free_off`/`system_audio_off`); armar
+/// dos veces es un no-op, así que llamarlo de más no cuesta nada.
+fn pistas_rearmar() {
+    if !crate::session_recorder::activo() {
+        return;
+    }
+    let at = u64::from(elapsed_secs()) * 1000;
+    if is_hands_free() {
+        crate::session_recorder::pista_armar("mic", at);
+    }
+    if SYSTEM_AUDIO.load(Ordering::Relaxed) {
+        crate::session_recorder::pista_armar("sys", at);
+    }
 }
 
 /// Registra un turno y lo devuelve (con su marca de tiempo) para emitirlo.
@@ -311,6 +328,8 @@ pub fn session_recover(id: String) -> Result<RecoveredSession, String> {
         return Err("session_in_progress".to_string());
     }
     let (eventos, _cola_rota) = crate::session_recorder::cargar_pendiente(&id)?;
+    // Las colas rotas por el kill se truncan aquí, no en la captura.
+    crate::session_recorder::sanar_pistas(&id);
     let mut modo = String::new();
     let mut turns: Vec<Turn> = Vec::new();
     let mut doc: Option<SessionDoc> = None;
@@ -339,6 +358,8 @@ pub fn session_recover(id: String) -> Result<RecoveredSession, String> {
                     mood: animo.clone(),
                 });
             }
+            // Los eventos de pista no aportan turnos; el audio se sana aparte.
+            crate::session_recorder::EventoSesion::Pista { .. } => {}
             crate::session_recorder::EventoSesion::Cierre { .. } => {
                 return Err("session_closed".to_string());
             }
@@ -800,7 +821,7 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
         return Err("hands_free_listen_only".to_string());
     }
     if HANDS_FREE.swap(true, Ordering::Relaxed) {
-        return Ok(true); // ya activo
+        return Ok(true); // ya activo (pista incluida)
     }
 
     // Micrófono abierto en modo streaming (VAD con cola post-voz).
@@ -938,6 +959,8 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
         }
     });
 
+    // PRP-009: con el canal recién encendido, la pista se arma si hay journal.
+    pistas_rearmar();
     Ok(true)
 }
 
@@ -1001,7 +1024,7 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
     let mut vad = SmoothedVad::new(Box::new(silero), VAD_PREFILL_FRAMES, 15, VAD_ONSET_FRAMES);
 
     if SYSTEM_AUDIO.swap(true, Ordering::Relaxed) {
-        return Ok(true); // ya activo
+        return Ok(true); // ya activo (pista incluida)
     }
 
     // Espera a que un worker anterior (recién apagado) termine de salir antes
@@ -1069,6 +1092,9 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
             }
             let n = crate::system_audio::read(&mut chunk);
             if n > 0 {
+                // PRP-009: la pista cruda (PRE-VAD) de la sesión. Solo
+                // try_send: jamás bloquea este worker.
+                crate::session_recorder::pista_sys(&chunk[..n]);
                 pending.extend_from_slice(&chunk[..n]);
             }
             // El VAD decide qué es voz; la música y el silencio se descartan.
@@ -1138,6 +1164,8 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
         }
     });
 
+    // PRP-009: con el canal recién encendido, la pista se arma si hay journal.
+    pistas_rearmar();
     Ok(true)
 }
 
@@ -1421,6 +1449,9 @@ fn system_audio_off() {
     if !SYSTEM_AUDIO.swap(false, Ordering::Relaxed) {
         return;
     }
+    // PRP-009: la pista se desarma en el embudo, venga de donde venga el
+    // apagado (toggle, stop, reset, finish). El worker drena y finaliza.
+    crate::session_recorder::pista_desarmar("sys");
     crate::system_audio::stop();
 }
 
@@ -1432,6 +1463,7 @@ fn hands_free_off(
     if !HANDS_FREE.swap(false, Ordering::Relaxed) {
         return;
     }
+    crate::session_recorder::pista_desarmar("mic");
     tm.stream_router().close_tap();
     let gen = rm.cancel_generation();
     let _ = rm.stop_recording("hands_free", gen);
