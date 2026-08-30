@@ -775,8 +775,12 @@ pub fn protocol_response(
 // en vivo y pueden morir por un kill en cualquier byte:
 //
 // - cabecera SIN largo total (magic + frame_size + prefijo de nonce);
-// - frames autocontenidos: el AAD ata magic, índice, largo del frame y un
-//   byte de ROL (frame/footer), nunca el total;
+// - cada frame es un registro autodelimitado: [largo u32][cifrado+tag], y el
+//   AAD ata magic, índice, ese largo y un byte de ROL (frame/footer), nunca
+//   el total. El prefijo de largo hace el recorrido DETERMINISTA: no se
+//   adivinan fronteras, y un prefijo adulterado muere en el AEAD (revisión
+//   de Alejandro del 30-ago: un kill a mitad del footer confundía el frame
+//   parcial sellado con basura y el truncado se lo llevaba);
 // - durante la sesión solo se escriben frames LLENOS (64 KiB de claro ≈ 2 s
 //   de PCM16 a 16 kHz), con fsync por frame: un kill pierde como mucho el
 //   trozo aún en RAM, jamás corrompe lo escrito;
@@ -897,6 +901,8 @@ impl Escaud2Writer {
                 },
             )
             .map_err(|_| anyhow!("falló el cifrado de un frame de la pista"))?;
+        self.file
+            .write_all(&(self.buffer.len() as u32).to_le_bytes())?;
         self.file.write_all(&encrypted)?;
         // Durable frame a frame: un kill nunca debe a los frames ya sellados.
         self.file.sync_data()?;
@@ -1008,79 +1014,17 @@ fn escaud2_scan(path: &Path, key: &[u8; 32]) -> Result<Escaud2Scan> {
         Some(u64::from_le_bytes(plano.try_into().ok()?))
     };
 
-    let frame_lleno = FRAME_SIZE + TAG_LEN as usize;
     let mut plaintext = Vec::new();
     let mut cursor = HEADER2_LEN as usize;
     let mut indice = 0u64;
     let mut cerrado = false;
     while cursor < datos.len() {
         let resto = &datos[cursor..];
-        // 1) Frame lleno. Si el tag no cuadra puede ser la cola (parcial y/o
-        //    footer) o corrupción: los intentos siguientes lo deciden.
-        if resto.len() >= frame_lleno {
-            if let Some(plano) = descifra_frame(indice, &resto[..frame_lleno], FRAME_SIZE) {
-                plaintext.extend_from_slice(&plano);
-                cursor += frame_lleno;
-                indice += 1;
-                continue;
-            }
-        }
-        // 2) Frame parcial + footer (cierre limpio).
-        if resto.len() > (TAG_LEN + FOOTER2_LEN) as usize {
-            let plain_len = resto.len() - (TAG_LEN + FOOTER2_LEN) as usize;
-            if plain_len < FRAME_SIZE {
-                if let Some(total) = footer_valido(&resto[resto.len() - FOOTER2_LEN as usize..]) {
-                    if let Some(plano) = descifra_frame(
-                        indice,
-                        &resto[..resto.len() - FOOTER2_LEN as usize],
-                        plain_len,
-                    ) {
-                        plaintext.extend_from_slice(&plano);
-                        cursor = datos.len();
-                        cerrado = total == plaintext.len() as u64;
-                        if !cerrado {
-                            log::warn!(
-                                "Footer ESCAUD2 inconsistente ({} vs {}): se ignora",
-                                total,
-                                plaintext.len()
-                            );
-                        }
-                        continue;
-                    }
-                }
-            }
-        }
-        // 2b) Footer PRESENTE pero corrupto tras un parcial sano: el magic
-        //     del footer es solo una pista (no autenticada); el AEAD del
-        //     frame parcial decide. Rescata el parcial y trunca el footer.
-        if resto.len() > (TAG_LEN + FOOTER2_LEN) as usize
-            && &resto[resto.len() - FOOTER2_LEN as usize..][..8] == FOOTER2_MAGIC
-        {
-            let cuerpo = &resto[..resto.len() - FOOTER2_LEN as usize];
-            let plain_len = cuerpo.len() - TAG_LEN as usize;
-            if plain_len < FRAME_SIZE {
-                if let Some(plano) = descifra_frame(indice, cuerpo, plain_len) {
-                    plaintext.extend_from_slice(&plano);
-                    cursor += cuerpo.len();
-                    log::warn!("Footer ESCAUD2 ilegible: se rescata el frame parcial y se descarta el footer");
-                    break;
-                }
-            }
-        }
-        // 3) Frame parcial sin footer (kill tras sellar el parcial... solo
-        //    posible como último tramo).
-        if resto.len() > TAG_LEN as usize && resto.len() < frame_lleno {
-            let plain_len = resto.len() - TAG_LEN as usize;
-            if let Some(plano) = descifra_frame(indice, resto, plain_len) {
-                plaintext.extend_from_slice(&plano);
-                cursor = datos.len();
-                continue;
-            }
-        }
-        // 4) Footer solo (finalize sin frame parcial pendiente).
-        if resto.len() == FOOTER2_LEN as usize {
-            if let Some(total) = footer_valido(resto) {
-                cursor = datos.len();
+        // Footer: siempre el último registro. Su magic no puede confundirse
+        // con un prefijo de largo (leído como u32 daría > FRAME_SIZE).
+        if resto.len() >= FOOTER2_LEN as usize && &resto[..8] == FOOTER2_MAGIC {
+            if let Some(total) = footer_valido(&resto[..FOOTER2_LEN as usize]) {
+                cursor += FOOTER2_LEN as usize;
                 cerrado = total == plaintext.len() as u64;
                 if !cerrado {
                     log::warn!(
@@ -1089,11 +1033,30 @@ fn escaud2_scan(path: &Path, key: &[u8; 32]) -> Result<Escaud2Scan> {
                         plaintext.len()
                     );
                 }
-                continue;
+                // Nada legal puede venir después del footer.
+                break;
             }
         }
-        // Nada legible: aquí termina la verdad.
-        break;
+        // Registro de frame: [largo u32][cifrado+tag].
+        if resto.len() < 4 {
+            break; // prefijo a medias: cola del kill
+        }
+        let plain_len = u32::from_le_bytes(resto[..4].try_into().unwrap_or_default()) as usize;
+        if plain_len == 0 || plain_len > FRAME_SIZE {
+            break; // ni frame ni footer legible (p. ej. footer cortado a mitad)
+        }
+        let registro = 4 + plain_len + TAG_LEN as usize;
+        if resto.len() < registro {
+            break; // frame a medias
+        }
+        match descifra_frame(indice, &resto[4..registro], plain_len) {
+            Some(plano) => {
+                plaintext.extend_from_slice(&plano);
+                cursor += registro;
+                indice += 1;
+            }
+            None => break, // adulterado o basura: aquí termina la verdad
+        }
     }
     Ok(Escaud2Scan {
         valid_end: cursor as u64,
@@ -1372,7 +1335,7 @@ mod tests {
         let muestras = muestras_exactas(FRAME_SIZE); // 2 frames llenos
         let ruta = pista_de_prueba(dir.path(), &muestras, true);
         let sano = std::fs::read(&ruta).unwrap();
-        let frame_ct = FRAME_SIZE + TAG_LEN as usize;
+        let frame_ct = 4 + FRAME_SIZE + TAG_LEN as usize;
 
         // Cortes por todo el archivo: tras recuperar, siempre se puede leer.
         for corte in [
@@ -1411,7 +1374,7 @@ mod tests {
         let mut datos = std::fs::read(&ruta).unwrap();
         // Un bit del frame 1: los frames 1 y 2 quedan inatribuibles aunque el
         // 2 tenga tag válido (regla append-only: tras el primer hueco, nada).
-        let offset = HEADER2_LEN as usize + (FRAME_SIZE + TAG_LEN as usize) + 100;
+        let offset = HEADER2_LEN as usize + (4 + FRAME_SIZE + TAG_LEN as usize) + 4 + 100;
         datos[offset] ^= 0x01;
         std::fs::write(&ruta, &datos).unwrap();
 
@@ -1441,6 +1404,47 @@ mod tests {
             n - FOOTER2_LEN as usize,
             "el truncado se lleva exactamente el footer roto"
         );
+    }
+
+    #[test]
+    fn escaud2_kill_en_cada_byte_del_footer_conserva_el_parcial() {
+        // El caso de la revisión del 30-ago: finalize sella el parcial y
+        // muere escribiendo el footer. CUALQUIER prefijo del footer (0 a 31
+        // de sus 32 bytes) debe dejar el parcial intacto, y recuperar dos
+        // veces debe dar lo mismo.
+        let dir = tempfile::tempdir().unwrap();
+        let muestras = muestras_exactas(FRAME_SIZE / 2 + 300); // 1 lleno + parcial
+        let ruta = pista_de_prueba(dir.path(), &muestras, true);
+        let sano = std::fs::read(&ruta).unwrap();
+        let inicio_footer = sano.len() - FOOTER2_LEN as usize;
+
+        for escrito in 0..FOOTER2_LEN as usize {
+            std::fs::write(&ruta, &sano[..inicio_footer + escrito]).unwrap();
+            let r1 = escaud2_recover_with_key(&ruta, &audio_test_key()).unwrap();
+            assert_eq!(
+                r1 as usize,
+                muestras.len() * 2,
+                "parcial perdido con {escrito} bytes de footer"
+            );
+            let r2 = escaud2_recover_with_key(&ruta, &audio_test_key()).unwrap();
+            assert_eq!(r1, r2, "no idempotente con {escrito} bytes de footer");
+            let leidas = escaud2_read_samples_with_key(&ruta, &audio_test_key()).unwrap();
+            assert_eq!(leidas, muestras, "muestras con {escrito} bytes de footer");
+            assert_eq!(
+                std::fs::metadata(&ruta).unwrap().len() as usize,
+                inicio_footer,
+                "el truncado debe llevarse exactamente el fragmento de footer"
+            );
+        }
+
+        // Y el corte a mitad del PREFIJO de largo del parcial: pierde solo el
+        // parcial (torn write real), jamás el frame lleno anterior.
+        let inicio_parcial = HEADER2_LEN as usize + 4 + FRAME_SIZE + TAG_LEN as usize;
+        for corte in [inicio_parcial + 1, inicio_parcial + 3] {
+            std::fs::write(&ruta, &sano[..corte]).unwrap();
+            let r = escaud2_recover_with_key(&ruta, &audio_test_key()).unwrap();
+            assert_eq!(r as usize, FRAME_SIZE, "corte {corte}");
+        }
     }
 
     #[test]
