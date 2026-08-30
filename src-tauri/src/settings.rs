@@ -196,6 +196,18 @@ pub enum AutoSubmitKey {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
+pub enum SessionAudioRetention {
+    /// El audio se borra al confirmarse el acta (default: privacidad primero).
+    #[default]
+    OnDocument,
+    Days7,
+    Days30,
+    Forever,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
+#[serde(rename_all = "snake_case")]
 pub enum RecordingRetentionPeriod {
     Never,
     PreserveLimit,
@@ -499,6 +511,13 @@ pub struct AppSettings {
     pub history_limit: usize,
     #[serde(default = "default_recording_retention_period")]
     pub recording_retention_period: RecordingRetentionPeriod,
+    /// PRP-009: retención del AUDIO de sesiones (el journal es KB y tiene su
+    /// propio ciclo). Default: borrar al confirmar el acta.
+    #[serde(default)]
+    pub session_audio_retention: SessionAudioRetention,
+    /// PRP-009: interruptor maestro del grabador de sesiones.
+    #[serde(default = "default_session_recorder_enabled")]
+    pub session_recorder_enabled: bool,
     /// Escribir el .wav de cada dictado en disco. Apagado por omisión: ver
     /// `default_save_audio_recordings`.
     #[serde(default = "default_save_audio_recordings")]
@@ -679,6 +698,10 @@ fn default_auto_submit() -> bool {
 
 fn default_history_limit() -> usize {
     5
+}
+
+fn default_session_recorder_enabled() -> bool {
+    true
 }
 
 fn default_recording_retention_period() -> RecordingRetentionPeriod {
@@ -1139,6 +1162,8 @@ pub fn get_default_settings() -> AppSettings {
         word_correction_threshold: default_word_correction_threshold(),
         history_limit: default_history_limit(),
         recording_retention_period: default_recording_retention_period(),
+        session_audio_retention: SessionAudioRetention::default(),
+        session_recorder_enabled: default_session_recorder_enabled(),
         save_audio_recordings: default_save_audio_recordings(),
         paste_method: PasteMethod::default(),
         clipboard_handling: ClipboardHandling::default(),

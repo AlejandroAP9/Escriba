@@ -667,6 +667,8 @@ pub fn run(cli_args: CliArgs) {
             commands::conversation::session_recovery_discard,
             commands::conversation::session_recovery_confirm,
             commands::conversation::session_doc_confirm,
+            shortcut::change_session_recorder_setting,
+            shortcut::change_session_audio_retention_setting,
             commands::conversation::conversation_speak,
             commands::conversation::conversation_speak_stop,
             commands::conversation::tts_status,
@@ -982,6 +984,15 @@ pub fn run(cli_args: CliArgs) {
                 managers::local_llm::init(&data_dir);
                 // PRP-009: raíz del journal de sesiones (sessions/).
                 session_recorder::init(&data_dir);
+                {
+                    let s = settings::get_settings(&app.handle().clone());
+                    session_recorder::configurar(
+                        s.session_recorder_enabled,
+                        s.session_audio_retention,
+                    );
+                }
+                // El barrido toca el llavero y el disco: fuera del arranque.
+                std::thread::spawn(session_recorder::barrer);
 
                 // Precalentar si el usuario dicta con el motor local: el primer
                 // dictado del dia no debe pagar ~60s de carga fria + warmup Metal.

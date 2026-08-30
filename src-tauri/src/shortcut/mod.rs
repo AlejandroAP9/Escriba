@@ -623,6 +623,31 @@ pub fn change_dictated_emojis_setting(app: AppHandle, enabled: bool) -> Result<(
 
 #[tauri::command]
 #[specta::specta]
+pub fn change_session_recorder_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.session_recorder_enabled = enabled;
+    let retencion = settings.session_audio_retention;
+    settings::write_settings(&app, settings);
+    crate::session_recorder::configurar(enabled, retencion);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_session_audio_retention_setting(
+    app: AppHandle,
+    retention: settings::SessionAudioRetention,
+) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.session_audio_retention = retention;
+    let habilitado = settings.session_recorder_enabled;
+    settings::write_settings(&app, settings);
+    crate::session_recorder::configurar(habilitado, retention);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn change_spoken_numerals_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
     let mut settings = settings::get_settings(&app);
     settings.spoken_numerals_enabled = enabled;

@@ -146,6 +146,12 @@ const settingUpdaters: {
     ),
   recording_retention_period: (value) =>
     commands.updateRecordingRetentionPeriod(value as string),
+  session_recorder_enabled: (value) =>
+    commands.changeSessionRecorderSetting(value as boolean),
+  session_audio_retention: (value) =>
+    commands.changeSessionAudioRetentionSetting(
+      value as import("@/bindings").SessionAudioRetention,
+    ),
   save_audio_recordings: (value) =>
     commands.changeSaveAudioRecordingsSetting(value as boolean),
   translate_to_english: (value) =>

@@ -36,6 +36,26 @@ static ACTIVO: Mutex<Option<Grabador>> = Mutex::new(None);
 /// El aviso de "sin cifrado, sesión solo en RAM" se dice UNA vez por proceso.
 static AVISADO_SIN_CIFRADO: OnceLock<()> = OnceLock::new();
 
+/// Config viva del grabador (PRP-009 Fase 5): sincronizada al arrancar la
+/// app y en cada cambio del ajuste. El recorder no ve AppHandle a propósito.
+static HABILITADO: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+static RETENCION: Mutex<crate::settings::SessionAudioRetention> =
+    Mutex::new(crate::settings::SessionAudioRetention::OnDocument);
+
+pub fn configurar(habilitado: bool, retencion: crate::settings::SessionAudioRetention) {
+    HABILITADO.store(habilitado, std::sync::atomic::Ordering::Relaxed);
+    if let Ok(mut r) = RETENCION.lock() {
+        *r = retencion;
+    }
+}
+
+fn retencion_actual() -> crate::settings::SessionAudioRetention {
+    RETENCION
+        .lock()
+        .map(|r| *r)
+        .unwrap_or(crate::settings::SessionAudioRetention::OnDocument)
+}
+
 /// Un evento del journal. `tag` interno para que cada línea se autodescriba.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(tag = "tipo", rename_all = "snake_case")]
@@ -232,6 +252,9 @@ fn arrancar_nucleo(
 /// `turnos_previos` repite los turnos ya en RAM (reanudación tras un acta en
 /// el mismo proceso): el journal nuevo nace completo, no con huecos.
 pub fn arrancar(modo: &str, wall_ms_inicio: u64, turnos_previos: &[(String, String, u64)]) {
+    if !HABILITADO.load(std::sync::atomic::Ordering::Relaxed) {
+        return; // apagado por el usuario: sesión solo en RAM, como antes
+    }
     let Some(raiz) = RAIZ.get() else {
         return; // CLI headless o tests sin init: inerte a propósito.
     };
@@ -339,7 +362,38 @@ pub fn cierre_documento() {
     apendear(&EventoSesion::Cierre {
         motivo: "documento".to_string(),
     });
-    let _ = ACTIVO.lock().map(|mut g| *g = None);
+    let dir = {
+        let mut guard = match ACTIVO.lock() {
+            Ok(g) => g,
+            Err(_) => return,
+        };
+        guard.take().map(|g| g.dir)
+    };
+    // Retención por defecto: con el acta confirmada, el audio ya cumplió.
+    if let Some(dir) = dir {
+        if retencion_actual() == crate::settings::SessionAudioRetention::OnDocument {
+            borrar_segmentos(&dir);
+        }
+    }
+}
+
+/// Borra los segmentos de audio de un directorio de sesión (solo nombres
+/// estrictos y archivos regulares; el journal no se toca).
+fn borrar_segmentos(dir: &Path) {
+    let Ok(entradas) = fs::read_dir(dir) else {
+        return;
+    };
+    for f in entradas.flatten() {
+        let nombre = f.file_name().to_string_lossy().to_string();
+        let es_regular = fs::symlink_metadata(f.path())
+            .map(|m| m.is_file() && !m.file_type().is_symlink())
+            .unwrap_or(false);
+        if nombre_de_segmento_valido(&nombre) && es_regular {
+            if let Err(e) = fs::remove_file(f.path()) {
+                warn!("Segmento {nombre} sin borrar: {e}");
+            }
+        }
+    }
 }
 
 /// Descarte explícito del usuario (reset): el journal y el directorio se
@@ -923,6 +977,101 @@ pub fn turnos_reemplazar(turnos: &[(String, String, u64)], at_ms: u64) -> Result
     })
 }
 
+const DIA_MS: u64 = 24 * 60 * 60 * 1000;
+/// Gracia de recuperación para sesiones interrumpidas (explicada en la UI).
+const GRACIA_PENDIENTES_MS: u64 = 7 * DIA_MS;
+
+/// Barrido de arranque (PRP-009 Fase 5). Sin llave no se borra NADA: no
+/// poder distinguir cerrada de pendiente es razón para no tocar, jamás para
+/// adivinar (fail-safe).
+pub fn barrer() {
+    let Some(raiz) = RAIZ.get() else { return };
+    if !crate::history_crypto::cifrado_disponible() {
+        warn!("Barrido de sesiones omitido: sin llave no se distingue cerrada de pendiente");
+        return;
+    }
+    let borradas = barrer_en(raiz, ahora_wall_ms(), retencion_actual(), &descifrador_real);
+    if borradas > 0 {
+        info!("Barrido de sesiones: {borradas} eliminadas por retención");
+    }
+}
+
+/// Núcleo del barrido con todo inyectado. La edad sale del mtime del journal
+/// (no exige descifrar); cerrada/pendiente sí exige leerlo.
+fn barrer_en(
+    raiz: &Path,
+    ahora_ms: u64,
+    retencion: crate::settings::SessionAudioRetention,
+    descifrador: &dyn Fn(&str) -> Option<String>,
+) -> u32 {
+    use crate::settings::SessionAudioRetention as R;
+    let Ok(entradas) = fs::read_dir(raiz) else {
+        return 0;
+    };
+    let mut borradas = 0u32;
+    for entrada in entradas.flatten() {
+        let nombre = entrada.file_name().to_string_lossy().to_string();
+        let Ok(dir) = dir_validada_en(raiz, &nombre) else {
+            continue;
+        };
+        let journal = dir.join("journal.jsonl");
+        let edad_ms = fs::metadata(&journal)
+            .and_then(|m| m.modified())
+            .ok()
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| ahora_ms.saturating_sub(d.as_millis() as u64))
+            .unwrap_or(0);
+        let Ok(contenido) = fs::read_to_string(&journal) else {
+            continue;
+        };
+        let (eventos, _) = parsear_journal(&contenido, descifrador);
+        if eventos.is_empty() {
+            continue; // ilegible: fail-safe, no se toca
+        }
+        let cerrada = eventos
+            .iter()
+            .any(|e| matches!(e, EventoSesion::Cierre { .. }));
+        let borrar = if cerrada {
+            match retencion {
+                R::OnDocument => true, // su audio ya se fue; el resto sobra
+                R::Days7 => edad_ms > 7 * DIA_MS,
+                R::Days30 => edad_ms > 30 * DIA_MS,
+                R::Forever => false,
+            }
+        } else {
+            // Pendientes: gracia de recuperación, nunca menor a 7 días.
+            match retencion {
+                R::Forever => false,
+                R::Days30 => edad_ms > 30 * DIA_MS,
+                R::OnDocument | R::Days7 => edad_ms > GRACIA_PENDIENTES_MS,
+            }
+        };
+        if borrar {
+            match fs::remove_dir_all(&dir) {
+                Ok(()) => {
+                    info!("Sesión {nombre} barrida por retención");
+                    borradas += 1;
+                }
+                Err(e) => warn!("Sesión {nombre} sin barrer: {e}"),
+            }
+        }
+    }
+    borradas
+}
+
+/// Espacio libre bajo el directorio de sesiones, si se puede medir.
+/// `Some(bytes)` cuando queda MENOS que el umbral de aviso (2 GB).
+pub fn espacio_libre_bajo() -> Option<u64> {
+    const UMBRAL: u64 = 2 * 1024 * 1024 * 1024;
+    let raiz = RAIZ.get()?;
+    let base = raiz.parent().unwrap_or(raiz);
+    match fs4::available_space(base) {
+        Ok(libre) if libre < UMBRAL => Some(libre),
+        Ok(_) => None,
+        Err(_) => None, // no medible: sin aviso, y el corte por error ya cubre
+    }
+}
+
 /// Segmentos válidos de una sesión pendiente, para re-transcribir.
 pub fn listar_segmentos(id: &str) -> Vec<PathBuf> {
     RAIZ.get()
@@ -980,7 +1129,11 @@ pub fn confirmar_pendiente(id: &str) -> Result<(), String> {
             return Err("esa sesión está activa; confírmala desde la sesión".to_string());
         }
     }
-    confirmar_pendiente_con(raiz, id, &cifrador_real, &descifrador_real)
+    confirmar_pendiente_con(raiz, id, &cifrador_real, &descifrador_real)?;
+    if retencion_actual() == crate::settings::SessionAudioRetention::OnDocument {
+        borrar_segmentos(&dir);
+    }
+    Ok(())
 }
 
 /// Núcleo de la confirmación con raíz y cifradores inyectables (testeable).
@@ -1636,6 +1789,97 @@ mod tests {
         );
         assert!(siguiente_segmento(&dir, "sys").ends_with("sys-0.escaud2"));
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    fn sesion_de_prueba(raiz: &Path, id: &str, cerrada: bool) {
+        arrancar_nucleo(
+            raiz,
+            id,
+            "listen",
+            0,
+            &[("user".into(), "hola".into(), 1000)],
+            &|t| cifra(t),
+        )
+        .unwrap();
+        if cerrada {
+            let linea = linea_de_evento(
+                &EventoSesion::Cierre {
+                    motivo: "documento".into(),
+                },
+                &|t| cifra(t),
+            )
+            .unwrap();
+            use std::io::Write;
+            let mut f = std::fs::OpenOptions::new()
+                .append(true)
+                .open(raiz.join(id).join("journal.jsonl"))
+                .unwrap();
+            f.write_all(linea.as_bytes()).unwrap();
+            f.write_all(b"\n").unwrap();
+        }
+    }
+
+    #[test]
+    fn el_barrido_respeta_cerradas_pendientes_y_gracia() {
+        use crate::settings::SessionAudioRetention as R;
+        let raiz = std::env::temp_dir().join(format!("escriba-barrer-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&raiz);
+        let cerrada = "aaaa0000aaaa0000aaaa0000aaaa0000";
+        let pendiente = "bbbb0000bbbb0000bbbb0000bbbb0000";
+        sesion_de_prueba(&raiz, cerrada, true);
+        sesion_de_prueba(&raiz, pendiente, false);
+        let ahora = ahora_wall_ms();
+
+        // Forever: nada se toca, ni siquiera lo cerrado.
+        assert_eq!(barrer_en(&raiz, ahora, R::Forever, &descifra), 0);
+        assert!(raiz.join(cerrada).exists() && raiz.join(pendiente).exists());
+
+        // OnDocument HOY: la cerrada cae, la pendiente vive (gracia 7 días).
+        assert_eq!(barrer_en(&raiz, ahora, R::OnDocument, &descifra), 1);
+        assert!(!raiz.join(cerrada).exists());
+        assert!(raiz.join(pendiente).exists(), "gracia de recuperación");
+
+        // Ocho días "después": la pendiente también cae.
+        let futuro = ahora + 8 * DIA_MS;
+        assert_eq!(barrer_en(&raiz, futuro, R::OnDocument, &descifra), 1);
+        assert!(!raiz.join(pendiente).exists());
+        let _ = std::fs::remove_dir_all(&raiz);
+    }
+
+    #[test]
+    fn sin_llave_el_barrido_no_toca_nada() {
+        use crate::settings::SessionAudioRetention as R;
+        let raiz = std::env::temp_dir().join(format!("escriba-barrer2-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&raiz);
+        let cerrada = "cccc0000cccc0000cccc0000cccc0000";
+        sesion_de_prueba(&raiz, cerrada, true);
+        // Descifrador ciego (sin llave): no distingue → no borra (fail-safe).
+        let ciego = |_: &str| -> Option<String> { None };
+        let futuro = ahora_wall_ms() + 400 * DIA_MS;
+        assert_eq!(barrer_en(&raiz, futuro, R::OnDocument, &ciego), 0);
+        assert!(raiz.join(cerrada).exists());
+        let _ = std::fs::remove_dir_all(&raiz);
+    }
+
+    #[test]
+    fn borrar_segmentos_respeta_journal_y_symlinks() {
+        let base = std::env::temp_dir().join(format!("escriba-borrar-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        let dir = base.join("s");
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("journal.jsonl"), b"j").unwrap();
+        std::fs::write(dir.join("mic-0.escaud2"), b"a").unwrap();
+        std::fs::write(dir.join("notas.txt"), b"n").unwrap();
+        let fuera = base.join("fuera.escaud2");
+        std::fs::write(&fuera, b"ajeno").unwrap();
+        std::os::unix::fs::symlink(&fuera, dir.join("sys-0.escaud2")).unwrap();
+
+        borrar_segmentos(&dir);
+        assert!(!dir.join("mic-0.escaud2").exists(), "el segmento real cae");
+        assert!(dir.join("journal.jsonl").exists(), "el journal jamás");
+        assert!(dir.join("notas.txt").exists(), "lo ajeno jamás");
+        assert!(fuera.exists(), "el destino del symlink jamás");
+        let _ = std::fs::remove_dir_all(&base);
     }
 
     #[test]

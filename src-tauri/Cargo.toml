@@ -81,6 +81,8 @@ sha2 = "0.10"
 # Archivos temporales con nombre aleatorio y O_EXCL. Antes se componían a mano
 # como `escriba-<pid>.wav` en /tmp, que es predecible: otro proceso del sistema
 # podía dejar un symlink en esa ruta y desviar la escritura.
+# PRP-009 Fase 5: espacio libre en disco antes de armar pistas de sesión.
+fs4 = "0.13"
 tempfile = "3"
 getrandom = "0.2"
 # Cifrado en reposo del historial (PRP-006, Fase 7). chacha20poly1305 es

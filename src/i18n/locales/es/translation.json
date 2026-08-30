@@ -351,7 +351,22 @@
       "spanishCredit": "Crédito a Abrax (Juegos Imperiales 2026): su dupla demostró que el dictado en español merecía trabajo lingüístico propio.",
       "customWords": {
         "credit": "Crédito a Diapasón (Juegos Imperiales 2026): su medición pública detectó que esta función se comía palabras en castellano. Arreglado, con un test para que no vuelva."
-      }
+      },
+      "sessionsTitle": "Sesiones",
+      "sessionRecorder": {
+        "label": "Registro de sesiones a prueba de fallos",
+        "description": "Cada turno y acta se guarda cifrado en el momento. Si Escriba muere a mitad de una sesión, al reabrir te ofrece recuperarlo todo."
+      },
+      "sessionRetention": {
+        "title": "Conservar el audio de las sesiones",
+        "description": "Las pistas grabadas permiten re-transcribir una sesión recuperada. El registro de texto pesa KB y lleva su propio ciclo.",
+        "onDocument": "Hasta confirmar el acta",
+        "days7": "7 días",
+        "days30": "30 días",
+        "forever": "Siempre",
+        "graceHint": "Una sesión interrumpida tiene siempre al menos 7 días para recuperarse antes de la limpieza."
+      },
+      "sessionsCredit": "El grabador a prueba de fallos sigue la idea de reunion-local (flopez1977, MIT): journal del estado y conservar el audio."
     },
     "sound": {
       "title": "Sonido",
@@ -907,7 +922,8 @@
         "dictum": "Dictum: la línea de comandos headless con benchmarks reproducibles, gracias a la cual hoy publicamos nuestras propias mediciones.",
         "fuwa": "Fuwa: la ayuda dentro de la app que solo responde sobre la app, que aquí se volvió Pregúntale a Plumín.",
         "diapason": "Diapasón: publicaron una medición que encontró un fallo nuestro, el diccionario personal comiéndose palabras en castellano. Que te corrijan en público también se agradece.",
-        "upstream": "Y CJ Pais, cuyo Handy es la base sobre la que está construido todo esto."
+        "upstream": "Y CJ Pais, cuyo Handy es la base sobre la que está construido todo esto.",
+        "reunionLocal": "Y reunion-local (flopez1977), cuya idea de que una reunión debe sobrevivir a un crash se volvió el grabador de sesiones."
       }
     },
     "transcription": {
@@ -1393,7 +1409,8 @@
       "vmShaFailed": "La descarga no pasó la verificación de integridad. Se descartó.",
       "vmOnlyMacos": "Disponible solo en macOS.",
       "voiceEngineHint": "Motor de voz del intérprete de reuniones"
-    }
+    },
+    "diskLow": "Queda poco disco ({{mb}} MB libres): el audio de la sesión podría dejar de grabarse."
   },
   "engine": {
     "requiredTitle": "Esta función necesita el motor de IA local",

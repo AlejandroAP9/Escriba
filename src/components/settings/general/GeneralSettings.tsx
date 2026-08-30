@@ -7,6 +7,7 @@ import { PermissionsPanel } from "../PermissionsPanel";
 import { MicrophoneSelector } from "../MicrophoneSelector";
 import { ShortcutInput } from "../ShortcutInput";
 import { SettingsGroup } from "../../ui/SettingsGroup";
+import { ToggleSwitch } from "../../ui/ToggleSwitch";
 import { CollapsibleGroup } from "../../ui/CollapsibleGroup";
 import { OutputDeviceSelector } from "../OutputDeviceSelector";
 import { PushToTalk } from "../PushToTalk";
@@ -23,6 +24,7 @@ import { CustomWords } from "../CustomWords";
 import { SpanishDictation } from "../SpanishDictation";
 import { TextReplacements } from "../TextReplacements";
 import { ObsidianVault } from "../ObsidianVault";
+import { SessionRetentionSelector } from "../SessionRetentionSelector";
 import { AutostartToggle } from "../AutostartToggle";
 import { StartHidden } from "../StartHidden";
 import { ShowTrayIcon } from "../ShowTrayIcon";
@@ -31,7 +33,8 @@ import { ModelSettingsCard } from "./ModelSettingsCard";
 
 export const GeneralSettings: React.FC = () => {
   const { t } = useTranslation();
-  const { audioFeedbackEnabled, getSetting } = useSettings();
+  const { audioFeedbackEnabled, getSetting, updateSetting, isUpdating } =
+    useSettings();
   const { currentModel, models } = useModelStore();
   const pushToTalk = getSetting("push_to_talk");
   const isLinux = type() === "linux";
@@ -190,6 +193,27 @@ export const GeneralSettings: React.FC = () => {
           de bienvenida; tenerlo en Avanzado era esconderlo. */}
       <SettingsGroup title={t("settings.general.obsidianTitle")}>
         <ObsidianVault descriptionMode="inline" grouped={true} />
+      </SettingsGroup>
+
+      {/* Sesiones (PRP-009): el registro a prueba de fallos y la retención
+          de su audio. El crédito va donde vive la feature, como siempre. */}
+      <SettingsGroup title={t("settings.general.sessionsTitle")}>
+        <ToggleSwitch
+          checked={(getSetting("session_recorder_enabled") ?? true) as boolean}
+          onChange={(v) => updateSetting("session_recorder_enabled", v)}
+          isUpdating={isUpdating("session_recorder_enabled")}
+          label={t("settings.general.sessionRecorder.label")}
+          description={t("settings.general.sessionRecorder.description")}
+          descriptionMode="inline"
+          grouped
+        />
+        <SessionRetentionSelector descriptionMode="inline" grouped />
+        <p className="px-1 text-3xs leading-relaxed text-mid-gray">
+          {t("settings.general.sessionRetention.graceHint")}
+        </p>
+        <p className="px-1 pb-1 pt-3 text-3xs leading-relaxed text-mid-gray">
+          {t("settings.general.sessionsCredit")}
+        </p>
       </SettingsGroup>
 
       {/* Aplicación: arranque y bandeja. Ajustes de cualquier app, no de

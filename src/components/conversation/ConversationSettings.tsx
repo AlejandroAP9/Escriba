@@ -379,6 +379,16 @@ export const ConversationSettings: React.FC = () => {
   // La captura del audio del sistema se cayó sola (permiso revocado, audio
   // reiniciado): apagamos el toggle y avisamos en vez de fingir que escucha
   // (auditoría #10).
+  // PRP-009 Fase 5: el backend avisa al armar pistas con poco disco.
+  useEffect(() => {
+    const un = listen<number>("session-disk-low", (e) => {
+      toast.warning(t("conversation.diskLow", { mb: e.payload }));
+    });
+    return () => {
+      un.then((fn) => fn());
+    };
+  }, [t]);
+
   useEffect(() => {
     const un = listen("system-audio-died", () => {
       setSysAudio(false);

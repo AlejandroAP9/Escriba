@@ -333,7 +333,22 @@
       "spanishCredit": "Credit to Abrax (Juegos Imperiales 2026): they showed that dictation in Spanish deserved its own linguistic work.",
       "customWords": {
         "credit": "Credit to Diapasón (Juegos Imperiales 2026): their public measurement found that this feature was eating Spanish words. Fixed, with a test so it cannot come back."
-      }
+      },
+      "sessionsTitle": "Sessions",
+      "sessionRecorder": {
+        "label": "Crash-proof session journal",
+        "description": "Every turn and document is saved encrypted the moment it happens. If Escriba dies mid-session, the next launch offers to recover everything."
+      },
+      "sessionRetention": {
+        "title": "Keep session audio",
+        "description": "The recorded tracks let you re-transcribe a recovered session. The text journal weighs KBs and has its own cycle.",
+        "onDocument": "Until the document is confirmed",
+        "days7": "7 days",
+        "days30": "30 days",
+        "forever": "Always",
+        "graceHint": "An interrupted session always gets at least 7 days to be recovered before cleanup."
+      },
+      "sessionsCredit": "The crash-proof recorder follows the idea of reunion-local (flopez1977, MIT): journal the state, keep the audio."
     },
     "models": {
       "title": "轉錄模型",
@@ -907,7 +922,8 @@
         "dictum": "Dictum: the headless command line with reproducible benchmarks, which is why our own measurements are now public.",
         "fuwa": "Fuwa: in-app help that answers only about the app, which here became Ask Plumín.",
         "diapason": "Diapasón: they published a measurement that found a bug of ours, the personal dictionary eating Spanish words. Being corrected in public is also a gift.",
-        "upstream": "And CJ Pais, whose Handy is the base all of this is built on."
+        "upstream": "And CJ Pais, whose Handy is the base all of this is built on.",
+        "reunionLocal": "And reunion-local (flopez1977), whose idea that a meeting must survive a crash became the session recorder."
       }
     },
     "transcription": {
@@ -1393,7 +1409,8 @@
       "vmShaFailed": "The download failed the integrity check. Discarded.",
       "vmOnlyMacos": "Available on macOS only.",
       "voiceEngineHint": "Voice engine for the meeting interpreter"
-    }
+    },
+    "diskLow": "Low disk space ({{mb}} MB free): session audio may stop being recorded."
   },
   "engine": {
     "requiredTitle": "This feature needs the local AI engine",

@@ -998,6 +998,22 @@ async changeSpokenNumeralsSetting(enabled: boolean) : Promise<Result<null, strin
     else return { status: "error", error: e  as any };
 }
 },
+async changeSessionRecorderSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_session_recorder_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeSessionAudioRetentionSetting(retention: SessionAudioRetention) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_session_audio_retention_setting", { retention }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changeNumeralsSpreadsheetAutoSetting(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_numerals_spreadsheet_auto_setting", { enabled }) };
@@ -1707,7 +1723,7 @@ faithful_mode_enabled?: boolean; start_hidden?: boolean; autostart_enabled?: boo
  * upgrading from before this key existed are blanked by the migration so they
  * see the current release's notes — see `apply_settings_migrations`.
  */
-whats_new_last_seen_version?: string; selected_model?: string; onboarding_completed?: boolean; always_on_microphone?: boolean; selected_microphone?: string | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; dictated_emojis_enabled?: boolean; spoken_numerals_enabled?: boolean; numerals_spreadsheet_auto?: boolean; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod;
+whats_new_last_seen_version?: string; selected_model?: string; onboarding_completed?: boolean; always_on_microphone?: boolean; selected_microphone?: string | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; dictated_emojis_enabled?: boolean; spoken_numerals_enabled?: boolean; numerals_spreadsheet_auto?: boolean; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; session_audio_retention?: SessionAudioRetention; session_recorder_enabled?: boolean;
 /**
  * Escribir el .wav de cada dictado en disco. Apagado por omisión: ver
  * `default_save_audio_recordings`.
@@ -1869,6 +1885,7 @@ export type PluminHelpResponse = { topic: string; section: string;
  */
 answer: string | null; used_local_engine: boolean }
 export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null; supports_structured_output?: boolean }
+export type SessionAudioRetention = "on_document" | "days_7" | "days_30" | "forever"
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
 /**
  * PRP-009 (Fase 2): una sesión recuperada del journal, lista para la

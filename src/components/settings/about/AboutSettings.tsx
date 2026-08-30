@@ -226,6 +226,9 @@ export const AboutSettings: React.FC = () => {
           <p className="mt-3 text-sm text-mid-gray">
             {t("settings.about.thanks.upstream")}
           </p>
+          <p className="mt-3 text-sm text-mid-gray">
+            {t("settings.about.thanks.reunionLocal")}
+          </p>
         </SettingContainer>
       </SettingsGroup>
 

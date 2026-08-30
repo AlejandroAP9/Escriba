@@ -1170,6 +1170,11 @@ pub fn conversation_hands_free(app: tauri::AppHandle, on: bool) -> Result<bool, 
 
     // PRP-009: con el canal recién encendido, la pista se arma si hay journal.
     pistas_rearmar();
+    // Fase 5: si el disco anda justo, avisar AHORA, no cuando ya se cortó.
+    if let Some(libre) = crate::session_recorder::espacio_libre_bajo() {
+        use tauri::Emitter;
+        let _ = app.emit("session-disk-low", libre / (1024 * 1024));
+    }
     Ok(true)
 }
 
@@ -1379,6 +1384,11 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
 
     // PRP-009: con el canal recién encendido, la pista se arma si hay journal.
     pistas_rearmar();
+    // Fase 5: si el disco anda justo, avisar AHORA, no cuando ya se cortó.
+    if let Some(libre) = crate::session_recorder::espacio_libre_bajo() {
+        use tauri::Emitter;
+        let _ = app.emit("session-disk-low", libre / (1024 * 1024));
+    }
     Ok(true)
 }
 

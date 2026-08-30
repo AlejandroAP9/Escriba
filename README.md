@@ -248,6 +248,8 @@ Compitieron contra nosotros y aun así nos enseñaron algo. Lo tomamos, y lo dec
 | **Fuwa**        | La ayuda dentro de la app que solo responde sobre la app, que aquí se volvió Pregúntale a Plumín                                                               |
 | **Diapasón**    | Publicaron una medición que encontró un fallo nuestro: el diccionario personal se comía palabras en castellano. Que te corrijan en público también se agradece |
 
+Y una idea que llegó después del concurso: el grabador de sesiones a prueba de fallos sigue a **[reunion-local](https://github.com/flopez1977/reunion-local)** (flopez1977, MIT): journal del estado y conservar el audio.
+
 ## 📄 Licencia
 
 MIT. Ver [LICENSE](./LICENSE). El código original de Handy es © 2025 CJ Pais; el trabajo de Escriba es © 2026 Alejandro Álvarez y Flor Vallejo, bajo la misma licencia.
