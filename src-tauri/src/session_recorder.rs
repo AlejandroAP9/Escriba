@@ -69,6 +69,13 @@ pub enum EventoSesion {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         muestras_perdidas: Option<u64>,
     },
+    /// Los turnos ANTERIORES a este evento quedan invalidados (la
+    /// re-transcripción desde el audio los reemplazó). Un journal append-only
+    /// no reescribe: marca y sigue.
+    Reinicio {
+        motivo: String,
+        at_ms: u64,
+    },
     Cierre {
         motivo: String,
     },
@@ -369,6 +376,11 @@ struct Trozo {
 }
 
 struct ProductorPista {
+    pista: &'static str,
+    /// Reloj de sesión al armarse: para fechar el aviso de descarte.
+    at_base_ms: u64,
+    /// Ya avisamos de esta racha de descartes (se rearma con el primer Ok).
+    en_racha_de_descartes: bool,
     tx: std::sync::mpsc::SyncSender<Trozo>,
     /// Avanza SIEMPRE, se envíe o se descarte: es el reloj de la pista.
     /// Compartido con el worker para que un descarte al FINAL (canal lleno y
@@ -451,7 +463,11 @@ fn slot_de(pista: &str) -> &'static Mutex<Option<ProductorPista>> {
 
 /// Núcleo del empuje (testeable): avanza el offset pase lo que pase y jamás
 /// bloquea. `Disconnected` = worker muerto: la pista queda desarmada.
-fn empujar_en(guard: &mut Option<ProductorPista>, samples: &[f32]) {
+fn empujar_en(
+    guard: &mut Option<ProductorPista>,
+    samples: &[f32],
+    notificar: &dyn Fn(EventoSesion),
+) {
     let Some(p) = guard.as_mut() else { return };
     let inicio = p
         .offset
@@ -460,8 +476,24 @@ fn empujar_en(guard: &mut Option<ProductorPista>, samples: &[f32]) {
         inicio,
         muestras: samples.to_vec(),
     }) {
-        Ok(()) => {}
-        Err(std::sync::mpsc::TrySendError::Full(_)) => {} // hueco: lo ve el worker
+        Ok(()) => {
+            p.en_racha_de_descartes = false;
+        }
+        Err(std::sync::mpsc::TrySendError::Full(_)) => {
+            // El worker contabilizará el hueco exacto por el salto de offset,
+            // pero si está ATASCADO en el disco jamás lo descubriría: el
+            // productor avisa por su cuenta, una vez por racha, por el canal
+            // de eventos (try_send: jamás bloquea la captura). Revisión 30-ago.
+            if !p.en_racha_de_descartes {
+                p.en_racha_de_descartes = true;
+                notificar(EventoSesion::Pista {
+                    pista: p.pista.to_string(),
+                    evento: "descartando".to_string(),
+                    at_ms: p.at_base_ms + inicio * 1000 / MUESTRAS_POR_SEGUNDO,
+                    muestras_perdidas: Some(samples.len() as u64),
+                });
+            }
+        }
         Err(std::sync::mpsc::TrySendError::Disconnected(_)) => {
             *guard = None;
         }
@@ -473,14 +505,14 @@ fn empujar_en(guard: &mut Option<ProductorPista>, samples: &[f32]) {
 /// aquí y no debe pagar nada.
 pub fn pista_mic(samples: &[f32]) {
     if let Ok(mut g) = PISTA_MIC.lock() {
-        empujar_en(&mut g, samples);
+        empujar_en(&mut g, samples, &registrar_pista);
     }
 }
 
 /// Tap del audio del sistema (lo llama el worker de Sesiones tras el read).
 pub fn pista_sys(samples: &[f32]) {
     if let Ok(mut g) = PISTA_SYS.lock() {
-        empujar_en(&mut g, samples);
+        empujar_en(&mut g, samples, &registrar_pista);
     }
 }
 
@@ -629,6 +661,9 @@ pub fn pista_armar(pista: &'static str, at_ms_base: u64) {
         muestras_perdidas: None,
     });
     *slot = Some(ProductorPista {
+        pista,
+        at_base_ms: at_ms_base,
+        en_racha_de_descartes: false,
         tx,
         offset,
         worker: handle,
@@ -751,6 +786,7 @@ fn resumen_de_eventos(eventos: &[EventoSesion], cola_rota: bool) -> Option<Resum
                 tiene_documento = true;
                 duracion_ms = duracion_ms.max(*at_ms);
             }
+            EventoSesion::Reinicio { .. } => turnos = 0,
             _ => {}
         }
     }
@@ -866,6 +902,27 @@ fn segmentos_validados_en(raiz: &Path, id: &str) -> Vec<PathBuf> {
     rutas
 }
 
+/// Deja durable el resultado de una re-transcripción: `Reinicio` (invalida
+/// los turnos anteriores al leer) + los turnos nuevos. Exige journal activo
+/// (reenganchado); sin él, el reemplazo vive solo en RAM y se avisa.
+pub fn turnos_reemplazar(turnos: &[(String, String, u64)], at_ms: u64) {
+    if !activo() {
+        warn!("Re-transcripción sin journal activo: el reemplazo no queda durable");
+        return;
+    }
+    apendear(&EventoSesion::Reinicio {
+        motivo: "retranscripcion".to_string(),
+        at_ms,
+    });
+    for (role, text, turno_at) in turnos {
+        apendear(&EventoSesion::Turno {
+            role: role.clone(),
+            text: text.clone(),
+            at_ms: *turno_at,
+        });
+    }
+}
+
 /// Segmentos válidos de una sesión pendiente, para re-transcribir.
 pub fn listar_segmentos(id: &str) -> Vec<PathBuf> {
     RAIZ.get()
@@ -887,6 +944,10 @@ pub fn reanudar(id: &str) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     info!("Journal de sesión reenganchado: {id}");
     *guard = Some(Grabador { dir, archivo });
+    drop(guard);
+    // Una sesión recuperada que siga grabando necesita el worker de eventos
+    // igual que una nueva: sin esto perdía hueco/corte/fin (revisión 30-ago).
+    eventos_pista_abrir();
     Ok(())
 }
 
@@ -1278,12 +1339,15 @@ mod tests {
         // contrato que impide comprimir el tiempo.
         let (tx, _rx) = std::sync::mpsc::sync_channel::<Trozo>(1);
         let mut slot = Some(ProductorPista {
+            pista: "mic",
+            at_base_ms: 0,
+            en_racha_de_descartes: false,
             tx,
             offset: std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0)),
             worker: None,
         });
         for _ in 0..3 {
-            empujar_en(&mut slot, &[0.5f32; 1000]);
+            empujar_en(&mut slot, &[0.5f32; 1000], &|_| {});
         }
         assert_eq!(
             slot.as_ref()
@@ -1299,11 +1363,14 @@ mod tests {
         let (tx, rx) = std::sync::mpsc::sync_channel::<Trozo>(1);
         drop(rx); // el worker murió
         let mut slot = Some(ProductorPista {
+            pista: "mic",
+            at_base_ms: 0,
+            en_racha_de_descartes: false,
             tx,
             offset: std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0)),
             worker: None,
         });
-        empujar_en(&mut slot, &[0.1f32; 10]);
+        empujar_en(&mut slot, &[0.1f32; 10], &|_| {});
         assert!(slot.is_none(), "Disconnected desarma el productor");
     }
 
@@ -1369,6 +1436,81 @@ mod tests {
     }
 
     #[test]
+    fn el_productor_avisa_del_descarte_aunque_el_worker_este_muerto() {
+        // El worker "atascado": nadie drena el canal. El productor debe
+        // avisar por su cuenta, UNA vez por racha, sin bloquearse jamás.
+        let (tx, _rx) = std::sync::mpsc::sync_channel::<Trozo>(1);
+        let mut slot = Some(ProductorPista {
+            pista: "sys",
+            at_base_ms: 5_000,
+            en_racha_de_descartes: false,
+            tx,
+            offset: std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            worker: None,
+        });
+        let avisos = Mutex::new(Vec::new());
+        let notificar = |e: EventoSesion| avisos.lock().unwrap().push(e);
+        for _ in 0..4 {
+            empujar_en(&mut slot, &[0.5f32; 16_000], &notificar);
+        }
+        let a = avisos.lock().unwrap();
+        assert_eq!(a.len(), 1, "un aviso por racha, no uno por trozo");
+        match &a[0] {
+            EventoSesion::Pista {
+                pista,
+                evento,
+                at_ms,
+                ..
+            } => {
+                assert_eq!(pista, "sys");
+                assert_eq!(evento, "descartando");
+                // El primer descarte es el segundo trozo: base + 1 s.
+                assert_eq!(*at_ms, 6_000);
+            }
+            otro => panic!("evento inesperado: {otro:?}"),
+        }
+    }
+
+    #[test]
+    fn el_reinicio_invalida_los_turnos_anteriores_al_releer() {
+        // Recuperar dos veces da lo mismo: el plegado es función del journal.
+        let eventos = vec![
+            EventoSesion::Turno {
+                role: "user".into(),
+                text: "viejo".into(),
+                at_ms: 1_000,
+            },
+            EventoSesion::Reinicio {
+                motivo: "retranscripcion".into(),
+                at_ms: 2_000,
+            },
+            EventoSesion::Turno {
+                role: "user".into(),
+                text: "nuevo".into(),
+                at_ms: 1_000,
+            },
+        ];
+        let contenido: String = eventos
+            .iter()
+            .map(|e| linea_de_evento(e, &|t| cifra(t)).unwrap() + "\n")
+            .collect();
+        for _ in 0..2 {
+            let (leidos, rota) = parsear_journal(&contenido, &descifra);
+            assert!(!rota);
+            let sobrevividos: Vec<&EventoSesion> = leidos
+                .iter()
+                .skip_while(|e| !matches!(e, EventoSesion::Reinicio { .. }))
+                .skip(1)
+                .collect();
+            assert_eq!(sobrevividos.len(), 1);
+            assert!(matches!(
+                sobrevividos[0],
+                EventoSesion::Turno { text, .. } if text == "nuevo"
+            ));
+        }
+    }
+
+    #[test]
     fn saturacion_seguida_de_cierre_no_pierde_el_hueco_final() {
         // El caso de la revisión del 30-ago: el canal se llena, se descartan
         // trozos, y la pista se desarma ANTES de que llegue otro trozo que
@@ -1384,6 +1526,9 @@ mod tests {
         let offset = std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0));
         let (tx, rx) = std::sync::mpsc::sync_channel::<Trozo>(1);
         let mut slot = Some(ProductorPista {
+            pista: "mic",
+            at_base_ms: 0,
+            en_racha_de_descartes: false,
             tx,
             offset: std::sync::Arc::clone(&offset),
             worker: None,
@@ -1391,7 +1536,7 @@ mod tests {
         // Tres empujes contra un canal de 1: entra el primero, se descartan
         // dos. Y cierre inmediato, sin ningún trozo posterior.
         for _ in 0..3 {
-            empujar_en(&mut slot, &[0.5f32; 1000]);
+            empujar_en(&mut slot, &[0.5f32; 1000], &|_| {});
         }
         drop(slot); // pista_desarmar: cae el productor y se cierra el canal
 

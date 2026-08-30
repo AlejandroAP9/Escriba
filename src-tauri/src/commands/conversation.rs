@@ -300,6 +300,27 @@ pub fn conversation_reset(app: tauri::AppHandle) -> ConversationStatus {
     status()
 }
 
+/// Pliega los turnos de un journal honrando `Reinicio`: una re-transcripción
+/// invalida todo turno anterior a su marca. Puro, y estable ante releerlo
+/// (recuperar dos veces da lo mismo).
+fn plegar_turnos_de_journal(eventos: &[crate::session_recorder::EventoSesion]) -> Vec<Turn> {
+    let mut turns: Vec<Turn> = Vec::new();
+    for e in eventos {
+        match e {
+            crate::session_recorder::EventoSesion::Turno { role, text, at_ms } => {
+                turns.push(Turn {
+                    role: role.clone(),
+                    text: text.clone(),
+                    at_secs: (*at_ms / 1000) as u32,
+                });
+            }
+            crate::session_recorder::EventoSesion::Reinicio { .. } => turns.clear(),
+            _ => {}
+        }
+    }
+    turns
+}
+
 /// PRP-009 (Fase 2): una sesión recuperada del journal, lista para la
 /// pantalla de Sesiones. El efecto de reconexión del frontend hace el resto.
 #[derive(Serialize, Clone, Type)]
@@ -331,7 +352,6 @@ pub fn session_recover(id: String) -> Result<RecoveredSession, String> {
     // Las colas rotas por el kill se truncan aquí, no en la captura.
     crate::session_recorder::sanar_pistas(&id);
     let mut modo = String::new();
-    let mut turns: Vec<Turn> = Vec::new();
     let mut doc: Option<SessionDoc> = None;
     let mut duracion_ms = 0u64;
     for e in &eventos {
@@ -339,13 +359,8 @@ pub fn session_recover(id: String) -> Result<RecoveredSession, String> {
             crate::session_recorder::EventoSesion::Inicio { modo: m, .. } => {
                 modo = m.clone();
             }
-            crate::session_recorder::EventoSesion::Turno { role, text, at_ms } => {
+            crate::session_recorder::EventoSesion::Turno { at_ms, .. } => {
                 duracion_ms = duracion_ms.max(*at_ms);
-                turns.push(Turn {
-                    role: role.clone(),
-                    text: text.clone(),
-                    at_secs: (*at_ms / 1000) as u32,
-                });
             }
             crate::session_recorder::EventoSesion::Documento {
                 doc: d,
@@ -358,6 +373,9 @@ pub fn session_recover(id: String) -> Result<RecoveredSession, String> {
                     mood: animo.clone(),
                 });
             }
+            crate::session_recorder::EventoSesion::Reinicio { at_ms, .. } => {
+                duracion_ms = duracion_ms.max(*at_ms);
+            }
             // Los eventos de pista no aportan turnos; el audio se sana aparte.
             crate::session_recorder::EventoSesion::Pista { .. } => {}
             crate::session_recorder::EventoSesion::Cierre { .. } => {
@@ -368,6 +386,7 @@ pub fn session_recover(id: String) -> Result<RecoveredSession, String> {
     if modo.is_empty() {
         return Err("journal sin evento de inicio".to_string());
     }
+    let turns = plegar_turnos_de_journal(&eventos);
     // Reenganche best-effort: si falla, la sesión vive igual en RAM y el
     // arranque perezoso de push_turn abrirá un journal nuevo con replay.
     if let Err(e) = crate::session_recorder::reanudar(&id) {
@@ -418,18 +437,13 @@ pub async fn session_recover_retranscribe(
 
     let mut modo = String::new();
     let mut doc: Option<SessionDoc> = None;
-    let mut turnos_journal: Vec<Turn> = Vec::new();
+    let turnos_journal: Vec<Turn> = plegar_turnos_de_journal(&eventos);
     let mut bases: std::collections::HashMap<String, Vec<u64>> = Default::default();
     for e in &eventos {
         match e {
             crate::session_recorder::EventoSesion::Inicio { modo: m, .. } => modo = m.clone(),
-            crate::session_recorder::EventoSesion::Turno { role, text, at_ms } => {
-                turnos_journal.push(Turn {
-                    role: role.clone(),
-                    text: text.clone(),
-                    at_secs: (*at_ms / 1000) as u32,
-                });
-            }
+            crate::session_recorder::EventoSesion::Turno { .. } => {}
+            crate::session_recorder::EventoSesion::Reinicio { .. } => {}
             crate::session_recorder::EventoSesion::Documento {
                 doc: d,
                 animo,
@@ -462,9 +476,14 @@ pub async fn session_recover_retranscribe(
     let tm = std::sync::Arc::clone(
         &app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>(),
     );
-    let turnos_audio =
-        tauri::async_runtime::spawn_blocking(move || -> Result<Vec<Turn>, String> {
-            let mut turns: Vec<Turn> = Vec::new();
+    // Cada segmento degrada por su cuenta: uno corrupto no aborta el comando
+    // (revisión del 30-ago). Una pista solo se considera CUBIERTA si todos
+    // sus segmentos transcribieron; donde falte cobertura, mandan los turnos
+    // del journal.
+    let (audio_por_pista, pistas_fallidas) = tauri::async_runtime::spawn_blocking(
+        move || -> (std::collections::HashMap<String, Vec<Turn>>, std::collections::HashSet<String>) {
+            let mut audio: std::collections::HashMap<String, Vec<Turn>> = Default::default();
+            let mut fallidas: std::collections::HashSet<String> = Default::default();
             for ruta in segmentos {
                 let nombre = ruta
                     .file_name()
@@ -478,39 +497,67 @@ pub async fn session_recover_retranscribe(
                     Some(v) => v,
                     None => continue,
                 };
-                let samples = crate::recording_crypto::escaud2_read_samples(&ruta)
-                    .map_err(|e| e.to_string())?;
-                if samples.is_empty() {
-                    continue;
-                }
-                let segs = crate::studio::pipeline::transcribe_samples(&tm, &samples, |_| {})?;
-                let base_ms = bases
-                    .get(&pista)
-                    .and_then(|v| v.get(indice))
-                    .copied()
-                    .unwrap_or(0);
-                let role = if pista == "mic" { "user" } else { "system" };
-                for sg in segs {
-                    let text = sg.text.trim();
-                    if !text.is_empty() {
-                        turns.push(Turn {
-                            role: role.to_string(),
-                            text: text.to_string(),
-                            at_secs: ((base_ms + (sg.start_s * 1000.0) as u64) / 1000) as u32,
-                        });
+                let resultado = crate::recording_crypto::escaud2_read_samples(&ruta)
+                    .map_err(|e| e.to_string())
+                    .and_then(|samples| {
+                        if samples.is_empty() {
+                            return Ok(Vec::new());
+                        }
+                        crate::studio::pipeline::transcribe_samples(&tm, &samples, |_| {})
+                    });
+                match resultado {
+                    Ok(segs) => {
+                        let base_ms = bases
+                            .get(&pista)
+                            .and_then(|v| v.get(indice))
+                            .copied()
+                            .unwrap_or(0);
+                        let role = if pista == "mic" { "user" } else { "system" };
+                        let destino = audio.entry(pista).or_default();
+                        for sg in segs {
+                            let text = sg.text.trim();
+                            if !text.is_empty() {
+                                destino.push(Turn {
+                                    role: role.to_string(),
+                                    text: text.to_string(),
+                                    at_secs: ((base_ms + (sg.start_s * 1000.0) as u64) / 1000)
+                                        as u32,
+                                });
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        log::warn!("Segmento {nombre} sin transcribir: {e}");
+                        fallidas.insert(pista);
                     }
                 }
             }
-            turns.sort_by_key(|t| t.at_secs);
-            Ok(turns)
-        })
-        .await
-        .map_err(|e| e.to_string())??;
+            (audio, fallidas)
+        },
+    )
+    .await
+    .map_err(|e| e.to_string())?;
 
-    let turns = if turnos_audio.is_empty() {
+    let roles_cubiertos: std::collections::HashSet<&str> = audio_por_pista
+        .iter()
+        .filter(|(p, turnos)| !pistas_fallidas.contains(*p) && !turnos.is_empty())
+        .map(|(p, _)| if p == "mic" { "user" } else { "system" })
+        .collect();
+    let turns = if roles_cubiertos.is_empty() {
         turnos_journal // el audio no dio nada: mejor el journal que vacío
     } else {
-        turnos_audio
+        let mut mezcla: Vec<Turn> = turnos_journal
+            .iter()
+            .filter(|t| !roles_cubiertos.contains(t.role.as_str()))
+            .cloned()
+            .collect();
+        for (pista, turnos) in &audio_por_pista {
+            if !pistas_fallidas.contains(pista) {
+                mezcla.extend(turnos.iter().cloned());
+            }
+        }
+        mezcla.sort_by_key(|t| t.at_secs);
+        mezcla
     };
     let duracion_ms = turns
         .iter()
@@ -519,6 +566,15 @@ pub async fn session_recover_retranscribe(
         .unwrap_or(0);
     if let Err(e) = crate::session_recorder::reanudar(&id) {
         log::warn!("Sesión {id} re-transcrita sin reenganchar el journal: {e}");
+    }
+    // Durable ANTES de devolver éxito: sin este snapshot, otro crash volvía
+    // a cargar la transcripción vieja del journal (revisión del 30-ago).
+    if !roles_cubiertos.is_empty() {
+        let tuplas: Vec<(String, String, u64)> = turns
+            .iter()
+            .map(|t| (t.role.clone(), t.text.clone(), u64::from(t.at_secs) * 1000))
+            .collect();
+        crate::session_recorder::turnos_reemplazar(&tuplas, duracion_ms);
     }
     if let Ok(mut m) = MODE.lock() {
         *m = modo.clone();
@@ -1945,5 +2001,42 @@ mod juglar_read_tests {
             fake.cancelled(),
             "parar debe cancelar también lo que se está generando en silencio"
         );
+    }
+}
+
+#[cfg(test)]
+mod plegado_tests {
+    use super::plegar_turnos_de_journal;
+    use crate::session_recorder::EventoSesion;
+
+    #[test]
+    fn el_plegado_honra_el_reinicio_de_la_retranscripcion() {
+        let eventos = vec![
+            EventoSesion::Turno {
+                role: "user".into(),
+                text: "transcripcion vieja".into(),
+                at_ms: 1_000,
+            },
+            EventoSesion::Turno {
+                role: "assistant".into(),
+                text: "respuesta vieja".into(),
+                at_ms: 2_000,
+            },
+            EventoSesion::Reinicio {
+                motivo: "retranscripcion".into(),
+                at_ms: 3_000,
+            },
+            EventoSesion::Turno {
+                role: "user".into(),
+                text: "transcripcion nueva".into(),
+                at_ms: 1_000,
+            },
+        ];
+        // Dos pasadas: recuperar dos veces da exactamente lo mismo.
+        for _ in 0..2 {
+            let turns = plegar_turnos_de_journal(&eventos);
+            assert_eq!(turns.len(), 1);
+            assert_eq!(turns[0].text, "transcripcion nueva");
+        }
     }
 }
