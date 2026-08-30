@@ -135,24 +135,26 @@ fn cifrador_real(texto: &str) -> Result<String, String> {
     crate::history_crypto::cifrar_campo_estricto(texto)
 }
 
-/// Arranca el journal de la sesión si no hay uno activo. Todo-o-nada: las
-/// líneas de `inicio` + turnos previos se cifran ANTES de crear nada en
-/// disco; si el cifrado estricto no responde, no existe ni el directorio.
-///
-/// `turnos_previos` repite los turnos ya en RAM (reanudación tras un acta en
-/// el mismo proceso): el journal nuevo nace completo, no con huecos.
-pub fn arrancar(modo: &str, wall_ms_inicio: u64, turnos_previos: &[(String, String, u64)]) {
-    let Some(raiz) = RAIZ.get() else {
-        return; // CLI headless o tests sin init: inerte a propósito.
-    };
-    let mut guard = match ACTIVO.lock() {
-        Ok(g) => g,
-        Err(_) => return,
-    };
-    if guard.is_some() {
-        return;
-    }
+/// Por qué falló el arranque del journal: el cifrado (fail-closed, aviso
+/// único) o el disco (se avisa cada vez, puede ser transitorio).
+enum FalloArranque {
+    Cifrado(String),
+    Disco(String),
+}
 
+/// Núcleo del arranque con raíz y cifrador inyectables (testeable sin
+/// llavero ni estado global). Contrato todo-o-nada: TODO se cifra antes de
+/// tocar el disco; un fallo en CUALQUIER línea del lote (no solo la primera)
+/// aborta sin dejar ni el directorio, y un fallo de disco limpia lo que
+/// hubiera quedado a medias.
+fn arrancar_nucleo(
+    raiz: &Path,
+    id: &str,
+    modo: &str,
+    wall_ms_inicio: u64,
+    turnos_previos: &[(String, String, u64)],
+    cifrador: &dyn Fn(&str) -> Result<String, String>,
+) -> Result<Grabador, FalloArranque> {
     // 1) Cifrar TODO antes de tocar el disco.
     let mut lineas = Vec::with_capacity(1 + turnos_previos.len());
     let inicio = EventoSesion::Inicio {
@@ -161,7 +163,7 @@ pub fn arrancar(modo: &str, wall_ms_inicio: u64, turnos_previos: &[(String, Stri
         version: VERSION,
     };
     let todo_cifrado = (|| -> Result<(), String> {
-        lineas.push(linea_de_evento(&inicio, &cifrador_real)?);
+        lineas.push(linea_de_evento(&inicio, cifrador)?);
         for (role, text, at_ms) in turnos_previos {
             lineas.push(linea_de_evento(
                 &EventoSesion::Turno {
@@ -169,27 +171,17 @@ pub fn arrancar(modo: &str, wall_ms_inicio: u64, turnos_previos: &[(String, Stri
                     text: text.clone(),
                     at_ms: *at_ms,
                 },
-                &cifrador_real,
+                cifrador,
             )?);
         }
         Ok(())
     })();
     if let Err(e) = todo_cifrado {
-        if AVISADO_SIN_CIFRADO.set(()).is_ok() {
-            warn!("Journal de sesión desactivado (fail-closed): {e}. La sesión sigue en RAM.");
-        }
-        return;
+        return Err(FalloArranque::Cifrado(e));
     }
 
     // 2) Recién ahora, disco.
-    let id = match id_nuevo() {
-        Ok(id) => id,
-        Err(e) => {
-            warn!("Journal de sesión sin id: {e}");
-            return;
-        }
-    };
-    let dir = raiz.join(&id);
+    let dir = raiz.join(id);
     let resultado = (|| -> std::io::Result<File> {
         fs::create_dir_all(&dir)?;
         let mut archivo = OpenOptions::new()
@@ -204,14 +196,56 @@ pub fn arrancar(modo: &str, wall_ms_inicio: u64, turnos_previos: &[(String, Stri
         Ok(archivo)
     })();
     match resultado {
-        Ok(archivo) => {
-            info!("Journal de sesión activo: {id}");
-            *guard = Some(Grabador { dir, archivo });
-        }
+        Ok(archivo) => Ok(Grabador { dir, archivo }),
         Err(e) => {
-            warn!("Journal de sesión no pudo crearse: {e}");
             // Sin directorio a medias: si algo quedó, fuera.
             let _ = fs::remove_dir_all(&dir);
+            Err(FalloArranque::Disco(e.to_string()))
+        }
+    }
+}
+
+/// Arranca el journal de la sesión si no hay uno activo.
+///
+/// `turnos_previos` repite los turnos ya en RAM (reanudación tras un acta en
+/// el mismo proceso): el journal nuevo nace completo, no con huecos.
+pub fn arrancar(modo: &str, wall_ms_inicio: u64, turnos_previos: &[(String, String, u64)]) {
+    let Some(raiz) = RAIZ.get() else {
+        return; // CLI headless o tests sin init: inerte a propósito.
+    };
+    let mut guard = match ACTIVO.lock() {
+        Ok(g) => g,
+        Err(_) => return,
+    };
+    if guard.is_some() {
+        return;
+    }
+    let id = match id_nuevo() {
+        Ok(id) => id,
+        Err(e) => {
+            warn!("Journal de sesión sin id: {e}");
+            return;
+        }
+    };
+    match arrancar_nucleo(
+        raiz,
+        &id,
+        modo,
+        wall_ms_inicio,
+        turnos_previos,
+        &cifrador_real,
+    ) {
+        Ok(grabador) => {
+            info!("Journal de sesión activo: {id}");
+            *guard = Some(grabador);
+        }
+        Err(FalloArranque::Cifrado(e)) => {
+            if AVISADO_SIN_CIFRADO.set(()).is_ok() {
+                warn!("Journal de sesión desactivado (fail-closed): {e}. La sesión sigue en RAM.");
+            }
+        }
+        Err(FalloArranque::Disco(e)) => {
+            warn!("Journal de sesión no pudo crearse: {e}");
         }
     }
 }
@@ -264,7 +298,13 @@ pub fn documento(doc: &str, animo: &str, at_ms: u64) {
     });
 }
 
-/// Cierre por documento durable: el acta ya está en el journal.
+/// Cierre por documento CONFIRMADO por el frontend (revisión del 30-ago: el
+/// acta generada NO cierra el journal; un kill entre generarla y que React
+/// la reciba debe dejar la sesión recuperable con su acta). Este cierre lo
+/// dispara el comando de confirmación de la Fase 2; hasta entonces, los
+/// journals con `documento` y sin `cierre` son exactamente lo que la
+/// recuperación ofrece.
+#[allow(dead_code)] // Fase 2: lo llama la confirmación explícita del frontend.
 pub fn cierre_documento() {
     apendear(&EventoSesion::Cierre {
         motivo: "documento".to_string(),
@@ -428,6 +468,81 @@ mod tests {
             &fallo,
         );
         assert!(r.is_err());
+    }
+
+    #[test]
+    fn fallo_parcial_del_cifrado_deja_cero_archivos() {
+        // El fallo llega en el SEGUNDO evento del lote, no en el primero: el
+        // contrato todo-o-nada tiene que abortar igual, sin crear ni la raíz.
+        let raiz = std::env::temp_dir().join(format!("escriba-fc-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&raiz);
+        let llamadas = std::cell::Cell::new(0u32);
+        let cifrador = |t: &str| -> Result<String, String> {
+            llamadas.set(llamadas.get() + 1);
+            if llamadas.get() >= 2 {
+                return Err("llavero caído a mitad del lote".into());
+            }
+            cifra(t)
+        };
+        let r = arrancar_nucleo(
+            &raiz,
+            "aabbccddeeff00112233445566778899",
+            "listen",
+            0,
+            &[("user".into(), "turno previo".into(), 1000)],
+            &cifrador,
+        );
+        assert!(matches!(r, Err(FalloArranque::Cifrado(_))));
+        assert!(
+            !raiz.exists(),
+            "un fallo parcial del cifrado no puede dejar NADA en disco"
+        );
+    }
+
+    #[test]
+    fn arranque_feliz_escribe_un_journal_recuperable() {
+        let raiz = std::env::temp_dir().join(format!("escriba-ok-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&raiz);
+        let id = "00112233445566778899aabbccddeeff";
+        let r = arrancar_nucleo(
+            &raiz,
+            id,
+            "listen",
+            77,
+            &[("user".into(), "hola desde el replay".into(), 2000)],
+            &|t| cifra(t),
+        );
+        assert!(r.is_ok());
+        let contenido = std::fs::read_to_string(raiz.join(id).join("journal.jsonl")).unwrap();
+        assert!(contenido.lines().all(|l| l.starts_with("esc1:")));
+        assert!(!contenido.contains("replay"), "nada en claro");
+        let (eventos, cola_rota) = parsear_journal(&contenido, &descifra);
+        assert!(!cola_rota);
+        assert_eq!(eventos.len(), 2, "inicio + turno del replay");
+        assert!(matches!(
+            &eventos[0],
+            EventoSesion::Inicio { wall_ms: 77, .. }
+        ));
+        let _ = std::fs::remove_dir_all(&raiz);
+    }
+
+    #[test]
+    fn fallo_de_disco_no_deja_carpeta_a_medias() {
+        // La "raíz" es un ARCHIVO: create_dir_all revienta y el núcleo debe
+        // reportar Disco sin inventar estructura alrededor.
+        let raiz = std::env::temp_dir().join(format!("escriba-file-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&raiz);
+        std::fs::write(&raiz, b"soy un archivo, no un directorio").unwrap();
+        let r = arrancar_nucleo(
+            &raiz,
+            "ffeeddccbbaa99887766554433221100",
+            "listen",
+            0,
+            &[],
+            &|t| cifra(t),
+        );
+        assert!(matches!(r, Err(FalloArranque::Disco(_))));
+        let _ = std::fs::remove_file(&raiz);
     }
 
     #[test]

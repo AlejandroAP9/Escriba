@@ -1370,11 +1370,11 @@ pub async fn conversation_finish(app: tauri::AppHandle) -> Result<SessionDoc, St
         lines.remove(pos);
     }
     let final_text = lines.join("\n").trim().to_string();
-    // PRP-009: el acta se cifra al journal ANTES del cierre. `cierre` significa
-    // "documento durable", así que un crash entre generar el acta y que el
-    // usuario la guarde deja una sesión recuperable CON su documento.
+    // PRP-009: el acta se cifra al journal, pero NO se cierra aquí. Un kill
+    // entre esta línea y que React reciba el resultado debe dejar la sesión
+    // recuperable CON su acta; el cierre llega por confirmación explícita
+    // (Fase 2) o por descarte del usuario (reset, que borra la carpeta).
     crate::session_recorder::documento(&final_text, &mood, u64::from(elapsed_secs()) * 1000);
-    crate::session_recorder::cierre_documento();
     Ok(SessionDoc {
         text: final_text,
         mood,

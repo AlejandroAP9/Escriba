@@ -82,10 +82,13 @@ diarización (cola acordada el 30-ago).
 2. Cada turno transcrito se apendea al journal al llegar (evento JSON completo
    cifrado por línea). El audio crudo (pre-VAD) de cada pista se apendea por
    frames a su contenedor, con offset de inicio y huecos registrados.
-3. La sesión termina bien → se genera el documento como hoy; el documento se
-   cifra al journal (`documento{...}`) y SOLO entonces se escribe `cierre`.
-   `cierre` significa "documento durable" o "descarte explícito del usuario",
-   nunca "la captura paró". Según retención, el audio se borra o se conserva.
+3. La sesión termina bien → se genera el documento como hoy y se cifra al
+   journal (`documento{...}`) SIN cerrar: generar el acta no prueba que el
+   usuario la recibió. `cierre{documento}` lo escribe solo la confirmación
+   explícita del frontend (comando de la Fase 2); `cierre{descarte}` el reset
+   del usuario, que además borra la carpeta. Todo journal con `documento` y
+   sin `cierre` es oferta obligada de la recuperación. Según retención, el
+   audio se borra o se conserva.
 4. La sesión muere mal (crash, kill, apagón) → al siguiente arranque Escriba
    detecta el journal sin `cierre` y ofrece: **Recuperar** (turnos —y
    documento si ya existía— a la pantalla de Sesiones, audio disponible para
@@ -241,7 +244,9 @@ grep de texto claro = 0, sin llave → cero archivos. Medir costo de fsync.
 
 **Objetivo**: journals sin `cierre` se detectan al arrancar y el diálogo
 Recuperar/Exportar/Descartar funciona de punta a punta, documento incluido.
-Discard con validación de ruta completa.
+Discard con validación de ruta completa. Incluye el comando de confirmación
+del frontend que escribe `cierre{documento}` (sin él, ningún journal con
+acta se cierra jamás y toda sesión terminada reaparecería como recuperable).
 **Validación**: `kill -9` en sesión real → reabrir → recuperar → turnos con
 sus `mm:ss` (y el acta si existía). Recovery 2× = mismo estado. Tests de
 traversal en discard. Descartar borra en disco.
@@ -293,6 +298,19 @@ conservada; simulación de disco lleno.
   equipo de desarrollo, test `costo_de_fsync_por_turno_es_asumible`).
 - **Decisión**: fsync en CADA evento (N=1). A ritmo humano (un turno cada
   varios segundos) es ruido, y elimina la ventana de pérdida entre turnos.
+
+### 2026-08-30: El cierre no se escribe donde se genera el acta
+
+- **Error**: la Fase 1 v1 escribía `cierre` en `conversation_finish`, justo
+  tras `documento`. Un kill entre esa línea y que React recibiera el acta
+  dejaba el journal cerrado con el acta dentro: la recuperación (que busca
+  journals SIN cierre) no la ofrecería jamás. Violaba el criterio post-acta
+  del propio PRP. De regalo, al cerrar ahí el reset posterior ya no tenía
+  grabador activo y el journal terminado no se borraba nunca.
+- **Fix**: revisión de Alejandro; `documento` deja la sesión pendiente y el
+  cierre exige confirmación del frontend o descarte explícito.
+- **Aplicar en**: cualquier "hecho" que dependa de que OTRO proceso/capa
+  reciba el dato: durable significa confirmado por el receptor, no emitido.
 
 ### 2026-08-30: El PRP nació con dos supuestos falsos
 
