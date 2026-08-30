@@ -958,7 +958,10 @@ struct Escaud2Scan {
     plaintext: Vec<u8>,
     /// Offset del primer byte NO válido (fin del último frame bueno).
     valid_end: u64,
-    /// El archivo termina en un footer válido y consistente.
+    /// El archivo termina en un footer válido y consistente. Hoy solo lo
+    /// consumen los warns del recorrido; la Fase 5 lo usará para distinguir
+    /// pistas cerradas de interrumpidas en la retención.
+    #[allow(dead_code)]
     cerrado: bool,
 }
 
