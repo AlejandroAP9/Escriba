@@ -69,11 +69,14 @@ pub enum EventoSesion {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         muestras_perdidas: Option<u64>,
     },
-    /// Los turnos ANTERIORES a este evento quedan invalidados (la
-    /// re-transcripción desde el audio los reemplazó). Un journal append-only
-    /// no reescribe: marca y sigue.
-    Reinicio {
-        motivo: String,
+    /// Reemplazo ATÓMICO de todos los turnos: la instantánea completa viaja
+    /// en UNA línea AEAD. Línea truncada por un kill → el parser la descarta
+    /// y sobreviven los turnos antiguos; línea completa → reemplaza todo.
+    /// Jamás existe un reemplazo parcialmente visible (revisión del 30-ago:
+    /// Reinicio + apéndices sueltos abría exactamente esa ventana).
+    ReemplazoTurnos {
+        /// (role, text, at_ms) por turno.
+        turnos: Vec<(String, String, u64)>,
         at_ms: u64,
     },
     Cierre {
@@ -281,12 +284,17 @@ pub fn activo() -> bool {
 /// recuperable) y la sesión sigue en RAM: jamás se bloquea ni se degrada a
 /// claro.
 fn apendear(evento: &EventoSesion) {
-    let mut guard = match ACTIVO.lock() {
-        Ok(g) => g,
-        Err(_) => return,
-    };
+    if let Err(e) = apendear_fallible(evento) {
+        warn!("Journal de sesión apagado a mitad ({e}); lo escrito queda para recuperación.");
+    }
+}
+
+/// Como `apendear`, pero el error llega al que llama (el reemplazo durable
+/// no puede fingir éxito). En ambos casos un fallo apaga el grabador.
+fn apendear_fallible(evento: &EventoSesion) -> Result<(), String> {
+    let mut guard = ACTIVO.lock().map_err(|_| "lock envenenado".to_string())?;
     let Some(grabador) = guard.as_mut() else {
-        return;
+        return Err("sin journal activo".to_string());
     };
     let resultado = linea_de_evento(evento, &cifrador_real).and_then(|linea| {
         grabador
@@ -296,10 +304,10 @@ fn apendear(evento: &EventoSesion) {
             .and_then(|()| grabador.archivo.sync_data())
             .map_err(|e| e.to_string())
     });
-    if let Err(e) = resultado {
-        warn!("Journal de sesión apagado a mitad ({e}); lo escrito queda para recuperación.");
+    if resultado.is_err() {
         *guard = None;
     }
+    resultado
 }
 
 pub fn turno(role: &str, text: &str, at_ms: u64) {
@@ -786,7 +794,10 @@ fn resumen_de_eventos(eventos: &[EventoSesion], cola_rota: bool) -> Option<Resum
                 tiene_documento = true;
                 duracion_ms = duracion_ms.max(*at_ms);
             }
-            EventoSesion::Reinicio { .. } => turnos = 0,
+            EventoSesion::ReemplazoTurnos { turnos: t, at_ms } => {
+                turnos = t.len() as u32;
+                duracion_ms = duracion_ms.max(*at_ms);
+            }
             _ => {}
         }
     }
@@ -902,25 +913,14 @@ fn segmentos_validados_en(raiz: &Path, id: &str) -> Vec<PathBuf> {
     rutas
 }
 
-/// Deja durable el resultado de una re-transcripción: `Reinicio` (invalida
-/// los turnos anteriores al leer) + los turnos nuevos. Exige journal activo
-/// (reenganchado); sin él, el reemplazo vive solo en RAM y se avisa.
-pub fn turnos_reemplazar(turnos: &[(String, String, u64)], at_ms: u64) {
-    if !activo() {
-        warn!("Re-transcripción sin journal activo: el reemplazo no queda durable");
-        return;
-    }
-    apendear(&EventoSesion::Reinicio {
-        motivo: "retranscripcion".to_string(),
+/// Deja durable el resultado de una re-transcripción como UN solo evento
+/// atómico. Exige journal activo (reenganchado): sin durabilidad no hay
+/// éxito que reportar, y eso lo decide quien llama con este Result.
+pub fn turnos_reemplazar(turnos: &[(String, String, u64)], at_ms: u64) -> Result<(), String> {
+    apendear_fallible(&EventoSesion::ReemplazoTurnos {
+        turnos: turnos.to_vec(),
         at_ms,
-    });
-    for (role, text, turno_at) in turnos {
-        apendear(&EventoSesion::Turno {
-            role: role.clone(),
-            text: text.clone(),
-            at_ms: *turno_at,
-        });
-    }
+    })
 }
 
 /// Segmentos válidos de una sesión pendiente, para re-transcribir.
@@ -1472,41 +1472,64 @@ mod tests {
     }
 
     #[test]
-    fn el_reinicio_invalida_los_turnos_anteriores_al_releer() {
-        // Recuperar dos veces da lo mismo: el plegado es función del journal.
+    fn snapshot_truncado_conserva_los_turnos_antiguos() {
+        // El kill llega a mitad del ReemplazoTurnos: la línea rota se
+        // descarta entera y el journal pliega a lo ANTIGUO intacto.
+        let viejo = EventoSesion::Turno {
+            role: "user".into(),
+            text: "turno viejo que debe sobrevivir".into(),
+            at_ms: 1_000,
+        };
+        let reemplazo = EventoSesion::ReemplazoTurnos {
+            turnos: vec![("user".into(), "nuevo".into(), 1_000)],
+            at_ms: 2_000,
+        };
+        let linea_vieja = linea_de_evento(&viejo, &|t| cifra(t)).unwrap();
+        let linea_reemplazo = linea_de_evento(&reemplazo, &|t| cifra(t)).unwrap();
+        let contenido = format!(
+            "{linea_vieja}\n{}\n",
+            &linea_reemplazo[..linea_reemplazo.len() - 20]
+        );
+        let (leidos, rota) = parsear_journal(&contenido, &descifra);
+        assert!(rota);
+        assert_eq!(leidos.len(), 1);
+        assert!(matches!(
+            &leidos[0],
+            EventoSesion::Turno { text, .. } if text.contains("sobrevivir")
+        ));
+    }
+
+    #[test]
+    fn snapshot_completo_reemplaza_atomicamente() {
         let eventos = vec![
             EventoSesion::Turno {
                 role: "user".into(),
                 text: "viejo".into(),
                 at_ms: 1_000,
             },
-            EventoSesion::Reinicio {
-                motivo: "retranscripcion".into(),
-                at_ms: 2_000,
-            },
-            EventoSesion::Turno {
-                role: "user".into(),
-                text: "nuevo".into(),
-                at_ms: 1_000,
+            EventoSesion::ReemplazoTurnos {
+                turnos: vec![
+                    ("user".into(), "nuevo uno".into(), 1_000),
+                    ("system".into(), "nuevo dos".into(), 2_000),
+                ],
+                at_ms: 3_000,
             },
         ];
         let contenido: String = eventos
             .iter()
             .map(|e| linea_de_evento(e, &|t| cifra(t)).unwrap() + "\n")
             .collect();
+        // Dos pasadas: recuperar dos veces da lo mismo.
         for _ in 0..2 {
             let (leidos, rota) = parsear_journal(&contenido, &descifra);
             assert!(!rota);
-            let sobrevividos: Vec<&EventoSesion> = leidos
-                .iter()
-                .skip_while(|e| !matches!(e, EventoSesion::Reinicio { .. }))
-                .skip(1)
-                .collect();
-            assert_eq!(sobrevividos.len(), 1);
-            assert!(matches!(
-                sobrevividos[0],
-                EventoSesion::Turno { text, .. } if text == "nuevo"
-            ));
+            let r = leidos.iter().find_map(|e| match e {
+                EventoSesion::ReemplazoTurnos { turnos, .. } => Some(turnos.clone()),
+                _ => None,
+            });
+            let turnos = r.expect("el reemplazo debe parsear");
+            assert_eq!(turnos.len(), 2);
+            assert_eq!(turnos[0].1, "nuevo uno");
         }
     }
 

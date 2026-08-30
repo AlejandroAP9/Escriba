@@ -314,7 +314,14 @@ fn plegar_turnos_de_journal(eventos: &[crate::session_recorder::EventoSesion]) -
                     at_secs: (*at_ms / 1000) as u32,
                 });
             }
-            crate::session_recorder::EventoSesion::Reinicio { .. } => turns.clear(),
+            crate::session_recorder::EventoSesion::ReemplazoTurnos { turnos, .. } => {
+                turns.clear();
+                turns.extend(turnos.iter().map(|(role, text, at_ms)| Turn {
+                    role: role.clone(),
+                    text: text.clone(),
+                    at_secs: (*at_ms / 1000) as u32,
+                }));
+            }
             _ => {}
         }
     }
@@ -373,7 +380,7 @@ pub fn session_recover(id: String) -> Result<RecoveredSession, String> {
                     mood: animo.clone(),
                 });
             }
-            crate::session_recorder::EventoSesion::Reinicio { at_ms, .. } => {
+            crate::session_recorder::EventoSesion::ReemplazoTurnos { at_ms, .. } => {
                 duracion_ms = duracion_ms.max(*at_ms);
             }
             // Los eventos de pista no aportan turnos; el audio se sana aparte.
@@ -443,7 +450,7 @@ pub async fn session_recover_retranscribe(
         match e {
             crate::session_recorder::EventoSesion::Inicio { modo: m, .. } => modo = m.clone(),
             crate::session_recorder::EventoSesion::Turno { .. } => {}
-            crate::session_recorder::EventoSesion::Reinicio { .. } => {}
+            crate::session_recorder::EventoSesion::ReemplazoTurnos { .. } => {}
             crate::session_recorder::EventoSesion::Documento {
                 doc: d,
                 animo,
@@ -564,17 +571,19 @@ pub async fn session_recover_retranscribe(
         .map(|t| u64::from(t.at_secs) * 1000)
         .max()
         .unwrap_or(0);
-    if let Err(e) = crate::session_recorder::reanudar(&id) {
-        log::warn!("Sesión {id} re-transcrita sin reenganchar el journal: {e}");
-    }
-    // Durable ANTES de devolver éxito: sin este snapshot, otro crash volvía
-    // a cargar la transcripción vieja del journal (revisión del 30-ago).
+    // Sin reenganche no hay durabilidad, y sin durabilidad no hay éxito
+    // (revisión del 30-ago): aquí el best-effort sería mentirle al usuario.
+    crate::session_recorder::reanudar(&id)
+        .map_err(|e| format!("no se pudo reenganchar el journal: {e}"))?;
+    // Durable ANTES de devolver éxito, y en UNA línea atómica: un kill a
+    // mitad del snapshot deja los turnos antiguos intactos.
     if !roles_cubiertos.is_empty() {
         let tuplas: Vec<(String, String, u64)> = turns
             .iter()
             .map(|t| (t.role.clone(), t.text.clone(), u64::from(t.at_secs) * 1000))
             .collect();
-        crate::session_recorder::turnos_reemplazar(&tuplas, duracion_ms);
+        crate::session_recorder::turnos_reemplazar(&tuplas, duracion_ms)
+            .map_err(|e| format!("la re-transcripción no quedó durable: {e}"))?;
     }
     if let Ok(mut m) = MODE.lock() {
         *m = modo.clone();
@@ -2022,14 +2031,9 @@ mod plegado_tests {
                 text: "respuesta vieja".into(),
                 at_ms: 2_000,
             },
-            EventoSesion::Reinicio {
-                motivo: "retranscripcion".into(),
+            EventoSesion::ReemplazoTurnos {
+                turnos: vec![("user".into(), "transcripcion nueva".into(), 1_000)],
                 at_ms: 3_000,
-            },
-            EventoSesion::Turno {
-                role: "user".into(),
-                text: "transcripcion nueva".into(),
-                at_ms: 1_000,
             },
         ];
         // Dos pasadas: recuperar dos veces da exactamente lo mismo.
