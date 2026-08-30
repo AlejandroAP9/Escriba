@@ -473,7 +473,7 @@ pub fn listar_pendientes() -> Vec<ResumenPendiente> {
         }
     }
     // Más reciente primero: si hay varias, la de ayer va arriba.
-    pendientes.sort_by(|a, b| b.wall_ms.cmp(&a.wall_ms));
+    pendientes.sort_by_key(|p| std::cmp::Reverse(p.wall_ms));
     pendientes
 }
 
@@ -508,7 +508,10 @@ pub fn descartar_pendiente(id: &str) -> Result<(), String> {
             return Err("esa sesión está activa; descártala desde la sesión".to_string());
         }
     }
-    info!("Sesión pendiente descartada desde recuperación: {}", dir.display());
+    info!(
+        "Sesión pendiente descartada desde recuperación: {}",
+        dir.display()
+    );
     fs::remove_dir_all(&dir).map_err(|e| e.to_string())
 }
 

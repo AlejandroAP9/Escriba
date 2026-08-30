@@ -767,6 +767,403 @@ pub fn protocol_response(
     result
 }
 
+// ────────────────── ESCAUD2: contenedor incremental (PRP-009, Fase 3) ──────────────────
+//
+// ESCAUD1 no admite escritura incremental: `plaintext_len` vive en la cabecera
+// Y en el AAD de cada frame, así que el total debe conocerse antes del primer
+// byte. ESCAUD2 es el formato hermano para las pistas de sesión, que crecen
+// en vivo y pueden morir por un kill en cualquier byte:
+//
+// - cabecera SIN largo total (magic + frame_size + prefijo de nonce);
+// - frames autocontenidos: el AAD ata magic, índice, largo del frame y un
+//   byte de ROL (frame/footer), nunca el total;
+// - durante la sesión solo se escriben frames LLENOS (64 KiB de claro ≈ 2 s
+//   de PCM16 a 16 kHz), con fsync por frame: un kill pierde como mucho el
+//   trozo aún en RAM, jamás corrompe lo escrito;
+// - `finalize` sella el frame parcial y un footer OPCIONAL con el total
+//   autenticado (nonce con índice u64::MAX y rol propio: un footer jamás
+//   puede pasar por frame ni al revés);
+// - la recuperación descarta la cola ilegible TRUNCANDO, sin reescribir ni
+//   un byte sellado, y es idempotente;
+// - el lector sintetiza la cabecera WAV en memoria: dentro del contenedor
+//   solo hay PCM16 crudo, nunca un WAV.
+//
+// ESCAUD1 queda intacto: las grabaciones del historial se siguen escribiendo
+// y leyendo exactamente igual.
+
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+const MAGIC2: &[u8; 8] = b"ESCAUD2\0";
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+const HEADER2_LEN: u64 = 8 + 4 + 16;
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+const FOOTER2_MAGIC: &[u8; 8] = b"ESCFIN2\0";
+/// magic(8) + ciframiento de total u64 (8) + tag(16)
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+const FOOTER2_LEN: u64 = 8 + 8 + TAG_LEN;
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+const ROL_FRAME: u8 = 0;
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+const ROL_FOOTER: u8 = 1;
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+const FOOTER2_NONCE_INDEX: u64 = u64::MAX;
+
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+fn aad2(frame_index: u64, plain_len: u32, rol: u8) -> [u8; 21] {
+    let mut aad = [0u8; 21];
+    aad[..8].copy_from_slice(MAGIC2);
+    aad[8..16].copy_from_slice(&frame_index.to_le_bytes());
+    aad[16..20].copy_from_slice(&plain_len.to_le_bytes());
+    aad[20] = rol;
+    aad
+}
+
+/// ¿El archivo empieza con la cabecera ESCAUD2?
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+pub fn is_escaud2(path: &Path) -> Result<bool> {
+    let mut file = File::open(path)?;
+    let mut magic = [0u8; 8];
+    match file.read_exact(&mut magic) {
+        Ok(()) => Ok(&magic == MAGIC2),
+        Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(false),
+        Err(e) => Err(e.into()),
+    }
+}
+
+/// Escritor incremental. La pista crece frame a frame con fsync; `finalize`
+/// añade el footer. Soltarlo sin finalize (crash) deja un archivo que la
+/// recuperación entiende: los frames sellados son la verdad.
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+pub struct Escaud2Writer {
+    file: File,
+    cipher: XChaCha20Poly1305,
+    nonce_prefix: [u8; NONCE_PREFIX_LEN],
+    buffer: Vec<u8>,
+    frame_index: u64,
+    total_plain: u64,
+}
+
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+impl Escaud2Writer {
+    /// Crea el contenedor. Falla si el archivo ya existe: una pista de sesión
+    /// nunca se reabre para escribir, se recupera y se sigue en otra.
+    pub fn create(path: &Path) -> Result<Self> {
+        let key = audio_key().ok_or_else(|| anyhow!("llave del historial no disponible"))?;
+        Self::create_with_key(path, &key)
+    }
+
+    fn create_with_key(path: &Path, key: &[u8; 32]) -> Result<Self> {
+        let mut nonce_prefix = [0u8; NONCE_PREFIX_LEN];
+        getrandom::getrandom(&mut nonce_prefix)
+            .map_err(|e| anyhow!("sin CSPRNG para la pista: {e}"))?;
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        let mut file = fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(path)?;
+        restrict_file_to_owner(path);
+        let mut header = [0u8; HEADER2_LEN as usize];
+        header[0..8].copy_from_slice(MAGIC2);
+        header[8..12].copy_from_slice(&(FRAME_SIZE as u32).to_le_bytes());
+        header[12..28].copy_from_slice(&nonce_prefix);
+        file.write_all(&header)?;
+        file.sync_data()?;
+        Ok(Self {
+            file,
+            cipher: XChaCha20Poly1305::new(Key::from_slice(key)),
+            nonce_prefix,
+            buffer: Vec::with_capacity(FRAME_SIZE),
+            frame_index: 0,
+            total_plain: 0,
+        })
+    }
+
+    fn sellar_frame(&mut self, rol_final: bool) -> Result<()> {
+        if self.buffer.is_empty() {
+            return Ok(());
+        }
+        debug_assert!(self.buffer.len() <= FRAME_SIZE);
+        debug_assert!(rol_final || self.buffer.len() == FRAME_SIZE);
+        let nonce = nonce_for(&self.nonce_prefix, self.frame_index);
+        let aad = aad2(self.frame_index, self.buffer.len() as u32, ROL_FRAME);
+        let encrypted = self
+            .cipher
+            .encrypt(
+                XNonce::from_slice(&nonce),
+                Payload {
+                    msg: &self.buffer,
+                    aad: &aad,
+                },
+            )
+            .map_err(|_| anyhow!("falló el cifrado de un frame de la pista"))?;
+        self.file.write_all(&encrypted)?;
+        // Durable frame a frame: un kill nunca debe a los frames ya sellados.
+        self.file.sync_data()?;
+        self.total_plain += self.buffer.len() as u64;
+        self.frame_index += 1;
+        self.buffer.clear();
+        Ok(())
+    }
+
+    /// Apendea PCM16 crudo. Solo los frames LLENOS tocan el disco; el resto
+    /// espera en RAM al siguiente append o al finalize.
+    pub fn append(&mut self, mut bytes: &[u8]) -> Result<()> {
+        while !bytes.is_empty() {
+            let take = (FRAME_SIZE - self.buffer.len()).min(bytes.len());
+            self.buffer.extend_from_slice(&bytes[..take]);
+            bytes = &bytes[take..];
+            if self.buffer.len() == FRAME_SIZE {
+                self.sellar_frame(false)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Apendea muestras f32 convertidas a PCM16, igual que ESCAUD1.
+    pub fn append_samples(&mut self, samples: &[f32]) -> Result<()> {
+        let mut pcm = [0u8; 8192];
+        for chunk in samples.chunks(pcm.len() / 2) {
+            for (index, sample) in chunk.iter().enumerate() {
+                let value = (sample.clamp(-1.0, 1.0) * i16::MAX as f32) as i16;
+                pcm[index * 2..index * 2 + 2].copy_from_slice(&value.to_le_bytes());
+            }
+            self.append(&pcm[..chunk.len() * 2])?;
+        }
+        Ok(())
+    }
+
+    /// Cierre limpio: sella el frame parcial y escribe el footer autenticado
+    /// con el total. Devuelve el total de bytes claros de la pista.
+    pub fn finalize(mut self) -> Result<u64> {
+        self.sellar_frame(true)?;
+        let nonce = nonce_for(&self.nonce_prefix, FOOTER2_NONCE_INDEX);
+        let aad = aad2(FOOTER2_NONCE_INDEX, 8, ROL_FOOTER);
+        let encrypted = self
+            .cipher
+            .encrypt(
+                XNonce::from_slice(&nonce),
+                Payload {
+                    msg: &self.total_plain.to_le_bytes(),
+                    aad: &aad,
+                },
+            )
+            .map_err(|_| anyhow!("falló el cifrado del footer"))?;
+        self.file.write_all(FOOTER2_MAGIC)?;
+        self.file.write_all(&encrypted)?;
+        self.file.sync_all()?;
+        Ok(self.total_plain)
+    }
+}
+
+/// Resultado del recorrido de un contenedor ESCAUD2.
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+struct Escaud2Scan {
+    /// Claro reconstruido, frame a frame verificado.
+    plaintext: Vec<u8>,
+    /// Offset del primer byte NO válido (fin del último frame bueno).
+    valid_end: u64,
+    /// El archivo termina en un footer válido y consistente.
+    cerrado: bool,
+}
+
+/// Recorre verificando tags. Se detiene en el primer tramo ilegible: lo que
+/// siga es inatribuible y no se inventa (misma regla que el journal).
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+fn escaud2_scan(path: &Path, key: &[u8; 32]) -> Result<Escaud2Scan> {
+    let datos = fs::read(path)?;
+    if datos.len() < HEADER2_LEN as usize || &datos[0..8] != MAGIC2 {
+        bail!("el archivo no usa el formato ESCAUD2");
+    }
+    let frame_size = u32::from_le_bytes(datos[8..12].try_into()?) as usize;
+    if frame_size != FRAME_SIZE {
+        bail!("tamaño de frame ESCAUD2 no soportado: {frame_size}");
+    }
+    let mut nonce_prefix = [0u8; NONCE_PREFIX_LEN];
+    nonce_prefix.copy_from_slice(&datos[12..28]);
+    let cipher = XChaCha20Poly1305::new(Key::from_slice(key));
+
+    let descifra_frame = |indice: u64, ct: &[u8], plain_len: usize| -> Option<Vec<u8>> {
+        let nonce = nonce_for(&nonce_prefix, indice);
+        let aad = aad2(indice, plain_len as u32, ROL_FRAME);
+        cipher
+            .decrypt(XNonce::from_slice(&nonce), Payload { msg: ct, aad: &aad })
+            .ok()
+    };
+    let footer_valido = |tramo: &[u8]| -> Option<u64> {
+        if tramo.len() != FOOTER2_LEN as usize || &tramo[0..8] != FOOTER2_MAGIC {
+            return None;
+        }
+        let nonce = nonce_for(&nonce_prefix, FOOTER2_NONCE_INDEX);
+        let aad = aad2(FOOTER2_NONCE_INDEX, 8, ROL_FOOTER);
+        let plano = cipher
+            .decrypt(
+                XNonce::from_slice(&nonce),
+                Payload {
+                    msg: &tramo[8..],
+                    aad: &aad,
+                },
+            )
+            .ok()?;
+        Some(u64::from_le_bytes(plano.try_into().ok()?))
+    };
+
+    let frame_lleno = FRAME_SIZE + TAG_LEN as usize;
+    let mut plaintext = Vec::new();
+    let mut cursor = HEADER2_LEN as usize;
+    let mut indice = 0u64;
+    let mut cerrado = false;
+    while cursor < datos.len() {
+        let resto = &datos[cursor..];
+        // 1) Frame lleno. Si el tag no cuadra puede ser la cola (parcial y/o
+        //    footer) o corrupción: los intentos siguientes lo deciden.
+        if resto.len() >= frame_lleno {
+            if let Some(plano) = descifra_frame(indice, &resto[..frame_lleno], FRAME_SIZE) {
+                plaintext.extend_from_slice(&plano);
+                cursor += frame_lleno;
+                indice += 1;
+                continue;
+            }
+        }
+        // 2) Frame parcial + footer (cierre limpio).
+        if resto.len() > (TAG_LEN + FOOTER2_LEN) as usize {
+            let plain_len = resto.len() - (TAG_LEN + FOOTER2_LEN) as usize;
+            if plain_len < FRAME_SIZE {
+                if let Some(total) = footer_valido(&resto[resto.len() - FOOTER2_LEN as usize..]) {
+                    if let Some(plano) = descifra_frame(
+                        indice,
+                        &resto[..resto.len() - FOOTER2_LEN as usize],
+                        plain_len,
+                    ) {
+                        plaintext.extend_from_slice(&plano);
+                        cursor = datos.len();
+                        cerrado = total == plaintext.len() as u64;
+                        if !cerrado {
+                            log::warn!(
+                                "Footer ESCAUD2 inconsistente ({} vs {}): se ignora",
+                                total,
+                                plaintext.len()
+                            );
+                        }
+                        continue;
+                    }
+                }
+            }
+        }
+        // 2b) Footer PRESENTE pero corrupto tras un parcial sano: el magic
+        //     del footer es solo una pista (no autenticada); el AEAD del
+        //     frame parcial decide. Rescata el parcial y trunca el footer.
+        if resto.len() > (TAG_LEN + FOOTER2_LEN) as usize
+            && &resto[resto.len() - FOOTER2_LEN as usize..][..8] == FOOTER2_MAGIC
+        {
+            let cuerpo = &resto[..resto.len() - FOOTER2_LEN as usize];
+            let plain_len = cuerpo.len() - TAG_LEN as usize;
+            if plain_len < FRAME_SIZE {
+                if let Some(plano) = descifra_frame(indice, cuerpo, plain_len) {
+                    plaintext.extend_from_slice(&plano);
+                    cursor += cuerpo.len();
+                    log::warn!("Footer ESCAUD2 ilegible: se rescata el frame parcial y se descarta el footer");
+                    break;
+                }
+            }
+        }
+        // 3) Frame parcial sin footer (kill tras sellar el parcial... solo
+        //    posible como último tramo).
+        if resto.len() > TAG_LEN as usize && resto.len() < frame_lleno {
+            let plain_len = resto.len() - TAG_LEN as usize;
+            if let Some(plano) = descifra_frame(indice, resto, plain_len) {
+                plaintext.extend_from_slice(&plano);
+                cursor = datos.len();
+                continue;
+            }
+        }
+        // 4) Footer solo (finalize sin frame parcial pendiente).
+        if resto.len() == FOOTER2_LEN as usize {
+            if let Some(total) = footer_valido(resto) {
+                cursor = datos.len();
+                cerrado = total == plaintext.len() as u64;
+                if !cerrado {
+                    log::warn!(
+                        "Footer ESCAUD2 inconsistente ({} vs {}): se ignora",
+                        total,
+                        plaintext.len()
+                    );
+                }
+                continue;
+            }
+        }
+        // Nada legible: aquí termina la verdad.
+        break;
+    }
+    Ok(Escaud2Scan {
+        valid_end: cursor as u64,
+        plaintext,
+        cerrado,
+    })
+}
+
+/// Recupera un contenedor tras un kill: verifica frame a frame y TRUNCA la
+/// cola ilegible, sin reescribir nada sellado. Idempotente: sobre un archivo
+/// sano (con o sin footer) no toca un byte. Devuelve los bytes claros.
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+pub fn escaud2_recover(path: &Path) -> Result<u64> {
+    let key = audio_key().ok_or_else(|| anyhow!("llave del historial no disponible"))?;
+    escaud2_recover_with_key(path, &key)
+}
+
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+fn escaud2_recover_with_key(path: &Path, key: &[u8; 32]) -> Result<u64> {
+    let scan = escaud2_scan(path, key)?;
+    let en_disco = fs::metadata(path)?.len();
+    if scan.valid_end < en_disco {
+        log::warn!(
+            "Pista ESCAUD2 con cola ilegible: se trunca de {} a {} bytes",
+            en_disco,
+            scan.valid_end
+        );
+        let file = fs::OpenOptions::new().write(true).open(path)?;
+        file.set_len(scan.valid_end)?;
+        file.sync_all()?;
+    }
+    Ok(scan.plaintext.len() as u64)
+}
+
+/// Muestras f32 de una pista (para re-transcribir). Acepta contenedores con
+/// cola rota: entrega hasta el último frame válido.
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+pub fn escaud2_read_samples(path: &Path) -> Result<Vec<f32>> {
+    let key = audio_key().ok_or_else(|| anyhow!("llave del historial no disponible"))?;
+    escaud2_read_samples_with_key(path, &key)
+}
+
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+fn escaud2_read_samples_with_key(path: &Path, key: &[u8; 32]) -> Result<Vec<f32>> {
+    let scan = escaud2_scan(path, key)?;
+    Ok(scan
+        .plaintext
+        .chunks_exact(2)
+        .map(|par| i16::from_le_bytes([par[0], par[1]]) as f32 / i16::MAX as f32)
+        .collect())
+}
+
+/// WAV completo sintetizado en memoria (cabecera + PCM16 del contenedor):
+/// dentro del archivo jamás existió un WAV.
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+pub fn escaud2_wav_bytes(path: &Path) -> Result<Vec<u8>> {
+    let key = audio_key().ok_or_else(|| anyhow!("llave del historial no disponible"))?;
+    escaud2_wav_bytes_with_key(path, &key)
+}
+
+#[allow(dead_code)] // PRP-009 Fase 4: el tee de pistas cablea esto; quitar el allow entonces.
+fn escaud2_wav_bytes_with_key(path: &Path, key: &[u8; 32]) -> Result<Vec<u8>> {
+    let scan = escaud2_scan(path, key)?;
+    let muestras = scan.plaintext.len() / 2;
+    let mut wav = Vec::with_capacity(44 + scan.plaintext.len());
+    wav.extend_from_slice(&wav_header(muestras)?);
+    wav.extend_from_slice(&scan.plaintext[..muestras * 2]);
+    Ok(wav)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -903,5 +1300,175 @@ mod tests {
             assert!(!is_safe_file_name(invalid), "debía rechazar {invalid:?}");
         }
         assert!(is_safe_file_name("escriba-123.escaudio"));
+    }
+
+    // ─────────────── ESCAUD2 (PRP-009, Fase 3) ───────────────
+
+    /// Muestras que sobreviven exactas al viaje f32 → PCM16 → f32.
+    fn muestras_exactas(n: usize) -> Vec<f32> {
+        (0..n)
+            .map(|i| ((i % 1000) as i16 - 500) as f32 / i16::MAX as f32)
+            .collect()
+    }
+
+    fn pista_de_prueba(
+        dir: &std::path::Path,
+        muestras: &[f32],
+        finalizar: bool,
+    ) -> std::path::PathBuf {
+        let ruta = dir.join("pista.escaud2");
+        let mut w = Escaud2Writer::create_with_key(&ruta, &audio_test_key()).unwrap();
+        // Apéndices de tamaño impar: cruzan límites de frame a propósito.
+        for chunk in muestras.chunks(1234) {
+            w.append_samples(chunk).unwrap();
+        }
+        if finalizar {
+            w.finalize().unwrap();
+        }
+        ruta
+    }
+
+    #[test]
+    fn escaud2_roundtrip_incremental_con_footer() {
+        let dir = tempfile::tempdir().unwrap();
+        // 3,5 frames de PCM16: obliga a parcial + footer.
+        let muestras = muestras_exactas(FRAME_SIZE / 2 * 3 + FRAME_SIZE / 4);
+        let ruta = pista_de_prueba(dir.path(), &muestras, true);
+
+        let leidas = escaud2_read_samples_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(leidas.len(), muestras.len());
+        assert_eq!(leidas, muestras, "roundtrip exacto");
+
+        // El WAV se sintetiza en memoria: dentro del archivo no hay RIFF.
+        let crudo = std::fs::read(&ruta).unwrap();
+        assert!(!crudo.windows(4).any(|w| w == b"RIFF"));
+        let wav = escaud2_wav_bytes_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(&wav[0..4], b"RIFF");
+        assert_eq!(wav.len(), 44 + muestras.len() * 2);
+        assert!(is_escaud2(&ruta).unwrap());
+        assert!(!is_encrypted(&ruta).unwrap(), "ESCAUD1 no lo reclama");
+    }
+
+    #[test]
+    fn escaud2_sin_footer_recupera_los_frames_sellados() {
+        let dir = tempfile::tempdir().unwrap();
+        // 1,5 frames: se sella 1 lleno; el resto muere en RAM con el "crash"
+        // (drop sin finalize). Esa es la ventana de pérdida aceptada.
+        let muestras = muestras_exactas(FRAME_SIZE / 2 + FRAME_SIZE / 4);
+        let ruta = pista_de_prueba(dir.path(), &muestras, false);
+
+        let recuperado = escaud2_recover_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(
+            recuperado, FRAME_SIZE as u64,
+            "exactamente el frame sellado"
+        );
+        let leidas = escaud2_read_samples_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(leidas, muestras[..FRAME_SIZE / 2]);
+    }
+
+    #[test]
+    fn escaud2_truncado_arbitrario_recupera_y_es_idempotente() {
+        let dir = tempfile::tempdir().unwrap();
+        let muestras = muestras_exactas(FRAME_SIZE); // 2 frames llenos
+        let ruta = pista_de_prueba(dir.path(), &muestras, true);
+        let sano = std::fs::read(&ruta).unwrap();
+        let frame_ct = FRAME_SIZE + TAG_LEN as usize;
+
+        // Cortes por todo el archivo: tras recuperar, siempre se puede leer.
+        for corte in [
+            HEADER2_LEN as usize,                 // solo cabecera
+            HEADER2_LEN as usize + 10,            // a mitad del frame 0
+            HEADER2_LEN as usize + frame_ct,      // frontera exacta
+            HEADER2_LEN as usize + frame_ct + 40, // a mitad del frame 1
+            sano.len() - 5,                       // a mitad del footer
+        ] {
+            std::fs::write(&ruta, &sano[..corte]).unwrap();
+            let r1 = escaud2_recover_with_key(&ruta, &audio_test_key()).unwrap();
+            let tras_primera = std::fs::metadata(&ruta).unwrap().len();
+            let r2 = escaud2_recover_with_key(&ruta, &audio_test_key()).unwrap();
+            assert_eq!(r1, r2, "recovery idempotente (corte {corte})");
+            assert_eq!(tras_primera, std::fs::metadata(&ruta).unwrap().len());
+            let frames_enteros = (corte - HEADER2_LEN as usize) / frame_ct;
+            assert_eq!(
+                r1 as usize,
+                frames_enteros * FRAME_SIZE,
+                "hasta el último frame válido (corte {corte})"
+            );
+            let leidas = escaud2_read_samples_with_key(&ruta, &audio_test_key()).unwrap();
+            assert_eq!(leidas, muestras[..r1 as usize / 2]);
+        }
+
+        // Cortar dentro de la cabecera es fallo seguro, no pánico ni basura.
+        std::fs::write(&ruta, &sano[..5]).unwrap();
+        assert!(escaud2_recover_with_key(&ruta, &audio_test_key()).is_err());
+    }
+
+    #[test]
+    fn escaud2_frame_alterado_corta_ahi_y_falla_cerrado() {
+        let dir = tempfile::tempdir().unwrap();
+        let muestras = muestras_exactas(FRAME_SIZE / 2 * 3); // 3 frames llenos
+        let ruta = pista_de_prueba(dir.path(), &muestras, true);
+        let mut datos = std::fs::read(&ruta).unwrap();
+        // Un bit del frame 1: los frames 1 y 2 quedan inatribuibles aunque el
+        // 2 tenga tag válido (regla append-only: tras el primer hueco, nada).
+        let offset = HEADER2_LEN as usize + (FRAME_SIZE + TAG_LEN as usize) + 100;
+        datos[offset] ^= 0x01;
+        std::fs::write(&ruta, &datos).unwrap();
+
+        let leidas = escaud2_read_samples_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(leidas, muestras[..FRAME_SIZE / 2], "solo el frame 0");
+        let recuperado = escaud2_recover_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(recuperado, FRAME_SIZE as u64);
+    }
+
+    #[test]
+    fn escaud2_footer_corrupto_no_pierde_el_parcial() {
+        let dir = tempfile::tempdir().unwrap();
+        let muestras = muestras_exactas(FRAME_SIZE / 2 + 500); // 1 lleno + parcial
+        let ruta = pista_de_prueba(dir.path(), &muestras, true);
+        let mut datos = std::fs::read(&ruta).unwrap();
+        let n = datos.len();
+        datos[n - 3] ^= 0xFF; // dentro del cifrado del footer
+        std::fs::write(&ruta, &datos).unwrap();
+
+        // El parcial sellado se rescata; solo el footer se descarta.
+        let leidas = escaud2_read_samples_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(leidas, muestras, "ni una muestra sellada se pierde");
+        let recuperado = escaud2_recover_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(recuperado as usize, muestras.len() * 2);
+        assert_eq!(
+            std::fs::metadata(&ruta).unwrap().len() as usize,
+            n - FOOTER2_LEN as usize,
+            "el truncado se lleva exactamente el footer roto"
+        );
+    }
+
+    #[test]
+    fn escaud2_contenedor_vacio_finalizado_es_valido() {
+        let dir = tempfile::tempdir().unwrap();
+        let ruta = dir.path().join("vacia.escaud2");
+        let w = Escaud2Writer::create_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(w.finalize().unwrap(), 0);
+        let leidas = escaud2_read_samples_with_key(&ruta, &audio_test_key()).unwrap();
+        assert!(leidas.is_empty());
+        let wav = escaud2_wav_bytes_with_key(&ruta, &audio_test_key()).unwrap();
+        assert_eq!(wav.len(), 44, "solo la cabecera WAV sintetizada");
+    }
+
+    #[test]
+    fn escaud2_y_escaud1_no_se_confunden() {
+        let dir = tempfile::tempdir().unwrap();
+        // Un ESCAUD1 real por el camino de siempre.
+        let ruta1 = dir.path().join("historial.escaudio");
+        save_encrypted_wav_with_key(&ruta1, &muestras_exactas(4000), &audio_test_key()).unwrap();
+        assert!(is_encrypted(&ruta1).unwrap());
+        assert!(!is_escaud2(&ruta1).unwrap());
+        assert!(
+            escaud2_read_samples_with_key(&ruta1, &audio_test_key()).is_err(),
+            "el lector ESCAUD2 rechaza ESCAUD1"
+        );
+        // Y el ESCAUD1 sigue leyéndose igual que siempre.
+        let leidas = read_encrypted_samples_with_key(&ruta1, &audio_test_key()).unwrap();
+        assert_eq!(leidas.len(), 4000);
     }
 }
