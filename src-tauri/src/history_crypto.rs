@@ -164,8 +164,9 @@ pub(crate) fn cifrar_con_estricto(k: &[u8; 32], texto: &str) -> Result<String, S
     Ok(format!("{}{}", PREFIJO, B64.encode(cuerpo)))
 }
 
-/// Descifrado con llave explícita para consumidores del journal (tests y
-/// recuperación): Some solo si descifra limpio.
+/// Descifrado con llave explícita para los tests del journal (la
+/// recuperación real pasa por `leer_campo`): Some solo si descifra limpio.
+#[cfg(test)]
 pub(crate) fn leer_con_llave(k: &[u8; 32], valor: &str) -> Option<String> {
     match leer_con(k, valor) {
         CampoLeido::Descifrado(s) => Some(s),

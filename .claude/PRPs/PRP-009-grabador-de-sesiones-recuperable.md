@@ -36,11 +36,11 @@ diarización (cola acordada el 30-ago).
 
 ### Criterios de Éxito
 
-- [ ] `kill -9` a Escriba a mitad de una sesión → al reabrir, la app ofrece
+- [x] `kill -9` a Escriba a mitad de una sesión → al reabrir, la app ofrece
       recuperar; los turnos previos aparecen completos con sus `mm:ss`.
-- [ ] `kill -9` DESPUÉS de generar el acta pero antes de que el usuario la
+- [x] `kill -9` DESPUÉS de generar el acta pero antes de que el usuario la
       guarde → el documento se recupera del journal, no solo los turnos.
-- [ ] La última línea del journal rota por el kill no impide recuperar las
+- [x] La última línea del journal rota por el kill no impide recuperar las
       anteriores (cola incompleta se descarta en silencio, se loguea).
 - [ ] Los `.escaud2` de ambas pistas truncados por el kill se recuperan hasta
       el último frame AEAD válido y se pueden reproducir/re-transcribir, sin
@@ -48,7 +48,7 @@ diarización (cola acordada el 30-ago).
 - [ ] Apagar y reencender el micrófono a mitad de sesión NO comprime el
       tiempo: la pista registra offset de inicio y huecos, y la alineación
       con la pista del sistema se conserva (test con huecos artificiales).
-- [ ] En disco no existe jamás audio claro ni texto claro de la sesión: cada
+- [x] En disco no existe jamás audio claro ni texto claro de la sesión: cada
       línea del journal es UN evento JSON completo cifrado (`esc1:`), el audio
       va en ESCAUD2. `grep` de una frase dictada sobre `sessions/` → 0 hits.
 - [ ] Sin llave del keyring (o sin CSPRNG) → la persistencia NO se activa como
@@ -59,7 +59,7 @@ diarización (cola acordada el 30-ago).
 - [ ] Todo descarte de audio por presión (canal lleno, disco) queda registrado
       en el journal con el rango de muestras perdido, y la pista se marca
       incompleta: la UI jamás la presenta como cobertura íntegra.
-- [ ] `session_recovery_discard(id)` solo acepta IDs aleatorios del formato
+- [x] `session_recovery_discard(id)` solo acepta IDs aleatorios del formato
       esperado, resuelve la ruta y verifica que quede contenida bajo
       `sessions/`, y rechaza symlinks y `..` (tests de traversal incluidos).
 - [ ] Retención aplicada: default `al_generar`; opciones 7 días, 30 días,
@@ -250,6 +250,16 @@ acta se cierra jamás y toda sesión terminada reaparecería como recuperable).
 **Validación**: `kill -9` en sesión real → reabrir → recuperar → turnos con
 sus `mm:ss` (y el acta si existía). Recovery 2× = mismo estado. Tests de
 traversal en discard. Descartar borra en disco.
+
+> **Fases 1 y 2 validadas en real el 30-ago-2026** (sesión de Alejandro, mic +
+> audio del sistema): kill -9 a mitad → journal de 9 líneas sobrevivió, grep
+> de 5 frases dictadas sobre `sessions/` = 0, diálogo con datos correctos,
+> turnos de vuelta con sus mm:ss exactos y journal reenganchado. kill -9 tras
+> el acta → oferta con "Incluye el acta final", export a Obsidian confirmó
+> (`cierre` = línea 11) y el tercer arranque abrió limpio. Anomalía ABIERTA:
+> en el primer intento, tres journals se crearon y borraron sin rastro
+> durante la configuración de la sesión; no se reprodujo en el segundo. Los
+> descartes ahora se loguean (auditables), así que si vuelve, se verá.
 
 ### Fase 3: Contenedor incremental ESCAUD2
 

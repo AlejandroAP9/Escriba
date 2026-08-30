@@ -324,6 +324,9 @@ pub fn cierre_descarte() {
         guard.take().map(|g| g.dir)
     };
     if let Some(dir) = dir {
+        // Auditable a propósito: borrar una sesión es la única operación
+        // destructiva del módulo y no puede ser invisible en el log.
+        info!("Sesión descartada por reset: {}", dir.display());
         if let Err(e) = fs::remove_dir_all(&dir) {
             warn!("No se pudo borrar la sesión descartada: {e}");
         }
@@ -505,6 +508,7 @@ pub fn descartar_pendiente(id: &str) -> Result<(), String> {
             return Err("esa sesión está activa; descártala desde la sesión".to_string());
         }
     }
+    info!("Sesión pendiente descartada desde recuperación: {}", dir.display());
     fs::remove_dir_all(&dir).map_err(|e| e.to_string())
 }
 
