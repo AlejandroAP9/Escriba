@@ -1,6 +1,6 @@
 # PRP-009: Grabador de sesiones recuperable (SessionRecorder)
 
-> **Estado**: PENDIENTE
+> **Estado**: APROBADO (Alejandro, 30-ago-2026, sobre 70d25ccd)
 > **Fecha**: 2026-08-30 (ajustes de la revisión de Alejandro del mismo día)
 > **Proyecto**: Escriba
 > **Origen**: análisis de `reunion-local` (flopez1977, MIT, repo nacido el
@@ -287,6 +287,13 @@ conservada; simulación de disco lleno.
 
 ## Aprendizajes (Self-Annealing)
 
+### 2026-08-30: fsync por turno, medido y decidido
+
+- **Medición**: 4,2 ms por evento con `sync_data` en cada write (SSD del
+  equipo de desarrollo, test `costo_de_fsync_por_turno_es_asumible`).
+- **Decisión**: fsync en CADA evento (N=1). A ritmo humano (un turno cada
+  varios segundos) es ruido, y elimina la ventana de pérdida entre turnos.
+
 ### 2026-08-30: El PRP nació con dos supuestos falsos
 
 - **Error**: la v1 proponía escritura incremental sobre ESCAUD1 (imposible:
@@ -327,4 +334,4 @@ conservada; simulación de disco lleno.
 - NO concatenar PCM a través de un hueco: el tiempo perdido se rellena, no se
   comprime
 
-_PRP pendiente aprobación. No se ha modificado código._
+_PRP aprobado el 30-ago-2026. Condición de avance: no pasar a Fase 2 sin probar fail-closed, documento durable antes de cierre, y journal truncado recuperable._

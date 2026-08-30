@@ -18,6 +18,7 @@ mod path_guard;
 pub mod portable;
 mod recording_crypto;
 mod redaction;
+mod session_recorder;
 mod settings;
 mod shortcut;
 mod signal_handle;
@@ -972,6 +973,8 @@ pub fn run(cli_args: CliArgs) {
             // solo se levanta on-demand al usar post-proceso.
             if let Ok(data_dir) = portable::app_data_dir(&app.handle().clone()) {
                 managers::local_llm::init(&data_dir);
+                // PRP-009: raíz del journal de sesiones (sessions/).
+                session_recorder::init(&data_dir);
 
                 // Precalentar si el usuario dicta con el motor local: el primer
                 // dictado del dia no debe pagar ~60s de carga fria + warmup Metal.

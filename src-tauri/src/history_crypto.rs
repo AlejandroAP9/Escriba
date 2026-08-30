@@ -138,6 +138,41 @@ fn cifrar_con(k: &[u8; 32], texto: &str) -> String {
     }
 }
 
+/// Cifra SIN degradar jamás a claro. Para el journal de sesiones (PRP-009):
+/// su contrato es fail-closed todo-o-nada, el opuesto exacto del historial
+/// de dictado (donde `cifrar_campo` degrada a propósito para no perder
+/// texto). No unificar: dos contratos, dos funciones.
+pub fn cifrar_campo_estricto(texto: &str) -> Result<String, String> {
+    let Some(k) = llave() else {
+        return Err("cifrado no disponible: sin llave del llavero".to_string());
+    };
+    cifrar_con_estricto(k, texto)
+}
+
+/// Núcleo estricto con llave explícita (testeable sin tocar el llavero).
+pub(crate) fn cifrar_con_estricto(k: &[u8; 32], texto: &str) -> Result<String, String> {
+    let cifra = ChaCha20Poly1305::new(Key::from_slice(k));
+    let mut nonce = [0u8; LARGO_NONCE];
+    getrandom::getrandom(&mut nonce)
+        .map_err(|_| "sin CSPRNG para el nonce: no se cifra".to_string())?;
+    let ct = cifra
+        .encrypt(Nonce::from_slice(&nonce), texto.as_bytes())
+        .map_err(|_| "el AEAD rechazó el cifrado".to_string())?;
+    let mut cuerpo = Vec::with_capacity(LARGO_NONCE + ct.len());
+    cuerpo.extend_from_slice(&nonce);
+    cuerpo.extend_from_slice(&ct);
+    Ok(format!("{}{}", PREFIJO, B64.encode(cuerpo)))
+}
+
+/// Descifrado con llave explícita para consumidores del journal (tests y
+/// recuperación): Some solo si descifra limpio.
+pub(crate) fn leer_con_llave(k: &[u8; 32], valor: &str) -> Option<String> {
+    match leer_con(k, valor) {
+        CampoLeido::Descifrado(s) => Some(s),
+        _ => None,
+    }
+}
+
 /// Resultado de descifrar un campo leído de la base.
 pub enum CampoLeido {
     /// Texto plano heredado (aún sin migrar) o campo vacío.

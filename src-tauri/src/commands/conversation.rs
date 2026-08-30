@@ -140,6 +140,33 @@ fn elapsed_secs() -> u32 {
         .unwrap_or(0)
 }
 
+/// PRP-009: arranca (o reanuda) el journal durable con los turnos ya en RAM.
+/// El replay al arrancar garantiza que un journal que nace tarde (reanudar
+/// tras un acta en el mismo proceso) nazca completo, no con huecos.
+fn journal_asegurar() {
+    if crate::session_recorder::activo() {
+        return;
+    }
+    let Ok(started) = STARTED.lock() else {
+        return;
+    };
+    let Some(inicio) = started.as_ref() else {
+        return; // sin sesión en curso no hay nada que journalizar
+    };
+    let wall_inicio = crate::session_recorder::ahora_wall_ms()
+        .saturating_sub(inicio.elapsed().as_millis() as u64);
+    drop(started);
+    let turnos: Vec<(String, String, u64)> = TURNS
+        .lock()
+        .map(|t| {
+            t.iter()
+                .map(|t| (t.role.clone(), t.text.clone(), u64::from(t.at_secs) * 1000))
+                .collect()
+        })
+        .unwrap_or_default();
+    crate::session_recorder::arrancar(&mode(), wall_inicio, &turnos);
+}
+
 /// Registra un turno y lo devuelve (con su marca de tiempo) para emitirlo.
 pub fn push_turn(role: &str, text: &str) -> Turn {
     let turn = Turn {
@@ -149,6 +176,13 @@ pub fn push_turn(role: &str, text: &str) -> Turn {
     };
     if let Ok(mut t) = TURNS.lock() {
         t.push(turn.clone());
+    }
+    // PRP-009: el turno queda durable al llegar. Si el journal no está activo
+    // (reanudación tras un acta), el replay de journal_asegurar lo incluye.
+    if crate::session_recorder::activo() {
+        crate::session_recorder::turno(&turn.role, &turn.text, u64::from(turn.at_secs) * 1000);
+    } else if LISTENING.load(Ordering::Relaxed) {
+        journal_asegurar();
     }
     turn
 }
@@ -206,6 +240,8 @@ pub fn conversation_start(mode: String) -> ConversationStatus {
         }
     }
     LISTENING.store(true, Ordering::Relaxed);
+    // PRP-009: journal durable desde el primer segundo de la sesión.
+    journal_asegurar();
     status()
 }
 
@@ -238,6 +274,8 @@ pub fn conversation_reset(app: tauri::AppHandle) -> ConversationStatus {
         &app.state::<std::sync::Arc<crate::managers::audio::AudioRecordingManager>>(),
         &app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>(),
     );
+    // PRP-009: reset es descarte explícito; el journal y su carpeta se van ya.
+    crate::session_recorder::cierre_descarte();
     if let Ok(mut t) = TURNS.lock() {
         t.clear();
     }
@@ -1331,8 +1369,14 @@ pub async fn conversation_finish(app: tauri::AppHandle) -> Result<SessionDoc, St
         }
         lines.remove(pos);
     }
+    let final_text = lines.join("\n").trim().to_string();
+    // PRP-009: el acta se cifra al journal ANTES del cierre. `cierre` significa
+    // "documento durable", así que un crash entre generar el acta y que el
+    // usuario la guarde deja una sesión recuperable CON su documento.
+    crate::session_recorder::documento(&final_text, &mood, u64::from(elapsed_secs()) * 1000);
+    crate::session_recorder::cierre_documento();
     Ok(SessionDoc {
-        text: lines.join("\n").trim().to_string(),
+        text: final_text,
         mood,
     })
 }
