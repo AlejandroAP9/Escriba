@@ -2087,8 +2087,8 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
 #[cfg(test)]
 mod tests {
     use super::{
-        leaks_system_prompt, looks_hijacked, unsafe_post_process_output, TranscribeMode,
-        EDIT_SELECTION,
+        elegir_modelo_ollama, leaks_system_prompt, looks_hijacked, unsafe_post_process_output,
+        TranscribeMode, EDIT_SELECTION,
     };
 
     /// El filtro de fuga: lo que delata la receta se descarta, lo legítimo pasa.
@@ -2419,6 +2419,55 @@ mod tests {
     use super::is_blank_transcription;
 
     #[test]
+    fn ollama_elige_el_modelo_parecido_y_no_el_primero() {
+        let deseado = "qwen3-4b-instruct-2507-q4_k_m.gguf";
+
+        // El caso que motivo esto: un modelo de embeddings llega primero.
+        let v = vec![
+            "nomic-embed-text:latest".to_string(),
+            "qwen3:4b-instruct".to_string(),
+        ];
+        assert_eq!(
+            elegir_modelo_ollama(&v, deseado),
+            Some("qwen3:4b-instruct".to_string())
+        );
+
+        // Entre dos de la familia, gana el instruct sobre el thinking.
+        let v = vec![
+            "qwen3:4b-thinking".to_string(),
+            "qwen3:4b-instruct".to_string(),
+        ];
+        assert_eq!(
+            elegir_modelo_ollama(&v, deseado),
+            Some("qwen3:4b-instruct".to_string())
+        );
+
+        // El tamano pesa: un 0.5b no hace el trabajo de un 4b.
+        let v = vec!["qwen3:0.5b".to_string(), "qwen3:4b".to_string()];
+        assert_eq!(
+            elegir_modelo_ollama(&v, deseado),
+            Some("qwen3:4b".to_string())
+        );
+
+        // Sin nada de la familia, sirve cualquiera conversacional.
+        let v = vec!["llama3.2:3b".to_string()];
+        assert_eq!(
+            elegir_modelo_ollama(&v, deseado),
+            Some("llama3.2:3b".to_string())
+        );
+
+        // Si SOLO hay embeddings, se intenta igual antes que quedarse sin motor.
+        let v = vec!["nomic-embed-text:latest".to_string()];
+        assert_eq!(
+            elegir_modelo_ollama(&v, deseado),
+            Some("nomic-embed-text:latest".to_string())
+        );
+
+        // Sin modelos, no hay ruta.
+        assert_eq!(elegir_modelo_ollama(&[], deseado), None);
+    }
+
+    #[test]
     fn blank_transcription_is_detected() {
         assert!(is_blank_transcription(""));
         assert!(is_blank_transcription("   "));
@@ -2451,7 +2500,7 @@ async fn resolve_local_route(model: &str) -> LocalRoute {
         reason = "motor local no inicializado".to_string();
     }
 
-    if let Some(ollama_model) = detect_ollama_model().await {
+    if let Some(ollama_model) = detect_ollama_model(model).await {
         return LocalRoute::Ollama {
             base_url: "http://127.0.0.1:11434/v1".to_string(),
             model: ollama_model,
@@ -2467,8 +2516,8 @@ async fn resolve_local_route(model: &str) -> LocalRoute {
 }
 
 /// Ollama instalado y con al menos un modelo: GET /v1/models (timeout corto,
-/// es localhost). Devuelve el primer modelo disponible.
-async fn detect_ollama_model() -> Option<String> {
+/// es localhost). Devuelve el mas parecido al que Escriba iba a usar.
+async fn detect_ollama_model(deseado: &str) -> Option<String> {
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_millis(700))
         .build()
@@ -2482,12 +2531,84 @@ async fn detect_ollama_model() -> Option<String> {
         return None;
     }
     let json: serde_json::Value = resp.json().await.ok()?;
-    json.get("data")?
+    let disponibles: Vec<String> = json
+        .get("data")?
         .as_array()?
-        .first()?
-        .get("id")?
-        .as_str()
-        .map(|s| s.to_string())
+        .iter()
+        .filter_map(|m| m.get("id")?.as_str().map(|s| s.to_string()))
+        .collect();
+    elegir_modelo_ollama(&disponibles, deseado)
+}
+
+/// Modelos que no sirven para conversar: si el usuario tiene uno de embeddings
+/// instalado, el post-proceso devuelve basura imposible de diagnosticar.
+fn es_no_conversacional(id: &str) -> bool {
+    const MARCAS: [&str; 7] = [
+        "embed",
+        "rerank",
+        "bge-",
+        "minilm",
+        "e5-",
+        "gte-",
+        "moondream",
+    ];
+    let l = id.to_ascii_lowercase();
+    MARCAS.iter().any(|m| l.contains(m))
+}
+
+/// Cuanto se parece un modelo de Ollama al que Escriba iba a usar.
+fn puntuar_modelo_ollama(id: &str, deseado: &str) -> i32 {
+    let l = id.to_ascii_lowercase();
+    let d = deseado.to_ascii_lowercase();
+    let mut p = 0;
+    // Familia: "qwen3-4b-instruct-2507-q4_k_m.gguf" -> "qwen3".
+    if let Some(familia) = d.split(['-', ':', '.', '_']).next() {
+        if familia.len() >= 3 && l.contains(familia) {
+            p += 10;
+        }
+    }
+    // El tamano importa: un 0.5b no hace el trabajo de un 4b.
+    for talla in [
+        "0.5b", "1b", "1.5b", "2b", "3b", "4b", "7b", "8b", "12b", "14b",
+    ] {
+        if d.contains(talla) && l.contains(talla) {
+            p += 3;
+            break;
+        }
+    }
+    if l.contains("instruct") {
+        p += 4;
+    }
+    // Con thinking gastamos tokens en un monologo que luego tiramos.
+    if l.contains("think") {
+        p -= 2;
+    }
+    p
+}
+
+/// Elige el modelo de Ollama mas parecido al que Escriba iba a usar. Antes se
+/// tomaba `data[0]` a ciegas, asi que quien tuviera otro modelo instalado
+/// recibia respuestas raras sin forma de saber por que (12-ago-2026).
+fn elegir_modelo_ollama(disponibles: &[String], deseado: &str) -> Option<String> {
+    let usables: Vec<&String> = disponibles
+        .iter()
+        .filter(|m| !es_no_conversacional(m))
+        .collect();
+    // Si SOLO hay modelos raros, mejor intentarlo que quedarse sin motor.
+    let pool: Vec<&String> = if usables.is_empty() {
+        disponibles.iter().collect()
+    } else {
+        usables
+    };
+    let mut mejor: Option<(i32, &String)> = None;
+    for m in pool {
+        let p = puntuar_modelo_ollama(m, deseado);
+        // Estrictamente mayor: en empate gana el primero que devolvio Ollama.
+        if mejor.is_none_or(|(mp, _)| p > mp) {
+            mejor = Some((p, m));
+        }
+    }
+    mejor.map(|(_, m)| m.clone())
 }
 
 /// Aviso al frontend de que el post-proceso degrado de ruta (toast).
