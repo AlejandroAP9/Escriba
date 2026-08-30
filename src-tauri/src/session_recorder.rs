@@ -250,6 +250,8 @@ pub fn arrancar(modo: &str, wall_ms_inicio: u64, turnos_previos: &[(String, Stri
         Ok(grabador) => {
             info!("Journal de sesión activo: {id}");
             *guard = Some(grabador);
+            drop(guard);
+            eventos_pista_abrir();
         }
         Err(FalloArranque::Cifrado(e)) => {
             if AVISADO_SIN_CIFRADO.set(()).is_ok() {
@@ -318,6 +320,7 @@ pub fn documento(doc: &str, animo: &str, at_ms: u64) {
 /// recuperación ofrece.
 pub fn cierre_documento() {
     pistas_desarmar_todas();
+    eventos_pista_cerrar();
     apendear(&EventoSesion::Cierre {
         motivo: "documento".to_string(),
     });
@@ -328,6 +331,7 @@ pub fn cierre_documento() {
 /// eliminan ya. No es la retención de la Fase 5: es la voluntad del usuario.
 pub fn cierre_descarte() {
     pistas_desarmar_todas();
+    eventos_pista_cerrar();
     let dir = {
         let mut guard = match ACTIVO.lock() {
             Ok(g) => g,
@@ -367,12 +371,75 @@ struct Trozo {
 struct ProductorPista {
     tx: std::sync::mpsc::SyncSender<Trozo>,
     /// Avanza SIEMPRE, se envíe o se descarte: es el reloj de la pista.
-    offset: u64,
+    /// Compartido con el worker para que un descarte al FINAL (canal lleno y
+    /// pista desarmada justo después) también se vuelva silencio + hueco
+    /// (revisión del 30-ago: antes ese descarte terminal desaparecía).
+    offset: std::sync::Arc<std::sync::atomic::AtomicU64>,
     worker: Option<std::thread::JoinHandle<()>>,
 }
 
 static PISTA_MIC: Mutex<Option<ProductorPista>> = Mutex::new(None);
 static PISTA_SYS: Mutex<Option<ProductorPista>> = Mutex::new(None);
+
+/// Canal de eventos de pista → journal, con worker PROPIO. Un worker de
+/// audio bloqueado en su disco jamás arrastra al journal, y un journal lento
+/// jamás bloquea al audio: los eventos van por try_send (lleno → warn, el
+/// audio sigue). Prometido por el PRP; lo cerró la revisión del 30-ago.
+static EVENTOS_PISTA: Mutex<
+    Option<(
+        std::sync::mpsc::SyncSender<EventoSesion>,
+        std::thread::JoinHandle<()>,
+    )>,
+> = Mutex::new(None);
+
+/// Encola un evento de pista al journal sin bloquear jamás al que llama.
+fn registrar_pista(evento: EventoSesion) {
+    let Ok(guard) = EVENTOS_PISTA.lock() else {
+        return;
+    };
+    let Some((tx, _)) = guard.as_ref() else {
+        return;
+    };
+    if let Err(e) = tx.try_send(evento) {
+        warn!("Evento de pista sin registrar (canal de journal saturado o cerrado): {e}");
+    }
+}
+
+fn eventos_pista_abrir() {
+    let Ok(mut guard) = EVENTOS_PISTA.lock() else {
+        return;
+    };
+    if guard.is_some() {
+        return;
+    }
+    let (tx, rx) = std::sync::mpsc::sync_channel::<EventoSesion>(64);
+    if let Ok(handle) = std::thread::Builder::new()
+        .name("escriba-journal-pistas".into())
+        .spawn(move || {
+            for evento in rx {
+                apendear(&evento);
+            }
+        })
+    {
+        *guard = Some((tx, handle));
+    }
+}
+
+/// Cierra el canal y espera a que los eventos pendientes lleguen al journal.
+/// SIEMPRE después de desarmar las pistas (sus `fin` viajan por aquí) y
+/// antes de escribir `cierre`.
+fn eventos_pista_cerrar() {
+    let par = {
+        let Ok(mut guard) = EVENTOS_PISTA.lock() else {
+            return;
+        };
+        guard.take()
+    };
+    if let Some((tx, handle)) = par {
+        drop(tx);
+        let _ = handle.join();
+    }
+}
 
 fn slot_de(pista: &str) -> &'static Mutex<Option<ProductorPista>> {
     if pista == "mic" {
@@ -386,8 +453,9 @@ fn slot_de(pista: &str) -> &'static Mutex<Option<ProductorPista>> {
 /// bloquea. `Disconnected` = worker muerto: la pista queda desarmada.
 fn empujar_en(guard: &mut Option<ProductorPista>, samples: &[f32]) {
     let Some(p) = guard.as_mut() else { return };
-    let inicio = p.offset;
-    p.offset += samples.len() as u64;
+    let inicio = p
+        .offset
+        .fetch_add(samples.len() as u64, std::sync::atomic::Ordering::SeqCst);
     match p.tx.try_send(Trozo {
         inicio,
         muestras: samples.to_vec(),
@@ -436,6 +504,7 @@ fn correr_pista_nucleo(
     rx: std::sync::mpsc::Receiver<Trozo>,
     mut writer: crate::recording_crypto::Escaud2Writer,
     at_ms_base: u64,
+    offset_final: std::sync::Arc<std::sync::atomic::AtomicU64>,
     registrar: &dyn Fn(EventoSesion),
 ) {
     let at_de = |muestras: u64| at_ms_base + muestras * 1000 / MUESTRAS_POR_SEGUNDO;
@@ -476,7 +545,31 @@ fn correr_pista_nucleo(
         }
         escritas += trozo.muestras.len() as u64;
     }
-    // Canal cerrado: cierre limpio con footer.
+    // Canal cerrado. Si el productor avanzó más de lo que llegó (descartes
+    // al FINAL de la pista), ese tramo también es silencio + hueco: el
+    // reloj compartido es la verdad, no el último trozo recibido.
+    let producido = offset_final.load(std::sync::atomic::Ordering::SeqCst);
+    if producido > escritas {
+        let hueco = producido - escritas;
+        let silencio = vec![0f32; 16_384];
+        let mut faltan = hueco;
+        while faltan > 0 {
+            let n = faltan.min(silencio.len() as u64) as usize;
+            if let Err(e) = writer.append_samples(&silencio[..n]) {
+                corte(escritas, &e);
+                return;
+            }
+            faltan -= n as u64;
+        }
+        registrar(EventoSesion::Pista {
+            pista: pista.to_string(),
+            evento: "hueco".to_string(),
+            at_ms: at_de(escritas),
+            muestras_perdidas: Some(hueco),
+        });
+        escritas = producido;
+    }
+    // Cierre limpio con footer.
     let final_at = at_de(escritas);
     if let Err(e) = writer.finalize() {
         corte(escritas, &e);
@@ -514,9 +607,20 @@ pub fn pista_armar(pista: &'static str, at_ms_base: u64) {
         }
     };
     let (tx, rx) = std::sync::mpsc::sync_channel::<Trozo>(CAPACIDAD_CANAL);
+    let offset = std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0));
+    let offset_worker = std::sync::Arc::clone(&offset);
     let handle = std::thread::Builder::new()
         .name(format!("escriba-pista-{pista}"))
-        .spawn(move || correr_pista_nucleo(pista, rx, writer, at_ms_base, &|e| apendear(&e)))
+        .spawn(move || {
+            correr_pista_nucleo(
+                pista,
+                rx,
+                writer,
+                at_ms_base,
+                offset_worker,
+                &registrar_pista,
+            )
+        })
         .ok();
     apendear(&EventoSesion::Pista {
         pista: pista.to_string(),
@@ -526,7 +630,7 @@ pub fn pista_armar(pista: &'static str, at_ms_base: u64) {
     });
     *slot = Some(ProductorPista {
         tx,
-        offset: 0,
+        offset,
         worker: handle,
     });
 }
@@ -714,18 +818,59 @@ pub fn cargar_pendiente(id: &str) -> Result<(Vec<EventoSesion>, bool), String> {
 /// Sana las pistas de una sesión pendiente: trunca colas rotas por el kill.
 /// Se llama desde el comando de recuperación, JAMÁS desde la captura.
 pub fn sanar_pistas(id: &str) {
-    let Ok(dir) = dir_validada(id) else { return };
-    let Ok(entradas) = fs::read_dir(&dir) else {
-        return;
-    };
-    for f in entradas.flatten() {
-        let nombre = f.file_name().to_string_lossy().to_string();
-        if nombre.ends_with(".escaud2") {
-            if let Err(e) = crate::recording_crypto::escaud2_recover(&f.path()) {
-                warn!("Pista {nombre} no recuperable: {e}");
-            }
+    let Some(raiz) = RAIZ.get() else { return };
+    for ruta in segmentos_validados_en(raiz, id) {
+        if let Err(e) = crate::recording_crypto::escaud2_recover(&ruta) {
+            warn!("Pista {} no recuperable: {e}", ruta.display());
         }
     }
+}
+
+/// ¿Nombre estricto de segmento? `mic-0.escaud2`, `sys-12.escaud2`... y nada
+/// más: ni symlinks con nombre bonito, ni archivos ajenos.
+fn nombre_de_segmento_valido(nombre: &str) -> bool {
+    let Some(resto) = nombre
+        .strip_prefix("mic-")
+        .or_else(|| nombre.strip_prefix("sys-"))
+    else {
+        return false;
+    };
+    let Some(indice) = resto.strip_suffix(".escaud2") else {
+        return false;
+    };
+    !indice.is_empty() && indice.len() <= 6 && indice.bytes().all(|b| b.is_ascii_digit())
+}
+
+/// Segmentos de una sesión con las MISMAS garantías que el journal: id
+/// validado, contención bajo la raíz, nombre estricto y archivo regular
+/// (un symlink jamás es una pista; truncarlo seguiría el enlace).
+fn segmentos_validados_en(raiz: &Path, id: &str) -> Vec<PathBuf> {
+    let Ok(dir) = dir_validada_en(raiz, id) else {
+        return Vec::new();
+    };
+    let Ok(entradas) = fs::read_dir(&dir) else {
+        return Vec::new();
+    };
+    let mut rutas: Vec<PathBuf> = entradas
+        .flatten()
+        .filter(|f| {
+            let nombre = f.file_name().to_string_lossy().to_string();
+            nombre_de_segmento_valido(&nombre)
+                && fs::symlink_metadata(f.path())
+                    .map(|m| m.is_file() && !m.file_type().is_symlink())
+                    .unwrap_or(false)
+        })
+        .map(|f| f.path())
+        .collect();
+    rutas.sort();
+    rutas
+}
+
+/// Segmentos válidos de una sesión pendiente, para re-transcribir.
+pub fn listar_segmentos(id: &str) -> Vec<PathBuf> {
+    RAIZ.get()
+        .map(|raiz| segmentos_validados_en(raiz, id))
+        .unwrap_or_default()
 }
 
 /// Reengancha el journal de una sesión recuperada: los turnos nuevos siguen
@@ -1134,13 +1279,19 @@ mod tests {
         let (tx, _rx) = std::sync::mpsc::sync_channel::<Trozo>(1);
         let mut slot = Some(ProductorPista {
             tx,
-            offset: 0,
+            offset: std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0)),
             worker: None,
         });
         for _ in 0..3 {
             empujar_en(&mut slot, &[0.5f32; 1000]);
         }
-        assert_eq!(slot.as_ref().unwrap().offset, 3000);
+        assert_eq!(
+            slot.as_ref()
+                .unwrap()
+                .offset
+                .load(std::sync::atomic::Ordering::SeqCst),
+            3000
+        );
     }
 
     #[test]
@@ -1149,7 +1300,7 @@ mod tests {
         drop(rx); // el worker murió
         let mut slot = Some(ProductorPista {
             tx,
-            offset: 0,
+            offset: std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0)),
             worker: None,
         });
         empujar_en(&mut slot, &[0.1f32; 10]);
@@ -1179,9 +1330,16 @@ mod tests {
         })
         .unwrap();
         drop(tx);
-        correr_pista_nucleo("mic", rx, writer, 10_000, &|e| {
-            eventos.lock().unwrap().push(e);
-        });
+        correr_pista_nucleo(
+            "mic",
+            rx,
+            writer,
+            10_000,
+            std::sync::Arc::new(std::sync::atomic::AtomicU64::new(3500)),
+            &|e| {
+                eventos.lock().unwrap().push(e);
+            },
+        );
 
         let leidas = crate::recording_crypto::escaud2_read_samples_with_key(&ruta, &LLAVE).unwrap();
         assert_eq!(leidas.len(), 3500, "1000 + 2000 de silencio + 500");
@@ -1208,6 +1366,92 @@ mod tests {
             .iter()
             .any(|e| matches!(e, EventoSesion::Pista { evento, .. } if evento == "fin")));
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn saturacion_seguida_de_cierre_no_pierde_el_hueco_final() {
+        // El caso de la revisión del 30-ago: el canal se llena, se descartan
+        // trozos, y la pista se desarma ANTES de que llegue otro trozo que
+        // delate el salto. El reloj compartido convierte ese tramo en
+        // silencio + hueco igualmente.
+        let dir = std::env::temp_dir().join(format!("escriba-satur-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let ruta = dir.join("mic-0.escaud2");
+        let writer =
+            crate::recording_crypto::Escaud2Writer::create_with_key(&ruta, &LLAVE).unwrap();
+
+        let offset = std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0));
+        let (tx, rx) = std::sync::mpsc::sync_channel::<Trozo>(1);
+        let mut slot = Some(ProductorPista {
+            tx,
+            offset: std::sync::Arc::clone(&offset),
+            worker: None,
+        });
+        // Tres empujes contra un canal de 1: entra el primero, se descartan
+        // dos. Y cierre inmediato, sin ningún trozo posterior.
+        for _ in 0..3 {
+            empujar_en(&mut slot, &[0.5f32; 1000]);
+        }
+        drop(slot); // pista_desarmar: cae el productor y se cierra el canal
+
+        let eventos = Mutex::new(Vec::new());
+        correr_pista_nucleo("mic", rx, writer, 0, offset, &|e| {
+            eventos.lock().unwrap().push(e);
+        });
+
+        let leidas = crate::recording_crypto::escaud2_read_samples_with_key(&ruta, &LLAVE).unwrap();
+        assert_eq!(
+            leidas.len(),
+            3000,
+            "1000 recibidas + 2000 de silencio final"
+        );
+        assert!(leidas[1000..].iter().all(|s| *s == 0.0));
+        let ev = eventos.lock().unwrap();
+        let hueco = ev.iter().find_map(|e| match e {
+            EventoSesion::Pista {
+                evento,
+                muestras_perdidas,
+                ..
+            } if evento == "hueco" => Some(*muestras_perdidas),
+            _ => None,
+        });
+        assert_eq!(hueco, Some(Some(2000)));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn sanar_ignora_symlinks_y_nombres_ajenos() {
+        assert!(nombre_de_segmento_valido("mic-0.escaud2"));
+        assert!(nombre_de_segmento_valido("sys-12.escaud2"));
+        for malo in [
+            "mic-.escaud2",
+            "mic-0.escaudio",
+            "otro-0.escaud2",
+            "mic-0.escaud2.evil",
+            "mic-0000000.escaud2", // índice absurdo
+            "journal.jsonl",
+            "..",
+        ] {
+            assert!(!nombre_de_segmento_valido(malo), "aceptado: {malo}");
+        }
+
+        // Y sobre disco: un symlink con nombre PERFECTO no entra a la lista.
+        let base = std::env::temp_dir().join(format!("escriba-sanar-{}", std::process::id()));
+        let raiz = base.join("sessions");
+        let id = "feedfacefeedfacefeedfacefeedface";
+        let dir = raiz.join(id);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("journal.jsonl"), b"x").unwrap();
+        let fuera = base.join("victima.escaud2");
+        std::fs::write(&fuera, b"contenido ajeno").unwrap();
+        std::os::unix::fs::symlink(&fuera, dir.join("mic-0.escaud2")).unwrap();
+        std::fs::write(dir.join("sys-0.escaud2"), b"real").unwrap();
+
+        let rutas = segmentos_validados_en(&raiz, id);
+        assert_eq!(rutas.len(), 1, "solo el archivo regular");
+        assert!(rutas[0].ends_with("sys-0.escaud2"));
+        let _ = std::fs::remove_dir_all(&base);
     }
 
     #[test]

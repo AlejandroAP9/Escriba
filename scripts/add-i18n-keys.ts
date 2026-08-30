@@ -23,55 +23,16 @@ const LOCALES = join(
 
 /** clave → { en, es } (los demás locales reciben el texto en inglés). */
 const NUEVAS: Record<string, { en: string; es: string }> = {
-  "recovery.title": {
-    en: "A session was left unfinished",
-    es: "Una sesión quedó a medias",
+  "recovery.retranscribe": {
+    en: "Recover re-transcribing the audio",
+    es: "Recuperar re-transcribiendo el audio",
   },
-  "recovery.subtitle": {
-    en: "Escriba kept everything up to the last moment, encrypted on this device. What do you want to do with it?",
-    es: "Escriba guardó todo hasta el último momento, cifrado en este equipo. ¿Qué quieres hacer con ella?",
-  },
-  "recovery.summary": {
-    en: "{{turns}} turns · {{duration}}",
-    es: "{{turns}} turnos · {{duration}}",
-  },
-  "recovery.hasDoc": {
-    en: "Includes the final document",
-    es: "Incluye el acta final",
-  },
-  "recovery.brokenTail": {
-    en: "The crash cut the very last line; everything before it was saved.",
-    es: "El corte rompió la última línea; todo lo anterior quedó a salvo.",
-  },
-  "recovery.recover": {
-    en: "Recover session",
-    es: "Recuperar la sesión",
-  },
-  "recovery.export": {
-    en: "Export the document",
-    es: "Exportar el acta",
-  },
-  "recovery.discard": {
-    en: "Discard",
-    es: "Descartar",
-  },
-  "recovery.discardTitle": {
-    en: "Discard session",
-    es: "Descartar sesión",
-  },
-  "recovery.discardConfirm": {
-    en: "Delete this session? Its journal and any recovered document will be permanently removed.",
-    es: "¿Eliminar esta sesión? Su registro y el acta recuperada se borran para siempre.",
-  },
-  "recovery.recovered": {
-    en: "Session recovered",
-    es: "Sesión recuperada",
-  },
-  "recovery.error": {
-    en: "Could not recover the session",
-    es: "No se pudo recuperar la sesión",
+  "recovery.retranscribing": {
+    en: "Transcribing the recorded audio…",
+    es: "Transcribiendo el audio grabado…",
   },
 };
+
 
 function poner(
   obj: Record<string, unknown>,

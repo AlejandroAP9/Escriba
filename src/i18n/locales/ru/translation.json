@@ -1583,6 +1583,8 @@
     "discardTitle": "Discard session",
     "discardConfirm": "Delete this session? Its journal and any recovered document will be permanently removed.",
     "recovered": "Session recovered",
-    "error": "Could not recover the session"
+    "error": "Could not recover the session",
+    "retranscribe": "Recover re-transcribing the audio",
+    "retranscribing": "Transcribing the recorded audio…"
   }
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ask } from "@tauri-apps/plugin-dialog";
-import { FileDown, RotateCcw, Trash2 } from "lucide-react";
+import { AudioLines, FileDown, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { commands, type ResumenPendiente } from "@/bindings";
 import { navigateTo } from "@/lib/navigation";
@@ -51,10 +51,15 @@ export const SessionRecoveryDialog: React.FC = () => {
   const modeLabel = (modo: string) =>
     t(`conversation.variant.${modo}`, { defaultValue: modo });
 
-  const recover = async (id: string) => {
+  const recover = async (id: string, retranscribe = false) => {
     setBusy(true);
     try {
-      const r = await commands.sessionRecover(id);
+      // Re-transcribir lee las pistas ESCAUD2 y reconstruye los turnos con el
+      // Estudio: puede tardar (minutos en sesiones largas), de ahí el aviso.
+      if (retranscribe) toast.info(t("recovery.retranscribing"));
+      const r = retranscribe
+        ? await commands.sessionRecoverRetranscribe(id)
+        : await commands.sessionRecover(id);
       if (r.status === "ok") {
         toast.success(t("recovery.recovered"));
         setOpen(false);
@@ -154,6 +159,20 @@ export const SessionRecoveryDialog: React.FC = () => {
                 />
                 {t("recovery.recover")}
               </Button>
+              {session.tiene_audio && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => recover(session.id, true)}
+                >
+                  <AudioLines
+                    className="me-1 inline h-3.5 w-3.5"
+                    aria-hidden="true"
+                  />
+                  {t("recovery.retranscribe")}
+                </Button>
+              )}
               {session.tiene_documento && (
                 <Button
                   size="sm"

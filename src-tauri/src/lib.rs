@@ -662,6 +662,7 @@ pub fn run(cli_args: CliArgs) {
             commands::conversation::conversation_finish,
             commands::conversation::session_recovery_list,
             commands::conversation::session_recover,
+            commands::conversation::session_recover_retranscribe,
             commands::conversation::session_recovery_doc,
             commands::conversation::session_recovery_discard,
             commands::conversation::session_recovery_confirm,

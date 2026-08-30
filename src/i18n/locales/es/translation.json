@@ -1583,6 +1583,8 @@
     "discardTitle": "Descartar sesión",
     "discardConfirm": "¿Eliminar esta sesión? Su registro y el acta recuperada se borran para siempre.",
     "recovered": "Sesión recuperada",
-    "error": "No se pudo recuperar la sesión"
+    "error": "No se pudo recuperar la sesión",
+    "retranscribe": "Recuperar re-transcribiendo el audio",
+    "retranscribing": "Transcribiendo el audio grabado…"
   }
 }

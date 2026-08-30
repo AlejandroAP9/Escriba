@@ -1082,13 +1082,11 @@ fn escaud2_recover_with_key(path: &Path, key: &[u8; 32]) -> Result<u64> {
 
 /// Muestras f32 de una pista (para re-transcribir). Acepta contenedores con
 /// cola rota: entrega hasta el último frame válido.
-#[allow(dead_code)] // PRP-009 Fase 5+: lectura/reproceso de pistas; quitar al cablear.
 pub fn escaud2_read_samples(path: &Path) -> Result<Vec<f32>> {
     let key = audio_key().ok_or_else(|| anyhow!("llave del historial no disponible"))?;
     escaud2_read_samples_with_key(path, &key)
 }
 
-#[allow(dead_code)] // PRP-009 Fase 5+: lectura/reproceso de pistas; quitar al cablear.
 pub(crate) fn escaud2_read_samples_with_key(path: &Path, key: &[u8; 32]) -> Result<Vec<f32>> {
     let scan = escaud2_scan(path, key)?;
     Ok(scan

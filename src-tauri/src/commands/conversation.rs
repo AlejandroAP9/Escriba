@@ -396,6 +396,150 @@ pub fn session_recover(id: String) -> Result<RecoveredSession, String> {
     })
 }
 
+/// Recupera una sesión RECONSTRUYENDO los turnos desde el audio grabado
+/// (PRP-009: "la recuperación ofrece re-transcribir"). La base de tiempo de
+/// cada segmento sale de su k-ésimo evento `pista{inicio}` del journal; los
+/// turnos del journal quedan como respaldo si el audio no entrega nada.
+#[tauri::command]
+#[specta::specta]
+pub async fn session_recover_retranscribe(
+    app: tauri::AppHandle,
+    id: String,
+) -> Result<RecoveredSession, String> {
+    use tauri::Manager;
+    let en_curso = STARTED.lock().map(|s| s.is_some()).unwrap_or(false)
+        && TURNS.lock().map(|t| !t.is_empty()).unwrap_or(false);
+    if en_curso {
+        return Err("session_in_progress".to_string());
+    }
+    let (eventos, _cola_rota) = crate::session_recorder::cargar_pendiente(&id)?;
+    // Colas rotas por el kill: se truncan aquí, nunca en la captura.
+    crate::session_recorder::sanar_pistas(&id);
+
+    let mut modo = String::new();
+    let mut doc: Option<SessionDoc> = None;
+    let mut turnos_journal: Vec<Turn> = Vec::new();
+    let mut bases: std::collections::HashMap<String, Vec<u64>> = Default::default();
+    for e in &eventos {
+        match e {
+            crate::session_recorder::EventoSesion::Inicio { modo: m, .. } => modo = m.clone(),
+            crate::session_recorder::EventoSesion::Turno { role, text, at_ms } => {
+                turnos_journal.push(Turn {
+                    role: role.clone(),
+                    text: text.clone(),
+                    at_secs: (*at_ms / 1000) as u32,
+                });
+            }
+            crate::session_recorder::EventoSesion::Documento {
+                doc: d,
+                animo,
+                at_ms: _,
+            } => {
+                doc = Some(SessionDoc {
+                    text: d.clone(),
+                    mood: animo.clone(),
+                });
+            }
+            crate::session_recorder::EventoSesion::Pista {
+                pista,
+                evento,
+                at_ms,
+                ..
+            } if evento == "inicio" => {
+                bases.entry(pista.clone()).or_default().push(*at_ms);
+            }
+            crate::session_recorder::EventoSesion::Pista { .. } => {}
+            crate::session_recorder::EventoSesion::Cierre { .. } => {
+                return Err("session_closed".to_string());
+            }
+        }
+    }
+    if modo.is_empty() {
+        return Err("journal sin evento de inicio".to_string());
+    }
+
+    let segmentos = crate::session_recorder::listar_segmentos(&id);
+    let tm = std::sync::Arc::clone(
+        &app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>(),
+    );
+    let turnos_audio =
+        tauri::async_runtime::spawn_blocking(move || -> Result<Vec<Turn>, String> {
+            let mut turns: Vec<Turn> = Vec::new();
+            for ruta in segmentos {
+                let nombre = ruta
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_default();
+                let (pista, indice) = match nombre
+                    .strip_suffix(".escaud2")
+                    .and_then(|n| n.split_once('-'))
+                    .and_then(|(p, i)| i.parse::<usize>().ok().map(|i| (p.to_string(), i)))
+                {
+                    Some(v) => v,
+                    None => continue,
+                };
+                let samples = crate::recording_crypto::escaud2_read_samples(&ruta)
+                    .map_err(|e| e.to_string())?;
+                if samples.is_empty() {
+                    continue;
+                }
+                let segs = crate::studio::pipeline::transcribe_samples(&tm, &samples, |_| {})?;
+                let base_ms = bases
+                    .get(&pista)
+                    .and_then(|v| v.get(indice))
+                    .copied()
+                    .unwrap_or(0);
+                let role = if pista == "mic" { "user" } else { "system" };
+                for sg in segs {
+                    let text = sg.text.trim();
+                    if !text.is_empty() {
+                        turns.push(Turn {
+                            role: role.to_string(),
+                            text: text.to_string(),
+                            at_secs: ((base_ms + (sg.start_s * 1000.0) as u64) / 1000) as u32,
+                        });
+                    }
+                }
+            }
+            turns.sort_by_key(|t| t.at_secs);
+            Ok(turns)
+        })
+        .await
+        .map_err(|e| e.to_string())??;
+
+    let turns = if turnos_audio.is_empty() {
+        turnos_journal // el audio no dio nada: mejor el journal que vacío
+    } else {
+        turnos_audio
+    };
+    let duracion_ms = turns
+        .iter()
+        .map(|t| u64::from(t.at_secs) * 1000)
+        .max()
+        .unwrap_or(0);
+    if let Err(e) = crate::session_recorder::reanudar(&id) {
+        log::warn!("Sesión {id} re-transcrita sin reenganchar el journal: {e}");
+    }
+    if let Ok(mut m) = MODE.lock() {
+        *m = modo.clone();
+    }
+    if let Ok(mut t) = TURNS.lock() {
+        *t = turns.clone();
+    }
+    if let Ok(mut s) = STARTED.lock() {
+        *s = Some(
+            Instant::now()
+                .checked_sub(std::time::Duration::from_millis(duracion_ms))
+                .unwrap_or_else(Instant::now),
+        );
+    }
+    Ok(RecoveredSession {
+        mode: modo,
+        turns,
+        doc,
+    })
+}
+
 /// Solo lectura: el acta de una sesión pendiente, para exportarla desde el
 /// diálogo de recuperación sin tocar el estado de la sesión en curso.
 #[tauri::command]
@@ -1088,6 +1232,10 @@ pub fn conversation_system_audio(app: tauri::AppHandle, on: bool) -> Result<bool
                 use tauri::Emitter;
                 let _ = app2.emit("system-audio-died", ());
                 SYSTEM_AUDIO.store(false, Ordering::Relaxed);
+                // El store(false) de arriba hace que system_audio_off retorne
+                // temprano después: la pista se desarma AQUÍ o no se desarma
+                // nunca (revisión del 30-ago).
+                crate::session_recorder::pista_desarmar("sys");
                 break;
             }
             let n = crate::system_audio::read(&mut chunk);
@@ -1463,10 +1611,13 @@ fn hands_free_off(
     if !HANDS_FREE.swap(false, Ordering::Relaxed) {
         return;
     }
-    crate::session_recorder::pista_desarmar("mic");
     tm.stream_router().close_tap();
     let gen = rm.cancel_generation();
     let _ = rm.stop_recording("hands_free", gen);
+    // DESPUÉS de drenar: stop_recording todavía empuja audio por el raw tap,
+    // y desarmar antes lo convertía en no-op perdiendo la cola (revisión del
+    // 30-ago). El worker recibe hasta la última muestra y recién ahí finaliza.
+    crate::session_recorder::pista_desarmar("mic");
 }
 
 /// Estado de la voz neural incluida (para la tarjeta de instalación).
