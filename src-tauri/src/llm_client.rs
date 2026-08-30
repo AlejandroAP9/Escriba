@@ -386,7 +386,46 @@ pub async fn send_chat_completion_with_schema(
     Ok(completion
         .choices
         .first()
-        .and_then(|choice| choice.message.content.clone()))
+        .and_then(|choice| choice.message.content.clone())
+        .map(|texto| quitar_razonamiento(&texto))
+        // Si tras quitar el razonamiento no queda nada, el modelo penso y no
+        // respondio. None degrada al dictado crudo, que es mejor que pegar
+        // una cadena vacia encima de lo que dijo el usuario.
+        .filter(|texto| !texto.is_empty()))
+}
+
+/// Quita el razonamiento en voz alta que emiten los modelos "thinking".
+///
+/// Escriba manda `reasoning_effort` para apagarlo, pero eso solo lo honran
+/// algunos servidores: por la ruta de respaldo de Ollama, con un modelo
+/// thinking, el monologo llegaba entero al texto del usuario. Este es el unico
+/// punto por donde pasa toda respuesta del modelo, asi que saneando aqui
+/// quedan cubiertos post-proceso, traduccion, Sesiones, Plumin e Interprete.
+fn quitar_razonamiento(texto: &str) -> String {
+    const ETIQUETAS: [(&str, &str); 2] = [("<think>", "</think>"), ("<thinking>", "</thinking>")];
+    let mut out = texto.to_string();
+    for (abre, cierra) in ETIQUETAS {
+        while let Some(i) = out.find(abre) {
+            match out[i..].find(cierra) {
+                Some(rel) => {
+                    let fin = i + rel + cierra.len();
+                    out.replace_range(i..fin, "");
+                }
+                // Bloque sin cerrar: se quedo pensando y nunca respondio.
+                // Cortar desde la apertura evita pegar el monologo entero.
+                None => {
+                    out.truncate(i);
+                    break;
+                }
+            }
+        }
+        // Cierre huerfano: hay plantillas que abren el bloque en el prompt, asi
+        // que la respuesta trae solo el cierre y todo lo anterior es rumiar.
+        if let Some(i) = out.find(cierra) {
+            out = out[i + cierra.len()..].to_string();
+        }
+    }
+    out.trim().to_string()
 }
 
 /// Fetch available models from an OpenAI-compatible API
@@ -451,6 +490,41 @@ pub async fn fetch_models(
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn quita_el_razonamiento_de_los_modelos_thinking() {
+        // Bloque completo: se va entero y queda la respuesta.
+        assert_eq!(
+            super::quitar_razonamiento("<think>El usuario quiere X</think>Hola, que tal."),
+            "Hola, que tal."
+        );
+        // Varios bloques.
+        assert_eq!(
+            super::quitar_razonamiento("<think>a</think>Uno <think>b</think>dos"),
+            "Uno dos"
+        );
+        // Cierre huerfano: la plantilla abrio el bloque en el prompt.
+        assert_eq!(
+            super::quitar_razonamiento("mmm a ver</think>La respuesta"),
+            "La respuesta"
+        );
+        // Sin cerrar: penso y nunca respondio, no se pega el monologo.
+        assert_eq!(
+            super::quitar_razonamiento("Texto util<think>y sigo pensando"),
+            "Texto util"
+        );
+        // La variante <thinking> tambien.
+        assert_eq!(
+            super::quitar_razonamiento("<thinking>x</thinking>  Listo "),
+            "Listo"
+        );
+        // Texto normal no se toca.
+        assert_eq!(
+            super::quitar_razonamiento("Un texto cualquiera, sin etiquetas."),
+            "Un texto cualquiera, sin etiquetas."
+        );
+    }
+
     use super::should_retry_managed_request;
 
     #[test]
