@@ -74,6 +74,62 @@ async conversationFinish() : Promise<Result<SessionDoc, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async sessionRecoveryList() : Promise<ResumenPendiente[]> {
+    return await TAURI_INVOKE("session_recovery_list");
+},
+/**
+ * Recupera una sesión pendiente: repuebla los estáticos de la sesión y
+ * reengancha el journal para que los turnos nuevos sigan en el MISMO
+ * archivo. Con una sesión en curso no pisa nada (recuperar es cosa del
+ * arranque); llamarlo dos veces da `session_in_progress`, no duplicados.
+ */
+async sessionRecover(id: string) : Promise<Result<RecoveredSession, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("session_recover", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Solo lectura: el acta de una sesión pendiente, para exportarla desde el
+ * diálogo de recuperación sin tocar el estado de la sesión en curso.
+ */
+async sessionRecoveryDoc(id: string) : Promise<Result<SessionDoc, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("session_recovery_doc", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async sessionRecoveryDiscard(id: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("session_recovery_discard", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Confirmación durable de una sesión pendiente exportada desde el diálogo.
+ */
+async sessionRecoveryConfirm(id: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("session_recovery_confirm", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Confirmación durable de la sesión ACTIVA (el usuario exportó el acta a
+ * Obsidian). Jamás se llama automáticamente al generar el acta: esa es la
+ * condición de la revisión del 30-ago.
+ */
+async sessionDocConfirm() : Promise<void> {
+    await TAURI_INVOKE("session_doc_confirm");
+},
 /**
  * Lee un texto en voz alta con la cascada de motores de Escriba:
  * 1) Voz neural incluida (sherpa-onnx + Piper es_MX), si está instalada y la
@@ -1806,6 +1862,20 @@ export type PluminHelpResponse = { topic: string; section: string;
 answer: string | null; used_local_engine: boolean }
 export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null; supports_structured_output?: boolean }
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
+/**
+ * PRP-009 (Fase 2): una sesión recuperada del journal, lista para la
+ * pantalla de Sesiones. El efecto de reconexión del frontend hace el resto.
+ */
+export type RecoveredSession = { mode: string; turns: Turn[]; doc: SessionDoc | null }
+/**
+ * Resumen de una sesión pendiente (journal sin `cierre`) para el diálogo de
+ * recuperación. Nunca lleva rutas: el id es el único mango que ve la webview.
+ */
+export type ResumenPendiente = { id: string; wall_ms: number; modo: string; turnos: number; duracion_ms: number; tiene_documento: boolean; 
+/**
+ * El kill rompió la última línea: se recuperó todo lo anterior.
+ */
+cola_rota: boolean }
 export type SecretMap = Partial<{ [key in string]: string }>
 /**
  * Documento final + ánimo general de la sesión (idea de Pedro Sánchez,

@@ -16,6 +16,7 @@
 
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
+use specta::Type;
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -137,6 +138,7 @@ fn cifrador_real(texto: &str) -> Result<String, String> {
 
 /// Por qué falló el arranque del journal: el cifrado (fail-closed, aviso
 /// único) o el disco (se avisa cada vez, puede ser transitorio).
+#[derive(Debug)]
 enum FalloArranque {
     Cifrado(String),
     Disco(String),
@@ -304,7 +306,6 @@ pub fn documento(doc: &str, animo: &str, at_ms: u64) {
 /// dispara el comando de confirmación de la Fase 2; hasta entonces, los
 /// journals con `documento` y sin `cierre` son exactamente lo que la
 /// recuperación ofrece.
-#[allow(dead_code)] // Fase 2: lo llama la confirmación explícita del frontend.
 pub fn cierre_documento() {
     apendear(&EventoSesion::Cierre {
         motivo: "documento".to_string(),
@@ -327,6 +328,234 @@ pub fn cierre_descarte() {
             warn!("No se pudo borrar la sesión descartada: {e}");
         }
     }
+}
+
+// ─────────────────────────── Recuperación (Fase 2) ───────────────────────────
+
+/// Resumen de una sesión pendiente (journal sin `cierre`) para el diálogo de
+/// recuperación. Nunca lleva rutas: el id es el único mango que ve la webview.
+#[derive(Serialize, Clone, Type)]
+pub struct ResumenPendiente {
+    pub id: String,
+    pub wall_ms: u64,
+    pub modo: String,
+    pub turnos: u32,
+    pub duracion_ms: u64,
+    pub tiene_documento: bool,
+    /// El kill rompió la última línea: se recuperó todo lo anterior.
+    pub cola_rota: bool,
+}
+
+/// Descifrador real (llave del llavero). `None` = línea ilegible.
+fn descifrador_real(valor: &str) -> Option<String> {
+    match crate::history_crypto::leer_campo(valor) {
+        crate::history_crypto::CampoLeido::Descifrado(s) => Some(s),
+        _ => None,
+    }
+}
+
+/// Un id de sesión válido es EXACTAMENTE 32 hex minúsculas (el formato que
+/// produce `id_nuevo`). Todo lo demás se rechaza antes de mirar el disco:
+/// sin puntos, sin barras, sin traversal posible por construcción.
+fn id_valido(id: &str) -> bool {
+    id.len() == 32 && id.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+}
+
+/// Resuelve y valida el directorio de una sesión bajo `raiz`. Defensa en
+/// profundidad sobre el formato del id: rechaza symlinks (el directorio y el
+/// journal deben ser reales) y exige contención canónica bajo la raíz.
+fn dir_validada_en(raiz: &Path, id: &str) -> Result<PathBuf, String> {
+    if !id_valido(id) {
+        return Err("id de sesión inválido".to_string());
+    }
+    let dir = raiz.join(id);
+    let meta = fs::symlink_metadata(&dir).map_err(|_| "la sesión no existe".to_string())?;
+    if meta.file_type().is_symlink() || !meta.is_dir() {
+        return Err("la sesión no es un directorio real".to_string());
+    }
+    let journal = dir.join("journal.jsonl");
+    let jmeta = fs::symlink_metadata(&journal).map_err(|_| "sesión sin journal".to_string())?;
+    if jmeta.file_type().is_symlink() || !jmeta.is_file() {
+        return Err("el journal no es un archivo real".to_string());
+    }
+    let canon = dir
+        .canonicalize()
+        .map_err(|_| "ruta no canonicalizable".to_string())?;
+    let raiz_canon = raiz
+        .canonicalize()
+        .map_err(|_| "raíz no canonicalizable".to_string())?;
+    if !canon.starts_with(&raiz_canon) {
+        return Err("la sesión queda fuera de la raíz".to_string());
+    }
+    Ok(dir)
+}
+
+fn dir_validada(id: &str) -> Result<PathBuf, String> {
+    let raiz = RAIZ
+        .get()
+        .ok_or_else(|| "sin raíz de sesiones".to_string())?;
+    dir_validada_en(raiz, id)
+}
+
+/// Resumen de un journal parseado; `None` si está cerrado (no se ofrece).
+fn resumen_de_eventos(eventos: &[EventoSesion], cola_rota: bool) -> Option<ResumenPendiente> {
+    if eventos
+        .iter()
+        .any(|e| matches!(e, EventoSesion::Cierre { .. }))
+    {
+        return None;
+    }
+    let (wall_ms, modo) = eventos.iter().find_map(|e| match e {
+        EventoSesion::Inicio { wall_ms, modo, .. } => Some((*wall_ms, modo.clone())),
+        _ => None,
+    })?;
+    let mut turnos = 0u32;
+    let mut duracion_ms = 0u64;
+    let mut tiene_documento = false;
+    for e in eventos {
+        match e {
+            EventoSesion::Turno { at_ms, .. } => {
+                turnos += 1;
+                duracion_ms = duracion_ms.max(*at_ms);
+            }
+            EventoSesion::Documento { at_ms, .. } => {
+                tiene_documento = true;
+                duracion_ms = duracion_ms.max(*at_ms);
+            }
+            _ => {}
+        }
+    }
+    Some(ResumenPendiente {
+        id: String::new(), // lo pone el escaneo, que conoce el nombre real
+        wall_ms,
+        modo,
+        turnos,
+        duracion_ms,
+        tiene_documento,
+        cola_rota,
+    })
+}
+
+/// Lee y parsea el journal de una sesión validada.
+fn cargar(id: &str) -> Result<(Vec<EventoSesion>, bool), String> {
+    let dir = dir_validada(id)?;
+    let contenido = fs::read_to_string(dir.join("journal.jsonl")).map_err(|e| e.to_string())?;
+    Ok(parsear_journal(&contenido, &descifrador_real))
+}
+
+/// Escanea `sessions/` y devuelve las sesiones pendientes (sin `cierre`).
+/// Entradas con nombre inválido, symlinks o journals ilegibles se saltan con
+/// un warn: el escaneo jamás revienta el arranque.
+pub fn listar_pendientes() -> Vec<ResumenPendiente> {
+    let Some(raiz) = RAIZ.get() else {
+        return Vec::new();
+    };
+    let Ok(entradas) = fs::read_dir(raiz) else {
+        return Vec::new(); // sin carpeta sessions/ todavía: nada pendiente
+    };
+    let mut pendientes = Vec::new();
+    for entrada in entradas.flatten() {
+        let nombre = entrada.file_name().to_string_lossy().to_string();
+        if dir_validada_en(raiz, &nombre).is_err() {
+            continue;
+        }
+        let Ok(contenido) = fs::read_to_string(entrada.path().join("journal.jsonl")) else {
+            warn!("Sesión {nombre}: journal ilegible, se salta");
+            continue;
+        };
+        let (eventos, cola_rota) = parsear_journal(&contenido, &descifrador_real);
+        if let Some(mut resumen) = resumen_de_eventos(&eventos, cola_rota) {
+            resumen.id = nombre;
+            pendientes.push(resumen);
+        }
+    }
+    // Más reciente primero: si hay varias, la de ayer va arriba.
+    pendientes.sort_by(|a, b| b.wall_ms.cmp(&a.wall_ms));
+    pendientes
+}
+
+/// Carga los eventos de una sesión pendiente para recuperarla (solo lectura).
+pub fn cargar_pendiente(id: &str) -> Result<(Vec<EventoSesion>, bool), String> {
+    cargar(id)
+}
+
+/// Reengancha el journal de una sesión recuperada: los turnos nuevos siguen
+/// apendándose al MISMO archivo. Si ya hay un grabador activo, no pisa nada.
+pub fn reanudar(id: &str) -> Result<(), String> {
+    let dir = dir_validada(id)?;
+    let mut guard = ACTIVO.lock().map_err(|_| "lock envenenado".to_string())?;
+    if guard.is_some() {
+        return Err("ya hay un journal activo".to_string());
+    }
+    let archivo = OpenOptions::new()
+        .append(true)
+        .open(dir.join("journal.jsonl"))
+        .map_err(|e| e.to_string())?;
+    info!("Journal de sesión reenganchado: {id}");
+    *guard = Some(Grabador { dir, archivo });
+    Ok(())
+}
+
+/// Descarta una sesión pendiente: borra su carpeta entera. Se niega si esa
+/// carpeta es la del journal ACTIVO (para eso está el reset).
+pub fn descartar_pendiente(id: &str) -> Result<(), String> {
+    let dir = dir_validada(id)?;
+    if let Ok(guard) = ACTIVO.lock() {
+        if guard.as_ref().is_some_and(|g| g.dir == dir) {
+            return Err("esa sesión está activa; descártala desde la sesión".to_string());
+        }
+    }
+    fs::remove_dir_all(&dir).map_err(|e| e.to_string())
+}
+
+/// Confirmación durable de una sesión pendiente (el usuario exportó el acta
+/// desde el diálogo de recuperación): apendea `cierre{documento}` sin tocar
+/// nada más. Idempotente: si ya está cerrada, no hace nada.
+pub fn confirmar_pendiente(id: &str) -> Result<(), String> {
+    let raiz = RAIZ
+        .get()
+        .ok_or_else(|| "sin raíz de sesiones".to_string())?;
+    let dir = dir_validada_en(raiz, id)?;
+    if let Ok(guard) = ACTIVO.lock() {
+        if guard.as_ref().is_some_and(|g| g.dir == dir) {
+            return Err("esa sesión está activa; confírmala desde la sesión".to_string());
+        }
+    }
+    confirmar_pendiente_con(raiz, id, &cifrador_real, &descifrador_real)
+}
+
+/// Núcleo de la confirmación con raíz y cifradores inyectables (testeable).
+fn confirmar_pendiente_con(
+    raiz: &Path,
+    id: &str,
+    cifrador: &dyn Fn(&str) -> Result<String, String>,
+    descifrador: &dyn Fn(&str) -> Option<String>,
+) -> Result<(), String> {
+    let dir = dir_validada_en(raiz, id)?;
+    let ruta = dir.join("journal.jsonl");
+    let contenido = fs::read_to_string(&ruta).map_err(|e| e.to_string())?;
+    let (eventos, _) = parsear_journal(&contenido, descifrador);
+    if eventos
+        .iter()
+        .any(|e| matches!(e, EventoSesion::Cierre { .. }))
+    {
+        return Ok(()); // ya cerrada: re-confirmar no duplica nada
+    }
+    let linea = linea_de_evento(
+        &EventoSesion::Cierre {
+            motivo: "documento".to_string(),
+        },
+        cifrador,
+    )?;
+    let mut archivo = OpenOptions::new()
+        .append(true)
+        .open(&ruta)
+        .map_err(|e| e.to_string())?;
+    archivo
+        .write_all(linea.as_bytes())
+        .and_then(|()| archivo.write_all(b"\n"))
+        .and_then(|()| archivo.sync_data())
+        .map_err(|e| e.to_string())
 }
 
 #[cfg(test)]
@@ -543,6 +772,105 @@ mod tests {
         );
         assert!(matches!(r, Err(FalloArranque::Disco(_))));
         let _ = std::fs::remove_file(&raiz);
+    }
+
+    #[test]
+    fn ids_hostiles_se_rechazan_antes_de_mirar_el_disco() {
+        let raiz = std::env::temp_dir().join(format!("escriba-val-{}", std::process::id()));
+        std::fs::create_dir_all(&raiz).unwrap();
+        for hostil in [
+            "..",
+            "../..",
+            "../../etc/passwd",
+            "a/../b",
+            "AABBCCDDEEFF00112233445566778899",  // mayúsculas
+            "0011223344556677",                  // corto
+            "00112233445566778899aabbccddeeff0", // largo
+            "0011223344556677 899aabbccddeeff",  // espacio
+            "",
+        ] {
+            assert!(
+                dir_validada_en(&raiz, hostil).is_err(),
+                "id hostil aceptado: {hostil:?}"
+            );
+        }
+        // Formato válido pero inexistente: también Err, sin crear nada.
+        assert!(dir_validada_en(&raiz, "00112233445566778899aabbccddeeff").is_err());
+        let _ = std::fs::remove_dir_all(&raiz);
+    }
+
+    #[test]
+    fn un_symlink_con_nombre_valido_se_rechaza() {
+        let base = std::env::temp_dir().join(format!("escriba-sym-{}", std::process::id()));
+        let raiz = base.join("sessions");
+        let fuera = base.join("fuera");
+        std::fs::create_dir_all(&raiz).unwrap();
+        std::fs::create_dir_all(fuera.join("x")).unwrap();
+        std::fs::write(fuera.join("journal.jsonl"), b"x").unwrap();
+        // Directorio-symlink apuntando FUERA de la raíz, con nombre válido.
+        let id = "aaaabbbbccccddddeeeeffff00001111";
+        std::os::unix::fs::symlink(&fuera, raiz.join(id)).unwrap();
+        assert!(
+            dir_validada_en(&raiz, id).is_err(),
+            "un symlink jamás es una sesión"
+        );
+        // Y un journal-symlink dentro de un directorio real, igual de fuera.
+        let id2 = "bbbbccccddddeeeeffff000011112222";
+        std::fs::create_dir_all(raiz.join(id2)).unwrap();
+        std::os::unix::fs::symlink(
+            fuera.join("journal.jsonl"),
+            raiz.join(id2).join("journal.jsonl"),
+        )
+        .unwrap();
+        assert!(dir_validada_en(&raiz, id2).is_err());
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn el_resumen_ignora_sesiones_cerradas_y_reporta_el_acta() {
+        let mut eventos = eventos_demo();
+        assert!(resumen_de_eventos(&eventos, false).is_some());
+
+        eventos.push(EventoSesion::Documento {
+            doc: "acta".into(),
+            animo: "neutral".into(),
+            at_ms: 30_000,
+        });
+        let r = resumen_de_eventos(&eventos, true).unwrap();
+        assert!(r.tiene_documento);
+        assert!(r.cola_rota);
+        assert_eq!(r.turnos, 2);
+        assert_eq!(r.duracion_ms, 30_000);
+
+        eventos.push(EventoSesion::Cierre {
+            motivo: "documento".into(),
+        });
+        assert!(
+            resumen_de_eventos(&eventos, false).is_none(),
+            "cerrada: no se ofrece"
+        );
+    }
+
+    #[test]
+    fn confirmar_es_idempotente_y_no_duplica_el_cierre() {
+        let raiz = std::env::temp_dir().join(format!("escriba-conf-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&raiz);
+        let id = "cafecafecafecafecafecafecafecafe";
+        arrancar_nucleo(&raiz, id, "listen", 5, &[], &|t| cifra(t)).unwrap();
+
+        confirmar_pendiente_con(&raiz, id, &|t| cifra(t), &descifra).unwrap();
+        let contenido = std::fs::read_to_string(raiz.join(id).join("journal.jsonl")).unwrap();
+        let lineas_tras_primera = contenido.lines().count();
+        let (eventos, _) = parsear_journal(&contenido, &descifra);
+        assert!(eventos
+            .iter()
+            .any(|e| matches!(e, EventoSesion::Cierre { .. })));
+
+        // Segunda confirmación: mismo estado, ni una línea más.
+        confirmar_pendiente_con(&raiz, id, &|t| cifra(t), &descifra).unwrap();
+        let contenido2 = std::fs::read_to_string(raiz.join(id).join("journal.jsonl")).unwrap();
+        assert_eq!(contenido2.lines().count(), lineas_tras_primera);
+        let _ = std::fs::remove_dir_all(&raiz);
     }
 
     #[test]

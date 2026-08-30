@@ -44,13 +44,13 @@ La primera corrida de este benchmark medía Whisper, Parakeet y los dos Qwen.
 No medía Nemotron. **Medíamos todo menos el que le toca al usuario.** Añadido
 al script de forma permanente; la tabla de abajo ya lo incluye.
 
-| Modelo | WER | WER TIL | WER AMB | WER EMO | WER NUM | WER GEN | best_ms | RTF | load_ms | RAM pico |
-|---|---|---|---|---|---|---|---|---|---|---|
-| nemotron-3.5-asr-streaming Q8_0 **(recomendado)** | 17.2% | 5.6% | **33.3%** | 35.3% | 12.3% | 14.1% | 126 | 17.9x | 431 | 1027 MB |
-| whisper-large-v3-turbo Q8_0 | 14.6% | **0.0%** | 5.6% | **5.9%** | 43.8% | 3.1% | 2564 | 0.9x | 501 | 1163 MB |
-| parakeet-tdt-0.6b-v3 Q8_0 | 15.7% | **0.0%** | **0.0%** | 17.6% | 46.6% | **1.6%** | **78** | **29.0x** | **364** | **1010 MB** |
-| Qwen3-ASR-0.6B Q8_0 | 12.3% | 9.3% | 2.8% | 23.5% | 15.1% | 10.9% | 209 | 10.7x | 601 | 1584 MB |
-| Qwen3-ASR-1.7B Q8_0 | 10.7% | 1.9% | 13.9% | 26.5% | 15.1% | 3.1% | 529 | 4.3x | 1566 | 3199 MB |
+| Modelo                                            | WER   | WER TIL  | WER AMB   | WER EMO  | WER NUM | WER GEN  | best_ms | RTF       | load_ms | RAM pico    |
+| ------------------------------------------------- | ----- | -------- | --------- | -------- | ------- | -------- | ------- | --------- | ------- | ----------- |
+| nemotron-3.5-asr-streaming Q8_0 **(recomendado)** | 17.2% | 5.6%     | **33.3%** | 35.3%    | 12.3%   | 14.1%    | 126     | 17.9x     | 431     | 1027 MB     |
+| whisper-large-v3-turbo Q8_0                       | 14.6% | **0.0%** | 5.6%      | **5.9%** | 43.8%   | 3.1%     | 2564    | 0.9x      | 501     | 1163 MB     |
+| parakeet-tdt-0.6b-v3 Q8_0                         | 15.7% | **0.0%** | **0.0%**  | 17.6%    | 46.6%   | **1.6%** | **78**  | **29.0x** | **364** | **1010 MB** |
+| Qwen3-ASR-0.6B Q8_0                               | 12.3% | 9.3%     | 2.8%      | 23.5%    | 15.1%   | 10.9%    | 209     | 10.7x     | 601     | 1584 MB     |
+| Qwen3-ASR-1.7B Q8_0                               | 10.7% | 1.9%     | 13.9%     | 26.5%    | 15.1%   | 3.1%     | 529     | 4.3x      | 1566    | 3199 MB     |
 
 (Recordar la trampa de NUM: turbo y Parakeet convierten numerales a cifras y
 la verdad-terreno es texto hablado, así que esa columna mide FORMATO, no
@@ -75,12 +75,12 @@ el mejor motor para dictar.
 
 ## Resultados de la primera corrida (8-ago-2026, M4)
 
-| Modelo | WER | WER TIL | WER AMB | WER EMO | WER NUM | WER GEN | best_ms | RTF | load_ms | RAM pico |
-|---|---|---|---|---|---|---|---|---|---|---|
-| whisper-large-v3-turbo Q8_0 | **14.6%** | 0.0% | 5.6% | 5.9% | 43.8% | 3.1% | 3737 | 0.6x | 956 | 1102 MB |
-| parakeet-tdt-0.6b-v3 Q8_0 | **15.7%** | 0.0% | 0.0% | 17.6% | 46.6% | 1.6% | 191 | 11.8x | 405 | 987 MB |
-| Qwen3-ASR-0.6B Q8_0 | **12.3%** | 9.3% | 2.8% | 23.5% | 15.1% | 10.9% | 327 | 6.9x | 715 | 1550 MB |
-| Qwen3-ASR-1.7B Q8_0 | **10.7%** | 1.9% | 13.9% | 26.5% | 15.1% | 3.1% | 793 | 2.8x | 2137 | 3202 MB |
+| Modelo                      | WER       | WER TIL | WER AMB | WER EMO | WER NUM | WER GEN | best_ms | RTF   | load_ms | RAM pico |
+| --------------------------- | --------- | ------- | ------- | ------- | ------- | ------- | ------- | ----- | ------- | -------- |
+| whisper-large-v3-turbo Q8_0 | **14.6%** | 0.0%    | 5.6%    | 5.9%    | 43.8%   | 3.1%    | 3737    | 0.6x  | 956     | 1102 MB  |
+| parakeet-tdt-0.6b-v3 Q8_0   | **15.7%** | 0.0%    | 0.0%    | 17.6%   | 46.6%   | 1.6%    | 191     | 11.8x | 405     | 987 MB   |
+| Qwen3-ASR-0.6B Q8_0         | **12.3%** | 9.3%    | 2.8%    | 23.5%   | 15.1%   | 10.9%   | 327     | 6.9x  | 715     | 1550 MB  |
+| Qwen3-ASR-1.7B Q8_0         | **10.7%** | 1.9%    | 13.9%   | 26.5%   | 15.1%   | 3.1%    | 793     | 2.8x  | 2137    | 3202 MB  |
 
 ## La lectura correcta: el WER global miente aquí
 

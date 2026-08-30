@@ -19,6 +19,7 @@ import { NAVIGATE_EVENT, REPLAY_ONBOARDING_EVENT } from "./lib/navigation";
 import { applyA11yModes, applyUiScale, applyUiTheme } from "./lib/appearance";
 import { WhatsNewGate } from "./components/whats-new";
 import { ObsidianPreviewDialog } from "./components/obsidian/ObsidianPreviewDialog";
+import { SessionRecoveryDialog } from "./components/conversation/SessionRecoveryDialog";
 import { useSettings } from "./hooks/useSettings";
 import { useSettingsStore } from "./stores/settingsStore";
 import { commands } from "@/bindings";
@@ -424,6 +425,10 @@ function App() {
       {/* Revisión de la nota antes de que toque el vault. Se monta una sola
           vez aquí; Sesiones y el Estudio lo abren por el store. */}
       <ObsidianPreviewDialog />
+      {/* PRP-009: sesiones sin cierre se ofrecen al arrancar, estén donde
+          estén en la app (el diálogo vive aquí por lo mismo que el de
+          Obsidian: un solo montaje para todos los orígenes). */}
+      <SessionRecoveryDialog />
       {/* Main content area that takes remaining space */}
       <div className="flex-1 flex overflow-hidden">
         <Sidebar

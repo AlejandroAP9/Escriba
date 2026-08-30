@@ -712,7 +712,12 @@ export const ConversationSettings: React.FC = () => {
     const title = firstLine.replace(/^#+\s*/, "").slice(0, 80);
     setSendingObsidian(true);
     try {
-      requestObsidianExport(title, doc);
+      // PRP-009: el cierre del journal llega SOLO con la exportación durable
+      // (o con descartar); jamás al generarse el acta. Si la app muere con el
+      // acta solo en pantalla, la recuperación la sigue ofreciendo.
+      requestObsidianExport(title, doc, () => {
+        void commands.sessionDocConfirm();
+      });
     } finally {
       setSendingObsidian(false);
     }

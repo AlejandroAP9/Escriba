@@ -1570,5 +1570,19 @@
       "overview": "I can help with dictation and permissions, shortcuts, models, privacy, History, Studio, Translator, Smart Writing, Obsidian and updates. Ask about one of those and I will take you to the right place."
     },
     "credit": "Credit to Fuwa (Juegos Imperiales 2026): theirs was the idea of in-app help that answers only about the app."
+  },
+  "recovery": {
+    "title": "A session was left unfinished",
+    "subtitle": "Escriba kept everything up to the last moment, encrypted on this device. What do you want to do with it?",
+    "summary": "{{turns}} turns · {{duration}}",
+    "hasDoc": "Includes the final document",
+    "brokenTail": "The crash cut the very last line; everything before it was saved.",
+    "recover": "Recover session",
+    "export": "Export the document",
+    "discard": "Discard",
+    "discardTitle": "Discard session",
+    "discardConfirm": "Delete this session? Its journal and any recovered document will be permanently removed.",
+    "recovered": "Session recovered",
+    "error": "Could not recover the session"
   }
 }

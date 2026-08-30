@@ -283,6 +283,141 @@ pub fn conversation_reset(app: tauri::AppHandle) -> ConversationStatus {
     status()
 }
 
+/// PRP-009 (Fase 2): una sesión recuperada del journal, lista para la
+/// pantalla de Sesiones. El efecto de reconexión del frontend hace el resto.
+#[derive(Serialize, Clone, Type)]
+pub struct RecoveredSession {
+    pub mode: String,
+    pub turns: Vec<Turn>,
+    pub doc: Option<SessionDoc>,
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn session_recovery_list() -> Vec<crate::session_recorder::ResumenPendiente> {
+    crate::session_recorder::listar_pendientes()
+}
+
+/// Recupera una sesión pendiente: repuebla los estáticos de la sesión y
+/// reengancha el journal para que los turnos nuevos sigan en el MISMO
+/// archivo. Con una sesión en curso no pisa nada (recuperar es cosa del
+/// arranque); llamarlo dos veces da `session_in_progress`, no duplicados.
+#[tauri::command]
+#[specta::specta]
+pub fn session_recover(id: String) -> Result<RecoveredSession, String> {
+    let en_curso = STARTED.lock().map(|s| s.is_some()).unwrap_or(false)
+        && TURNS.lock().map(|t| !t.is_empty()).unwrap_or(false);
+    if en_curso {
+        return Err("session_in_progress".to_string());
+    }
+    let (eventos, _cola_rota) = crate::session_recorder::cargar_pendiente(&id)?;
+    let mut modo = String::new();
+    let mut turns: Vec<Turn> = Vec::new();
+    let mut doc: Option<SessionDoc> = None;
+    let mut duracion_ms = 0u64;
+    for e in &eventos {
+        match e {
+            crate::session_recorder::EventoSesion::Inicio { modo: m, .. } => {
+                modo = m.clone();
+            }
+            crate::session_recorder::EventoSesion::Turno { role, text, at_ms } => {
+                duracion_ms = duracion_ms.max(*at_ms);
+                turns.push(Turn {
+                    role: role.clone(),
+                    text: text.clone(),
+                    at_secs: (*at_ms / 1000) as u32,
+                });
+            }
+            crate::session_recorder::EventoSesion::Documento {
+                doc: d,
+                animo,
+                at_ms,
+            } => {
+                duracion_ms = duracion_ms.max(*at_ms);
+                doc = Some(SessionDoc {
+                    text: d.clone(),
+                    mood: animo.clone(),
+                });
+            }
+            crate::session_recorder::EventoSesion::Cierre { .. } => {
+                return Err("session_closed".to_string());
+            }
+        }
+    }
+    if modo.is_empty() {
+        return Err("journal sin evento de inicio".to_string());
+    }
+    // Reenganche best-effort: si falla, la sesión vive igual en RAM y el
+    // arranque perezoso de push_turn abrirá un journal nuevo con replay.
+    if let Err(e) = crate::session_recorder::reanudar(&id) {
+        log::warn!("Sesión {id} recuperada sin reenganchar el journal: {e}");
+    }
+    if let Ok(mut m) = MODE.lock() {
+        *m = modo.clone();
+    }
+    if let Ok(mut t) = TURNS.lock() {
+        *t = turns.clone();
+    }
+    if let Ok(mut s) = STARTED.lock() {
+        // checked_sub: en una máquina recién arrancada, restar una sesión
+        // larga al reloj monótono puede no ser representable. Antes que un
+        // panic, los mm:ss nuevos parten de cero.
+        *s = Some(
+            Instant::now()
+                .checked_sub(std::time::Duration::from_millis(duracion_ms))
+                .unwrap_or_else(Instant::now),
+        );
+    }
+    Ok(RecoveredSession {
+        mode: modo,
+        turns,
+        doc,
+    })
+}
+
+/// Solo lectura: el acta de una sesión pendiente, para exportarla desde el
+/// diálogo de recuperación sin tocar el estado de la sesión en curso.
+#[tauri::command]
+#[specta::specta]
+pub fn session_recovery_doc(id: String) -> Result<SessionDoc, String> {
+    let (eventos, _) = crate::session_recorder::cargar_pendiente(&id)?;
+    eventos
+        .iter()
+        .rev()
+        .find_map(|e| match e {
+            crate::session_recorder::EventoSesion::Documento { doc, animo, .. } => {
+                Some(SessionDoc {
+                    text: doc.clone(),
+                    mood: animo.clone(),
+                })
+            }
+            _ => None,
+        })
+        .ok_or_else(|| "sin documento".to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn session_recovery_discard(id: String) -> Result<(), String> {
+    crate::session_recorder::descartar_pendiente(&id)
+}
+
+/// Confirmación durable de una sesión pendiente exportada desde el diálogo.
+#[tauri::command]
+#[specta::specta]
+pub fn session_recovery_confirm(id: String) -> Result<(), String> {
+    crate::session_recorder::confirmar_pendiente(&id)
+}
+
+/// Confirmación durable de la sesión ACTIVA (el usuario exportó el acta a
+/// Obsidian). Jamás se llama automáticamente al generar el acta: esa es la
+/// condición de la revisión del 30-ago.
+#[tauri::command]
+#[specta::specta]
+pub fn session_doc_confirm() {
+    crate::session_recorder::cierre_documento();
+}
+
 /// Lee un texto en voz alta con la cascada de motores de Escriba:
 /// 1) Voz neural incluida (sherpa-onnx + Piper es_MX), si está instalada y la
 ///    app está en español (la voz es de español; otros idiomas caen al paso 2).

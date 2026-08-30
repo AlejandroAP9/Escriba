@@ -19,16 +19,16 @@ política de retención que no llena el disco de nadie.
 
 ## Por Qué
 
-| Problema                                                                                  | Solución                                                                       |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Los turnos viven solo en RAM (`static TURNS`, conversation.rs:65). Un crash de una reunión de 1 h se lleva todo. | Journal append-only en disco; cada turno se persiste al llegar.                |
-| El documento final solo existe en React tras `conversation_finish` (conversation.rs:1302 → ConversationSettings.tsx:669). Un crash post-acta también lo pierde. | El documento se cifra al journal ANTES de considerar la sesión cerrada.        |
-| El audio se drena y se descarta (system_audio.swift:68). Si la transcripción sale mal, no hay nada que reprocesar. | Ambas pistas se graban cifradas en un contenedor incremental (ESCAUD2).        |
-| El VAD descarta lo que clasifica como no-voz, incluida habla que clasificó mal.            | Se graba la señal **antes** del VAD: la pasada final no hereda sus errores.    |
-| `STARTED` es un `Instant` (monótono): no se puede serializar ni reconstruir tras reinicio. | Ancla doble hora de pared + monótono, escrita en el journal al arrancar.       |
+| Problema                                                                                                                                                        | Solución                                                                    |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Los turnos viven solo en RAM (`static TURNS`, conversation.rs:65). Un crash de una reunión de 1 h se lleva todo.                                                | Journal append-only en disco; cada turno se persiste al llegar.             |
+| El documento final solo existe en React tras `conversation_finish` (conversation.rs:1302 → ConversationSettings.tsx:669). Un crash post-acta también lo pierde. | El documento se cifra al journal ANTES de considerar la sesión cerrada.     |
+| El audio se drena y se descarta (system_audio.swift:68). Si la transcripción sale mal, no hay nada que reprocesar.                                              | Ambas pistas se graban cifradas en un contenedor incremental (ESCAUD2).     |
+| El VAD descarta lo que clasifica como no-voz, incluida habla que clasificó mal.                                                                                 | Se graba la señal **antes** del VAD: la pasada final no hereda sus errores. |
+| `STARTED` es un `Instant` (monótono): no se puede serializar ni reconstruir tras reinicio.                                                                      | Ancla doble hora de pared + monótono, escrita en el journal al arrancar.    |
 
 **Valor para la comunidad**: la promesa de Sesiones ("habla una hora y llévate
-un documento") hoy tiene un asterisco invisible: *salvo que algo falle*. Esto
+un documento") hoy tiene un asterisco invisible: _salvo que algo falle_. Esto
 lo quita. Es además el prerrequisito de captura dual, integridad, doctor y
 diarización (cola acordada el 30-ago).
 
@@ -210,23 +210,23 @@ settings.rs:1143).
 
 ## Premortem (matar el proyecto en papel)
 
-| Amenaza (cómo se rompe)                                                        | Cómo la mata el diseño                                                                                    | Cómo se verifica                                                                     |
-| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Kill a mitad de línea del journal → JSON roto → recovery revienta o pierde todo | jsonl append-only; el parser tolera cola incompleta: descarta la última línea si no descifra/parsea, sigue  | test con archivo truncado en mitad de línea → recupera N-1 turnos                    |
-| Kill a mitad de frame ESCAUD2 → contenedor corrupto                            | frames autocontenidos: recovery descarta la cola incompleta sin reescribir nada; sin footer → suma de frames | test: truncar a bytes arbitrarios → recovery deja archivo reproducible               |
-| Reescritura de cabecera invalida tags (el fallo que mataba a ESCAUD1)          | ESCAUD2 no autentica el total en los frames; el total vive solo en el footer opcional                       | test: archivo sin footer se lee; footer inconsistente → se ignora con warn           |
-| Crash tras generar el acta pero antes de guardarla → acta perdida              | `documento{}` se cifra al journal ANTES de `cierre`; `cierre` = durable o descarte, nunca "paró la captura" | test: journal con `documento` sin `cierre` → recovery entrega el acta                |
-| Recovery corre dos veces (doble arranque rápido, crash durante recovery)       | recovery idempotente estilo `migrate_legacy_wav`: verifica-antes-de-tocar, re-ejecutable (blindaje raiz)    | correr recovery 2× en test → estado idéntico, sin duplicar turnos                    |
-| Keyring sin llave o sin CSPRNG                                                 | activación todo-o-nada con `cifrar_campo_estricto` (Result): sin garantía no existe ni el directorio        | test con llave ausente → cero archivos creados; test de la API estricta → Err        |
-| `cifrar_campo` fail-open filtra texto claro al journal                         | el journal SOLO usa la API estricta; la fail-open queda para el historial de dictado, donde es correcta     | grep de frase dictada sobre `sessions/` → 0 hits                                     |
-| `session_recovery_discard` con ID hostil borra fuera de `sessions/`            | IDs aleatorios validados por formato + canonicalize + contención bajo `sessions/` + rechazo de symlink/`..` | tests de traversal: `../`, symlink, ID inventado → Err, disco intacto                |
-| Mic apagado/encendido comprime el tiempo y desalinea las pistas                | offsets y huecos registrados por pista; la reconstrucción inserta silencio, jamás concatena                 | test con huecos artificiales → duración total correcta, alineación estable           |
-| Disco lleno a la hora de reunión (≈115 MB/h por pista en PCM16 ×2)             | chequeo al arrancar (aviso <2 GB) + corte de audio con aviso si se agota; journal (KB) nunca se corta       | simular disco lleno → sesión sigue, audio parado, evento `pista{corte}` en journal   |
-| El disco lento bloquea la transcripción en vivo                                | `sync_channel` + `try_send`, workers separados para journal y audio; descarte registrado, jamás espera      | test de canal saturado → productor no espera; evento de hueco persiste igual         |
-| Pista incompleta presentada como cobertura íntegra                             | cada descarte registra rango perdido y marca la pista; la UI muestra el estado incompleto                   | test: sesión con huecos → el resumen de recuperación lo declara                      |
-| Huérfanas acumuladas llenan el disco con el tiempo                             | barrido al arrancar con gracia de 7 días para interrumpidas bajo `al_generar`; descartadas → borrado ya     | crear huérfana >7 días artificial → arranque la limpia; <7 días → la conserva        |
-| Cambio de hora del sistema a mitad de sesión rompe los `mm:ss`                 | offsets monótonos contra ancla; la hora de pared solo etiqueta el inicio                                    | test: eventos con ancla fija → `mm:ss` estables ante wall alterado                   |
-| La webview ve rutas del audio de sesión                                        | mismo protocolo privado de `recording_crypto` (lib.rs:858); ningún comando devuelve rutas                   | revisión de bindings generados: ninguna ruta en tipos expuestos                      |
+| Amenaza (cómo se rompe)                                                         | Cómo la mata el diseño                                                                                       | Cómo se verifica                                                                   |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Kill a mitad de línea del journal → JSON roto → recovery revienta o pierde todo | jsonl append-only; el parser tolera cola incompleta: descarta la última línea si no descifra/parsea, sigue   | test con archivo truncado en mitad de línea → recupera N-1 turnos                  |
+| Kill a mitad de frame ESCAUD2 → contenedor corrupto                             | frames autocontenidos: recovery descarta la cola incompleta sin reescribir nada; sin footer → suma de frames | test: truncar a bytes arbitrarios → recovery deja archivo reproducible             |
+| Reescritura de cabecera invalida tags (el fallo que mataba a ESCAUD1)           | ESCAUD2 no autentica el total en los frames; el total vive solo en el footer opcional                        | test: archivo sin footer se lee; footer inconsistente → se ignora con warn         |
+| Crash tras generar el acta pero antes de guardarla → acta perdida               | `documento{}` se cifra al journal ANTES de `cierre`; `cierre` = durable o descarte, nunca "paró la captura"  | test: journal con `documento` sin `cierre` → recovery entrega el acta              |
+| Recovery corre dos veces (doble arranque rápido, crash durante recovery)        | recovery idempotente estilo `migrate_legacy_wav`: verifica-antes-de-tocar, re-ejecutable (blindaje raiz)     | correr recovery 2× en test → estado idéntico, sin duplicar turnos                  |
+| Keyring sin llave o sin CSPRNG                                                  | activación todo-o-nada con `cifrar_campo_estricto` (Result): sin garantía no existe ni el directorio         | test con llave ausente → cero archivos creados; test de la API estricta → Err      |
+| `cifrar_campo` fail-open filtra texto claro al journal                          | el journal SOLO usa la API estricta; la fail-open queda para el historial de dictado, donde es correcta      | grep de frase dictada sobre `sessions/` → 0 hits                                   |
+| `session_recovery_discard` con ID hostil borra fuera de `sessions/`             | IDs aleatorios validados por formato + canonicalize + contención bajo `sessions/` + rechazo de symlink/`..`  | tests de traversal: `../`, symlink, ID inventado → Err, disco intacto              |
+| Mic apagado/encendido comprime el tiempo y desalinea las pistas                 | offsets y huecos registrados por pista; la reconstrucción inserta silencio, jamás concatena                  | test con huecos artificiales → duración total correcta, alineación estable         |
+| Disco lleno a la hora de reunión (≈115 MB/h por pista en PCM16 ×2)              | chequeo al arrancar (aviso <2 GB) + corte de audio con aviso si se agota; journal (KB) nunca se corta        | simular disco lleno → sesión sigue, audio parado, evento `pista{corte}` en journal |
+| El disco lento bloquea la transcripción en vivo                                 | `sync_channel` + `try_send`, workers separados para journal y audio; descarte registrado, jamás espera       | test de canal saturado → productor no espera; evento de hueco persiste igual       |
+| Pista incompleta presentada como cobertura íntegra                              | cada descarte registra rango perdido y marca la pista; la UI muestra el estado incompleto                    | test: sesión con huecos → el resumen de recuperación lo declara                    |
+| Huérfanas acumuladas llenan el disco con el tiempo                              | barrido al arrancar con gracia de 7 días para interrumpidas bajo `al_generar`; descartadas → borrado ya      | crear huérfana >7 días artificial → arranque la limpia; <7 días → la conserva      |
+| Cambio de hora del sistema a mitad de sesión rompe los `mm:ss`                  | offsets monótonos contra ancla; la hora de pared solo etiqueta el inicio                                     | test: eventos con ancla fija → `mm:ss` estables ante wall alterado                 |
+| La webview ve rutas del audio de sesión                                         | mismo protocolo privado de `recording_crypto` (lib.rs:858); ningún comando devuelve rutas                    | revisión de bindings generados: ninguna ruta en tipos expuestos                    |
 
 ## Blueprint (el ciclo de cultivo)
 

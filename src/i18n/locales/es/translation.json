@@ -1570,5 +1570,19 @@
       "overview": "Puedo ayudarte con dictado y permisos, atajos, modelos, privacidad, Historial, Estudio, Traductor, Escritura inteligente, Obsidian y actualizaciones. Pregunta por uno y te llevaré al lugar correcto."
     },
     "credit": "Crédito a Fuwa (Juegos Imperiales 2026): suya fue la idea de una ayuda dentro de la app que solo responde sobre la app."
+  },
+  "recovery": {
+    "title": "Una sesión quedó a medias",
+    "subtitle": "Escriba guardó todo hasta el último momento, cifrado en este equipo. ¿Qué quieres hacer con ella?",
+    "summary": "{{turns}} turnos · {{duration}}",
+    "hasDoc": "Incluye el acta final",
+    "brokenTail": "El corte rompió la última línea; todo lo anterior quedó a salvo.",
+    "recover": "Recuperar la sesión",
+    "export": "Exportar el acta",
+    "discard": "Descartar",
+    "discardTitle": "Descartar sesión",
+    "discardConfirm": "¿Eliminar esta sesión? Su registro y el acta recuperada se borran para siempre.",
+    "recovered": "Sesión recuperada",
+    "error": "No se pudo recuperar la sesión"
   }
 }

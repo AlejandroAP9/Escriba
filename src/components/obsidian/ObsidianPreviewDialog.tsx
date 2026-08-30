@@ -20,7 +20,7 @@ import { useSettings } from "../../hooks/useSettings";
  */
 export const ObsidianPreviewDialog: React.FC = () => {
   const { t } = useTranslation();
-  const { open, title, content, setTitle, setContent, close } =
+  const { open, title, content, onSaved, setTitle, setContent, close } =
     useObsidianStore();
   const [saving, setSaving] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -62,7 +62,11 @@ export const ObsidianPreviewDialog: React.FC = () => {
       // carpeta desapareció) sigue viviendo en sendToObsidian, detrás de esta
       // confirmación. Solo se cierra si de verdad se guardó: si cancelaron el
       // selector de carpeta, el diálogo sigue ahí con el texto editado.
-      if (await sendToObsidian(title, content, t)) close();
+      if (await sendToObsidian(title, content, t)) {
+        // PRP-009: exportar al vault ES la confirmación durable.
+        onSaved?.();
+        close();
+      }
     } finally {
       setSaving(false);
     }
