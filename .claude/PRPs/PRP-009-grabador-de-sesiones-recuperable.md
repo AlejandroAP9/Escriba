@@ -1,6 +1,12 @@
 # PRP-009: Grabador de sesiones recuperable (SessionRecorder)
 
-> **Estado**: APROBADO (Alejandro, 30-ago-2026, sobre 70d25ccd)
+> **Estado**: EN PROGRESO — Fases 1-5 implementadas; falta la validación
+> manual integral de las Fases 4-5 (sesión real + kill + re-transcribir +
+> retención) y la Fase 6.
+> Aprobado por Alejandro el 30-ago-2026 sobre 70d25ccd; Fases 1-2 validadas
+> en real el mismo día; Fase 3 con matriz de cortes; Fase 4 con 5 bordes de
+> revisión cerrados (incluido el reemplazo atómico ReemplazoTurnos); Fase 5
+> calca el sistema de retención existente de la casa.
 > **Fecha**: 2026-08-30 (ajustes de la revisión de Alejandro del mismo día)
 > **Proyecto**: Escriba
 > **Origen**: análisis de `reunion-local` (flopez1977, MIT, repo nacido el
