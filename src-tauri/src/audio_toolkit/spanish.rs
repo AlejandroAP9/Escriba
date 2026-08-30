@@ -406,6 +406,33 @@ fn parsear_grupo(toks: &[&str], i: usize) -> Option<(u64, usize, bool)> {
     }
 }
 
+/// Multiplicando de "millones" (1..=999.999). A diferencia de un grupo suelto,
+/// admite miles: "mil millones", "dos mil millones", "tres mil quinientos
+/// millones". Devuelve (valor, tokens consumidos) SIN mirar si viene
+/// "millon(es)" detrás; de eso se encarga quien llama.
+fn parsear_multiplicando_millones(toks: &[&str]) -> Option<(u64, usize)> {
+    let mut valor;
+    let mut j;
+    if toks.first() == Some(&"mil") {
+        valor = 1000;
+        j = 1;
+    } else {
+        let (v, n, _e) = parsear_grupo(toks, 0)?;
+        if toks.get(n) != Some(&"mil") {
+            // Sin miles el multiplicando es el grupo tal cual ("un millon").
+            return Some((v, n));
+        }
+        valor = v * 1000;
+        j = n + 1;
+    }
+    // Resto tras "mil": el "quinientos" de "tres mil quinientos millones".
+    if let Some((v, n, _e)) = parsear_grupo(toks, j) {
+        valor += v;
+        j += n;
+    }
+    Some((valor, j))
+}
+
 /// Parsea una secuencia completa de numerales en español.
 /// Gramática: [grupo "millon(es)"] [(grupo)? "mil"] [grupo] ["y medio"] |
 /// grupo ["coma" unidades...]. El grupo final SOLO se acepta después de un
@@ -417,11 +444,15 @@ fn parsear_numero(toks: &[&str]) -> Option<NumeroParseado> {
     let mut decimales: Option<String> = None;
     let mut hubo_multiplicador = false;
 
-    // Millones: grupo + "millon(es)".
-    if let Some((v, n, _e)) = parsear_grupo(toks, j) {
-        if matches!(toks.get(j + n), Some(&"millon") | Some(&"millones")) {
+    // Millones: multiplicando + "millon(es)". El multiplicando llega hasta
+    // 999.999 (admite miles) porque "mil millones" y "dos mil quinientos
+    // millones" son la forma normal de decirlo en espanol; con un grupo de
+    // 1-999 la frase no parseaba entera y se descartaba sin convertir nada
+    // (reporte de Juan Francisco Ceccarelli, comunidad, 12-ago-2026).
+    if let Some((v, n)) = parsear_multiplicando_millones(toks) {
+        if matches!(toks.get(n), Some(&"millon") | Some(&"millones")) {
             valor += v * 1_000_000;
-            j += n + 1;
+            j = n + 1;
             evidencia = true;
             hubo_multiplicador = true;
             // "tres millones y medio" → +500.000
@@ -746,6 +777,31 @@ mod tests {
         // El dictado puede llegar sin tildes y con mayúscula inicial.
         assert_eq!(apply_dictated_emojis("EMOJI CORAZON ROJO"), "❤️");
         assert_eq!(apply_dictated_emojis("emoji corazon rojo"), "❤️");
+    }
+
+    /// "mil millones" y sus variantes no parseaban entero, asi que la frase se
+    /// descartaba y no se convertia nada (reporte de Juan Francisco, 12-ago).
+    #[test]
+    fn numerales_mil_millones() {
+        use ModoNumerales::Estricto;
+        for (entrada, esperado) in [
+            ("mil millones", "1.000.000.000"),
+            ("dos mil millones", "2.000.000.000"),
+            ("tres mil quinientos millones", "3.500.000.000"),
+            ("mil millones de pesos", "1.000.000.000 de pesos"),
+            // Lo que ya funcionaba y no se puede romper.
+            ("un millon", "1.000.000"),
+            ("tres millones y medio", "3.500.000"),
+            ("mil doscientos", "1200"),
+            // "mil" solo sigue sin ser evidencia: protege "mil gracias".
+            ("mil gracias", "mil gracias"),
+        ] {
+            assert_eq!(
+                spoken_numbers_to_digits(entrada, Estricto),
+                esperado,
+                "entrada: {entrada}"
+            );
+        }
     }
 
     #[test]
