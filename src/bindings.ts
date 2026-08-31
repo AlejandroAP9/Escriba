@@ -91,6 +91,12 @@ async sessionRecover(id: string) : Promise<Result<RecoveredSession, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Recupera una sesión RECONSTRUYENDO los turnos desde el audio grabado
+ * (PRP-009: "la recuperación ofrece re-transcribir"). La base de tiempo de
+ * cada segmento sale de su k-ésimo evento `pista{inicio}` del journal; los
+ * turnos del journal quedan como respaldo si el audio no entrega nada.
+ */
 async sessionRecoverRetranscribe(id: string) : Promise<Result<RecoveredSession, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("session_recover_retranscribe", { id }) };
@@ -137,6 +143,22 @@ async sessionRecoveryConfirm(id: string) : Promise<Result<null, string>> {
  */
 async sessionDocConfirm() : Promise<void> {
     await TAURI_INVOKE("session_doc_confirm");
+},
+async changeSessionRecorderSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_session_recorder_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeSessionAudioRetentionSetting(retention: SessionAudioRetention) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_session_audio_retention_setting", { retention }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
 /**
  * Lee un texto en voz alta con la cascada de motores de Escriba:
@@ -286,7 +308,7 @@ async virtualMicUninstall() : Promise<Result<boolean, string>> {
 },
 /**
  * Guarda (o borra) la carpeta del vault de Obsidian en los ajustes.
- *
+ * 
  * La carpeta se contiene al home del usuario. El comentario de cabecera decía
  * que "la ruta la consiente el usuario con el selector de carpeta", pero el
  * backend no puede comprobar que la cadena venga de verdad del selector: sin
@@ -342,7 +364,7 @@ async exportToObsidian(title: string, content: string) : Promise<Result<string, 
  * nombres de archivo del vault (jamás se leen contenidos: privacidad y
  * velocidad). Corre detrás del diálogo de vista previa: el usuario ve y
  * edita el resultado ANTES de que nada toque el vault.
- *
+ * 
  * Reglas del matcher (blindaje matcher-includes-substring):
  * - límites de palabra Unicode: `Ana.md` no enlaza dentro de "Analía"
  * - candidatos por longitud DESC: "Plan Premium" gana sobre "Plan"
@@ -350,7 +372,7 @@ async exportToObsidian(title: string, content: string) : Promise<Result<string, 
  * SENSIBLE a tildes ("mas" no enlaza a `Más.md`)
  * - zonas excluidas: front matter, código (bloques y spans), URLs y enlaces
  * ya existentes
- *
+ * 
  * Sin vault configurado (o inválido) devuelve el contenido intacto: el
  * enlazado es un extra del export, no una condición.
  */
@@ -417,7 +439,7 @@ async freeDictationStatus() : Promise<boolean> {
 },
 /**
  * Encola archivos y arranca su transcripción en un worker. Devuelve los ids.
- *
+ * 
  * La ruta se valida además de la extensión. Antes el único filtro era el sufijo
  * del archivo, así que este comando transcribía CUALQUIER audio o video del
  * disco y devolvía el texto en `studio_jobs`: un oráculo de lectura para un
@@ -480,7 +502,7 @@ async studioExport(id: number, format: string) : Promise<Result<string, string>>
  * Exporta un job y lo ESCRIBE en la ruta que el usuario eligió con el diálogo
  * nativo. La escritura ocurre en el backend (std::fs), no en el webview, para
  * que la app no necesite permisos de escritura al home en la capa de la UI.
- *
+ * 
  * El backend no puede comprobar que `dest` venga de verdad del diálogo nativo,
  * así que además contiene la ruta al home del usuario: sin eso, este comando
  * escribía bytes arbitrarios en cualquier ruta absoluta (`~/.zshrc`, un
@@ -998,22 +1020,6 @@ async changeSpokenNumeralsSetting(enabled: boolean) : Promise<Result<null, strin
     else return { status: "error", error: e  as any };
 }
 },
-async changeSessionRecorderSetting(enabled: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("change_session_recorder_setting", { enabled }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async changeSessionAudioRetentionSetting(retention: SessionAudioRetention) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("change_session_audio_retention_setting", { retention }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async changeNumeralsSpreadsheetAutoSetting(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_numerals_spreadsheet_auto_setting", { enabled }) };
@@ -1113,7 +1119,7 @@ async changeTranscribeGpuDevice(device: number) : Promise<Result<null, string>> 
 },
 /**
  * Return which accelerators and GPU devices are available for this build.
- *
+ * 
  * First-call cost is dominated by enumerating GPU devices through the
  * transcribe.cpp Metal/Vulkan backend, which loads dynamic libraries and
  * probes hardware. Run it on the blocking pool so the webview thread
@@ -1168,13 +1174,13 @@ async isPortable() : Promise<boolean> {
 },
 /**
  * Servidor gráfico en uso, para que el onboarding pueda avisar en Linux.
- *
+ * 
  * Devuelve `"wayland"`, `"other"` o `"not_linux"`. La app ya detectaba Wayland
  * para elegir cómo escribir en el portapapeles (`utils::is_wayland`), pero esa
  * información nunca llegaba a la interfaz: el onboarding trataba Linux como
  * "plataforma no soportada" y se saltaba entero, así que quien usa Wayland se
  * quedaba sin saber por qué su atajo global podía no responder.
- *
+ * 
  * `"other"` en vez de `"x11"` a propósito: si no hay `WAYLAND_DISPLAY` ni
  * `XDG_SESSION_TYPE=wayland`, lo único que se puede afirmar es que no es
  * Wayland, no que sea X11.
@@ -1192,7 +1198,7 @@ async getAppDirPath() : Promise<Result<string, string>> {
 },
 /**
  * Ajustes para la UI, con las API keys enmascaradas.
- *
+ * 
  * Este comando se llama en cada lectura de ajustes, así que antes mandaba
  * todas las claves de los proveedores LLM en texto plano al webview una y otra
  * vez. El backend ya tiene las claves de verdad cuando las necesita (las lee de
@@ -1530,13 +1536,13 @@ async reviewDiscard() : Promise<void> {
 },
 /**
  * Copia el texto pendiente al portapapeles y cierra la revisión.
- *
+ * 
  * La auditoría pedía poder EDITAR aquí, pero el overlay es un panel no
  * enfocable a propósito (así la app de destino conserva el foco y el pegado
  * llega a donde el usuario estaba escribiendo). Un campo de texto ahí dentro
  * no podría recibir teclado, y hacer el panel enfocable rompería justo lo que
  * hace útil a la feature.
- *
+ * 
  * Copiar es la salida que sí respeta ese diseño: si el motor entendió mal, el
  * usuario se lleva el texto y lo arregla en su propio editor, sin tener que
  * repetir la frase entera.
@@ -1547,12 +1553,12 @@ async reviewCopy() : Promise<void> {
 /**
  * Alternativa por TECLADO al dictado: procesa un texto escrito con el mismo
  * motor de IA y devuelve el resultado.
- *
+ * 
  * Toda la corrección, traducción y tonos de Escriba pasaban por hablar. Alguien
  * que en ese momento no pueda usar la voz (una oficina compartida, afonía, una
  * discapacidad del habla) no tenía forma de usar el motor local que la app ya
  * tiene instalado, aunque la infraestructura estuviera entera.
- *
+ * 
  * Devuelve el texto en pantalla en vez de pegarlo: cuando la ventana principal
  * tiene el foco, la aplicación de destino ya lo perdió, así que pegar iría al
  * sitio equivocado. El usuario copia el resultado y lo lleva a donde quiera.
@@ -1621,7 +1627,7 @@ async updateRecordingRetentionPeriod(period: string) : Promise<Result<null, stri
 },
 /**
  * Checks if the Mac is a laptop by detecting battery presence
- *
+ * 
  * This uses pmset to check for battery information.
  * Returns true if a battery is detected (laptop), false otherwise (desktop)
  */
@@ -1660,107 +1666,116 @@ streamTextEvent: "stream-text-event"
  * en vez de la plantilla global. WhatsApp casual, Mail formal, etc.
  */
 export type AppContextRule = { app_match: string; prompt_id: string }
-export type AppSettings = {
+export type AppSettings = { 
 /**
  * Internal settings schema marker for one-time migrations. Fresh installs
  * start at the current version; existing stores missing this key are
  * treated as version 0 and migrated forward.
  */
-settings_schema_version?: number; bindings: Partial<{ [key in string]: ShortcutBinding }>; push_to_talk: boolean; audio_feedback: boolean; audio_feedback_volume?: number; sound_theme?: SoundTheme;
+settings_schema_version?: number; bindings: Partial<{ [key in string]: ShortcutBinding }>; push_to_talk: boolean; audio_feedback: boolean; audio_feedback_volume?: number; sound_theme?: SoundTheme; 
 /**
  * Apariencia de la interfaz: "system" (sigue a macOS), "light" o "dark".
  */
-ui_theme?: string;
+ui_theme?: string; 
 /**
  * Escala del texto de toda la interfaz, en porcentaje (90-130).
  * Accesibilidad: ojos cansados o vista reducida sin tocar el sistema.
  */
-ui_scale?: number;
+ui_scale?: number; 
 /**
  * Accesibilidad visual: tinta y bordes reforzados, sin cristal difuminado.
  */
-high_contrast?: boolean;
+high_contrast?: boolean; 
 /**
  * Accesibilidad visual: estados semánticos en par cian/violeta, que evita
  * el eje rojo/verde (la confusión más común del daltonismo).
  */
-colorblind_assist?: boolean;
+colorblind_assist?: boolean; 
 /**
  * Modo Calma: sin animaciones ni transiciones, texto y espaciado ampliados,
  * superficies planas. Para dictar sin estímulos visuales.
  */
-calm_mode?: boolean;
+calm_mode?: boolean; 
 /**
  * Anillo de foco también con el ratón, no solo al navegar con teclado.
  * Para quien pierde de vista dónde está parado dentro de la interfaz.
  */
-always_show_focus?: boolean;
+always_show_focus?: boolean; 
 /**
  * Motor de lectura por herramienta. La voz del sistema es el valor
  * inicial porque ganó la prueba A/B; la incluida sigue disponible como
  * alternativa explícita y local.
  */
-conversation_voice_engine?: string; interpreter_voice_engine?: string; read_selection_voice_engine?: string;
+conversation_voice_engine?: string; interpreter_voice_engine?: string; read_selection_voice_engine?: string; 
 /**
  * Subcarpeta dentro del vault donde aterrizan las notas. Vacío = raíz.
  */
-obsidian_notes_folder?: string; obsidian_link_mentions?: boolean; obsidian_index_note?: boolean; obsidian_daily_inbox?: boolean;
+obsidian_notes_folder?: string; obsidian_link_mentions?: boolean; obsidian_index_note?: boolean; obsidian_daily_inbox?: boolean; 
 /**
  * Revisar antes de pegar: el dictado normal se muestra en el overlay
  * (Pegar / Descartar / corregir dictando) en vez de pegarse directo.
  */
-review_before_paste?: boolean;
+review_before_paste?: boolean; 
 /**
  * Dictado normal sin transformaciones: conserva el texto que entrega el
  * motor y omite diccionario difuso, limpieza lingüística, tonos por app,
  * numerales, emojis y reemplazos. Los atajos explícitos de Escritura
  * Inteligente, traducción y edición conservan su comportamiento.
  */
-faithful_mode_enabled?: boolean; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; show_whats_new_on_update?: boolean;
+faithful_mode_enabled?: boolean; start_hidden?: boolean; autostart_enabled?: boolean; update_checks_enabled?: boolean; show_whats_new_on_update?: boolean; 
 /**
  * The app version whose What's New the user has already seen. Fresh installs
  * default to the current version (nothing is "new" to them). Existing users
  * upgrading from before this key existed are blanked by the migration so they
  * see the current release's notes — see `apply_settings_migrations`.
  */
-whats_new_last_seen_version?: string; selected_model?: string; onboarding_completed?: boolean; always_on_microphone?: boolean; selected_microphone?: string | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; dictated_emojis_enabled?: boolean; spoken_numerals_enabled?: boolean; numerals_spreadsheet_auto?: boolean; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; session_audio_retention?: SessionAudioRetention; session_recorder_enabled?: boolean;
+whats_new_last_seen_version?: string; selected_model?: string; onboarding_completed?: boolean; always_on_microphone?: boolean; selected_microphone?: string | null; clamshell_microphone?: string | null; selected_output_device?: string | null; translate_to_english?: boolean; selected_language?: string; dictated_emojis_enabled?: boolean; spoken_numerals_enabled?: boolean; numerals_spreadsheet_auto?: boolean; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; 
+/**
+ * PRP-009: retención del AUDIO de sesiones (el journal es KB y tiene su
+ * propio ciclo). Default: borrar al confirmar el acta.
+ */
+session_audio_retention?: SessionAudioRetention; 
+/**
+ * PRP-009: interruptor maestro del grabador de sesiones.
+ */
+session_recorder_enabled?: boolean; 
 /**
  * Escribir el .wav de cada dictado en disco. Apagado por omisión: ver
  * `default_save_audio_recordings`.
  */
-save_audio_recordings?: boolean; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[];
+save_audio_recordings?: boolean; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; 
 /**
  * Carpeta del vault de Obsidian (o cualquier carpeta de notas Markdown)
  * donde "Enviar a Obsidian" escribe el documento. Vacío = sin configurar;
  * se pide con el selector de carpeta la primera vez.
  */
-obsidian_vault_path?: string;
+obsidian_vault_path?: string; 
 /**
  * Tonos por app: activa el override de plantilla según la app activa.
  */
-app_context_enabled?: boolean;
+app_context_enabled?: boolean; 
 /**
  * Reglas app → plantilla (evaluadas en orden; gana la primera que coincide).
  */
-app_context_rules?: AppContextRule[]; post_process_selected_prompt_id?: string | null; translation_target_language?: string; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; typing_tool?: TypingTool; external_script_path: string | null; custom_filler_words?: string[] | null; transcribe_accelerator?: TranscribeAcceleratorSetting; ort_accelerator?: OrtAcceleratorSetting; transcribe_gpu_device?: number; extra_recording_buffer_ms?: number; vad_enabled?: boolean;
+app_context_rules?: AppContextRule[]; post_process_selected_prompt_id?: string | null; translation_target_language?: string; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; typing_tool?: TypingTool; external_script_path: string | null; custom_filler_words?: string[] | null; transcribe_accelerator?: TranscribeAcceleratorSetting; ort_accelerator?: OrtAcceleratorSetting; transcribe_gpu_device?: number; extra_recording_buffer_ms?: number; vad_enabled?: boolean; 
 /**
  * Which recording overlay to show: None / Minimal / Live. Streaming mode is
  * not gated on this — that follows model capability. Migrated from the old
  * `overlay_position` (position `none` → style `None`).
  */
-overlay_style?: OverlayStyle;
+overlay_style?: OverlayStyle; 
 /**
  * Reglas de buscar/reemplazar aplicadas al texto final tras transcribir.
  */
-text_replacements?: TextReplacement[];
+text_replacements?: TextReplacement[]; 
 /**
  * Supresión de ruido de fondo del micrófono antes de transcribir.
  */
-noise_suppression?: boolean;
+noise_suppression?: boolean; 
 /**
  * Pausar la reproducción de medios (Música/Spotify) mientras dictas.
  */
-pause_media_on_dictate?: boolean;
+pause_media_on_dictate?: boolean; 
 /**
  * Arrancar el servidor MCP (Agentes) automáticamente al abrir la app.
  */
@@ -1770,16 +1785,16 @@ export type AutoSubmitKey = "enter" | "ctrl_enter" | "cmd_enter"
 export type AvailableAccelerators = { transcribe: string[]; ort: string[]; gpu_devices: GpuDeviceOption[] }
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
 export type ClipboardHandling = "dont_modify" | "copy_to_clipboard"
-export type ConversationStatus = { listening: boolean;
+export type ConversationStatus = { listening: boolean; 
 /**
  * "converse" | "listen"
  */
-mode: string; turns: Turn[];
+mode: string; turns: Turn[]; 
 /**
  * Los tres modos vivían SOLO como estáticos en el backend y como
  * `useState(false)` en la vista, sin nada que los reconciliara: este struct
  * se diseñó para los turnos y nunca se le pidió responder por los modos.
- *
+ * 
  * El síntoma era de privacidad: salías de Sesiones con el audio del sistema
  * encendido, volvías, y el interruptor aparecía apagado mientras el backend
  * seguía capturando. Y `conversation_stop` los apaga los tres pero devolvía
@@ -1787,7 +1802,7 @@ mode: string; turns: Turn[];
  */
 hands_free: boolean; system_audio: boolean; sys_translate: boolean }
 export type CustomSounds = { start: boolean; stop: boolean }
-export type EngineType =
+export type EngineType = 
 /**
  * Any GGML/GGUF model loaded through transcribe-cpp (Whisper, Parakeet,
  * Voxtral, Qwen3-ASR, Nemotron, …). The architecture is auto-detected from
@@ -1800,7 +1815,7 @@ export type HistoryUpdatePayload = { action: "added"; entry: HistoryEntry } | { 
 /**
  * Result of changing keyboard implementation
  */
-export type ImplementationChangeResult = { success: boolean;
+export type ImplementationChangeResult = { success: boolean; 
 /**
  * List of binding IDs that were reset to defaults due to incompatibility
  */
@@ -1813,7 +1828,7 @@ export type LLMPrompt = { id: string; name: string; prompt: string }
 /**
  * Resultado de convertir menciones en enlaces `[[...]]`.
  */
-export type LinkedResult = { content: string;
+export type LinkedResult = { content: string; 
 /**
  * Cuántos enlaces se insertaron (para el hint del diálogo).
  */
@@ -1833,7 +1848,7 @@ export type McpStatus = { running: boolean; port: number; url: string | null; up
  * Conteo de llamadas por tool.
  */
 export type McpToolCount = { name: string; count: number }
-export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean;
+export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean; 
 /**
  * Editorial position within the recommended set (1 = the default we put
  * in front of a new user). The UI needs it to badge the top pick: without
@@ -1846,21 +1861,21 @@ export type ModelLoadStatus = { is_loaded: boolean; current_model: string | null
  * Where a model comes from and how Handy obtains it — the routing discriminant
  * for downloading and on-disk resolution.
  */
-export type ModelSource =
+export type ModelSource = 
 /**
  * Direct HTTP download from a URL (current blob.handy.computer hosting).
  */
-{ Url: { url: string;
+{ Url: { url: string; 
 /**
  * Expected SHA-256 for integrity verification; `None` skips it.
  */
-sha256: string | null } } |
+sha256: string | null } } | 
 /**
  * A file inside a Hugging Face Hub repo, fetched via hf-hub into the shared
  * HF cache (so other tools reuse it). The file within the repo is
  * [`ModelInfo::filename`].
  */
-{ HuggingFace: { repo_id: string; revision: string } } |
+{ HuggingFace: { repo_id: string; revision: string } } | 
 /**
  * Already present on disk — a user-provided custom model, or one discovered
  * in a shared cache. Nothing to download.
@@ -1879,13 +1894,12 @@ export type OverlayStyle = "none" | "minimal" | "live"
 export type PaginatedHistory = { entries: HistoryEntry[]; has_more: boolean }
 export type PasteMethod = "ctrl_v" | "direct" | "none" | "shift_insert" | "ctrl_shift_v" | "external_script"
 export type PermissionAccess = "allowed" | "denied" | "unknown"
-export type PluminHelpResponse = { topic: string; section: string;
+export type PluminHelpResponse = { topic: string; section: string; 
 /**
  * `None` indica que la UI debe usar su respuesta i18n congelada.
  */
 answer: string | null; used_local_engine: boolean }
 export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null; supports_structured_output?: boolean }
-export type SessionAudioRetention = "on_document" | "days_7" | "days_30" | "forever"
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
 /**
  * PRP-009 (Fase 2): una sesión recuperada del journal, lista para la
@@ -1896,17 +1910,26 @@ export type RecoveredSession = { mode: string; turns: Turn[]; doc: SessionDoc | 
  * Resumen de una sesión pendiente (journal sin `cierre`) para el diálogo de
  * recuperación. Nunca lleva rutas: el id es el único mango que ve la webview.
  */
-export type ResumenPendiente = { id: string; wall_ms: number; modo: string; turnos: number; duracion_ms: number; tiene_documento: boolean; tiene_audio: boolean;
+export type ResumenPendiente = { id: string; wall_ms: number; modo: string; turnos: number; duracion_ms: number; tiene_documento: boolean; 
 /**
  * El kill rompió la última línea: se recuperó todo lo anterior.
  */
-cola_rota: boolean }
+cola_rota: boolean; 
+/**
+ * Hay al menos un segmento de audio (mic-N/sys-N) para reprocesar.
+ */
+tiene_audio: boolean }
 export type SecretMap = Partial<{ [key in string]: string }>
+export type SessionAudioRetention = 
+/**
+ * El audio se borra al confirmarse el acta (default: privacidad primero).
+ */
+"on_document" | "days_7" | "days_30" | "forever"
 /**
  * Documento final + ánimo general de la sesión (idea de Pedro Sánchez,
  * comunidad): Plumín entrega el acta con la carita acorde.
  */
-export type SessionDoc = { text: string;
+export type SessionDoc = { text: string; 
 /**
  * "positivo" | "neutral" | "tenso" (neutral si el modelo no lo marcó).
  */
@@ -1916,13 +1939,13 @@ export type SoundTheme = "marimba" | "pop" | "custom"
 /**
  * Phase of the streaming overlay card, emitted to drive its UI state.
  */
-export type StreamPhase =
+export type StreamPhase = 
 /**
  * Receiving audio / live text (or waiting for the stream to begin). Rust
  * does not emit this today; the frontend starts in this phase and Rust only
  * emits transitions away from it.
  */
-"listening" |
+"listening" | 
 /**
  * Finalizing or post-processing — show a spinner.
  */
@@ -1930,7 +1953,7 @@ export type StreamPhase =
 /**
  * Emitted to switch the streaming overlay to a working spinner.
  */
-export type StreamPhaseEvent = { phase: StreamPhase;
+export type StreamPhaseEvent = { phase: StreamPhase; 
 /**
  * Present only when `phase` is `Working`.
  */
@@ -1945,17 +1968,17 @@ export type StreamTextEvent = { committed: string; tentative: string }
  * Semantic kind of "working" phase, used to localize the spinner label.
  */
 export type StreamWorkKind = "transcribing" | "polishing"
-export type StudioJob = { id: number; file_name: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[];
+export type StudioJob = { id: number; file_name: string; status: JobStatus; progress: number; error: string | null; duration_s: number; paragraphs: string[]; 
 /**
  * Líneas listas para la vista humana `[M:SS] texto`. Los segmentos crudos
  * siguen privados: la UI recibe solo lo que necesita para alternar la vista.
  */
-timestamped_text: string[]; summary: string | null;
+timestamped_text: string[]; summary: string | null; 
 /**
  * Modelo con el que se produjo esta transcripción (para mostrar el recibo
  * "mismo audio, modelo X" al re-transcribir). `None` = modelo por defecto.
  */
-model_id: string | null;
+model_id: string | null; 
 /**
  * Hubo tramos donde el modelo estaba adivinando (confianza media por debajo
  * del umbral). Sirve para avisar al usuario de que conviene repasar antes
@@ -1971,39 +1994,39 @@ low_confidence: boolean }
 export type TextReplacement = { find: string; replace: string; is_regex?: boolean }
 export type TranscribeAcceleratorSetting = "auto" | "cpu" | "gpu"
 export type TranslatorStatus = { listening: boolean; lang_a: string; lang_b: string }
-export type Turn = {
+export type Turn = { 
 /**
  * "user" | "assistant"
  */
-role: string; text: string;
+role: string; text: string; 
 /**
  * Segundos desde el inicio de la sesión (para mostrar mm:ss).
  */
 at_secs: number }
 /**
  * Qué hacer con un texto escrito a teclado.
- *
+ * 
  * Solo dos de los cuatro [`crate::actions::TranscribeMode`] tienen sentido por
  * aquí. `Edit` queda fuera a propósito: depende de la selección que captura el
  * Cmd/Ctrl+C sintético al empezar una edición por voz, así que desde un panel
  * de texto siempre encontraría el buffer vacío y caería en "no_selection".
  */
-export type TypedTextAction =
+export type TypedTextAction = 
 /**
  * Aplica el tono/plantilla configurada, igual que un dictado normal.
  */
-"correct" |
+"correct" | 
 /**
  * Traduce al idioma de `translation_target_language`.
  */
 "translate"
 export type TypingTool = "auto" | "wtype" | "kwtype" | "dotool" | "ydotool" | "xdotool"
-export type UsageStats = { total_transcriptions: number; total_words: number; words_last_30_days: number; active_days_last_30: number; current_streak_days: number;
+export type UsageStats = { total_transcriptions: number; total_words: number; words_last_30_days: number; active_days_last_30: number; current_streak_days: number; 
 /**
  * Minutos ahorrados vs teclear a 40 palabras/minuto (supuesto explícito
  * mostrado en la UI), descontando ~200 wpm de dictado efectivo.
  */
-minutes_saved: number;
+minutes_saved: number; 
 /**
  * Palabras dictadas por día en los últimos 7 días, la más antigua primero
  * (el índice 6 es hoy). Mismo balde de día UTC que usa la racha: un

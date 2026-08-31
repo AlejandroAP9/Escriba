@@ -1,8 +1,16 @@
 # PRP-009: Grabador de sesiones recuperable (SessionRecorder)
 
-> **Estado**: EN PROGRESO — Fases 1-5 implementadas; falta la validación
-> manual integral de las Fases 4-5 (sesión real + kill + re-transcribir +
-> retención) y la Fase 6.
+> **Estado**: COMPLETADO (validación integral real el 31-ago-2026, 01:0x,
+> sesión de Alejandro con ambas pistas). Evidencia: kill -9 con 7,6+9,5 MB
+> de pistas → todo sobrevivió cifrado, 0 texto claro; diálogo "52 turnos ·
+> 8:28" con re-transcripción que ARREGLÓ la ortografía del streaming
+> ("Provando escriva" → "Probando manos libres de Escriba."); snapshot
+> ReemplazoTurnos = 1 línea atómica de 4,7 KB; sesión reanudada apendeando
+> al mismo journal; confirmación por export a Obsidian borró los segmentos
+> EN EL ACTO (retención on_document) y cerró el journal; el barrido de
+> arranque eliminó la sesión cerrada previa. Pendiente menor: la "prueba
+> reina" con wifi apagado no se ejercitó explícitamente (todo el flujo fue
+> local de todos modos).
 > Aprobado por Alejandro el 30-ago-2026 sobre 70d25ccd; Fases 1-2 validadas
 > en real el mismo día; Fase 3 con matriz de cortes; Fase 4 con 5 bordes de
 > revisión cerrados (incluido el reemplazo atómico ReemplazoTurnos); Fase 5
@@ -48,7 +56,7 @@ diarización (cola acordada el 30-ago).
       guarde → el documento se recupera del journal, no solo los turnos.
 - [x] La última línea del journal rota por el kill no impide recuperar las
       anteriores (cola incompleta se descarta en silencio, se loguea).
-- [ ] Los `.escaud2` de ambas pistas truncados por el kill se recuperan hasta
+- [x] Los `.escaud2` de ambas pistas truncados por el kill se recuperan hasta
       el último frame AEAD válido y se pueden reproducir/re-transcribir, sin
       reescribir ningún frame existente.
 - [ ] Apagar y reencender el micrófono a mitad de sesión NO comprime el
@@ -68,16 +76,16 @@ diarización (cola acordada el 30-ago).
 - [x] `session_recovery_discard(id)` solo acepta IDs aleatorios del formato
       esperado, resuelve la ruta y verifica que quede contenida bajo
       `sessions/`, y rechaza symlinks y `..` (tests de traversal incluidos).
-- [ ] Retención aplicada: default `al_generar`; opciones 7 días, 30 días,
+- [x] Retención aplicada: default `al_generar`; opciones 7 días, 30 días,
       siempre. Sesiones interrumpidas bajo `al_generar` tienen **7 días de
       gracia de recuperación** antes del barrido, explicado en la UI. Ajuste
       nuevo con default + merge.
 - [ ] Descartar una recuperación ofrecida elimina journal y audio de esa
       sesión (verificable en disco).
-- [ ] `cargo test` con casos de: línea rota, frame truncado, ancla de reloj,
+- [x] `cargo test` con casos de: línea rota, frame truncado, ancla de reloj,
       huecos de pista, recuperación re-ejecutable (2× = mismo estado),
       traversal en discard, canal saturado sin bloqueo.
-- [ ] i18n: toda cadena nueva en 21 idiomas, `bun run check:translations` verde.
+- [x] i18n: toda cadena nueva en 21 idiomas, `bun run check:translations` verde.
 
 ### Comportamiento Esperado
 
@@ -339,6 +347,23 @@ conservada; simulación de disco lleno.
 - **Aplicar en**: todo PRP futuro que toque `recording_crypto` o el camino de
   audio: leer los comentarios del formato/contrato ANTES de proponer, no
   después (protocolo AGENTS.md; el comentario de `open_tap` ya lo decía).
+
+### 31-ago-2026: hallazgos de la validación integral (cola post-PRP)
+
+- **Timeout de condensación insuficiente en caliente**: dos actas fallaron
+  con LONG_FORM_REQUEST_TIMEOUT (300 s) excedido por UNA condensación, con
+  la GPU recién salida de re-transcribir. Arreglo: subir el timeout de las
+  condensaciones, un reintento antes de rendirse, y progreso visible
+  ("condensando parte X de Y"): la espera muda se siente como cuelgue.
+- **La "duplicación" de turnos era la pantalla del modo dev**: el
+  hot-reload registra dos veces el listener de `conversation-turn`. El
+  journal siempre tuvo un turno por evento; no existe empaquetado.
+- **La "anomalía" de journals borrados de la ronda 1, explicada**: eran
+  resets explícitos del usuario; las líneas de auditoría de los descartes
+  ahora lo dejan escrito.
+- Confirmados como siguientes etapas (ya en la cola acordada): supresión de
+  eco entre pistas (el mic escucha los parlantes y mezcla el video en TÚ) y
+  el inglés fantasma del modelo sobre audio de sala.
 
 ## Gotchas
 
