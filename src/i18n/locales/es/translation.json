@@ -366,7 +366,7 @@
         "forever": "Siempre",
         "graceHint": "Una sesión interrumpida tiene siempre al menos 7 días para recuperarse antes de la limpieza."
       },
-      "sessionsCredit": "El grabador a prueba de fallos sigue la idea de reunion-local (flopez1977, MIT): journal del estado y conservar el audio."
+      "sessionsCredit": "El grabador a prueba de fallos sigue la idea de Fernando López (reunion-local, MIT): journal del estado y conservar el audio."
     },
     "sound": {
       "title": "Sonido",
@@ -923,7 +923,7 @@
         "fuwa": "Fuwa: la ayuda dentro de la app que solo responde sobre la app, que aquí se volvió Pregúntale a Plumín.",
         "diapason": "Diapasón: publicaron una medición que encontró un fallo nuestro, el diccionario personal comiéndose palabras en castellano. Que te corrijan en público también se agradece.",
         "upstream": "Y CJ Pais, cuyo Handy es la base sobre la que está construido todo esto.",
-        "reunionLocal": "Y reunion-local (flopez1977), cuya idea de que una reunión debe sobrevivir a un crash se volvió el grabador de sesiones."
+        "reunionLocal": "Y Fernando López (reunion-local), cuya idea de que una reunión debe sobrevivir a un crash se volvió el grabador de sesiones."
       }
     },
     "transcription": {

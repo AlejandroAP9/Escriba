@@ -248,7 +248,7 @@ Compitieron contra nosotros y aun así nos enseñaron algo. Lo tomamos, y lo dec
 | **Fuwa**        | La ayuda dentro de la app que solo responde sobre la app, que aquí se volvió Pregúntale a Plumín                                                               |
 | **Diapasón**    | Publicaron una medición que encontró un fallo nuestro: el diccionario personal se comía palabras en castellano. Que te corrijan en público también se agradece |
 
-Y una idea que llegó después del concurso: el grabador de sesiones a prueba de fallos sigue a **[reunion-local](https://github.com/flopez1977/reunion-local)** (flopez1977, MIT): journal del estado y conservar el audio.
+Y una idea que llegó después del concurso: el grabador de sesiones a prueba de fallos sigue la idea de **Fernando López** ([reunion-local](https://github.com/flopez1977/reunion-local), MIT): journal del estado y conservar el audio.
 
 ## 📄 Licencia
 

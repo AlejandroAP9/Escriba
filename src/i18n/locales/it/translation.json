@@ -366,7 +366,7 @@
         "forever": "Always",
         "graceHint": "An interrupted session always gets at least 7 days to be recovered before cleanup."
       },
-      "sessionsCredit": "The crash-proof recorder follows the idea of reunion-local (flopez1977, MIT): journal the state, keep the audio."
+      "sessionsCredit": "The crash-proof recorder follows the idea of Fernando López (reunion-local, MIT): journal the state, keep the audio."
     },
     "sound": {
       "title": "Suono",
@@ -923,7 +923,7 @@
         "fuwa": "Fuwa: in-app help that answers only about the app, which here became Ask Plumín.",
         "diapason": "Diapasón: they published a measurement that found a bug of ours, the personal dictionary eating Spanish words. Being corrected in public is also a gift.",
         "upstream": "And CJ Pais, whose Handy is the base all of this is built on.",
-        "reunionLocal": "And reunion-local (flopez1977), whose idea that a meeting must survive a crash became the session recorder."
+        "reunionLocal": "And Fernando López (reunion-local), whose idea that a meeting must survive a crash became the session recorder."
       }
     },
     "transcription": {
