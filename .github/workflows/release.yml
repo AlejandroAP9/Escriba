@@ -62,12 +62,14 @@ jobs:
           - platform: "windows-latest"
             args: ""
             target: "x86_64-pc-windows-msvc"
-          - platform: "ubuntu-24.04"
-            args: "--bundles appimage"
-            target: "x86_64-unknown-linux-gnu"
-          - platform: "ubuntu-22.04"
-            args: "--bundles deb"
-            target: "x86_64-unknown-linux-gnu"
+          # 2.5.0: corte solo mac+windows a pedido de Alejandro (31-ago).
+          # Descomentar para volver a las cinco plataformas.
+          # - platform: "ubuntu-24.04"
+          #   args: "--bundles appimage"
+          #   target: "x86_64-unknown-linux-gnu"
+          # - platform: "ubuntu-22.04"
+          #   args: "--bundles deb"
+          #   target: "x86_64-unknown-linux-gnu"
 
     uses: ./.github/workflows/build.yml
     with:

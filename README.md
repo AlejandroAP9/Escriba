@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.4.1-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
+  <a href="https://github.com/AlejandroAP9/Escriba/releases/latest"><img src="https://img.shields.io/badge/versi%C3%B3n-2.5.0-e6d2a8?style=for-the-badge&labelColor=14102a" alt="última versión" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-e6d2a8?style=for-the-badge&labelColor=14102a" alt="macOS, Windows y Linux" />
   <img src="https://img.shields.io/badge/100%25-local-6ee7a0?style=for-the-badge&labelColor=14102a" alt="100% local" />
   <img src="https://img.shields.io/badge/licencia-MIT-e6d2a8?style=for-the-badge&labelColor=14102a" alt="licencia MIT" />
@@ -81,6 +81,7 @@ Ve a **[releases/latest](https://github.com/AlejandroAP9/Escriba/releases/latest
 | 🇪🇸 **Español profundo**          | Restaura tildes inequívocas, convierte nombres de emojis y numerales hablados a cifras sin tocar expresiones como “mil gracias” u “hora y media”.                                                                                                                                           |
 | 🗽 **Dictado libre**             | Cero atajos: actívalo y habla. Cada frase se escribe sola donde esté tu cursor, cortada por el detector de voz. Con indicador siempre visible.                                                                                                                                              |
 | 👁️ **Revisar antes de pegar**    | Opcional: el dictado se muestra en pantalla antes de escribirse — pégalo, descártalo o dicta una corrección con tu atajo. Para correos delicados.                                                                                                                                           |
+| 💾 **A prueba de fallos**        | Cada turno y acta de una sesión se guarda cifrado al momento, y el audio crudo también. Si Escriba muere a mitad de una reunión, al reabrir te ofrece recuperarla, con re-transcripción desde el audio incluida. Idea de Fernando López (reunion-local).                                    |
 | 💬 **Sesiones**                  | Habla una hora y llévate un documento listo: conversa con la IA local (te responde con voz) o deja que solo escuche tu reunión, entrevista o clase. Al terminar: acta, apuntes o nota, redactados por el motor local.                                                                       |
 | 🖥️ **Audio del sistema**         | Sesiones también escucha lo que suena en tu computador: la otra parte del Zoom/Meet entra al acta como "Otros", con marca de tiempo. Actas de reunión a dos voces, sin nube. (macOS 13+)                                                                                                    |
 | 🎙️ **Intérprete de reuniones**   | Interpretación en vivo de tus videollamadas, ida y vuelta: lo que suena llega en tu idioma; lo que dictas sale traducido y hablado _dentro_ de la llamada por un micrófono virtual integrado (1 clic). Hablas español, el otro escucha inglés. 100% local. (idea de John Walter, macOS 13+) |
@@ -183,6 +184,7 @@ Toda la evolución de Escriba, versión por versión (fechas reales de la dupla 
 
 | Versión | Fecha  | Novedades                                                                                                                                          |
 | ------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.5.0   | 31-ago | 💾 Las sesiones sobreviven a cualquier crash: journal cifrado, audio recuperable y re-transcripción                                                |
 | 2.4.1   | 11-ago | 🙌 El crédito de cada función, en la pantalla donde se usa                                                                                         |
 | 2.4.0   | 10-ago | 🛡️ Secuestro por dictado cerrado en los 4 modos + 🎯 Parakeet V3 como modelo recomendado + 🪟 Windows dice la verdad cuando bloquea el motor de IA |
 | 2.3.1   | 09-ago | 🎙️ Modo fiel + 🔄 actualización desde la app + 🎬 Estudio renovado + 📝 actas largas confiables                                                    |

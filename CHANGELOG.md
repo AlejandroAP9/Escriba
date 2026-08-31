@@ -11,6 +11,65 @@ convertir una app de dictado en un motor de IA **100% local y gratis**.
 
 ## [Sin publicar]
 
+## [2.5.0] — 2026-08-31
+
+**La reunión que no se pierde.** Hasta hoy, Sesiones tenía un asterisco
+invisible: si Escriba moría a mitad de una reunión, se perdía todo. Esta
+versión lo quita, y lo probamos de la forma menos diplomática posible: una
+reunión real, un `kill -9`, y todo volvió.
+
+### Añadido
+
+- **Journal de sesión a prueba de fallos.** Cada turno y cada acta se guarda
+  cifrado en el momento en que existe (fsync por evento: 4 ms, ruido a ritmo
+  humano). El cierre inesperado más violento deja como mucho la última línea
+  a medias, y esa se descarta sin arrastrar nada.
+- **El audio también se guarda.** Las dos pistas crudas (tu micrófono y el
+  audio del sistema), cifradas en un contenedor incremental nuevo (ESCAUD2)
+  que crece frame a frame y se recupera truncando hasta el último frame
+  válido, jamás reescribiendo. Se graba ANTES del filtro de voz: lo que el
+  directo transcribe mal, la re-pasada lo puede arreglar.
+- **Recuperación al reabrir.** Un journal sin cierre se ofrece al arrancar:
+  recuperar la sesión (turnos y acta a la pantalla, con sus tiempos),
+  exportar el acta directo a Obsidian, o descartar. Y el botón estrella:
+  **recuperar re-transcribiendo el audio**, que reconstruye los turnos desde
+  las pistas con el motor del Estudio. En la validación real corrigió la
+  ortografía del directo: "Provando escriva" volvió como "Probando manos
+  libres de Escriba."
+- **Retención con la privacidad por defecto.** El audio se borra solo al
+  confirmarse el acta (o a 7 días, 30 días, o nunca, a tu elección); una
+  sesión interrumpida tiene siempre al menos 7 días para recuperarse. Grupo
+  nuevo en Ajustes → General → Sesiones, con aviso si el disco anda justo.
+- **Crédito donde corresponde**: la idea de que una reunión debe sobrevivir
+  a un crash es de **Fernando López** (reunion-local, MIT), y está dicho en
+  Ajustes, en Gracias y en el README.
+
+### Arreglado
+
+- **"Mil millones" ya se convierte** ("dos mil millones" → 2.000.000.000).
+  El conversor descartaba la frase entera. Reportado por Juan Francisco
+  Ceccarelli.
+- **Las reglas de buscar y reemplazar ya no se pierden** si no hacías clic
+  fuera del campo antes de probar: se guardan mientras escribes. También de
+  Juan Francisco.
+- **El razonamiento en voz alta de los modelos "thinking" ya no se cuela**
+  en tu texto por la ruta de respaldo de Ollama: se limpia en el único punto
+  por donde pasa toda respuesta del motor.
+- **Con Ollama ya no se toma el primer modelo de la lista** a ciegas: se
+  elige el más parecido al que Escriba iba a usar (familia, tamaño,
+  instruct), y los modelos de embeddings quedan filtrados.
+
+### Sabido y sin resolver
+
+- El acta de una sesión muy larga puede exceder el tiempo del redactor local
+  con la GPU caliente (dos fallos reales en la validación): el timeout de
+  las condensaciones, su reintento y el progreso visible están en la cola.
+- Con parlantes sin auriculares, el micrófono escucha el video/llamada y esa
+  voz se mezcla en tus turnos: la supresión de eco entre pistas es la
+  siguiente etapa del plan.
+
+Esta versión sale para **macOS y Windows**. Linux vuelve en la siguiente.
+
 ## [2.4.1] — 2026-08-11
 
 **El crédito, donde se usa la feature.** Escriba tiene funciones que no se nos
