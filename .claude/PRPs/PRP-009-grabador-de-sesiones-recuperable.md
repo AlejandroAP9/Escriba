@@ -22,7 +22,10 @@
 > el audio), no el código: su stack (Python/Torch/pyannote/mlx-whisper) no
 > encaja en un Tauri distribuible. Si en alguna fase se porta código
 > sustancial, se conserva su aviso de copyright y se agrega el crédito con el
-> estándar de la casa.
+> estándar de la casa. El autor, Fernando López, publicó el repo en la
+> comunidad invitando explícitamente a adaptarlo: «pasárselo a vuestro
+> Claude para que adapte y haga lo que quiera» (post en Imperio Agéntico,
+> Logro Imperial 2/28).
 
 ## Objetivo
 
